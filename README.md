@@ -1,6 +1,8 @@
 # About this app
 
-This project was generated using the Vite boilerplate project generator as a Typescript/React project.  It's the first time I'm using Vite, which is a local app server/package bundler for running JavaScript/Typescript apps in a development enviroinment.  We'll have to see if we run into any trouble with Vite, but I doubt it.  It's alsi the first time I'm using Typescript.  I'm not sure if or how it interacts with Rreact, but seeing as how Vite lets you select both of them as part of its project config, I guess they're compatible!
+This project was generated using the Vite boilerplate project generator as a Typescript/React project.  It's the first time I'm using Vite, which is a local app server/package bundler for running JavaScript/Typescript apps in a development enviroinment.  We'll have to see if we run into any trouble with Vite, but I doubt it.
+
+It's also the first time I'm using Typescript.  Both React and Typescript are extensions to JavaScript and "transpile" down to vanilla JS before the code executes.  Given that, it seems like React and Typescript wouldn't get along together, but seeing as how Vite lets you select both of them as part of its project config, I guess they're compatible!
 
 # Installing and running the code
 
