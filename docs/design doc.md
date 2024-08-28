@@ -9,7 +9,7 @@ FUNCTIONAL DESIGN
 -----------------
 Visuals
 -------
-The application has three main "layers", which maps nicely into three main UI views, plus a separate fourth view:
+The application has three main "layers", which maps nicely into three main UI views:
 
     1. INGREDIENTS
     This layer records the nutrition information of "low-level" foods: basically, whatever you might buy in a grocery store.  This could range from simple table salt to complex prepared meals, but every food listed in this layer MUST provide nutrition information, supplied by either the manufacturer, the vendor, or reliable third parties like the USDA.  The focus is on foods that are typically used as ingredients in cooking recipes.
@@ -28,7 +28,15 @@ The application has three main "layers", which maps nicely into three main UI vi
     3. DAILY LOG
     This layer tracks daily consumption of food as a number of servings of MEALS.  And again, as a result it tracks the same composite nutrition data.  Daily consumption data can be color-coded according to its relation to the USDA limits.  For example, if you've consumed too much salt in a day, your daily log's "sodium" column might be color-coded as red.  Users will be able to alter their daily logs at will, as some entries might be "hypothetical", to see what the data might show for a number of different possible meal plans.
 
-    4. RECIPES
+Other views include:
+
+    4. INGREDIENT ENTRY
+    A form for inputting/editing an INGREDIENT record.  I thought about letting the user edit the records in the table inline, but that would be a nightmare to code.  MAYBE LATER!  Basically, every column on the INGREDIENT list needs an input field on this form.
+
+    5. MEAL ENTRY
+    A form for inputting/editing a MEAL record.  A lot of the fields in the MEALS list are calculated, so there aren't as many fields on this form.  The main difficulty is having a way to pick the INGREDIENTS in the proper proportions.  I envision a scrolling listbox of the INGREDIENT names and total/serving sizes.  Next to the list we'll have a button to add the selected INGREDIENT, and an edit box for the number of servings.  It's crucial that this be a number, because the meal data is calculated as sum of ingredient data.  For example, the serving size for sugar is 1 tbsp, and its nutrition info is for that quantity; so if you're adding sugar to a meal, it has to be a multiple of 1 tbsp.  If a meal only needs 2 tsp of sugar, that's 0.67 "sugars".
+
+    6. RECIPES
     The MEALS layer only lists a meal's components, not how to put them together.  A RECIPE lists the steps needed to make a particular MEAL.  This step is entirely optional.  It's just a convenient place to store recipes.
 
 Later on we can add additional views with cool data visualization, like bar charts or pie charts.
@@ -46,6 +54,11 @@ The nav bar will contain a search/filter widget which is present in the INGREDIE
 - To the left of the widget is a switch which toggles between search and filter functionality.  Small icons to either side of the toggle will indicate the two modes (an hourglass for search and a funnel for filter).  Search mode scrolls the list to the next match in the name column and highlights the row.  Filter mode removes from view every row that doesn't match.
 - The center of the widget is a textbox for the search/filter text.  When it is not empty, it has an "x" button to the right to clear the edit box's contents.
 - To the right of the widget are small up/down arrows, used to proceed to the previous/next match when in search mode. The arrows will be disabled when in filter mode.
+
+
+Sort
+----
+The user may click on column headers to sort the data.  Each column has three possible states: no sort (the default), 
 
 
 Single-page App (SPA)
