@@ -14,12 +14,12 @@ This layer records the nutrition information of "low-level" foods: basically, wh
 
 The nutrition information provided is basically what you see in the government-mandated nutrition label for any food product sold in the US, and optionally the item's price.  Nutrition info is specific to a particular product from a particular brand, so if you buy canned tomatoes made by two different companies, that's two different entries in the list, even if they are otherwise exactly identical.
 
-We can provide some default data for this list for some "generic" foods like fresh fruit and vegetables, but for the most part it will be up to the user to enter the data for the foods they purchase.
+We can provide some default data for this list for some "raw" foods like fresh fruit and vegetables... maybe meat and cheese... but for the most part it will be up to the user to enter the data for the foods they purchase.
 
 2. MEALS
-This layer tracks the nutrition information of meals which are composed of INGREDIENTS in the proper proportions, and thus provides composite nutrition information.  For example, a "PBJ" meal might consist of two servings of whole wheat bread, two servings of chunky peanut butter, and two servings of blueberry preserves; the resultant nutrition for the meal info would be calculated as the sum of the nutrition data for those ingredients.
+This layer tracks the nutrition information of meals which are composed of INGREDIENTS in the proper proportions, and thus provides composite nutrition information.  For example, a "PBJ" meal might consist of two servings of whole wheat bread, two servings of chunky peanut butter, and two servings of blueberry preserves; the resultant nutrition for the meal info would be calculated as the sum of the nutrition data for those ingredients.  If the user entered price data for all the ingredients, we can also show a per-serving cost for the meal, which is very interesting when comparing to restaurant prices.
 
-The exact composition of any meal is at the discretion of the user, but MUST consist of items listed in the INGREDIENTS list.  Because that depends on the exact brands and varieties available, there is no "universal" meal recipe, even for simple meals.  For example, the PBJ recipe would depend on what type and brand of bread, peanut butter, and jam a user purchases.
+The exact composition of any meal is at the discretion of the user, but it MUST consist of items in the INGREDIENTS list.  Because that depends on the exact brands and varieties available, there is no "universal" meal recipe, even for simple meals.  For example, the exact PBJ recipe would depend on what type and brand of bread, peanut butter, and jam a user purchases.
 
 Again, we can provide a few simple meals as examples, but to be accurate the list really has to be entered by the user based on their own ingredient purchases and what meals they actually eat!
 
@@ -35,7 +35,7 @@ As you might have noticed, the DAILY LOG is composed of MEALS, which are in turn
 
 Ultimately, updating the DAILY LOG will constitute the majority of the effort in using the app.  But even if users don't want to bother with the DAILY LOG, just the data provided by the MEALS layer is still invaluable, as it gives a great deal of insight into what's really "good to eat".  I can tell you that I learned a lot of surprising things from this data!
 
-Now... I realize that in reality, a typical user will be far too lazy to enter all this data, even if we make this the easiest-to-use app in the world.  The app probably isn't practical for mass consumption.  But I'm not looking to sell it!  I'm just interested in (a) using it for myself (and I've already entered a huge amount of INGREDIENT and MEAL data); (b) getting practice using the relevant development technologies; and (c) having a decent-looking portfolio app that I can show off in an interview.
+Now... I realize that in reality, a typical user will be far too lazy to enter all this data, even if we make this the easiest-to-use app in the world.  The app probably isn't practical for mass consumption.  But I'm not looking to sell it!  I'm just interested in (a) using it for myself (which I already do with the spreadsheet version of this app); (b) getting practice using the relevant development technologies; and (c) having a decent-looking portfolio app that I can show off in an interview.
 
 
 VISUAL DESIGN
