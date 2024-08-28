@@ -1,8 +1,8 @@
 # About this app
 
-This project was generated using the Vite boilerplate project generator.  It's the first time I'm using Vite, which is a local app server/package bundler for running JavaScript/Typescript apps in a development enviroinment.  My JS and React courses used an older tool called Webpack.  Vite is much faster and generates much smaller deployment bundles, but it is also said to be not quite as robust and compatible with other code and products.  Still, it seems very popular and I am already loving the performance bump.  Besides, Webpack's project generator has been deprecated and the libraries it uses are years out of date.  So we'll have to see if we run into any trouble with Vite, but I doubt it.
+This project was generated using the Vite boilerplate project generator as a Typescript/React project.  It's the first time I'm using Vite, which is a local app server/package bundler for running JavaScript/Typescript apps in a development enviroinment.  We'll have to see if we run into any trouble with Vite, but I doubt it.
 
-Another first for this project is Typescript compatibility.  Of interest is that both Typescript and React's language (JSX) are supersets of JavaScript.  Neither knows about the other, but they are both "transpiled" into native JavaScript before the code executes.  Vite's code generator let me select both Typescript and React for its generated code, and its boilerplate logo screen even has the React logo on it, so that seems like a pretty good sign that they should all be compatible.  Again, we'll see!
+It's also the first time I'm using Typescript.  Both React and Typescript are syntactical extensions to JavaScript and both "transpile" down to vanilla JS before the code executes.  Given that, it seems like React and Typescript shouldn't get along together, but seeing as how Vite lets you select both of them as part of its project config, I guess they're compatible!
 
 # Installing and running the code
 
@@ -15,7 +15,7 @@ This will download all the required JavaScript dependencies, including the React
 npm run dev
 
 This will bundle up the app, deploy it to the Vite app server, and start it up.  Then you should be able to start up a browser and point it at localhost:5173 to see the app.  Voila!
-The coolest thing is that as you make changes to the code, it is automatically compiled and deployed and you can see its effects in real time.  I recommend using VS Code as your editor and setting it to auto-save for even greater responsiveness.
+The coolest thing is that if you keep the app running, as you make changes to the code, it is automatically compiled and deployed and you can see its effects in real time.  I recommend using VS Code as your editor and setting it to auto-save for even greater responsiveness.
 
 
 The remaining text in this README was written by the Vite boilerplate generator.  I haven't tried wrapping my brain around it yet:
