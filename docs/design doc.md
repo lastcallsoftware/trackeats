@@ -7,47 +7,58 @@ I have firsthand experience of this and can attest to its persuasive power: I lo
 
 FUNCTIONAL DESIGN
 -----------------
+Visuals
+-------
 The application has three main "layers", which maps nicely into three main UI views, plus a separate fourth view:
 
-1. INGREDIENTS
-This layer records the nutrition information of "low-level" foods: basically, whatever you might buy in a grocery store.  This could range from simple table salt to complex prepared meals, but every food listed in this layer MUST provide nutrition information, supplied by either the manufacturer, the vendor, or reliable third parties like the USDA.  The focus is on foods that are typically used as ingredients in cooking recipes.
+    1. INGREDIENTS
+    This layer records the nutrition information of "low-level" foods: basically, whatever you might buy in a grocery store.  This could range from simple table salt to complex prepared meals, but every food listed in this layer MUST provide nutrition information, supplied by either the manufacturer, the vendor, or reliable third parties like the USDA.  The focus is on foods that are typically used as ingredients in cooking recipes.
 
-The nutrition information provided is basically what you see in the government-mandated nutrition label for any food product sold in the US, and optionally the item's price.  Nutrition info is specific to a particular product from a particular brand, so if you buy canned tomatoes made by two different companies, that's two different entries in the list, even if they are otherwise exactly identical.
+    The nutrition information provided is basically what you see in the government-mandated nutrition label for any food product sold in the US, and optionally the item's price.  Nutrition info is specific to a particular product from a particular brand, so if you buy canned tomatoes made by two different companies, that's two different entries in the list, even if they are otherwise exactly identical.
 
-We can provide some default data for this list for some "raw" foods like fresh fruit and vegetables... maybe meat and cheese... but for the most part it will be up to the user to enter the data for the foods they purchase.
+    We can provide some default data for this list for some "raw" foods like fresh fruit and vegetables... maybe meat and cheese... but for the most part it will be up to the user to enter the data for the foods they purchase.
 
-2. MEALS
-This layer tracks the nutrition information of meals which are composed of INGREDIENTS in the proper proportions, and thus provides composite nutrition information.  For example, a "PBJ" meal might consist of two servings of whole wheat bread, two servings of chunky peanut butter, and two servings of blueberry preserves; the resultant nutrition for the meal info would be calculated as the sum of the nutrition data for those ingredients.  If the user entered price data for all the ingredients, we can also show a per-serving cost for the meal, which is very interesting when comparing to restaurant prices.
+    2. MEALS
+    This layer tracks the nutrition information of meals which are composed of INGREDIENTS in the proper proportions, and thus provides composite nutrition information.  For example, a "PBJ" meal might consist of two servings of whole wheat bread, two servings of chunky peanut butter, and two servings of blueberry preserves; the resultant nutrition for the meal info would be calculated as the sum of the nutrition data for those ingredients.  If the user entered price data for all the ingredients, we can also show a per-serving cost for the meal, which is very interesting when comparing to restaurant prices.
 
-The exact composition of any meal is at the discretion of the user, but it MUST consist of items in the INGREDIENTS list.  Because that depends on the exact brands and varieties available, there is no "universal" meal recipe, even for simple meals.  For example, the exact PBJ recipe would depend on what type and brand of bread, peanut butter, and jam a user purchases.
+    The exact composition of any meal is at the discretion of the user, but it MUST consist of items in the INGREDIENTS list.  Because that depends on the exact brands and varieties available, there is no "universal" meal recipe, even for simple meals.  For example, the exact PBJ recipe would depend on what type and brand of bread, peanut butter, and jam a user purchases.
 
-Again, we can provide a few simple meals as examples, but to be accurate the list really has to be entered by the user based on their own ingredient purchases and what meals they actually eat!
+    Again, we can provide a few simple meals as examples, but to be accurate the list really has to be entered by the user based on their own ingredient purchases and what meals they actually eat!
 
-3. DAILY LOG
-This layer tracks daily consumption of food as a number of servings of MEALS.  And again, as a result it tracks the same composite nutrition data.  Daily consumption data can be color-coded according to its relation to the USDA limits.  For example, if you've consumed too much salt in a day, your daily log's "sodium" column might be color-coded as red.  Users will be able to alter their daily logs at will, as some entries might be "hypothetical", to see what the data might show for a number of different possible meal plans.
+    3. DAILY LOG
+    This layer tracks daily consumption of food as a number of servings of MEALS.  And again, as a result it tracks the same composite nutrition data.  Daily consumption data can be color-coded according to its relation to the USDA limits.  For example, if you've consumed too much salt in a day, your daily log's "sodium" column might be color-coded as red.  Users will be able to alter their daily logs at will, as some entries might be "hypothetical", to see what the data might show for a number of different possible meal plans.
 
-4. RECIPES
-The MEALS layer only lists a meal's components, not how to put them together.  A RECIPE lists the steps needed to make a particular MEAL.  This step is entirely optional.  It's just a convenient place to store recipes.
+    4. RECIPES
+    The MEALS layer only lists a meal's components, not how to put them together.  A RECIPE lists the steps needed to make a particular MEAL.  This step is entirely optional.  It's just a convenient place to store recipes.
 
 Later on we can add additional views with cool data visualization, like bar charts or pie charts.
 
-As you might have noticed, the DAILY LOG is composed of MEALS, which are in turn composed of INGREDIENTS.  So the hardest part for the user will be in entering a reasonably complete INGREDIENT list.  You might think that this would be impractical because there are simply too many different foods, and thus too much data to enter.  But in practice, people don't actually vary their diet and food purchases all that much.  It will admittedly be onerous to set up the INGREDIENTS and MEALS lists at first, but as time goes on the user will need to do it less and less often, since more and more of the foods they eat will already be in the database.
+Most of the data in the app will be the INGREDIENTS list (my Excel spreadsheet has about 500 INGREDIENTS, 200 MEALS, and 100 DAILY LOGS).  It will admittedly be onerous to set up the INGREDIENTS and MEALS lists at first, but in practice, people don't actually vary their diet and food purchases all that much, and as time goes on the user will need to add new items to the lists less and less often.
 
 Ultimately, updating the DAILY LOG will constitute the majority of the effort in using the app.  But even if users don't want to bother with the DAILY LOG, just the data provided by the MEALS layer is still invaluable, as it gives a great deal of insight into what's really "good to eat".  I can tell you that I learned a lot of surprising things from this data!
 
-Now... I realize that in reality, a typical user will be far too lazy to enter all this data, even if we make this the easiest-to-use app in the world.  The app probably isn't practical for mass consumption.  But I'm not looking to sell it!  I'm just interested in (a) using it for myself (which I already do with the spreadsheet version of this app); (b) getting practice using the relevant development technologies; and (c) having a decent-looking portfolio app that I can show off in an interview.
+[Now... I realize that in reality, a typical user will be far too lazy to enter all this data, even if we make this the easiest-to-use app in the world.  The app probably isn't practical for mass consumption.  But I'm not looking to sell it!  I'm just interested in (a) using it for myself (which I already do with the spreadsheet version of this app); (b) getting practice using the relevant development technologies; and (c) having a decent-looking portfolio app that I can show off in an interview.]
 
 
-VISUAL DESIGN
+Search/Filter
 -------------
-- Single-page App (SPA)
+The nav bar will contain a search/filter widget which is present in the INGREDIENTS and MEALS views:
+- To the left of the widget is a switch which toggles between search and filter functionality.  Small icons to either side of the toggle will indicate the two modes (an hourglass for search and a funnel for filter).  Search mode scrolls the list to the next match in the name column and highlights the row.  Filter mode removes from view every row that doesn't match.
+- The center of the widget is a textbox for the search/filter text.  When it is not empty, it has an "x" button to the right to clear the edit box's contents.
+- To the right of the widget are small up/down arrows, used to proceed to the previous/next match when in search mode. The arrows will be disabled when in filter mode.
+
+
+Single-page App (SPA)
+---------------------
 The app will be a single-page app based on React.  This means that instead of loading new web pages when you click on internal links, the app instead keeps the same webpage loaded all the time and only replaces UI components when you navigate around.  This gives it a snappier feel and makes it run better on mobile devices.  This is achieved via an add-on library called React Router, which is trivially simple to use -- literally just a few lines of JSX to add it to the app.
 
 The app's "main" page will be the header/navigation bar, with links (possibly visually styled as tabs?) to the INGREDIENTS, MEALS, and DAILY LOG pages.  (I've been going back and forth on the names of these tabs: maybe FOODS instead of INGREDIENTS (for brevity), and maybe DISHES instead of MEALS (for accuracy).)  A fourth view (RECIPE) will be accessible from the MEALS page.  Plus we may wish to add other views later, such as an ABOUT page and maybe some pages for visualizatizing the data.
 
 Each of the three main views will basically be a table, and they will show much the same data: nutrition info for each table entry.  I've thought about whether to use a third-party React component for the table, or to write our own table code.  The former would obviously be quicker and easier, but that would also defeat one of the main purposes of the app, which is to exercise our coding skills.  Plus I'm always biased towards a "roll your own" solution because it gives you more control over its behavior and appearance.  We'll see when we get there (which should actually be pretty soon!).
 
-- Responsive Design
+
+Responsive Design
+-----------------
 Resposive Design is the practive of styling and designing the UI such that it dynamically reconfigures itself to fit "nicely" on whatever device it's used on.  For example, a view that has two columns of text side-by-side in a browser window on a PC might automatically reconfigure to one column on a smartphone.  Menus that were horizonal on a brower might vertical on a mobile device.
 
 This is achieved mostly in CSS, through the use of "media queries" (CSS styles that "query" the window for its current size), modern display styles like flexboxes and grids which reconfigure themselves when necessary, and margins and other size specifications that are relative (e.g., proportional to the window's current font size) rather than absolute (e.g., a specific number of pixels).
