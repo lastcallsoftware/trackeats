@@ -5,8 +5,8 @@ The purpose of the application is to track the nutrition information of the food
 I have firsthand experience of this and can attest to its persuasive power: I lost over 20 pounds in just a couple months when I logged my daily consumption in a spreadsheet, but then slowly gained it back when I stopped doing it.  And the reason I stopped had nothing to do with any dietary cravings -- it was because updating a spreadsheet every day is a pain in the butt and I got tired of it!  So the primary objective of this app's design is to make it easy to use, while still providing detailed, accurate information -- possibly even incorporating a voice interface.
 
 
-VISUAL DESIGN
--------------
+FUNCTIONAL DESIGN
+-----------------
 The application has three main "layers", which maps nicely into three main UI views, plus a separate fourth view:
 
 1. INGREDIENTS
@@ -35,7 +35,17 @@ As you might have noticed, the DAILY LOG is composed of MEALS, which are in turn
 
 Ultimately, updating the DAILY LOG will constitute the majority of the effort in using the app.  But even if users don't want to bother with the DAILY LOG, just the data provided by the MEALS layer is still invaluable, as it gives a great deal of insight into what's really "good to eat".  I can tell you that I learned a lot of surprising things from this data!
 
-Now... I realize that in reality, a typical user will be far too lazy to enter all this data, even if we make this the easiest-to-use app in the world.  But I'm not looking to sell this app!  I'm just interested in (a) using it for myself (and I've already entered a huge amount of INGREDIENT and MEAL data); (b) getting practice using the relevant development technologies; and (c) having a decent-looking portfolio app that I can casually show off in an interview.
+Now... I realize that in reality, a typical user will be far too lazy to enter all this data, even if we make this the easiest-to-use app in the world.  The app probably isn't practical for mass consumption.  But I'm not looking to sell it!  I'm just interested in (a) using it for myself (and I've already entered a huge amount of INGREDIENT and MEAL data); (b) getting practice using the relevant development technologies; and (c) having a decent-looking portfolio app that I can show off in an interview.
+
+
+VISUAL DESIGN
+-------------
+- Single-page App (SPA)
+The app will be a single-page app based on React.  This means that instead of loading new web pages when you click on internal links, the app instead keeps the same webpage loaded all the time and only replaces UI components when you navigate around.  This gives it a snappier feel and makes it run better on mobile devices.  This is achieved via an add-on library called React Router, which is trivially simple to use -- literally just a few lines of JSX to add it to the app.
+
+The app's "main" page will be the header/navigation bar, with links (possibly visually styled as tabs?) to the INGREDIENTS, MEALS, and DAILY LOG pages.  (I've been going back and forth on the names of these tabs: maybe FOODS instead of INGREDIENTS (for brevity), and maybe DISHES instead of MEALS (for accuracy).)  A fourth view (RECIPE) will be accessible from the MEALS page.  Plus we may wish to add other views later, such as an ABOUT page and maybe some pages for visualizatizing the data.
+
+Each of the three main views will basically be a table, and they will show much the same data: nutrition info for each table entry.  I've thought about whether to use a third-party React component for the table, or to write our own table code.  The former would obviously be quicker and easier, but that would also defeat one of the main purposes of the app, which is to exercise our coding skills.  Plus I'm always biased towards a "roll your own" solution because it gives you more control over its behavior and appearance.  We'll see when we get there (which should actually be pretty soon!).
 
 
 TECHNICAL DESIGN
@@ -47,38 +57,57 @@ The bonus is that once you demonstrate a familiarity with a certain TYPE of tech
 
 Back end and container services
 -------------------------------
-I want to go with the LAMP stack: Linux, Apache Web Server, MySQL, and Python.  That doesn't include orchestration, container, or deployment tools, though, so those techs would be in addition to that stack.
-AWS/Kubernetes/Docker/??? (I have to see when I get to this point in my learning what to choose here)
+AWS/Kubernetes/Docker/??? (research needed)
 Apache Web Server
 MySQL
 Django/Python
+Jenkins/Git Actions
+
+I want to go with the LAMP stack: Linux, Apache Web Server, MySQL, and Python.  That doesn't include orchestration, container, or deployment tools, though, so those techs would be in addition to that stack.
+
+One way or another this app will be running on an AWS server.  I actually do have some relatively recent experience with AWS -- I had a Minecraft server running on AWS for a couple years -- so that will help, but deploying a web app with back end code and database support is substantially more complicated, so we'll see.
+
+Since I was last in the game, "orchestration" products like Kubernetes have emerged.  These products take a declarative syntax (i.e., something like a JSON or HTML file) and use that to automatically manage all the container setup and deployment for you.  So to set up the app environment you don't have to know all the cryptic details of AWS, you'd just have to know all the cryptic details of Kubernetes. :P  Seriously though, the advantage is that once you set it up, you never (or at least rarely) have to deal with it again, even if you blow up your deployment and rebuild it from scratch, plus you avoid the potential for human error each time.
+
+This also ties into continuous integration.  CI is actually massive overkill for a tiny project with only a couple contributors, but I want to get experience with it.  Jenkins is probably the product to use here, though Git Actions is new and I'm guessing more accessible.  But CI is a "nice to have" rather than a requirement, so it's something I'll add later, time permitting.
+
+The back end business logic (which will consist of little more than fetching data from the database and shipping it off to the front end) will be done using Python.  Since Python is an interpreted language we need a runtime environment, and that's where Django comes in.  Django also is described as a Python "framework" and may have additional features like you'd get from an app server.  I've got a whole course on Django ahead of me so that will be useful.
+
+Back in the day, Java (my specialty) would have been the unquestioned choice for the back end business logic, but it barely gets a mention anymore.  Sadge.
+
+
+Front end
+---------
+HTML
+CSS
+JavaScript/Typescript
+React
+Chakra UI? possibly other React libraries?
+NPM/NodeJS
+
+One of React's main advantages is that thanks to its component-based design, there are LOADS of free/open source libraries for it that provide all kinds of visual widgets.  You just install them via npm (which is just one command line), import them in the appropriate .js file (one line of JS), and voila, off you go!  But as noted above, while using third-party UI libraries will certainly make development faster and easier, that also defeats one of the main purposes of writing this app in the first place, which is to learn to code!  So we'll have to see how we're going before we decide on this.
+
 
 Design and development tools
 ----------------------------
-Jira - bug/issue tracking, though maybe just use Git for this if Jira is too unwieldy
-Jenkins/Git Actions - CI/CD (again, need to study up before I make decisions on this)
 Git - version control
 Slack - chat/video conferencing/screen sharing
 diagrams.net (formerly known as draw.io) - tech diagrams including database schemas and flowcharts
 Figma - wireframe/prototyping tool
+Jira/Git? - bug/issue tracking
 VS Code - code editor and its plentiful plugins
 ES Lint - JS linter
 Stylelint - CSS linter
 Prettier - auto code formatter
 Vite - local app server & JS bundling tool
 
-Languages and frameworks
-------------------------
-HTML
-CSS
-JavaScript/Typescript
-React 
-Chakra UI? possibly other React libraries?  I was going to add a table library, but I think it might be a good exercise to do our own table UI
-NPM/NodeJS
-Python
-no Java? - strange how I've barely seen any menion of Java and nothing at all of C/C++/C# for back end technology!  It's all JavaScript and Python these days.  Even Ruby and PHP got more mention than Java and C++.
+If you don't know what a linter is, it's an editor plugin that detects stylistic and formatting deficiecies that aren't actually code errors.  For example, a very common no-no is declaring a variable and then never using it.  That's technically legal, but still bad practice, and a linter will highlight that.  Apparently ES Lint is targeted mainly at JavaScript code and Stylelint at CSS, so it's typical to use them both together.
 
-We'll start off working on the front end, and then move to the back end as we gain knowledge.  Working on the front end also has the advantage that we can run the app locally, just mocking up any connection to the back end until the real thing is available.
+Along these lines, there's also the Prettier plugin, which automatically formats your code when you check it in -- things like converting tabs to spaces, and putting open and close brackets in the right place.  Personally I'm not a big fan of formatters -- if I add a line of whitespace, I MEANT to put there, dammit! -- but it is a widely adopted tool, so it might be worth gritting our teeth  getting used to.
+
+As far as editors go, every programmer has their own preferences, but I'd strongly suggest using VS Code.  It's free, lightweight, and easy to use, yet 100% full-featured.  Most importantly is that it has super-easy-to-use built-in support for "extensions", like the linters mentioned above.  I was surprised to see that I've already got over 30 extensions running already!  I can give some suggestions on those if you like.
+
+We're poised to use Jira as a bug/issue tracking tool, though Git apparently also has such features.  Git is probably the easier choice since we're already using it, but I may want to use Jira anyway just for the practice.  But in either case, it may be overkill for this project, and we're short on time.  IMO this is another "nice to have".
 
 
 DEVELOPMENT METHODOLOGIES
@@ -91,20 +120,17 @@ We will use an agile development process, which once the back end is available w
 I would undoubtedly use these techniques on any real team I managed, but it's just the two of us, and we are VERY, VERY strapped for time, so I don't know if we can squeeze in luxuries like this.
 
 
-BASIC ARCHITECTURE
-------------------
-- Single-page App (SPA)
-The app will be a single-page app based on React.  This means that instead of loading new web pages when you click on internal links, the app instead keeps the same webpage loaded all the time and only replaces UI components when you navigate around.  This gives it a snappier feel and makes it run better on mobile devices.  This is achieved via an add-on library called React Router, which is trivially simple to use -- literally just a few lines of JSX to add it to the app.
-
+OTHER
+-----
 - Mobile Support
 I want to look into React Native eventually, but that may have to wait until later.  This is a React framework that allows you to write an app once and compile the same source to run on both PC and handheld devices natively.  When written in normal React/JavaScript, the app will run in a *browser window* on mobile devices, which is fine as long as we adhere to styling guidelines that account for window size; but as a native app, it would be a bona-fide android app you would get in the app store.
 
 This is something for later, though.  I've already verified that React Native works with Typescript and that converting a vanilla React app to React Native isn't too painful, so incorporating it later is an option.
 
 - Data Model
-Despite the hand-wringing about data entry above, the actual physical size of the data involved in this app is quite small: currently my entire food dataset in Excel is less than 200 MB.  Even if we double that, we're well within what can comfortably run in a browser window or handheld device.  So it's entirely plausible to retrieve the ENTIRE dataset from the back end up front and store the whole thing in memory while the app is being used.
+Despite my hand-wringing about data entry, the actual physical size of the data involved in this app is quite small: currently my entire food dataset in Excel is less than 200 MB.  Even if we double that, we're well within what can comfortably run in a browser window or handheld device.  So it's entirely plausible to retrieve the ENTIRE dataset from the back end, ship it to the front end, and store the whole thing in memory while the app is being used.
 
-If we REALLY wanted to future-proof this thing, we could paginate the data from the start, but that would make it slower and make operations like searching, sorting and filtering much more problematic.  Plus... I don't know how to do that yet, lol!  So for now I say we go with the simpler brute-force approach.  If we ever have to refactor to incorporate pagination, it will be a nightmare, but we'll cross that bridge when we come to it.
+If we REALLY wanted to future-proof this thing, we could paginate the data, but that would make operations like searching, sorting and filtering much more problematic.  Plus... I don't know how to do that yet, lol!  So for now I say we go with the simpler brute-force approach.  If we ever have to refactor to incorporate pagination, it will be a nightmare, but we'll cross that bridge when we come to it.
 
 The data will live in a little MySQL database on the server.  I've used MySQL before, most recently in a little toy app I wrote a couple years ago to solve the daily New York Times Spelling Bee puzzle. :P  The only challenge in this regard, I think, will be in figuring out how to talk to it from the back end app.
 
@@ -113,9 +139,3 @@ As for how to ship the data back and forth between the back end and the front en
 - Security and Authentication
 I'm actually a bit worried about this subject.  Since the app will be running free out the the wild (i.e., it will be on an AWS server exposed to the Internet), solid security is an absolute must, even for a piddly little app like this, and that is something I have very little experience with.  Again, this is a subject in the back end course I'm taking, but based on what I've seen from this course so far, I'm worried that what they're teaching will be too abstract and high-level to give adequate guidance for an actual implemenation.  We'll see!
 
-- Deployment
-One way or another this app will be running on an AWS server.  I actually do have some relatively recent experience with AWS -- I had a Minecraft server running on AWS for a couple years -- so that will help, but deploying a web app with back end code and database support is substantially more complicated, so we'll see.
-
-Since I was last in the game, "orchestration" products like Kubernetes have emerged.  These products take a declarative syntax (i.e., something like a JSON or HTML file) and automatically manage all the container setup and deployment for you.  So, for example, to set up the app environment I wouldn't have to know all the cryptic details of AWS, I'd just have to know all the cryptic details of Kubernetes. :P  Seriously though, the advantage is that you set it up once and then never have to deal with it again, plus you avoid the potential for human error each deployment.
-
-This also ties into continuous integration.  CI is actually massive overkill for a tiny project with only 1 or 2 contributors, but I want to get experience with it.  Jenkins is probably the product to use here, though Git Actions is new and I'm guessing more accessible.  But it is a "nice to have" rather than a requirement, so it's something I'll add later, time permitting.
