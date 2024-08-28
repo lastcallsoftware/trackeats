@@ -15,7 +15,7 @@ This will download all the required JavaScript dependencies, including the React
 npm run dev
 
 This will bundle up the app, deploy it to the Vite app server, and start it up.  Then you should be able to start up a browser and point it at localhost:5173 to see the app.  Voila!
-The coolest thing is that as you make changes to the code, it is automatically compiled and deployed and you can see its effects in real time.  I recommend using VS Code as your editor and setting it to auto-save for even greater responsiveness.
+The coolest thing is that if you keep the app running, as you make changes to the code, it is automatically compiled and deployed and you can see its effects in real time.  I recommend using VS Code as your editor and setting it to auto-save for even greater responsiveness.
 
 
 The remaining text in this README was written by the Vite boilerplate generator.  I haven't tried wrapping my brain around it yet:
