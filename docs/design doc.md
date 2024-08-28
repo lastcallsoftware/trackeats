@@ -47,6 +47,13 @@ The app's "main" page will be the header/navigation bar, with links (possibly vi
 
 Each of the three main views will basically be a table, and they will show much the same data: nutrition info for each table entry.  I've thought about whether to use a third-party React component for the table, or to write our own table code.  The former would obviously be quicker and easier, but that would also defeat one of the main purposes of the app, which is to exercise our coding skills.  Plus I'm always biased towards a "roll your own" solution because it gives you more control over its behavior and appearance.  We'll see when we get there (which should actually be pretty soon!).
 
+- Responsive Design
+Resposive Design is the practive of styling and designing the UI such that it dynamically reconfigures itself to fit "nicely" on whatever device it's used on.  For example, a view that has two columns of text side-by-side in a browser window on a PC might automatically reconfigure to one column on a smartphone.  Menus that were horizonal on a brower might vertical on a mobile device.
+
+This is achieved mostly in CSS, through the use of "media queries" (CSS styles that "query" the window for its current size), modern display styles like flexboxes and grids which reconfigure themselves when necessary, and margins and other size specifications that are relative (e.g., proportional to the window's current font size) rather than absolute (e.g., a specific number of pixels).
+
+I have to admit that I botched the responsive design in my Front End Capstone project, so I'd like another crack at it here!  It really makes a huge difference when you do it right.  It's the difference between an app that looks professional versus one that lookes like it was hacked together by a teenager over a long weekend.
+
 
 TECHNICAL DESIGN
 ----------------
@@ -67,11 +74,11 @@ I want to go with the LAMP stack: Linux, Apache Web Server, MySQL, and Python.  
 
 One way or another this app will be running on an AWS server.  I actually do have some relatively recent experience with AWS -- I had a Minecraft server running on AWS for a couple years -- so that will help, but deploying a web app with back end code and database support is substantially more complicated, so we'll see.
 
-Since I was last in the game, "orchestration" products like Kubernetes have emerged.  These products take a declarative syntax (i.e., something like a JSON or HTML file) and use that to automatically manage all the container setup and deployment for you.  So to set up the app environment you don't have to know all the cryptic details of AWS, you'd just have to know all the cryptic details of Kubernetes. :P  Seriously though, the advantage is that once you set it up, you never (or at least rarely) have to deal with it again, even if you blow up your deployment and rebuild it from scratch, plus you avoid the potential for human error each time.
+Since I was last in the game, "orchestration" products like Kubernetes have emerged.  These products take a declarative syntax (i.e., something like a JSON or HTML file) and use that to automatically manage all the container setup and deployment for you.  So to set up the app environment you don't have to know all the cryptic details of AWS, you'd just have to know all the cryptic details of Kubernetes. :P  Seriously though, the advantage is that once you set it up, you never (or at least rarely) have to deal with it again, even if you blow up your deployment and rebuild it from scratch, plus you reduce the potential for human error.
 
-This also ties into continuous integration.  CI is actually massive overkill for a tiny project with only a couple contributors, but I want to get experience with it.  Jenkins is probably the product to use here, though Git Actions is new and I'm guessing more accessible.  But CI is a "nice to have" rather than a requirement, so it's something I'll add later, time permitting.
+This also ties into continuous integration.  CI is actually massive overkill for a tiny project with only a couple contributors, but I want to get experience with it.  Jenkins is probably the product to use here, though Git Actions is new and I'm guessing more accessible.  Nevertheless, CI is a "nice to have" rather than a requirement, so it's something I'll add later, time permitting.
 
-The back end business logic (which will consist of little more than fetching data from the database and shipping it off to the front end) will be done using Python.  Since Python is an interpreted language we need a runtime environment, and that's where Django comes in.  Django also is described as a Python "framework" and may have additional features like you'd get from an app server.  I've got a whole course on Django ahead of me so that will be useful.
+The back end business logic, which will consist of little more than fetching data from the database and shipping it off to the front end, will be done using Python.  Since Python is an interpreted language we need a runtime environment, and that's where Django comes in.  Django also is described as a Python "framework" and may have additional features like you'd get from an app server.  I've got a whole course on Django ahead of me so that will be useful.
 
 Back in the day, Java (my specialty) would have been the unquestioned choice for the back end business logic, but it barely gets a mention anymore.  Sadge.
 
@@ -103,17 +110,17 @@ Vite - local app server & JS bundling tool
 
 If you don't know what a linter is, it's an editor plugin that detects stylistic and formatting deficiecies that aren't actually code errors.  For example, a very common no-no is declaring a variable and then never using it.  That's technically legal, but still bad practice, and a linter will highlight that.  Apparently ES Lint is targeted mainly at JavaScript code and Stylelint at CSS, so it's typical to use them both together.
 
-Along these lines, there's also the Prettier plugin, which automatically formats your code when you check it in -- things like converting tabs to spaces, and putting open and close brackets in the right place.  Personally I'm not a big fan of formatters -- if I add a line of whitespace, I MEANT to put there, dammit! -- but it is a widely adopted tool, so it might be worth gritting our teeth  getting used to.
+Along these lines, there's also the Prettier plugin, which automatically formats your code when you check it in -- things like converting tabs to spaces, and putting open and close brackets in the right place.  Personally I'm not a big fan of formatters -- if I add a line of whitespace, I MEANT to put there, dammit! -- but it is a widely adopted tool, so it might be worth gritting our teeth and getting used to.
 
 As far as editors go, every programmer has their own preferences, but I'd strongly suggest using VS Code.  It's free, lightweight, and easy to use, yet 100% full-featured.  Most importantly is that it has super-easy-to-use built-in support for "extensions", like the linters mentioned above.  I was surprised to see that I've already got over 30 extensions running already!  I can give some suggestions on those if you like.
 
-We're poised to use Jira as a bug/issue tracking tool, though Git apparently also has such features.  Git is probably the easier choice since we're already using it, but I may want to use Jira anyway just for the practice.  But in either case, it may be overkill for this project, and we're short on time.  IMO this is another "nice to have".
+We're poised to use Jira as a bug/issue tracking tool, though Git apparently also has such features.  Git is probably the easier choice since we're already using it, but I may want to use Jira anyway just for the practice.  But in either case, it may be overkill for this project, and we're short on time.  This is another "nice to have" that I'll add if and when I get the time.
 
 
 DEVELOPMENT METHODOLOGIES
 -------------------------
 - Agile
-We will use an agile development process, which once the back end is available will (if practical!) include continuous integration/delivery/deployment and  auto-testing.  The emphasis here is not just on short development cycles (and I mean SHORT!  like, one day MAX), but in being... well... agile!  The initial design will undoubtedly contain a lot of holes and flaws, but we'll figure them out and fill them in as we go.  New input and ideas are not just welcome, but necessary.
+We will use an agile development process, which once the back end is available will (if practical!) include continuous integration/delivery/deployment and  auto-testing.  The emphasis here is not just on short development cycles (and I mean SHORT -- one day MAX, but usually more like hourly), but in being... well... agile!  The initial design will undoubtedly contain a lot of holes and flaws, but we'll figure them out and fill them in as we go.  New input and ideas are not just welcome, but necessary.
 
 - Pair programming?  maybe
 - Code reviews?  maybe
@@ -128,13 +135,13 @@ I want to look into React Native eventually, but that may have to wait until lat
 This is something for later, though.  I've already verified that React Native works with Typescript and that converting a vanilla React app to React Native isn't too painful, so incorporating it later is an option.
 
 - Data Model
-Despite my hand-wringing about data entry, the actual physical size of the data involved in this app is quite small: currently my entire food dataset in Excel is less than 200 MB.  Even if we double that, we're well within what can comfortably run in a browser window or handheld device.  So it's entirely plausible to retrieve the ENTIRE dataset from the back end, ship it to the front end, and store the whole thing in memory while the app is being used.
+Despite my hand-wringing about data entry, the actual physical size of the data involved in this app is actually quite small: currently my entire food dataset in Excel is less than 200 MB.  Even if we double that, we're well within what can comfortably run in a browser window or handheld device.  So it's entirely plausible to retrieve the ENTIRE dataset from the back end, ship it to the front end, and store the whole thing in memory while the app is being used.
 
 If we REALLY wanted to future-proof this thing, we could paginate the data, but that would make operations like searching, sorting and filtering much more problematic.  Plus... I don't know how to do that yet, lol!  So for now I say we go with the simpler brute-force approach.  If we ever have to refactor to incorporate pagination, it will be a nightmare, but we'll cross that bridge when we come to it.
 
 The data will live in a little MySQL database on the server.  I've used MySQL before, most recently in a little toy app I wrote a couple years ago to solve the daily New York Times Spelling Bee puzzle. :P  The only challenge in this regard, I think, will be in figuring out how to talk to it from the back end app.
 
-As for how to ship the data back and forth between the back end and the front end... well, that's another thing I hope to learn in the next couple of weeks in my back end course, but I expect it will be a web service of some kind.  I actually have a lot of experience with web services, although that experience is, like the rest of it, VERY old and rusty.  The only challenge there, I think, will be the next item on the list...
+As for how to ship the data back and forth between the back end and the front end... well, that's another thing I hope to learn in the next couple of weeks in my back end course, but I expect it will be some kind of web service.  I actually have a lot of experience with web services, although that experience is, like the rest of it, VERY old and rusty.  The only challenge there, I think, will be the next item on the list...
 
 - Security and Authentication
 I'm actually a bit worried about this subject.  Since the app will be running free out the the wild (i.e., it will be on an AWS server exposed to the Internet), solid security is an absolute must, even for a piddly little app like this, and that is something I have very little experience with.  Again, this is a subject in the back end course I'm taking, but based on what I've seen from this course so far, I'm worried that what they're teaching will be too abstract and high-level to give adequate guidance for an actual implemenation.  We'll see!
