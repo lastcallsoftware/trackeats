@@ -98,9 +98,9 @@ I want to go with the LAMP stack: Linux, Apache Web Server, MySQL, and Python.  
 
 One way or another this app will be running on an AWS server.  I actually do have some relatively recent experience with AWS -- I had a Minecraft server running on AWS for a couple years -- so that will help, but deploying a web app with back end code and database support is substantially more complicated, so we'll see.
 
-Since I was last in the game, "orchestration" products like Kubernetes have emerged.  These products take a declarative syntax (i.e., something like a JSON or HTML file) and use that to automatically manage all the container setup and deployment for you.  So to set up the app environment you don't have to know all the cryptic details of AWS, you'd just have to know all the cryptic details of Kubernetes. :P  Seriously though, the advantage is that once you set it up, you never (or at least rarely) have to deal with it again, even if you blow up your deployment and rebuild it from scratch, plus you reduce the potential for human error.
+Since I was last in the game, "orchestration" products like Kubernetes have emerged.  These products take a declarative syntax (i.e., something like a JSON or HTML file) and use that to automatically manage all the container setup and deployment for you.  So to set up the app environment you wouldn't need to know all the cryptic details of AWS, you'd just need to know all the cryptic details of Kubernetes. :P  Seriously though, the advantage is that once you set it up, you never (or at least rarely) have to deal with it again, even if you blow up your deployment and rebuild it from scratch, plus you reduce the potential for human error.
 
-This also ties into continuous integration.  CI is actually massive overkill for a tiny project with only a couple contributors, but I want to get experience with it.  Jenkins is probably the product to use here, though Git Actions is new and I'm guessing more accessible.  Nevertheless, CI is a "nice to have" rather than a requirement, so it's something I'll add later, time permitting.
+This also ties into continuous integration.  CI is actually massive overkill for a tiny project with only a couple contributors, but I want to get experience with it.  Jenkins is probably the product to use here, though Git Labs/Git Actions is another option, and I'm guessing it's more accessible.  In any case, we can't have an automated deployment system until we actually have an environment to deploy to, so this is something to add later, time permitting.
 
 The back end business logic, which will consist of little more than fetching data from the database and shipping it off to the front end, will be done using Python.  Since Python is an interpreted language we need a runtime environment, and that's where Django comes in.  Django also is described as a Python "framework" and may have additional features like you'd get from an app server.  I've got a whole course on Django ahead of me so that will be useful.
 
@@ -123,8 +123,8 @@ Design and development tools
 ----------------------------
 Git - version control
 Slack - chat/video conferencing/screen sharing
-diagrams.net (formerly known as draw.io) - tech diagrams including database schemas and flowcharts
-Figma - wireframe/prototyping tool
+diagrams.net (formerly known as draw.io) - tech diagrams including database schemas, flowcharts, and UML diagrams
+Figma - drawing tool specializing in UI design and mockups (i.e., wireframes and prototypes)
 Jira/Git? - bug/issue tracking
 VS Code - code editor and its plentiful plugins
 ES Lint - JS linter
@@ -132,13 +132,13 @@ Stylelint - CSS linter
 Prettier - auto code formatter
 Vite - local app server & JS bundling tool
 
-If you don't know what a linter is, it's an editor plugin that detects stylistic and formatting deficiecies that aren't actually code errors.  For example, a very common no-no is declaring a variable and then never using it.  That's technically legal, but still bad practice, and a linter will highlight that.  Apparently ES Lint is targeted mainly at JavaScript code and Stylelint at CSS, so it's typical to use them both together.
+If you don't know what a linter is, it's an editor plugin that detects stylistic and formatting deficiecies that aren't actually code errors.  For example, a very common no-no is declaring a variable and then never using it.  That's technically legal, but still bad practice, and a linter will detect and highlight it in the editor.  Apparently ES Lint is targeted mainly at JavaScript code and Stylelint at CSS, so it's typical to use them both together.
 
-Along these lines, there's also the Prettier plugin, which automatically formats your code when you check it in -- things like converting tabs to spaces, and putting open and close brackets in the right place.  Personally I'm not a big fan of formatters -- if I add a line of whitespace, I MEANT to put there, dammit! -- but it is a widely adopted tool, so it might be worth gritting our teeth and getting used to.
+Along these lines, there's also the Prettier plugin, which automatically formats your code when you check it in -- things like converting tabs to spaces, and putting open and close brackets in the right place.  Personally I'm not a big fan of formatters -- if I add a line of whitespace, I MEANT to put there, dammit! -- but it is a widely adopted tool, so it might be worth gritting our teeth and getting used to it.
 
-As far as editors go, every programmer has their own preferences, but I'd strongly suggest using VS Code.  It's free, lightweight, and easy to use, yet 100% full-featured.  Most importantly is that it has super-easy-to-use built-in support for "extensions", like the linters mentioned above.  I was surprised to see that I've already got over 30 extensions running already!  I can give some suggestions on those if you like.
+As far as editors go, every programmer has their own preferences, but I'd strongly suggest VS Code.  It's free, lightweight, and easy to use, yet 100% full-featured.  Most importantly is that it has super-easy-to-use built-in support for "extensions", like the linters mentioned above.  I was surprised to see that I've already got over 30 extensions running already!  I can give some suggestions on those if you like.
 
-We're poised to use Jira as a bug/issue tracking tool, though Git apparently also has such features.  Git is probably the easier choice since we're already using it, but I may want to use Jira anyway just for the practice.  But in either case, it may be overkill for this project, and we're short on time.  This is another "nice to have" that I'll add if and when I get the time.
+We're poised to use Jira as a bug/issue tracking tool, though Git apparently also has such features.  Git is probably the easier choice since we're already using it, but I may want to use Jira anyway just for the practice.  But in either case, it may be overkill for this project, and we're short on time.  It's not so much setting up one of these tools, as taking the time to use it.  It's not really necessary for the initial coding, which is quite straightforward, though it may be useful afterwards, during the maintenance/upgrading phase -- but by then the main motivation for this project will hopefully have disappeared!
 
 
 DEVELOPMENT METHODOLOGIES
