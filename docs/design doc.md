@@ -51,14 +51,27 @@ Ultimately, updating the DAILY LOG will constitute the majority of the effort in
 Search/Filter
 -------------
 The nav bar will contain a search/filter widget which is present in the INGREDIENTS and MEALS views:
-- To the left of the widget is a switch which toggles between search and filter functionality.  Small icons to either side of the toggle will indicate the two modes (an hourglass for search and a funnel for filter).  Search mode scrolls the list to the next match in the name column and highlights the row.  Filter mode removes from view every row that doesn't match.
-- The center of the widget is a textbox for the search/filter text.  When it is not empty, it has an "x" button to the right to clear the edit box's contents.
+-These views will have two modes: Search Mode and Filter Mode.  Search Mode scrolls the list to the next match and highlights the row.  Filter Mode removes from the list every row that doesn't match the filter.  Both operations target ONLY the table's Name and Description columns.  Now, it's true that search and filter aren't necessarily mutually exclusive operations, but this app's dataset is small enough that if you've applied a filter there will only be a few rows left anyway, so there wouldn't really be a need to search as well.  Plus, having one control for both simplifies the UI.
+- To the left of the widget is a switch which toggles between Search Mode and Filter Mode.  Small icons to either side of the toggle will indicate the two modes (an hourglass for search and a funnel for filter).
+- The center of the widget is a textbox for the search/filter text.  When not empty, the edit box has a small "x" button to the right (inside the box) to clear its contents.  Search/filter takes place when the user leaves the edit box (i.e., on "blur"), presses Enter, or clears the box.  We could do it more dynamically -- i.e., on every keystroke as they type in the edit box -- but I think that puts too much of a computational burden on the app.
 - To the right of the widget are small up/down arrows, used to proceed to the previous/next match when in search mode. The arrows will be disabled when in filter mode.
+
+
+Add/Edit/Remove
+---------------
+To the right of the Search/Filter widget are three circular buttons: an Add Button containing a + icon, an Edit Button containing a pencil icon, and a Remove Button containing a - icon.  These will be used to add, edit, and remove records from the currently-displayed list.  (We'll reuse these widgets on the Recipe page as well.)  The user will be required to confirm any deletes.
+
+
+No Undo
+-------
+The app will not have any undo/redo functionality.  Too hard (for now).
 
 
 Sort
 ----
-The user may click on column headers to sort the data.  Each column has three possible states: no sort (the default), 
+The user may click on column headers to sort the data in a table.  Each column has three possible states: no sort (the default), ascending, and descending, which will be indicated in the column header by nothing (an empty space), an up arrow, and a down arrow, respectively.  If the data is sorted by one column and a second column is clicked, the first column will automatically revert to unsorted.  We could in theory have primary and secondary (and tertiary, etc.) sorts, but let's not get too cute here.  The dataset isn't really big enough to warrant that anyway.
+
+Sorting is independent of filtering: you may do either or both at the same time.  Because we have the entire dataset in the browser (see "Data Model" below), all searching, sorting and filtering will be done entirely on the front end.
 
 
 Single-page App (SPA)
@@ -72,7 +85,7 @@ Each of the three main views will basically be a table, and they will show much 
 
 Responsive Design
 -----------------
-Resposive Design is the practive of styling and designing the UI such that it dynamically reconfigures itself to fit "nicely" on whatever device it's used on.  For example, a view that has two columns of text side-by-side in a browser window on a PC might automatically reconfigure to one column on a smartphone.  Menus that were horizonal on a brower might vertical on a mobile device.
+Resposive Design is the practice of styling and designing the UI such that it dynamically reconfigures itself to fit "nicely" on whatever device it's used on.  For example, a view that has two columns of text side-by-side in a browser window on a PC might automatically reconfigure to one column on a smartphone.  Menus that were horizonal on a brower might be vertical on a mobile device.
 
 This is achieved mostly in CSS, through the use of "media queries" (CSS styles that "query" the window for its current size), modern display styles like flexboxes and grids which reconfigure themselves when necessary, and margins and other size specifications that are relative (e.g., proportional to the window's current font size) rather than absolute (e.g., a specific number of pixels).
 
