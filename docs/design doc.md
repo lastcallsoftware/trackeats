@@ -38,6 +38,8 @@ Other views include:
 
     Note that this functionality is actually a DOWNGRADE from how my spreadsheet works.  When I enter a recipe there, each ingredient is a direct link to its record on the ingredients tab.  So I actually have to tab over to the ingredients list and there I can see ALL the ingredient data, not just names and serving sizes.  This allows me to make a more informed choice about which ingedients to choose.  But adding a MEAL in this app by going from the MEALS list to the MEAL ENTRY dialog and then back and forth to the INGREDIENTS list... well, that would be a coding nightmare, probably very slow, and probably a confusing user experience.  Again, we'll start off with the simpler solution and then elaborate if and when time allows.
 
+    Meals can be components of other meals.  For example, you might have a "Tomato Meat Sauce" meal recipe, which you then use as a component in several pasta meals.  Or you might have a "Thanksgiving Feast" meal that is composed of several full dishes.  So the ingredient picker on the MEAL ENTRY list must include other meals as well.
+
     6. RECIPES
     The MEALS layer only lists a meal's components, not how to put them together.  A RECIPE lists the steps needed to make a particular MEAL.  This is entirely optional.  It's just a convenient place to store recipes.
 
