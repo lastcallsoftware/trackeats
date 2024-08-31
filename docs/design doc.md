@@ -154,32 +154,51 @@ As far as editors go, every programmer has their own preferences, but I'd strong
 We're poised to use Jira as a bug/issue tracking tool, though Git apparently also has such features.  Git is probably the easier choice since we're already using it, but I may want to use Jira anyway just for the practice.  But in either case, it may be overkill for this project, and we're short on time.  It's not so much setting up one of these tools, as taking the time to use it.  It's not really necessary for the initial coding, which is quite straightforward, though it may be useful afterwards, during the maintenance/upgrading phase -- but by then the main motivation for this project will hopefully have disappeared!
 
 
+Branching Strategy
+------------------
+There are many possible strategies to follow for managing branches in a version control system.  The modern concensus for agile development is to follow one of two strategies:
+
+1. Feature branches.  Create branches for small, encapsulated units of work -- "features" -- generally worked on by just one developer or a few at most.  When the feature is completed, optimally within a few days, it is merged back into the main branch.  Along the way, the developer frequently (up to several times a day but at least daily) commits and pushes changes to the development branch from their local system.  At the same time, they frequently pull changes from the main branch into their development branch and resolve any conflicts.
+
+This reduces the potential for problems when the development branch is merged back into the main branch.  In fact the merge should be almost trivial, as there should be NO new conflicts.  This is opposed to the old days when branches often contained huge amounts of changes (e.g., an entire "version 2.0" branch) developed over a long time, maybe months, and any changes that were made to the main branch (e.g., bug fixes) were not pulled in along the way.
+
+2. No branches.  Don't use other branches at all and just always commit to main.  This is of course what you'd normally do on a project where you're the only developer.  I think it's probably also fine when there's just the two of us.
+
+I think we'll start with strategy #2, and if there are issues we can go back to strategy #1.
+
+
 DEVELOPMENT METHODOLOGIES
 -------------------------
-- Agile
-We will use an agile development process, which once the back end is available will (if practical!) include continuous integration/delivery/deployment and  auto-testing.  The emphasis here is not just on short development cycles (and I mean SHORT -- one day MAX, but usually more like hourly), but in being... well... agile!  The initial design will undoubtedly contain a lot of holes and flaws, but we'll figure them out and fill them in as we go.  New input and ideas are not just welcome, but necessary.
+Agile
+-----
+We will use an agile development process, which once the back end is available will (if practical!) include continuous integration/delivery/deployment and  auto-testing.  The emphasis here is not just on short development cycles (and I mean SHORT -- like one day MAX), but in being... well... agile!  The initial design will undoubtedly contain a lot of holes and flaws, but we'll figure them out and fill them in as we go.  New input and ideas are not just welcome, but necessary.
 
-- Pair programming?  maybe
-- Code reviews?  maybe
-I would undoubtedly use these techniques on any real team I managed, but it's just the two of us, and we are VERY, VERY strapped for time, so I don't know if we can squeeze in luxuries like this.
+
+Pair programming?  Code reviews?
+--------------------------------
+I would undoubtedly use these techniques on any real team I managed, but it's just the two of us, and we are VERY, VERY strapped for time, so I don't think we can squeeze in luxuries like this.  We'll try if we have time, though, as the benefits are potentially enormous.
 
 
 OTHER
 -----
-- Mobile Support
-I want to look into React Native eventually, but that may have to wait until later.  This is a React framework that allows you to write an app once and compile the same source to run on both PC and handheld devices natively.  When written in normal React/JavaScript, the app will run in a *browser window* on mobile devices, which is fine as long as we adhere to styling guidelines that account for window size; but as a native app, it would be a bona-fide android app you would get in the app store.
+Mobile Support
+--------------
+I want to look into React Native eventually, but that will have to wait until later.  React Native is a framework that allows you to write an app once and compile the same source to run on both PC and handheld devices natively.  When written in normal React, the app will run in a *browser window* on mobile devices, just like on a PC.  This is acceptable as long as we adhere to styling guidelines that account for window size.  But as a React Native app, it would be a bona-fide android app you would get in the app store.
 
-This is something for later, though.  I've already verified that React Native works with Typescript and that converting a vanilla React app to React Native isn't too painful, so incorporating it later is an option.
+I've already verified that React Native works with Typescript and that converting a vanilla React app to React Native isn't too hard, so incorporating it later shouldn't be too painful.  This could be a fun little exercise for later on.  Wouldn't it be cool to have our own app on the Google App Store?
 
-- Data Model
-Despite my hand-wringing about data entry, the actual physical size of the data involved in this app is actually quite small: currently my entire food dataset in Excel is less than 200 MB.  Even if we double that, we're well within what can comfortably run in a browser window or handheld device.  So it's entirely plausible to retrieve the ENTIRE dataset from the back end, ship it to the front end, and store the whole thing in memory while the app is being used.
 
-If we REALLY wanted to future-proof this thing, we could paginate the data, but that would make operations like searching, sorting and filtering much more problematic.  Plus... I don't know how to do that yet, lol!  So for now I say we go with the simpler brute-force approach.  If we ever have to refactor to incorporate pagination, it will be a nightmare, but we'll cross that bridge when we come to it.
+Data Model
+----------
+Despite my earlier hand-wringing about data entry, the actual physical size of the data involved in this app is actually quite small: currently my entire food dataset in Excel is less than 200 MB.  Even if we double that, we're well within what can comfortably run in a browser window or handheld device.  So it's entirely plausible to retrieve the ENTIRE dataset from the back end, ship it to the front end, and store the whole thing in memory while the app is being used.
+
+If we REALLY wanted to future-proof this thing, we could paginate the data, but that would make operations like searching, sorting and filtering much more problematic.  Plus... I don't know how to do that yet, lol!  So for now I say we go with the simpler brute-force approach.  If we ever want to refactor to incorporate pagination, it will probably be a bit of a nightmare, but we'll cross that bridge when we come to it.
 
 The data will live in a little MySQL database on the server.  I've used MySQL before, most recently in a little toy app I wrote a couple years ago to solve the daily New York Times Spelling Bee puzzle. :P  The only challenge in this regard, I think, will be in figuring out how to talk to it from the back end app.
 
-As for how to ship the data back and forth between the back end and the front end... well, that's another thing I hope to learn in the next couple of weeks in my back end course, but I expect it will be some kind of web service.  I actually have a lot of experience with web services, although that experience is, like the rest of it, VERY old and rusty.  The only challenge there, I think, will be the next item on the list...
+As for how to ship the data back and forth between the back end and the front end... well, that's another thing I hope to learn in the next couple of weeks in my back end course, but I expect it will be some kind of web service.  I actually have a lot of experience with web services, although that experience is, like the rest of it, VERY old and rusty.  The biggest challenge there, I think, will be the next item on the list...
 
-- Security and Authentication
+
+Security and Authentication
+---------------------------
 I'm actually a bit worried about this subject.  Since the app will be running free out the the wild (i.e., it will be on an AWS server exposed to the Internet), solid security is an absolute must, even for a piddly little app like this, and that is something I have very little experience with.  Again, this is a subject in the back end course I'm taking, but based on what I've seen from this course so far, I'm worried that what they're teaching will be too abstract and high-level to give adequate guidance for an actual implemenation.  We'll see!
-
