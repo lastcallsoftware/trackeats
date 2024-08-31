@@ -1,12 +1,12 @@
 # About this app
 
-This project was generated using the Vite boilerplate project generator as a Typescript/React project.  It's the first time I'm using Vite, which is a local app server/package bundler for running JavaScript/Typescript apps in a development enviroinment.  We'll have to see if we run into any trouble with Vite, but I doubt it.
+This project was generated using the Vite boilerplate project generator as a Typescript/React project.  It is a portfolio app intended to demonstrate competence in a wide range of current technologies, ranging from front end techs like React, JavaScript, and CSS, to back end techs like Python, MySQL and Apache Web Server, to cloud and deployment techs like AWS, Kubernetes, and Jenkins.  This portion of the app showcases the front end techs.
 
-It's also the first time I'm using Typescript.  Both React and Typescript are syntactical extensions to JavaScript and both "transpile" down to vanilla JS before the code executes.  Given that, it seems like React and Typescript shouldn't get along together, but seeing as how Vite lets you select both of them as part of its project config, I guess they're compatible!
+The purpose and internal design of the app itself can be explored by reading the design doc in the docs folder, but basically it is intended to help track the nutritional content of the user's daily diet.
 
 # Installing and running the code
 
-To run this app, you first need npm and nodeJS installed locally.  I'll let you figure out that part yourself.  Then clone this Git repository to a local directory, and from the project's root directory execute:
+To run this app, you first need npm and nodeJS installed locally.  Then clone this Git repository to a local directory, and from the project's root directory execute:
 
 npm install
 
