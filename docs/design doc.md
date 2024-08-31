@@ -36,8 +36,10 @@ Other views include:
     5. MEAL ENTRY
     A form for inputting/editing a MEAL record.  A lot of the fields in the MEALS list are calculated, so there aren't as many fields on this form.  The main difficulty is having a way to pick the INGREDIENTS in the proper proportions.  I envision a scrolling listbox of the INGREDIENT names and total/serving sizes.  Next to the list we'll have a button to add the selected INGREDIENT, and an edit box for the number of servings.  It's crucial that this be a number, because the meal data is calculated as sum of ingredient data.  For example, the serving size for sugar is 1 tbsp, and its nutrition info is for that quantity; so if you're adding sugar to a meal, it has to be a multiple of 1 tbsp.  If a meal only needs 2 tsp of sugar, that's 0.67 "sugars".
 
+    Note that this functionality is actually a DOWNGRADE from how my spreadsheet works.  When I enter a recipe there, each ingredient is a direct link to its record on the ingredients tab.  So I actually have to tab over to the ingredients list and there I can see ALL the ingredient data, not just names and serving sizes.  This allows me to make a more informed choice about which ingedients to choose.  But adding a MEAL in this app by going from the MEALS list to the MEAL ENTRY dialog and then back and forth to the INGREDIENTS list... well, that would be a coding nightmare, probably very slow, and probably a confusing user experience.  Again, we'll start off with the simpler solution and then elaborate if and when time allows.
+
     6. RECIPES
-    The MEALS layer only lists a meal's components, not how to put them together.  A RECIPE lists the steps needed to make a particular MEAL.  This step is entirely optional.  It's just a convenient place to store recipes.
+    The MEALS layer only lists a meal's components, not how to put them together.  A RECIPE lists the steps needed to make a particular MEAL.  This is entirely optional.  It's just a convenient place to store recipes.
 
 Later on we can add additional views with cool data visualization, like bar charts or pie charts.
 
