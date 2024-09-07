@@ -13,28 +13,6 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
-a:hover {
-  color: #535bf2;
-}
-
-body {
-  margin: 0;
-  display: flex;
-  place-items: center;
-  min-width: 320px;
-  min-height: 100vh;
-}
-
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
-}
-
 button {
   border-radius: 8px;
   border: 1px solid transparent;
@@ -65,4 +43,75 @@ button:focus-visible {
   button {
     background-color: #f9f9f9;
   }
+}
+
+
+/* Fonts:
+  font-family: 'Karla Variable', sans-serif;
+  font-family: 'Markazi Text Variable', serif;
+*/
+
+* {
+  margin: 0;
+  padding: 0;
+}
+
+#root {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2rem;
+  text-align: center;
+}
+
+.logo {
+  height: 6em;
+  padding: 1.5em;
+  will-change: filter;
+  transition: filter 300ms;
+}
+.logo:hover {
+  filter: drop-shadow(0 0 2em #646cffaa);
+}
+.logo.react:hover {
+  filter: drop-shadow(0 0 2em #61dafbaa);
+}
+
+@keyframes logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  a:nth-of-type(2) .logo {
+    animation: logo-spin infinite 20s linear;
+  }
+}
+
+
+/* Nav Bar */
+.navbar {
+  display: flex;
+  flex-wrap: wrap;
+  margin-left: 10%;
+  margin-top: 1rem;
+  align-items: center;
+}
+.navbar img {
+  height: 5rem;
+}
+.navbar a {
+  font-size: 20pt;
+  font-weight: bold;
+  font-family: 'Karla Variable', sans-serif;
+  margin: 15pt;
+}
+.navbar a:link {
+  text-decoration: none;
+}
+.navbar a:hover {
+  text-decoration: underline;
 }
