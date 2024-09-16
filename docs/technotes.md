@@ -17,15 +17,18 @@ existing MySQL server, skip to step #9.
         ssh -i your-key.pem ubuntu@your-server.com
     Then on the server, once you've connected:
         sudo apt update
-        sudo api upgrade
+        sudo apt upgrade
     You may need to restart the server afterwards.
+
 2. Install MySQL Server
         sudo apt install mysql-server
+
 3. Secure the installation
     This asks you to confirm 5 or 6 choices to make the server more secure for
     production, like removing the test database:
         sudo mysql_secure_installation
-4. Configure MyQSQL for remote access
+
+4. Configure MySQL for remote access
     Update the MySQL config to allow connections from any host (the default is
     only localhost is allowed).  To do this, edit the mysqld.cnf file:
         sudo nano /etc/mysql/mysql.conf.d/mysql.cnf
@@ -36,29 +39,36 @@ existing MySQL server, skip to step #9.
     ...and change it to:
         bind-address = 0.0.0.0
     Save and exit.
+
 3. Edit the server config file.
-    MySQL Workbench looks for a particular line in a particular file to test its
-    connection, and for some reason that line isn't there by default.  Let's add it:
+    MySQL Workbench looks for a particular line in a particular confiig file to
+    test its connection, and for some reason that line isn't there by default.
+    Let's add it:
         sudo nano /etc/mysql/my.cnf
     Between the two lines starting with ! that are already there, add:
         [mysqld]
+    Save and exit.
+
 4. Create a MySQL user for remote access
-    To do this, start a MSQL command prompt and enter a few SQL commands directly
-    to the MySQL server:
+    To do this, we start a MSQL command prompt and issue a few SQL commands
+    directly to the MySQL server:
         mysql -u root -p
     I don't remember if you need to "sudo" that.  Maybe?
     Anyway, once the command interpreter is running, enter:
-        create user 'your-user'@'%' identified by 'your-password';
+        create user 'your-username'@'%' identified by 'your-password';
         grant all priveleges on *.* to 'your-user'@'%' with grant option;
         flush privileges;
         exit;
     The '%' suffix on the name says that it should be allowed to connect
     from any host.  In production we may want to restrict that.
     I've been using 'mysql-admin' as the username for this.  I keep the password
-    in my LastPass TrackEats vault.
+    in my LastPass TrackEats vault.  I won't say it here because this is a
+    public file.
+
 7. Allow MSQL port (3306) in AWS Secrity Group
     On AWS EC2, go to the security group and add a rule for Incoming Traffic
     to allow MySQL (port 3306).
+
 8. Start the server
     To start MySQL server:
         sudo /etc/init.d/mysql start
@@ -95,6 +105,7 @@ existing MySQL server, skip to step #9.
         Click Next and you should get a popup asking if you want to Continue.
         Do so.
         You are brought back to the main config dialog.
+
 10. Click on Test Connection
     BE PATIENT, it takes a few seconds.  And you may need to try two or three
     times.  But eventually you should get a popup telling you the connection was
