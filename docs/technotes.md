@@ -9,10 +9,11 @@ https://medium.com/@rohan_precise/step-by-step-guide-setting-up-and-connecting-m
 ...which gets my vote for the most concise, useful help article I've ever read.
 I want to find the guy that wrote this and kiss him on the mouth.
 
-If you are just setting up a local copy of MySQL Workbench to connect to the
+If you are just setting up a local copy of MySQL Workbench to connect to an
 existing MySQL server, skip to step #9.
+If you are installing MySQL Server on Linux, read on!
 
-1. Connect to the server and update Ubuntu
+1. Connect to the app server and update Ubuntu
     Locally, execute:
         ssh -i your-key.pem ubuntu@your-server.com
     Then on the server, once you've connected:
