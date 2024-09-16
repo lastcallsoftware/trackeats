@@ -111,3 +111,76 @@ If you are installing MySQL Server on Linux, read on!
     BE PATIENT, it takes a few seconds.  And you may need to try two or three
     times.  But eventually you should get a popup telling you the connection was
     successful.  Voila!  Click OK.
+
+
+WINDOWS SUBSYSTEM FOR LINUX (WSL)
+---------------------------------
+A subset of Linux distributions intended to assist in developing for Linux on
+a Windows desktop.  Mostly what you're getting is a bash shell and some
+command-line utilities.
+
+This is mostly from:
+https://learn.microsoft.com/en-us/windows/wsl/basic-commands#unregister-or-uninstall-a-linux-distribution
+
+To install WSL:
+    wsl --install
+To see the available Linux distributions:
+    wsl -l -o
+    wsl --list --online
+To see the installed Linux distributions:
+    wsl -l
+    wsl --list
+To install a Linux distribution
+    wsl --install <distro-name>
+To remove an installed distribution:
+    wsl --unregister <distro-naem>
+To change the default distribution:
+    wsl --set-default <distro-name>
+To run a bash shell for the default distribution:
+    wsl
+
+The physical file system for the Linux distributions is buried somewhere deep
+within the Windows AppData folder structure.  Good luck finding it.
+The file system for the distros grows automatically.  It does NOT shrink
+automatically.
+Supposedly the disk space used by the distros is released when you
+unregister the distro (see above), but I'm a little skeptical: it happens
+instaneously!  Users have reported not getting back all their disk space.
+Look into it ifit becomes a problem.
+
+
+NVM/NPM/NODE.JS ON WSL
+----------------------
+This is mostly from:
+https://learn.microsoft.com/en-us/windows/dev-environment/javascript/nodejs-on-wsl
+
+1. Open an Ubunto bash command line
+2. Install curl:
+        sudo apt-get install curl
+3. Install nvm:
+    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/master/install.sh | bash
+4. Verify the installation with:
+        command -v nvm
+    It should respond with "nvm".
+    If you get no resopnse, close your terminal, reopen, and try again.
+5. Check the installed versions:
+        nvm ls
+    They should all say "N/A" at this point.
+6. Install Node.js and NPM.
+    To install the stable release:
+        nvm install --lts
+    To install the current release:
+        nvm install node
+    You can install both and switch between them.
+7. Check the installed versions again:
+        nvm ls
+    You should see version numbers at this point.
+8. Check the node version with:
+        node --version
+        npm --version
+9. Switching versions.
+    To switch to the stable version of Node.js:
+        nvm use --lts
+    To switch to the current version:
+        nvm use node
+
