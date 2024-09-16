@@ -1,6 +1,7 @@
 In no particular order:
 - Set up issue tracking in Jira or GitHub so I don't have to keep this list in a text file!
 - Look into deploying MySQL in a Docker container
+- Alternately (or in parallel), look into how to start the DB server automaticaly when the EC2 server starts
 - Figure out how to build and deploy the front end in Docker
     *** Determine if it's necessary/advisable to build the app in WSL, or if it's okay to build in
         native Windows and deploy to Linux using Docker.
