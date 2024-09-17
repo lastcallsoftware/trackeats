@@ -1,5 +1,5 @@
 import { Routes, Route, Link } from 'react-router-dom';
-import logo from '../assets/React.svg';
+import logo from '../assets/react.svg';
 import Homepage from './Homepage';
 import About from './About';
 import Foods from './Foods';
