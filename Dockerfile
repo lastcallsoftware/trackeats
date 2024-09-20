@@ -7,9 +7,9 @@ RUN npm install --production --silent
 RUN npm install -g serve
 RUN mv node_modules ../
 COPY . .
-EXPOSE 3000
+EXPOSE 80
 RUN chown -R node /usr/src/app
 USER node
-#CMD ["npm", "run", "build"]
 RUN npm run build
-CMD ["serve", "-s", "dist"]
+#CMD ["npm", "run", "build"]
+CMD ["serve", "-s", "dist", "-l", "80"]

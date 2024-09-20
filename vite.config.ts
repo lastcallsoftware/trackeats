@@ -16,3 +16,4 @@ export default defineConfig({
     origin: "http://0.0.0.0:3000",
   }
 })
+ 
