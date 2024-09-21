@@ -14,16 +14,25 @@ a tab in a Powershell window.  This is my new favorite thing!
     winget install -id Microsoft.Powershell --source winget
 
 2. Install WSL
+WSL is a Linux emulator for Windows.  WSL will install a Linux virtual machine
+on your Windows system, which includes its own file system separate from Windows.
+(Actually you CAN access the Linux file system from Windows and vice-versa using
+the proper syntax, but dont worry about that for the moment.)
+It isn't a full Linux operating system, but it provides a Linux command line 
+environment and some basic OS services.  This is necessary if you want to do 
+your development on Windows, but deploy to Linux in productuon -- especially if 
+you're using Docker (which we are), since a Docker container doesn't include the 
+operating system itself, and therefore must be built for a particular OS.
 If you haven't done so already, install WSL 2.  This is stupidly easy: Just open
 a Powershell or even normal Windows command prompt and execute:
     wsl --install
 
 3. Add the Ubuntu 24.04 distribution and make it the default
 The default Linux distribution used with WSL is "Ubuntu", without a specific 
-version number.  We don't want that.  When a distribution is listed without a
-specific version number, it means "use the latest version".  But it's not good
-practice to develop a production app such that the versions of its dependencies
-can change unexpectedly.  So we explicitly pick a version:
+version number.  We don't want that.  When a Linux distribution for WSL is listed
+without a specific version number, it means "use the latest version".  But it's 
+not good practice to develop a production app such that the versions of its 
+dependencies can change unexpectedly.  So we explicitly pick a version:
     wsl --install -d Ubuntu-24.04
     wsl --set-default Ubuntu-24.04
 
@@ -32,9 +41,8 @@ You should be in your home directory (~, which is an alias for
 /home/<username>).
 
 5. Log on to the trackeats server and change your password
-[NOTE: This bit may have a few bumps.  I probably missed some steps here.]
-I have already created a userID for you on the trackeats server with the
-credentials "alex" and "password":
+I have already created a userID for you on the trackeats server with a
+username of "alex", and password of "password":
     ssh alex@trackeats.com
 Once you are successfully logged on, please change your password:
     passwd
@@ -56,13 +64,13 @@ but you could also use it for GitHub or anything else.
 7. Upload your public key to the trackeats server
 There are several ways to do this.  I'm going to tell you the standard way,
 even though I haven't actually tried it myself, so again there may be bumps.
-From an Ubunto command prompt, run:
+From an Ubuntu command prompt, run:
     ssh-copy-id alex@trackeats.com
 I have never run this command myself, but I think what it does is, prompt
 you for your userID and password on the server, then log on, append the 
 contents of your publc key file to ~/.ssh/authorized_keys, and log out.
 This assumes your public key file is in your local ~/.ssh directory and has
-one of the standard recognixed names.  If not you have to specify its name 
+one of the standard recognized names.  If not, you have to specify its name 
 with the -i parameter.
 
 Assuming this works, you should now be able to log on to the server via:
@@ -73,11 +81,15 @@ line.  Now log out again:
     exit
 
 8. Install curl to the Ubuntu VM
-A very useful tool for downloading HTML content from the command line:
+Curl is a very useful tool for downloading HTML content.  It's like a 
+command-line version of a web browser.  To install it, execute this from an
+Ubuntu command prompt:
     sudo apt-get install curl
 
 9. Install nvm to the Ubuntu VM
-Install the version manager for node.js:
+nvm is the version manager for Node.js.  In other words, its only purpose is to 
+install and update JavaScript.  Install it by executing this from an Ubuntu 
+command prompt:
     curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/master/install.sh | bash
 Important: Close and restart your Ubuntu command window after this step.
 Then verify the nvm installation by running:
@@ -86,21 +98,24 @@ You should get back a single word: "nvm".  If not it's usually because you
 haven't restarted the command shell yet.
 
 10. Install npm and node.js
-Use nvm to install npm.  It cracks me up how each package manager has to be
-installed by ANOTHER package manager:
+Use nvm to install JavaScript; specifically npm and Node.js.  (It cracks me up 
+how each package manager has to be installed by ANOTHER package manager.)  
+To install nvm, execute this from an Ubuntu command prompt:
     nvm install node
 Verify the installation:
     nvm ls
-You should get a version number on the line listing node.  If you got N/A
-for it, something went wrong.  Now type:
+You should get a list of version numbers, including one for "node".  If you 
+got "N/A" on that line, something went wrong.  If not, type:
     node --version
 The number should match the output from the last command.
 
 11. Install VS Code
-Do this if you haven't done so already.  I'm too tired to list the instructions 
-for this one, figure it out yourself. :P
+VS Code is the hot code editor du jour.  Install it if you haven't done so
+already.  I'm too tired to list the instructions for this one, figure it out 
+yourself. :P
 
-12. Install WSL for VS Code extensions
+12. Install VS Code extensions
+VS Code has some essential extensions necessary for our development projects.
 Start VS Code, go to the Extensions tab, and search for and install the following
 extensions:
     WSL
