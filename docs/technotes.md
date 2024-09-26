@@ -1,6 +1,63 @@
 This is just a place for me to jot down stuff about how to manage the project
 which I will otherwise DEFINITELY forget!
 
+SSH
+---
+Config file location:
+    ~/.ssh
+On the client, you need the private AND public key files.
+Default key names include id_rsa, id_ecdsa, id_ecdsa_sk, id_ed25519,
+id_ed25519_sk, and id_dsa, depending on the type of key that was generated.
+The public key will have the extension ".pub".  You can have a different
+file name, but then you have to specify it using the -i parameter.
+
+The client will also have a known_hosts file listing the public key
+files of known servers.  This file is text, but not human readable.
+The format is generally "hashed-server-name algorithm server-public-key".
+
+The server will have an authorized_keys file containing the public
+keys FOR THAT USER.  Remember that ~ is the home ditrectory for a
+particular user and is just an alias for /home/<username>.
+
+The format of authorized_keys is "algorithm user-public-key comment".
+Each entry must be on one line (i.e., no newlines).
+
+You can add your public key to authorized_keys manually (i.e., 
+by logging on to the server NOT using the key files somehow and
+manually editing the authorized_keys file), or by using:
+    ssh-copy-id username@server
+...which does essentially the same thing.  ssh-copy-id tries to
+authenticate using password authentication, so that must be enabled.
+
+To enable password authentication, edit both of:
+    /etc/ssh/sshd_config
+    /etc/ssh/ssh_config.d/60-cloudimg-settings.conf
+...and change this line:
+    PasswordAuthenication no
+...to this:
+    PasswordAuthenication yes
+
+...and then RESTART THE SSH SERVICE:
+    sudo systemctl restart ssh.service
+..or maybe just this is necessary, not sure:
+    sudo systemctl restart ssh
+...but what DOESN'T work is the old-style command:
+    service ssh restart
+
+IMPORTANT: The ownership and permissions on the .ssh directory, the
+authorized_keys file, and key files themselves, must be correct!
+Set the owner of the .ssh directory and files to the user in question:
+    sudo chown -R <username>:<username> ~/.ssh 
+The second <username> sets the group ownership to the user as well.
+Set the permissions on the directory:
+    sudo chmod 0700 ./.ssh
+Set the permissions on authorized_keys on the server AND the private 
+key file on the client:
+    sudo chmod 0600 authorized_keys
+    sudo chmod 0600 id_rsa
+Set the permissions on the public key file on the client:
+    sudo chmod 0644 id_rsa.pub
+
 
 INSTALLING AND CONFIGURING MYSQL SERVER
 ---------------------------------------
