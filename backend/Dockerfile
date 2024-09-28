@@ -14,5 +14,4 @@
    COPY . .
 
    # Specify the command to run when the container starts
-   CMD ["python", "your_app.py"]
-   
+   CMD ["python", "app.py"]
