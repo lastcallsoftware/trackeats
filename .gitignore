@@ -24,4 +24,7 @@ dist-ssr
 *.sw?
 
 # Python virtual environment
-backend/.venv/*
+backend/.venv
+
+# Compiled Python files
+__pycache__
