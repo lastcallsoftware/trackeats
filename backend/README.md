@@ -1,7 +1,7 @@
-It is recommended to develop this app in a virtual environment:<br>
-    python3 -m venv .venv<br>
-Activate the virtual environment using:
-    source ./.venv/bin/activate
+It is recommended to develop this app in a virtual environment:  
+    python3 -m venv .venv  
+Activate the virtual environment using:  
+    source ./.venv/bin/activate  
 
 Use this to install any dependencies:
     pip install <dependency>
