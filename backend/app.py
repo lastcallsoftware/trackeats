@@ -7,3 +7,6 @@ def hello_world():
     if (request.method == "GET"):
         data = {"name":"milk", "serving_size":"1 cup"}
     return jsonify(data)
+
+if __name__ == "__main__":
+    app.run(debug=True)
