@@ -49,9 +49,13 @@ Log on to Docker.  When prompted, provide your personal access token:<br>
 
 To build the Docker image (note the . on the end):<br>
 ```docker build -t lastcallsoftware/trackeats-backend .```
+The -t switch specifies a tag (i.e., the image name)<br>
 
 To run the Docker image locally:<br>
 ```docker run -it lastcallsoftware/trackeats-backend```
+The -it switch is actually two switches, -i and -t, which together run the app
+"interactively" (i.e., it returns control to the command prompt instead of 
+waiting for the app to exit).<br>
 
 To push the image to Docker Hub:<br>
 ```docker push lastcallsoftware/trackeats-backend```
