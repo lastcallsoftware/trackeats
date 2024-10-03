@@ -1,3 +1,14 @@
+# Summary
+
+This is the back end portion of the Trackeats app.  It is a Python-based Flask
+app using Waitress as its WSGI app server, and it includes a connector for 
+talking to the app's MySQL database.  The database is currently not part of the
+back end app and is installed and configured on the server manually.<br>
+
+The back end contains no graphical user interface whatsoever.  Its only external
+interface is a set of REST microservices which provide the front end with data 
+from the database, and which allow the front end to update the database.<br>
+
 # Setting up and building the app
 
 It is recommended practice to develop Python apps in a "virtual environment".
@@ -13,20 +24,29 @@ copies instead of the global copies.  (If you are a node.js developer, this
 behavior should sound familiar, since it's how the npm package manager behaves 
 by default.)<br>
 
+The following command should be executed in an Ubuntu 24.04 WSL virtual machine
+on Windows (or an actual Ubuntu system!) in the project's backend directory.<br>
+
 Create a virtual environment:<br>
 ```python3 -m venv .venv```
 
 Activate the virtual environment:<br>
 ```source ./.venv/bin/activate```
 
-To install new dependencies:<br>
+To install a new dependency:<br>
 ```pip install <dependency>```
 
 To install dependencies listed in requirements.txt:<br>
 ```pip install -r requirements.txt```
 
-To run the app:<br>
+To run the app locally:<br>
 ```python3 app.py```
+
+Note that the back end app does NOT run in the Flask dev server in production.
+Instead it runs inside a Docker container and is served by the Waitress app 
+server.  The dev server is only a convenience for when you are developing the 
+app locally.<br> 
+
 
 # Docker Interactions
 
@@ -43,9 +63,11 @@ after enabling this setting.)  Also, you must have started Docker Desktop at som
 point since your last reboot (presumably some background daemon is started when
 you start the app).<br>
 
+## Locally
+
 Make sure you are in the backend directory when you run any of these commands.<br>
 
-Log on to Docker.  When prompted, provide your personal access token:<br>
+Log on to Docker.  When prompted, provide your Docker Hub personal access token:<br>
 ```docker login -u <username>```
 
 To build the Docker image (note the . on the end):<br>
@@ -61,8 +83,19 @@ waiting for the app to exit).<br>
 To push the image to Docker Hub:<br>
 ```docker push lastcallsoftware/trackeats-backend```
 
-To pull the image (e.g., while on the Trackeats server):<br>
+To see all images you have built:
+```docker image ls -a```
+
+To delete inactive images:
+```docker image prune```
+
+## On the Trackeats server
+
+To deploy and execute the back end app on the Trackeats server, ssh onto the
+server and follow these instructions:
+
+To pull the image file from Docker Hub:<br>
 ```sudo docker pull lastcallsoftware/trackeats-backend```
 
-To run the Docker image on the server:<br>
+To run the Docker image on the server in a container:<br>
 ```sudo docker run -it lastcallsoftware/trackeats-backend```
