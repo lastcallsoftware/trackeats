@@ -18,4 +18,4 @@ COPY . .
 #CMD ["python", "app.py"]
 
 # This runs the app using the Waitress WSGI app server
-CMD ["waitress-serve", "app:app"]
+CMD ["waitress-serve", "--port=8080" "app:app"]
