@@ -1,6 +1,6 @@
 import Footer from "./Footer";
 
-function Homepage() {
+function HomePage() {
     return (
         <>
             <p>Homepage Placeholder</p>
@@ -9,4 +9,4 @@ function Homepage() {
     );
 }
 
-export default Homepage;
+export default HomePage;

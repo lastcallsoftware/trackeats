@@ -1,11 +1,11 @@
 import { Routes, Route, Link } from 'react-router-dom';
 import logo from '../assets/react.svg';
-import Homepage from './Homepage';
+import Homepage from './HomePage';
 import About from './About';
 import Foods from './Foods';
 import Dishes from './Dishes';
 import DailyLog from './DailyLog';
-import Login from './Login';
+import LoginPage from './LoginPage';
 
 function Nav() {
     return (
@@ -25,7 +25,7 @@ function Nav() {
                 <Route path="/dishes" element={<Dishes />} />
                 <Route path="/dailylog" element={<DailyLog />} />
                 <Route path="/about" element={<About />} />
-                <Route path="/login" element={<Login />} />
+                <Route path="/login" element={<LoginPage />} />
             </Routes>
         </>
     );
