@@ -71,14 +71,10 @@ Log on to Docker.  When prompted, provide your Docker Hub personal access token:
 ```docker login -u <username>```
 
 To build the Docker image (note the . on the end):<br>
-```docker build -t lastcallsoftware/trackeats-backend .```<br>
-The -t switch specifies a tag (i.e., the image name)<br>
+```docker build -t lastcallsoftware/trackeats-backend .```
 
 To run the Docker image locally:<br>
-```docker run -it lastcallsoftware/trackeats-backend```<br>
-The -it switch is actually two switches, -i and -t, which together run the app
-"interactively" (i.e., it returns control to the command prompt instead of 
-waiting for the app to exit).<br>
+```docker run -d -p 8080:8080 lastcallsoftware/trackeats-backend```
 
 To push the image to Docker Hub:<br>
 ```docker push lastcallsoftware/trackeats-backend```
@@ -98,4 +94,4 @@ To pull the image file from Docker Hub:<br>
 ```sudo docker pull lastcallsoftware/trackeats-backend```
 
 To run the Docker image on the server in a container:<br>
-```sudo docker run -it lastcallsoftware/trackeats-backend```
+```sudo docker run -d -p:8080 lastcallsoftware/trackeats-backend```
