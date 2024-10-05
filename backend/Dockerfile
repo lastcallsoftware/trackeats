@@ -13,9 +13,12 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy the rest of your application code into the container
 COPY . .
 
+# Expose the web service port
+EXPOSE 5000
+
 # Specify the command to run when the container starts
 # This runs the app using Flask's built-in dev server
 #CMD ["python", "app.py"]
 
 # This runs the app using the Waitress WSGI app server
-CMD ["waitress-serve", "--port=8080" "app:app"]
+CMD ["python", "app.py"]

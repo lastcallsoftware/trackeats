@@ -41,8 +41,8 @@ COPY nginx.conf /etc/nginx/conf.d/default.conf
 # copy React app build files into the container
 COPY --from=build /app/dist /usr/share/nginx/html
 
-# run on port 8080
-EXPOSE 80
+# expose the port for the app's front end
+EXPOSE 8080
 
 # this runs the app using Vite's built-in app server
 #CMD ["npm", "run", "build"]

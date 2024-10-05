@@ -15,7 +15,7 @@ function Login() {
     const handleSubmit = (e: { preventDefault: () => void; }) => {
         e.preventDefault();
         console.log("Username: " + formData.username + ", Password: " + formData.password)
-        axios.post("http://localhost:8080/login", {username: formData.username, password: formData.password })
+        axios.post("http://localhost:5000/login", {username: formData.username, password: formData.password })
             .then((response) => {console.log("Response: " + response)})
             .catch((error) => {console.log("Error: " + error)})
 
