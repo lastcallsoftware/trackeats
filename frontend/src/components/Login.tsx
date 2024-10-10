@@ -24,15 +24,11 @@ function Login(props: any) {
         axios.defaults.baseURL = server_base_url
         axios.post("/login", {username: formData.username, password: formData.password })
             .then((response) => {
-                props.setToken(response.data.access_token);
+                props.loginFunction(formData.username, response.data.access_token);
                 navigate("/")
             })
             .catch((error) => {setLoginMessage(error.response.data.message)})
     }
-
-    //if (!props.login) {
-    //    props.setToken(null)
-    //}
 
     return (
         <section className="loginPage">
