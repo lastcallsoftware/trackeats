@@ -1,5 +1,6 @@
 flask
+mysql-connector-python
 flask-sqlalchemy
 flask-cors
+flask-jwt-extended
 waitress
-mysql-connector-python

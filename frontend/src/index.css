@@ -96,9 +96,9 @@ button:focus-visible {
 .navbar {
   display: flex;
   flex-wrap: wrap;
-  margin-left: 10%;
   margin-top: 1rem;
   align-items: center;
+  justify-content: center;
 }
 .navbar img {
   height: 5rem;
