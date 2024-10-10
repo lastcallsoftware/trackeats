@@ -1,13 +1,10 @@
 import os
 from flask import Flask, jsonify, request, render_template, url_for, redirect
 from flask_cors import CORS
-from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy.sql import func
 from waitress import serve
 from flask_jwt_extended import (JWTManager, jwt_required, create_access_token, get_jwt_identity)
-
-#from models import Ingredient
-#from loaddb import loaddb
+from models import db, Ingredient, User
+from datetime import datetime
 
 app = Flask(__name__)
 
@@ -34,7 +31,7 @@ app.config['SQLALCHEMY_DATABASE_URI'] = f"{db_protocol}://{db_user}:{db_password
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # Instantiate the database connector.
-db = SQLAlchemy(app)
+db.init_app(app)
 
 
 # INITIALIZE JWT MANAGER
@@ -52,67 +49,14 @@ jwt = JWTManager(app)
 # ---------------
 # We're using a library (flask-cors) that handles CORS policy for us.  
 # Initialize it here.
-#
-# Background
-# Tricking web apps into sending/retrieving data to/from a different URL than 
-# was intended is a common strategy employed by attackers, so modern browsers 
-# have a policy (Cross Origin Resource Sharing, Or CORS) that by default 
-# prohibits interactions with URLs from a different origin (i.e., a different 
-# web protocol, domain name, or port than the web app was originally served 
-# from).
-# 
-# Even though our front end and back end will be running on the same server,
-# they will have different port numbers, which would therefore prevent them from
-# communicating.  So we have to fix this!
-#
-# To do that, the server receiving the HTTP request must set a header in its 
-# HTTP response indicating which URLs are allowed to make the request.
-#
-# Note that this policy is enforced by the BROWSER.  To be clear, this doesn't
-# refer to the front-end app that runs IN the browser, but to the browser 
-# itself -- Chrome, for example.  When the front-end app makes a request, the 
-# response first goes through the browser.  The browser reads the list of 
-# allowed requesters (i.e., the CORS headers) in the response and sees if its 
-# own URL is in there, and if not it says, "Oh, we're not allowed to make this 
-# request!",and then instead of giving the response to the front-end app, it
-# instead gives it an error.
-#
-# Note that it is entirely possible to make requests to the back end that do NOT
-# go through a web browser -- for example, via the curl tool.  Such tools don't
-# care about CORS headers, so this whole CORS thing does exactly nothing in 
-# their case.  But CORS isn't about securing the data requested from the back 
-# end, it's about preventing web apps (which run in trusted browsers) from being 
-# fooled into requesting/delivering data to/from the wrong servers.
-#
-# We could set the proper HTTP response header manually (it's the
-# Access-Control-Allow-Origin header), but there's a little plugin library 
-# (flask-cors) that automagically does this for us with just one line of code,
-# so we'll use that.
-#
-# In production, we'll need to account for port 443 (that's the HTTPS port), 
-# maybe port 80 (the regular HTTP port), and maybe maybe port 8080 (used for
-# testing HTTP because Linux, annoyingly, prohibits the use of port nummbers 
-# under 1024).
+
+# In production, we'll need to account for port 443, 80, and maybe maybe 8080.
 #CORS(app, origins=["http://localhost:80", "http://localhost:443", "http://localhost:8080",
 #                   "http://www.trackeats.com:80", "http://www.trackeats.com:443", "http://www.trackeats.com:8080"])
+
+# I haven't worked out the correct domain names yet, so for now just allow
+# EVERYTHING.  This isn't secure, obviously, but I'll take my chances!
 CORS(app)
-
-
-# SQL ALCHEMY ORM MODELS
-# ----------------------
-# We're using a library (flask-sqlalchemy) that handles database interactions
-# for us.  These are the classes that represent the various records in the
-# database.
-# This should probably be in its own .py file but I haven't worked out how to do
-# that yet.
-
-class Ingredient(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), nullable=False)
-    serving_size = db.Column(db.String(32), nullable=False)
-
-    def __repr__(self):
-        return f"<Ingredient {self.name} {self.serving_size}>"
 
 
 # ROUTE HANDLERS
@@ -120,18 +64,34 @@ class Ingredient(db.Model):
 # The heart of the Flask framework (flask) is its route handlers.  These are the
 # functions that respond to various REST web service requests.
 
-@app.route("/init", methods=["GET"])
+@app.route("/db/init", methods=["GET"])
 def init():
+    # To execute this function, the app needs to be running with 
     db.drop_all()
     db.create_all()
 
+    return "Initialization complete", 200
+
+@app.route("/db/load", methods=["GET"])
+def init():
     # set up a couple records to play with
+    db.session.delete("ingredient")
     milk = Ingredient(name="milk", serving_size="1 cup")
     butter = Ingredient(name="butter", serving_size="1 tbsp")
     db.session.add(milk)
     db.session.add(butter)
     db.session.commit()
-    return "Initialization complete"
+
+    # we don't have a register API yet so create a user record
+    db.session.delete("user")
+    now = datetime.now()
+    admin_user = User(username="admin", active=True, issued=now, password_hash="ABC123")
+    test_user = User(username="test", active=True, issued=now, password_hash="ABC123")
+    db.session.add(admin_user)
+    db.session.add(test_user)
+    db.session.commit()
+
+    return "Data load complete", 200
 
 @app.route("/health", methods = ["GET"])
 def health():
@@ -160,6 +120,8 @@ def register():
         return jsonify({"message": "Missing required value 'password'"}), 400
 
     # Store the credentials to the database
+    existing_user = User.query()
+
     # For now just pretend
     return jsonify({"message": "User registered"}), 200
 

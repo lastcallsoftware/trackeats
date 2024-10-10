@@ -18,10 +18,6 @@ function getToken() {
     return JSON.parse(tokenString);
 }
 
-function isLoggedIn() {
-    return (sessionStorage.getItem("access_token") != null);
-}
-
 function Nav() {
     const [user, setUser] = useState({username: "", isAuthenticated: false});
 
@@ -35,6 +31,10 @@ function Nav() {
         setUser({username: "", isAuthenticated: false})
     }
     
+    function isLoggedIn() {
+        return user.isAuthenticated;
+    }
+
     return (
         <>
             <Header />
@@ -55,7 +55,6 @@ function Nav() {
                 <Route path="/dailylog" element={<DailyLog />} />
                 <Route path="/about" element={<About />} />
                 <Route path="/login" element={<Login loginFunction={login}/>} />
-                <Route path="/logout" element={<Login loginFunction={login}/>} />
             </Routes>
             <Footer />
         </>
