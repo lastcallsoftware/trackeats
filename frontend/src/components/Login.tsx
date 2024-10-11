@@ -14,20 +14,23 @@ function Login(props: any) {
     const passwordIsValid = formData.password.length >= 8;
     const loginIsDisabled = !usernameIsValid || !passwordIsValid;
 
-    const server_base_url = import.meta.env.DEV ? "http://www.localhost:5000": "http://www.trackeats.com:5000"
+    //const server_base_url = import.meta.env.DEV ? "http://www.localhost:5000": "http://www.trackeats.com:5000"
     //const server_base_url = "http://localhost:5000"
     //const server_base_url = "http://www.trackeats.com:5000"
 
     const handleSubmit = (e: { preventDefault: () => void; }) => {
         e.preventDefault();
-        axios.defaults.timeout = 4000
-        axios.defaults.baseURL = server_base_url
+        //axios.defaults.timeout = 4000
+        //axios.defaults.baseURL = server_base_url
+        console.log("Attempting to log in")
         axios.post("/login", {username: formData.username, password: formData.password })
             .then((response) => {
                 props.loginFunction(formData.username, response.data.access_token);
                 navigate("/")
             })
-            .catch((error) => {setLoginMessage(error.response.data.message)})
+            .catch((error) => {
+                setLoginMessage(error.response.data.msg)
+            })
     }
 
     return (

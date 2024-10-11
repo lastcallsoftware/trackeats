@@ -61,6 +61,110 @@ jwt = JWTManager(app)
 CORS(app)
 
 
+# HELPER FUNCTIONS
+# ----------------
+# Consider moving this stuff to a separate class or wrapper component
+
+# Add a user to the database.  This does not issue a token; if registration is
+# successful, the caller may then use the /login API to get a token using
+# these same credentials.
+def add_user(username: str, password: str, email: str) -> list[str]:
+    # Add a catch-all try-except block, because who knows what could fail in
+    # the ORM and JWT libraries we use here?  If there is a failure we want
+    # to return our own error message instad of an exception stack!
+    try:
+        errors = []
+
+        if not username:
+            errors.append("Missing required value 'username'.")
+        if len(username) < 3:
+            errors.append("Username must be at least 3 characters.")
+        if len(username) > 100:
+            errors.append("Username must be at most 100 characters.")
+        
+        if not password:
+            errors.append("Missing required value 'password'.")
+        if len(password) < 8:
+            errors.append("Password must be at least 8 characters.")
+        if len(password) > 100:
+            errors.append("Password must be at most 100 characters.")
+        if not re.search(r"[a-z]", password):
+            errors.append("Password must contain at least one lowercase letter.")
+        if not re.search(r"[A-Z]", password):
+            errors.append("Password must contain at least one uppercase letter.")
+        if not re.search(r"\d", password):
+            errors.append("Password must contain at least one digit.")
+        if not re.search(r"[!@#$%^&*()_+\-=\[\]{};':\"\\|,.<>\/?]", password):
+            errors.append("Password must contain at least one special character.")
+
+        if email is not None and "@" not in email:
+            errors.append("Email address must contain an @ character.")
+
+        if len(errors) == 0:
+            # Check whether this username is already in the database
+            query = db.select(User).filter_by(username=username)
+            existing_user = db.session.execute(query).first()
+            if (existing_user is not None):
+                errors.append(f"User {username} already exists")
+            else:
+                # Salt and hash the password
+                # Note that the salt is stored as part of the hash, rather than as a 
+                # separarte value.  The bcrypt API knows how to separate them.
+                salt = gensalt()
+                password_bytes = bytes(password, "utf-8")
+                password_hash = hashpw(password_bytes, salt)
+                password_hash_str = password_hash.decode("utf-8")
+
+                # Store the credentials in the database
+                now = datetime.now()
+                new_user = User(username=username, active=True, issued=now, email=email, password_hash=password_hash_str)
+                db.session.add(new_user)
+                db.session.commit()
+    except:
+        errors.append("Internal server error: user could not be added")
+
+    return errors
+
+def validate_user(username: str, password: str) -> list[str]:
+    errors = []
+
+    try:
+        if not username:
+            errors.append("Missing required value 'username'")
+        if not password:
+            errors.append("Missing required value 'password'")
+
+        if len(errors) == 0:
+            # Validate the credentials
+            # Retrieve user record from database
+            # I know that in the case of a validation failure you're not supposed to 
+            # tell the caller whether the username or password was invalid.  In the
+            # interests of easier debugging, I'll take my chances here... :P
+            query = db.select(User).filter_by(username=username)
+            existing_users = db.session.execute(query).first()
+            if (existing_users is None):
+                errors.append(f"Invalid username {username}")
+            else:
+                existing_user = existing_users[0]
+                password_hash_bytes = bytes(existing_user.password_hash, "utf-8")
+
+                # Validate the password.
+                # Note that the salt is stored as part of the hash, rather than as a 
+                # separarte value.  The bcrypt API knows how to separate them.
+                password_bytes = bytes(password, "utf-8")
+                if (not checkpw(password_bytes, password_hash_bytes)):
+                    errors.append(f"Invalid password for username {username}")
+    except:
+        errors.append("Internal server error: user could not be validated")
+
+    return errors
+
+# Log messages.  For now just print to console, eventually we'll replace with
+# something more robust.
+def log(message: str):
+    print(datetime.now(), message)
+
+
 # ROUTE HANDLERS
 # --------------
 # The heart of the Flask framework (flask) is its route handlers.  These are the
@@ -73,7 +177,7 @@ def db_init():
     db.drop_all()
     db.create_all()
 
-    return {"message": "Initialization complete"}, 200
+    return {"msg": "Initialization complete"}, 200
 
 @app.route("/db/load", methods=["GET"])
 def db_load():
@@ -85,14 +189,10 @@ def db_load():
     db.session.commit()
 
     db.session.query(User).delete()
-    now = datetime.now()
-    admin_user = User(username="admin", active=True, issued=now, password_hash="ABC123")
-    test_user = User(username="test", active=True, issued=now, password_hash="ABC123")
-    db.session.add(admin_user)
-    db.session.add(test_user)
-    db.session.commit()
+    add_user("admin", "Test*123", None)
+    add_user("testuser", "Test*123", None)
 
-    return {"message": "Data load complete"}, 200
+    return {"msg": "Data load complete"}, 200
 
 @app.route("/user", methods = ["GET"])
 def get_users():
@@ -111,107 +211,62 @@ def get_users():
 
 @app.route("/health", methods = ["GET"])
 def health():
-    return {"message": "Server OK"}, 200
+    return {"msg": "Server OK"}, 200
 
 @app.route("/register", methods=["POST"])
 def register():
-    # Validate parameters
-    if not request.is_json:
-        return jsonify({"message": "Invalid request - not JSON"}), 400
-
-    username = request.json.get('username', None)
-    password = request.json.get('password', None)
-    email = request.json.get('email', None)
     errors = []
-    if not username:
-        errors.append("Missing required value 'username'.")
-    if len(username) < 3:
-        errors.append("Username must be at least 3 characters.")
-    if len(username) > 100:
-        errors.append("Username must be at most 100 characters.")
-    
-    if not password:
-        errors.append("Missing required value 'password'.")
-    if len(password) < 8:
-        errors.append("Password must be at least 8 characters.")
-    if len(password) > 100:
-        errors.append("Password must be at most 100 characters.")
-    if not re.search(r"[a-z]", password):
-        errors.append("Password must contain at least one lowercase letter.")
-    if not re.search(r"[A-Z]", password):
-        errors.append("Password must contain at least one uppercase letter.")
-    if not re.search(r"\d", password):
-        errors.append("Password must contain at least one digit.")
-    if not re.search(r"[!@#$%^&*()_+\-=\[\]{};':\"\\|,.<>\/?]", password):
-        errors.append("Password must contain at least one special character.")
 
-    if email is not None and "@" not in email:
-        errors.append("Email address must contain an @ character.")
+    # If it's not even JSON, don't bother checking anything else
+    if not request.is_json:
+        errors.append("Invalid request - not JSON")
+    else:
+        # Get parameters from request
+        username = request.json.get('username', None)
+        password = request.json.get('password', None)
+        email = request.json.get('email', None)
+
+        # Add the user to the database
+        errors = add_user(username, password, email)
 
     if len(errors) > 0:
-        return jsonify({"message": "\n".join(errors)})
-
-    # Check whether this username is already in the database
-    query = db.select(User).filter_by(username=username)
-    existing_user = db.session.execute(query).first()
-    if (existing_user is not None):
-        return {"message": f"User {username} already exists"}, 400
-
-    # Salt and hash the password
-    # Note that the salt is stored as part of the hash, rather than as a 
-    # separarte value.  The bcrypt API knows how to separate them.
-    salt = gensalt()
-    password_bytes = bytes(password, "utf-8")
-    password_hash = hashpw(password_bytes, salt)
-    password_hash_str = password_hash.decode("utf-8")
-
-    # Store the credentials in the database
-    now = datetime.now()
-    new_user = User(username=username, active=True, issued=now, email=email, password_hash=password_hash_str)
-    db.session.add(new_user)
-    db.session.commit()
-
-    # Return success
-    return jsonify({"message": f"User {username} registered"}), 200
+        error_str = "\n".join(errors)
+        log(error_str)
+        return jsonify({"msg": error_str}), 400
+    else:
+        msg = f"User {username} registered"
+        log(msg)
+        return jsonify({"msg": msg}), 200
 
 @app.route("/login", methods = ["POST"])
 def login():
+    errors = []
+
+    # If it's not even JSON, don't bother checking anything else
     if not request.is_json:
-        return jsonify({"message": "Invalid request - not JSON"}), 400
+        errors.append("Invalid request - not JSON")
+    else:
+        # Get parameters from request
+        username = request.json.get('username', None)
+        password = request.json.get('password', None)
 
-    username = request.json.get('username', None)
-    password = request.json.get('password', None)
-    if not username:
-        return jsonify({"message": "Missing required value 'username'"}), 400
-    if not password:
-        return jsonify({"message": "Missing required value 'password'"}), 400
+        # Validate the user
+        errors = validate_user(username, password)
 
-    # Validate the credentials
-    # Retrieve user record from database
-    # I know that in the case of a validation failure you're not supposed to 
-    # tell the caller whether the username or password was invalid.  In the
-    # interests of easier debugging, I'll take my chances here... :P
-    query = db.select(User).filter_by(username=username)
-    existing_users = db.session.execute(query).first()
-    if (existing_users is None):
-        return jsonify({"message": "Invalid username"}), 401
-    existing_user = existing_users[0]
-    password_hash_bytes = bytes(existing_user.password_hash, "utf-8")
+        access_token = None
+        if (len(errors)) == 0:
+            access_token = create_access_token(identity=username, expires_delta=timedelta(seconds=60))
 
-    # Validate the password.
-    # Note that the salt is stored as part of the hash, rather than as a 
-    # separarte value.  The bcrypt API knows how to separate them.
-    password_bytes = bytes(password, "utf-8")
-    if (not checkpw(password_bytes, password_hash_bytes)):
-        return jsonify({"message": "Invalid password"}), 401
-
-    # Create and return an access token
-    # For now we're accepting most of the default creation parameters (which is
-    # really the main reason to use this library in the first place)
-    access_token = create_access_token(identity=username, expires_delta=timedelta(days=1))
-    return jsonify(access_token=access_token), 200
+    if (len(errors) > 0):
+        error_str = "\n".join(errors)
+        log(error_str)
+        return jsonify({"msg": error_str}), 401
+    else:
+        log (f"User {username} authenticated, token sent")
+        return jsonify(access_token=access_token), 200
 
 @app.route("/ingredients", methods = ["GET"])
+@jwt_required()
 def hello_world():
     if (request.method == "GET"):
         ingredients = Ingredient.query.all()
@@ -219,6 +274,13 @@ def hello_world():
         for ingredient in ingredients:
             data.append({"name": ingredient.name, "serving_size": ingredient.serving_size})
         return jsonify(data), 200
+
+@app.route('/protected', methods=['GET'])
+@jwt_required()
+def protected():
+    # Access the identity of the current user with get_jwt_identity
+    current_user = get_jwt_identity()
+    return jsonify(logged_in_as=current_user), 200
 
 if __name__ == "__main__":
     serve(app, listen="*:5000")
