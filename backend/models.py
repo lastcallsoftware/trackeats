@@ -17,20 +17,23 @@ class Ingredient(db.Model):
     name = db.Column(db.String(100), nullable=False)
     serving_size = db.Column(db.String(32), nullable=False)
 
+    def __str__(self):
+        return f"<Ingredient {self.name}, serving size: {self.serving_size}>"
     def __repr__(self):
-        return f"<Ingredient {self.name} {self.serving_size}>"
+        return f"Ingredient({self.name}, {self.serving_size})"
 
 
 class User(db.Model):
     __tablename__ = "user"
 
     id = db.Column(db.Integer, primary_key=True)
-    active = db.Column(db.Boolean, nullable=False)
     username = db.Column(db.String(100), index=True, nullable=False)
+    active = db.Column(db.Boolean, nullable=False)
     email = db.Column(db.String(120), nullable=True)
     issued = db.Column(db.DateTime, nullable=False)
-    password_hash = db.Column(db.String(512), nullable=False)
-    salt = db.Column(db.String(32), nullable=True)
+    password_hash = db.Column(db.String(64), nullable=False)
 
+    def __str__(self):
+        return f"<User {self.id} {self.username}, active: {self.active}, issued: {self.issued}>"
     def __repr__(self):
-        return f"<User {self.id} {self.username} active: {self.active} issued: {self.issued}>"
+        return f"User({self.id}, \'{self.username}\', {self.active}, \'{self.email}\', {self.issued}, \'{self.password_hash}\')"
