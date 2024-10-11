@@ -8,6 +8,7 @@ import Meals from './Meals';
 import DailyLog from './DailyLog';
 import Login from './Login';
 import Footer from './Footer';
+import axios from "axios";
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function getToken() {
@@ -17,6 +18,12 @@ function getToken() {
     }
     return JSON.parse(tokenString);
 }
+
+const server_base_url = import.meta.env.DEV ? "http://www.localhost:5000": "http://www.trackeats.com:5000"
+//const server_base_url = "http://localhost:5000"
+//const server_base_url = "http://www.trackeats.com:5000"
+axios.defaults.baseURL = server_base_url
+axios.defaults.timeout = 4000
 
 function Nav() {
     const [user, setUser] = useState({username: "", isAuthenticated: false});
