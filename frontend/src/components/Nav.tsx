@@ -11,14 +11,15 @@ import Register from './Register';
 import Footer from './Footer';
 import axios from "axios";
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function getToken() {
-    const tokenString = sessionStorage.getItem("access_token");
-    if (tokenString == null || tokenString == undefined) {
-        return null;
-    }
-    return JSON.parse(tokenString);
-}
+// An unused function actually causes the build to FAIL!
+// So -- for now! -- comment this out.
+//function getToken() {
+//    const tokenString = sessionStorage.getItem("access_token");
+//    if (tokenString == null || tokenString == undefined) {
+//        return null;
+//    }
+//    return JSON.parse(tokenString);
+//}
 
 const server_base_url = import.meta.env.DEV ? "http://www.localhost:5000": "http://www.trackeats.com:5000"
 //const server_base_url = "http://localhost:5000"
