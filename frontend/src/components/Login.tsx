@@ -10,22 +10,16 @@ function Login(props: any) {
     const [loginMessage, setLoginMessage] = useState("");
     const navigate = useNavigate();
 
-    const usernameIsValid = formData.username.length >= 3;
-    const passwordIsValid = formData.password.length >= 8;
+    const usernameIsValid = formData.username.length > 0;
+    const passwordIsValid = formData.password.length > 0;
     const loginIsDisabled = !usernameIsValid || !passwordIsValid;
-
-    //const server_base_url = import.meta.env.DEV ? "http://www.localhost:5000": "http://www.trackeats.com:5000"
-    //const server_base_url = "http://localhost:5000"
-    //const server_base_url = "http://www.trackeats.com:5000"
 
     const handleSubmit = (e: { preventDefault: () => void; }) => {
         e.preventDefault();
-        //axios.defaults.timeout = 4000
-        //axios.defaults.baseURL = server_base_url
-        console.log("Attempting to log in")
+        // Call the back end's /login API with the username and password from the form
         axios.post("/login", {username: formData.username, password: formData.password })
             .then((response) => {
-                props.loginFunction(formData.username, response.data.access_token);
+                props.storeTokenFunction(formData.username, response.data.access_token);
                 navigate("/")
             })
             .catch((error) => {
@@ -36,20 +30,18 @@ function Login(props: any) {
     return (
         <section className="loginPage">
             <form className="loginForm" onSubmit={handleSubmit}>
-                <section className="loginInputGroup">
-                    <input id="username" className="username" type="text" placeholder="Username"
-                        onBlur={() => setFormData(prevState => ({...prevState, usernameTouched: true})) }
-                        onChange={(e) => setFormData(prevState => ({...prevState, username: e.target.value}))} />
-                            { (formData.usernameTouched && !usernameIsValid && formData.username.length > 0) ? <p className="inputErrorText">The user name must be at least 3 characters.</p> : ""}
-                    <br/>
-                    <input id="password" className="password" type="password" placeholder="Password"
-                        onBlur={() => setFormData(prevState => ({...prevState, passwordTouched: true})) }
-                        onChange={(e) => setFormData(prevState => ({...prevState, password: e.target.value}))} />
-                    { (formData.passwordTouched && !passwordIsValid && formData.password.length > 0) ? <p className="inputErrorText">The password must be at least 8 characters.</p> : ""}
+                <section className="loginBoundingBox">
+                    <section className="loginInputGroup">
+                        <input id="username" className="username" type="text" placeholder="Username"
+                            onChange={(e) => setFormData(prevState => ({...prevState, username: e.target.value}))} />
+                        <br/>
+                        <input id="password" className="password" type="password" placeholder="Password" 
+                            onChange={(e) => setFormData(prevState => ({...prevState, password: e.target.value}))} />
 
-                    <p className="loginError">{loginMessage}</p>
-                    
-                    <button className="button loginButton" type="submit" disabled={loginIsDisabled}>Login</button>
+                        <p className="loginError">{loginMessage}</p>
+                        
+                        <button className="button loginButton" type="submit" disabled={loginIsDisabled}>Login</button>
+                    </section>
                 </section>
             </form>
         </section>

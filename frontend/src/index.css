@@ -117,11 +117,17 @@ button:focus-visible {
 }
 
 
-.loginInputGroup {
+.loginBoundingBox {
+  display: flex;
+  justify-content: center;
   margin: auto;
   width: 30rem;
   padding: 1rem;
-  border: 1px solid black
+  border: 1px solid black;
+}
+.loginInputGroup {
+  display: block;
+  width: 15rem;
 }
 .inputErrorText {
   font-size: x-small;

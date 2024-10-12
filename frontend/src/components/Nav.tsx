@@ -7,6 +7,7 @@ import Ingredients from './Ingredients';
 import Meals from './Meals';
 import DailyLog from './DailyLog';
 import Login from './Login';
+import Register from './Register';
 import Footer from './Footer';
 import axios from "axios";
 
@@ -28,12 +29,12 @@ axios.defaults.timeout = 4000
 function Nav() {
     const [user, setUser] = useState({username: "", isAuthenticated: false});
 
-    function login(username: string, token: string|null): undefined {
+    function storeToken(username: string, token: string|null): undefined {
         sessionStorage.setItem("access_token", JSON.stringify(token))
         setUser({username: username, isAuthenticated: true})
     }
     
-    function logout() {
+    function removeToken() {
         sessionStorage.removeItem("access_token")
         setUser({username: "", isAuthenticated: false})
     }
@@ -50,10 +51,11 @@ function Nav() {
                 { isLoggedIn() ? <Link to="/ingredients" className="nav-item">Ingredients</Link> : ""}
                 { isLoggedIn() ? <Link to="/meals" className="nav-item">Meals</Link> : ""}
                 { isLoggedIn() ? <Link to="/dailylog" className="nav-item">Daily Log</Link> : ""}
+                { isLoggedIn() ? <Link to="#" className="nav-item" onClick={removeToken}>Log Out</Link>
+                               : <Link to="/login" className="nav-item">Log In</Link>}
+                                 <Link to="/register" className="nav-item">Register</Link>
                                  <Link to="/about" className="nav-item">About</Link>
-                { isLoggedIn() ? <Link to="#" className="nav-item" onClick={logout}>Log Out</Link> : 
-                                 <Link to="/login" className="nav-item">Log In</Link>}
-            </nav>
+                                 </nav>
 
             <Routes>
                 <Route path="/" element={<Homepage />} />
@@ -61,7 +63,8 @@ function Nav() {
                 <Route path="/meals" element={<Meals />} />
                 <Route path="/dailylog" element={<DailyLog />} />
                 <Route path="/about" element={<About />} />
-                <Route path="/login" element={<Login loginFunction={login}/>} />
+                <Route path="/login" element={<Login storeTokenFunction={storeToken}/>} />
+                <Route path="/register" element={<Register storeTokenFunction={storeToken}/>} />
             </Routes>
             <Footer />
         </>

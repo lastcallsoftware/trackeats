@@ -77,27 +77,29 @@ def add_user(username: str, password: str, email: str) -> list[str]:
 
         if not username:
             errors.append("Missing required value 'username'.")
-        if len(username) < 3:
-            errors.append("Username must be at least 3 characters.")
-        if len(username) > 100:
-            errors.append("Username must be at most 100 characters.")
+        else:
+            if len(username) < 3:
+                errors.append("Username must be at least 3 characters.")
+            if len(username) > 100:
+                errors.append("Username must be at most 100 characters.")
         
         if not password:
             errors.append("Missing required value 'password'.")
-        if len(password) < 8:
-            errors.append("Password must be at least 8 characters.")
-        if len(password) > 100:
-            errors.append("Password must be at most 100 characters.")
-        if not re.search(r"[a-z]", password):
-            errors.append("Password must contain at least one lowercase letter.")
-        if not re.search(r"[A-Z]", password):
-            errors.append("Password must contain at least one uppercase letter.")
-        if not re.search(r"\d", password):
-            errors.append("Password must contain at least one digit.")
-        if not re.search(r"[!@#$%^&*()_+\-=\[\]{};':\"\\|,.<>\/?]", password):
-            errors.append("Password must contain at least one special character.")
+        else:
+            if len(password) < 8:
+                errors.append("Password must be at least 8 characters.")
+            if len(password) > 100:
+                errors.append("Password must be at most 100 characters.")
+            if not re.search(r"[a-z]", password):
+                errors.append("Password must contain at least one lowercase letter.")
+            if not re.search(r"[A-Z]", password):
+                errors.append("Password must contain at least one uppercase letter.")
+            if not re.search(r"\d", password):
+                errors.append("Password must contain at least one digit.")
+            if not re.search(r"[!@#$%^&*()_+\-=\[\]{};':\"\\|,.<>\/?]", password):
+                errors.append("Password must contain at least one special character.")
 
-        if email is not None and "@" not in email:
+        if email and len(email) > 0 and "@" not in email:
             errors.append("Email address must contain an @ character.")
 
         if len(errors) == 0:
