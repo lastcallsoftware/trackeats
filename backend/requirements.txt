@@ -3,4 +3,5 @@ mysql-connector-python
 flask-sqlalchemy
 flask-cors
 flask-jwt-extended
+bcrypt
 waitress

@@ -1,2 +1,2 @@
 #!/bin/bash
-sudo docker build -t lastcallsoftware/trackeats-frontend .
+docker build -t lastcallsoftware/trackeats-frontend .

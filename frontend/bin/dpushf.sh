@@ -1,2 +1,2 @@
 #!/bin/bash
-sudo docker push lastcallsoftware/trackeats-frontend
+docker push lastcallsoftware/trackeats-frontend
