@@ -1,0 +1,47 @@
+services:
+  frontend:
+    container_name: trackeats-frontend
+    image: lastcallsoftware/trackeats-frontend
+    build:
+      context: ./frontend/
+      dockerfile: Dockerfile
+    depends_on:
+      backend:
+        condition: service_started
+    ports:
+      - 8080:8080
+    environment:
+      REACT_APP_BACKEND_BASE_URL: http://trackeats.com:5000
+
+  backend:
+    container_name: trackeats-backend
+    image: lastcallsoftware/trackeats-backend
+    build:
+      context: ./backend/
+      dockerfile: Dockerfile
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - 5000:5000
+    environment:
+      DB_HOSTNAME: trackeats.com
+      DB_PASSWORD: Yay*LJ54XOAN
+
+  db:
+    container_name: mysql
+    image: mysql
+    ports:
+      - 3306:3306
+    environment:
+      MYSQL_ROOT_PASSWORD: Test*123
+      MYSQL_DATABASE: trackeats
+      MYSQL_USER: trackeats-backend-mysql
+      MYSQL_PASSWORD: Yay*LJ54XOAN
+    restart: always    
+    healthcheck:
+      test: ["CMD-SHELL", "mysql -u trackeats-backend-mysql --password=Yay*LJ54XOAN -e 'select 1 as test' trackeats"]
+      interval: 5s
+      retries: 5
+      start_period: 10s
+      timeout: 10s

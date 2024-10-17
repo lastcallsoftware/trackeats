@@ -1,0 +1,29 @@
+# The way Docker Compose handles the different build environments -- say, 
+# development and production -- is to have completely separate .yml files for 
+# each environment.  The different .yml files would then reference different
+# config files and use different command-line switches and so forth to
+# differentiate the builds.  So in theory you wouldn't have to, for example,
+# edit any config files when you want to switch between doing a build for dev
+# or production -- you just run a different compose.yml file.
+#
+# VS Code's Docker plugin auto-generated two .yml files for me, to implement two
+# types of build: the "normal" docker-compose.yml file, which I have heavily 
+# modified and which is in active use; and this "debug" flavor.  I have not yet
+# mentally parsed what the heck this file is trying to do.  Presumably it's so
+# you can run a Flask app in a debugger.  Maybe?
+#
+# In any case we are definitely not using it yet.  I'm just keeping it around in 
+# case it turns out to be useful.
+
+services:
+  trackeats:
+    image: trackeats
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    command: ["sh", "-c", "pip install debugpy -t /tmp && python /tmp/debugpy --wait-for-client --listen 0.0.0.0:5678 -m flask run --no-debugger --no-reload --host 0.0.0.0 --port 5000"]
+    ports:
+      - 5000:5000
+      - 5678:5678
+    environment:
+      - FLASK_APP=backend/app.py

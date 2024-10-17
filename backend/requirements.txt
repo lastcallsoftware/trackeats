@@ -1,7 +1,43 @@
+# flask is our main application framework!
 flask
+
+# mysql-connecor-python is, as the name suggests, a Python connector for MySQL.
+# It's used by specifying it in the "db prorocol" portion of the database 
+# connector URI used by SQL Alchemy.  That's it!  No other code references it.
 mysql-connector-python
+
+# flask-sqlalchemy is a layer on top of SQL Alchemy that allows it to integrate
+# with Flask more easily.  Trust me, we want this.
+# SQL Alchemy is an Object Relational Mapping (ORM) layer for Python.  You 
+# define objects, and (with the proper API call) it creates corresponding
+# tables in the database.  Then you read and write records to the database by 
+# creating and updating the corresponding objects.  In effect, it saves you from
+# having to write SQL code.
 flask-sqlalchemy
+
+# flask-cors allows you to specify a CORS policy in just one line of code.
+# See the code to read about what CORS is, but in a nutshell it's a safety
+# measure to protect against a common type of hacks.
 flask-cors
+
+# flask-jwt-extended is basically a thin later on top of PyJWT that adds some
+# convenience functions for creating, validating and reading security tokens.
+# It also has a very handy decorator for Flask routes to only allow access to
+# requests containing a valid JWT token.
+# PyJWT is an ecryption library specializing in a particular type of tokens
+# (JWT, or JSON Web Tokens) used for security purposes.
 flask-jwt-extended
+
+# bcrypt is an encryption library used to create and validate password hashes.
 bcrypt
+
+# pynacl is an encryption library used for both symmetric and asymmetric
+# encryption.  It also does hashes but bcrypt is doing a great job of that so
+# I'll leave it be.
+pynacl
+
+# waitress and gunicorn are production-level WSGI app servers for Python apps.
+# I'm currently using Waitress because (a) it's simple and (b) it allegedly
+# works on Windows.  But Gunicorn is much more popular so maybe I'll switch.
 waitress
+#gunicorn

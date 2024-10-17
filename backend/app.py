@@ -1,15 +1,21 @@
 import os
 import re
-from flask import Flask, jsonify, request, render_template, url_for, redirect
-from flask_cors import CORS
-from waitress import serve
-from flask_jwt_extended import (JWTManager, jwt_required, create_access_token, get_jwt_identity)
-from models import db, Ingredient, User
 from datetime import datetime, timedelta
+from flask import Flask, jsonify, request
+from flask_cors import CORS
+from flask_jwt_extended import (JWTManager, jwt_required, create_access_token, get_jwt_identity)
 from bcrypt import hashpw, checkpw, gensalt
+from sqlalchemy import text
+from sqlalchemy.exc import ProgrammingError
+from waitress import serve
+from models import db, Ingredient, User
 
 app = Flask(__name__)
 
+# Log messages.  For now just print to console, eventually we'll replace with
+# something more robust.
+def log(message: str):
+    print(datetime.now(), message)
 
 # INITIALIZE DATABASE CONNECTOR
 # -----------------------------
@@ -18,22 +24,52 @@ app = Flask(__name__)
 
 # For now, store database userID/password/hostname in environment variables.
 # I'll figure out some better secret-storage mechanism eventually.
-db_protocol = os.environ.get('DB_PROTOCOL', 'mysql+mysqlconnector')
+db_protocol = os.environ.get('DB_PROTOCOL', 'mysql+mysqlconnector://')
 db_user = os.environ.get('DB_USER', 'trackeats-backend-mysql')
-db_password = os.environ['DB_PASSWORD']
-db_hostname = os.environ.get('DB_HOSTNAME', 'trackeats.com')
+db_password = os.environ.get('DB_PASSWORD')
+db_hostname = os.environ.get('DB_HOSTNAME')
 db_name = os.environ.get('DB_NAME', 'trackeats')
+if (db_hostname == None or len(db_hostname) == 0):
+    log("DB_HOSTNAME not specified - exiting.")
+if (db_password == None or len(db_password) == 0):
+    log("DB_PASSWORD not specified - exiting.")
+db_connection_uri = f"{db_protocol}{db_user}:{db_password}@{db_hostname}/{db_name}"
+db_safe_connection_uri = f"{db_protocol}{db_user}:DB_PASSWORD@{db_hostname}/{db_name}"
 
 # Configure a couple Flask-SQLAlchemy config values.
 # For all SQLAlchemy config settings, see https://flask-sqlalchemy.palletsprojects.com/en/2.x/config/
 # SQLALCHEMY_DATABASE_URI is the URI of the database.
-app.config['SQLALCHEMY_DATABASE_URI'] = f"{db_protocol}://{db_user}:{db_password}@{db_hostname}/{db_name}"
+app.config['SQLALCHEMY_DATABASE_URI'] = db_connection_uri
 # SQLALCHEMY_TRACK_MODIFICATIONS disables the tracking of changes to objects.
 # This just saves memory by turning off a monitoring feature.
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # Instantiate the database connector.
 db.init_app(app)
+
+# Test the database.  The "db.engine.connect()" trick I read is insufficient as
+# it just tests the network connection, it doesn't try to log on.  So we try to
+# run an actual query.  If it fails the app exits -- which is what we want.
+# The most likely reason is that the password was invalid or not set.  This 
+# results in a SQLAlchemy "ProgrammingError" exception (WHY???) and an exception 
+# stack that doesn't even indicate this file as the source, let alone this 
+# function.  BAD CODING, SQLAlchemy nerds!
+def test_db_connection():
+    try:
+        with app.app_context():
+            with db.engine.connect() as conn:
+                conn.execute(text("SELECT 1 as test"))
+    except ProgrammingError:
+        return "Could not connect to database - Access denied.  Did you set DB_PASSWORD?"
+    #except:
+    #    return "Could not connect to database - Internal server error."
+    return None
+
+errmsg = test_db_connection()
+if (errmsg):
+    log (errmsg)
+    exit(0)
+log(f"Database connection verified: {db_safe_connection_uri}")
 
 
 # INITIALIZE JWT MANAGER
@@ -43,6 +79,8 @@ db.init_app(app)
 
 # Define the key to use for signing and validating tokens.
 # Eventually we'll specify a real crypto key here, but for now let's fake it.
+
+
 app.config['JWT_SECRET_KEY'] = 'super-secret'  # Change this!
 jwt = JWTManager(app)
 
@@ -161,11 +199,6 @@ def validate_user(username: str, password: str) -> list[str]:
 
     return errors
 
-# Log messages.  For now just print to console, eventually we'll replace with
-# something more robust.
-def log(message: str):
-    print(datetime.now(), message)
-
 
 # ROUTE HANDLERS
 # --------------
@@ -199,17 +232,20 @@ def db_load():
 @app.route("/user", methods = ["GET"])
 def get_users():
     if (request.method == "GET"):
-        longform = False
-        if (request.args.get("long") != None):
-            longform = True
-        users = User.query.all()
-        data = []
-        for user in users:
-            if longform:
-                data.append(user.__repr__())
-            else:
-                data.append(str(user))
-        return jsonify(data)
+        try:
+            longform = False
+            if (request.args.get("long") != None):
+                longform = True
+            users = User.query.all()
+            data = []
+            for user in users:
+                if longform:
+                    data.append(user.__repr__())
+                else:
+                    data.append(str(user))
+        except:
+            return jsonify({"msg": "Internal server error - Unable to access database"}), 500
+        return jsonify(data),200
 
 @app.route("/health", methods = ["GET"])
 def health():
