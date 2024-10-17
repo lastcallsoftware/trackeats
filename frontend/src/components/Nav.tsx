@@ -21,10 +21,31 @@ import axios from "axios";
 //    return JSON.parse(tokenString);
 //}
 
-const server_base_url = import.meta.env.DEV ? "http://www.localhost:5000": "http://www.trackeats.com:5000"
-//const server_base_url = "http://localhost:5000"
-//const server_base_url = "http://www.trackeats.com:5000"
-axios.defaults.baseURL = server_base_url
+// Set the URL of the backend web service.
+//
+// I've tried a million things to define this as an environment variable, but 
+// NOTHING works.  I've defined it in the docker-compose.yml, I've defined it in
+// the Dockerfile, I've exported it from the command line in both the build and 
+// runtime environments, I put it in a .env file, and I tried using a library 
+// (dotenv) whose *entire purpose* is to define environment variables.  Nada.
+//
+// The problem is that a React app is pre-compiled and bundled into one file and
+// served up to the browser when the user access the web address, so there isn't
+// much opportunity to get environment variables at runtime -- though I still 
+// don't really understsand why an .env file wouldn't work if it was part of the
+// build's public files.
+//
+// Whatever.  We can at least differentiate between production and non-production 
+// builds using the NODE_ENV environment variable (which is set according to how 
+// the app is executed), and choose a value that way.  That still won't work 
+// when we run the app in a Docker container locally because that's considered
+// a production build, so in that case we'll have to 
+
+console.log("process.env.NODE_ENV:", process.env.NODE_ENV)
+console.log("import.meta.env.PROD:", import.meta.env.PROD)
+console.log("import.meta.env.MODE:", import.meta.env.MODE)
+console.log("import.meta.env.VITE_BACKEND_BASE_URL:", import.meta.env.VITE_BACKEND_BASE_URL)
+axios.defaults.baseURL = import.meta.env.VITE_BACKEND_BASE_URL
 axios.defaults.timeout = 4000
 
 function Nav() {
