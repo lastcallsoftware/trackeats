@@ -31,3 +31,7 @@ __pycache__
 
 # Generated Typescript files meant to speed compilation
 *.tsbuildinfo
+
+# Config files
+.env*
+keyfile.key
