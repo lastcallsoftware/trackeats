@@ -27,19 +27,17 @@ EXPOSE 5000
 RUN adduser -u 5678 --disabled-password --gecos "" appuser && chown -R appuser /app
 USER appuser
 
-# Specify the command to run when the container starts.
-# This command runs the app by simply executing it as Python code.
-# The app uses whatever app server is specified in the last line of code.  When 
-# the # boilerplate code was generated, this used Flask's built-in WSGI server:
-#   app.run(debug=True)
-#...but I have updated it to use the Waitress server:
-#   serve(app, listen="*:5000")
-# Can't remember why I did that when we can run Waitress from the Dockerfile (see below)!
+# Run the app by simply executing it as Python code.
+# The app uses whatever app server is specified in the last line of code in app.py.
+# Currently thecode is set up to run Waitress.  We could also do that directly in
+# this Dockerfile (see below), but it's much more convenient for development and 
+# testing to do that in the code.
 CMD ["python", "app.py"]
 
-# This runs the app using the Waitress WSGI app server
+# Run the app using the Waitress WSGI app server.
 #CMD ["waitress-serve", "--listen=0.0.0.0:5000", "--call", "app:app"]
 
 # Run the app using the Gunicorn WSGI server.
-# During debugging, this entry point will be overridden. For more information, please refer to https://aka.ms/vscode-docker-python-debug
+# During debugging, this entry point will be overridden. 
+# For more information, please refer to https://aka.ms/vscode-docker-python-debug
 #CMD ["gunicorn", "--bind", "0.0.0.0:5000", "backend.app:app"]
