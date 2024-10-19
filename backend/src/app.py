@@ -10,6 +10,8 @@ from models import db, User
 from dotenv import load_dotenv
 from routes import bp
 from logger import log
+from crypto import load_key
+
 
 # STARTUP
 # -------
@@ -113,21 +115,10 @@ log("Database connection verified.")
 # We're using a library (flask-jwt-extended) that handles token management for
 # us.  Intialize it here.
 
-# Define the key to use for signing and validating tokens.
-# Eventually we'll specify a real crypto key here, but for now let's fake it.
-
-secret_key = ""
-keyfile = "keyfile.key"
-if not os.path.exists(keyfile):
-    log(f"Key file does not exist: {keyfile} -- exiting.")
-    sys.exit(0)
 try:
-    with open(keyfile, "rb") as file:
-        secret_key = file.read()
-    app.config['JWT_SECRET_KEY'] = secret_key
+    app.config['JWT_SECRET_KEY'] = load_key()
     jwt = JWTManager(app)
-except OSError:
-    log(f"Could not read key file: {keyfile} -- exiting")
+except:
     sys.exit(0)
 
 

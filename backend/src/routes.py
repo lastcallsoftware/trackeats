@@ -5,13 +5,13 @@ from flask_jwt_extended import jwt_required, create_access_token, get_jwt_identi
 from bcrypt import hashpw, checkpw, gensalt
 from models import db, Ingredient, User
 from logger import log
+from crypto import encrypt, decrypt
 
 bp = Blueprint("auth", __name__)
 
+
 # HELPER FUNCTIONS
 # ----------------
-# Consider moving this stuff to a separate class or wrapper component
-
 # Add a user to the database.  This does not issue a token; if registration is
 # successful, the caller may then use the /login API to get a token using
 # these same credentials.
@@ -64,9 +64,15 @@ def add_user(username: str, password: str, email: str) -> list[str]:
                 password_hash = hashpw(password_bytes, salt)
                 password_hash_str = password_hash.decode("utf-8")
 
-                # Store the credentials in the database
+                # Encrypt the user data.  Currently that is just the email address.
+                encrypted_email = None
+                if email and len(email) > 0:
+                    encrypted_email = encrypt(email)
+                print(f"email: {email}, encrypted: {encrypted_email}")
+
+                # Store the user record in the database
                 now = datetime.now()
-                new_user = User(username=username, active=True, issued=now, email=email, password_hash=password_hash_str)
+                new_user = User(username=username, active=True, issued=now, email=encrypted_email, password_hash=password_hash_str)
                 db.session.add(new_user)
                 db.session.commit()
     except:
@@ -122,16 +128,19 @@ def db_init():
 
 @bp.route("/db/load", methods=["GET"])
 def db_load():
-    Ingredient.query.delete()
-    milk = Ingredient(name="milk", serving_size="1 cup")
-    butter = Ingredient(name="butter", serving_size="1 tbsp")
-    db.session.add(milk)
-    db.session.add(butter)
-    db.session.commit()
+    try:
+        Ingredient.query.delete()
+        milk = Ingredient(name="milk", serving_size="1 cup")
+        butter = Ingredient(name="butter", serving_size="1 tbsp")
+        db.session.add(milk)
+        db.session.add(butter)
+        db.session.commit()
 
-    db.session.query(User).delete()
-    add_user("admin", "Test*123", None)
-    add_user("testuser", "Test*123", None)
+        db.session.query(User).delete()
+        add_user("admin", "Test*123", "admin@lastcallsoftware.com")
+        add_user("testuser", "Test*123", None)
+    except:
+        return {"msg": "Data load failed"}, 500
 
     return {"msg": "Data load complete"}, 200
 

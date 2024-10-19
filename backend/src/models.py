@@ -1,5 +1,5 @@
-
 from flask_sqlalchemy import SQLAlchemy
+from crypto import decrypt
 
 # Instantiate the database connector.
 db = SQLAlchemy()
@@ -29,11 +29,14 @@ class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(100), index=True, nullable=False)
     active = db.Column(db.Boolean, nullable=False)
-    email = db.Column(db.String(120), nullable=True)
+    email = db.Column(db.LargeBinary, nullable=True)
     issued = db.Column(db.DateTime, nullable=False)
     password_hash = db.Column(db.String(64), nullable=False)
 
     def __str__(self):
         return f"<User {self.id} {self.username}, active: {self.active}, issued: {self.issued}>"
     def __repr__(self):
-        return f"User({self.id}, \'{self.username}\', {self.active}, \'{self.email}\', {self.issued}, \'{self.password_hash}\')"
+        email = ""
+        if self.email and len(self.email) > 0:
+            email = decrypt(self.email)
+        return f"User({self.id}, \'{self.username}\', {self.active}, \'{email}\', {self.issued}, \'{self.password_hash}\')"
