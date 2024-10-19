@@ -21,7 +21,7 @@ app.register_blueprint(bp)
 
 # LOAD CONFIG
 # -----------
-# We're using a library (flask_dotenv) to assist with accessing config files.
+# We're using a library (python-dotenv) to assist with accessing config files.
 #
 # load_dotenv("filename") loads values from the specified filename, or the 
 # ".env" file is no filename is given, and stores them as environment variables.
