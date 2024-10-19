@@ -21,28 +21,23 @@ import axios from "axios";
 //    return JSON.parse(tokenString);
 //}
 
-// Set the URL of the backend web service.
-//
-// I've tried a million things to define this as an environment variable, but 
-// NOTHING works.  I've defined it in the docker-compose.yml, I've defined it in
-// the Dockerfile, I've exported it from the command line in both the build and 
-// runtime environments, I put it in a .env file, and I tried using a library 
-// (dotenv) whose *entire purpose* is to define environment variables.  Nada.
-//
-// The problem is that a React app is pre-compiled and bundled into one file and
-// served up to the browser when the user access the web address, so there isn't
-// much opportunity to get environment variables at runtime -- though I still 
-// don't really understsand why an .env file wouldn't work if it was part of the
-// build's public files.
-//
-// Whatever.  We can at least differentiate between production and non-production 
-// builds using the NODE_ENV environment variable (which is set according to how 
-// the app is executed), and choose a value that way.  That still won't work 
-// when we run the app in a Docker container locally because that's considered
-// a production build, so in that case we'll have to 
+// I FINALLY figured out how to pass config values to the front end app.
+// We use .env files, and in them we define key-value pairs.  A couple rules:
+// - We don't have much control over the filenames used.  The only available
+//   names are .env (loaded in all cases), .env.<mode>, where <mode> is the
+//   execution mode (typically, development or production).  Vite's default
+//   mode is "production" but can be overriden 
+//   .env.production.
+// The values MUST start with the prefix "VITE_".
+// For consistency I also made .env files for the backend and database, but
+// unlike those modules, the config values for the frontend are read at build
+// time ONLY.  That's because the front-end build gloms up all its files into 
+// one package for delivery to the browser.  There ARE no .env files to read 
+// at runtime, and even if there were, the frontend app wouldn't be able to see
+// them, because it's executing on the browser, not the server.
 
 console.log("process.env.NODE_ENV:", process.env.NODE_ENV)
-console.log("import.meta.env.PROD:", import.meta.env.PROD)
+//console.log("import.meta.env.PROD:", import.meta.env.PROD)
 console.log("import.meta.env.MODE:", import.meta.env.MODE)
 console.log("import.meta.env.VITE_BACKEND_BASE_URL:", import.meta.env.VITE_BACKEND_BASE_URL)
 axios.defaults.baseURL = import.meta.env.VITE_BACKEND_BASE_URL
