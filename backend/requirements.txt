@@ -1,6 +1,10 @@
 # flask is our main application framework!
 flask
 
+# python-dotenv is a config library that helps load config values from .env
+# and other files.
+python-dotenv
+
 # mysql-connecor-python is, as the name suggests, a Python connector for MySQL.
 # It's used by specifying it in the "db prorocol" portion of the database 
 # connector URI used by SQL Alchemy.  That's it!  No other code references it.
