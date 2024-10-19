@@ -4,5 +4,5 @@ sudo docker run -d \
     --name mysql \
     -p 3306:3306 \
     -v /var/local/mysql:/var/lib/mysql \
-    --env-file .env.db \
+    --env-file .env.db.production \
     mysql
