@@ -68,7 +68,6 @@ def add_user(username: str, password: str, email: str) -> list[str]:
                 encrypted_email = None
                 if email and len(email) > 0:
                     encrypted_email = encrypt(email)
-                print(f"email: {email}, encrypted: {encrypted_email}")
 
                 # Store the user record in the database
                 now = datetime.now()
