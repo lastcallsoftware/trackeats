@@ -32,7 +32,7 @@ USER appuser
 # Currently thecode is set up to run Waitress.  We could also do that directly in
 # this Dockerfile (see below), but it's much more convenient for development and 
 # testing to do that in the code.
-CMD ["python", "app.py"]
+CMD ["python", "src/app.py"]
 
 # Run the app using the Waitress WSGI app server.
 #CMD ["waitress-serve", "--listen=0.0.0.0:5000", "--call", "app:app"]
