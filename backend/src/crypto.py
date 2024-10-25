@@ -7,11 +7,11 @@ nacl_box: nacl.secret.SecretBox = None
 
 def create_key():
     key = nacl.utils.random(nacl.secret.SecretBox.KEY_SIZE)
-    with open("keyfile.key", "wb") as file1:
+    with open("trackeats-backend-encryption.key", "wb") as file1:
         file1.write(key)
 
 def load_key():
-    keyfile = "keyfile.key"
+    keyfile = "trackeats-backend-encryption.key"
     if not os.path.exists(keyfile):
         raise  FileNotFoundError(f"Key file does not exist: {keyfile}")
     try:
