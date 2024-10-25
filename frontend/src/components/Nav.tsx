@@ -11,7 +11,7 @@ import Register from './Register';
 import Footer from './Footer';
 import axios from "axios";
 
-// An unused function actually causes the build to FAIL!
+// An unused function actually causes the build to FAIL!  Bizarre.
 // So -- for now! -- comment this out.
 //function getToken() {
 //    const tokenString = sessionStorage.getItem("access_token");
@@ -21,23 +21,10 @@ import axios from "axios";
 //    return JSON.parse(tokenString);
 //}
 
-// I FINALLY figured out how to pass config values to the front end app.
-// We use .env files, and in them we define key-value pairs.  A couple rules:
-// - We don't have much control over the filenames used.  The only available
-//   names are .env (loaded in all cases), .env.<mode>, where <mode> is the
-//   execution mode (typically, development or production).  Vite's default
-//   mode is "production" but can be overriden 
-//   .env.production.
-// The values MUST start with the prefix "VITE_".
-// For consistency I also made .env files for the backend and database, but
-// unlike those modules, the config values for the frontend are read at build
-// time ONLY.  That's because the front-end build gloms up all its files into 
-// one package for delivery to the browser.  There ARE no .env files to read 
-// at runtime, and even if there were, the frontend app wouldn't be able to see
-// them, because it's executing on the browser, not the server.
-
+// The only way I have found to pass config values to a Vite/React app is to use
+// .env files.  For a lengthy discussion about config management for this
+//  project, see the main project's README file.
 console.log("process.env.NODE_ENV:", process.env.NODE_ENV)
-//console.log("import.meta.env.PROD:", import.meta.env.PROD)
 console.log("import.meta.env.MODE:", import.meta.env.MODE)
 console.log("import.meta.env.VITE_BACKEND_BASE_URL:", import.meta.env.VITE_BACKEND_BASE_URL)
 axios.defaults.baseURL = import.meta.env.VITE_BACKEND_BASE_URL
