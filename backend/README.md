@@ -1,13 +1,13 @@
 # Summary
 
 This is the back end portion of the Trackeats app.  It is a Python-based Flask
-app using Waitress as its WSGI app server, and it includes a connector for 
-talking to the app's MySQL database.  The database is currently not part of the
-back end app and is installed and configured on the server manually.<br>
+app using Waitress as its WSGI app server, deployed in its own
+Docker cointainer.  It includes a connector for talking to the app's MySQL 
+database, which is deployed deparately in its own Docker container.<br>
 
 The back end contains no graphical user interface whatsoever.  Its only external
-interface is a set of REST microservices which provide the front end with data 
-from the database, and which allow the front end to update the database.<br>
+interface is a set of REST microservices which act as a proxy bewtween the front
+end and the database.<br>
 
 # Setting up and building the app
 
@@ -43,9 +43,8 @@ To run the app locally:<br>
 ```python3 app.py```
 
 Note that the back end app does NOT run in the Flask dev server in production.
-Instead it runs inside a Docker container and is served by the Waitress app 
-server.  The dev server is only a convenience for when you are developing the 
-app locally.<br> 
+We use a real WSGI app server instead.  The Flak dev server is only a 
+convenience for when you are developing the app locally.<br> 
 
 
 # Docker Interactions
