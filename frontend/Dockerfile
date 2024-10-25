@@ -45,6 +45,8 @@ COPY --from=build /app/dist /usr/share/nginx/html
 
 # Expose the port for the app's front end.
 EXPOSE 8080
+EXPOSE 8443
+EXPOSE 5443
 
 # Serve the app using Vite's built-in app server.  This is definitely for 
 # development builds only.
