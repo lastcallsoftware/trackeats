@@ -120,11 +120,17 @@ function Register(props: any) {
                     navigate("/")
                 })
                 .catch((error) => {
-                    setRegisterMessage(error.response.data.msg)
+                    if (error.response)
+                        setRegisterMessage(error.response.data.msg)
+                    else
+                        setRegisterMessage(error.message)
                 })
             })
             .catch((error) => {
-                setRegisterMessage(error.response.data.msg)
+                if (error.response)
+                    setRegisterMessage(error.response.data.msg)
+                else
+                    setRegisterMessage(error.message)
             })
         }
 
@@ -184,13 +190,13 @@ function Register(props: any) {
                         <p className="inputErrorText">{formData.emailMessage}</p>
                     </section> : ""}
 
-                    <p className="loginError">{registerMessage}</p>
-                        
                     <br/>
                     <p>When you Register, an email will be sent to your Email Address.</p>
                     <p>Click on the link in that email (or enter it in a brower) to complete registration and activate your accoount.</p>
                     <br/>
                     <button className="button loginButton" type="submit" disabled={registerIsDisabled}>Register</button>
+
+                    <p className="errorText">{registerMessage}</p>
                 </section>
             </form>
         </section>

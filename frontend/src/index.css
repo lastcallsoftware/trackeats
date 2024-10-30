@@ -144,6 +144,9 @@ button:focus-visible {
   color: red;
   margin-left: 5px;
 }
+.errorText {
+  color: red;
+}
 .loginButton {
   padding: 0.3rem 2rem 0.3rem 2rem;
   margin: 0.5rem;

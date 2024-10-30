@@ -23,7 +23,10 @@ function Login(props: any) {
                 navigate("/")
             })
             .catch((error) => {
-                setLoginMessage(error.response.data.msg)
+                if (error.response)
+                    setLoginMessage(error.response.data.msg)
+                else
+                    setLoginMessage(error.message)
             })
     }
 
@@ -43,9 +46,9 @@ function Login(props: any) {
                             onChange={(e) => setFormData(prevState => ({...prevState, password: e.target.value}))} />
                     </section>
 
-                    <p className="loginError">{loginMessage}</p>
-
                     <button className="button loginButton" type="submit" disabled={loginIsDisabled}>Login</button>
+
+                    <p className="errorText">{loginMessage}</p>
                 </section>
             </form>
         </section>
