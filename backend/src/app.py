@@ -6,7 +6,7 @@ from flask_cors import CORS
 from sqlalchemy import text
 from sqlalchemy.exc import ProgrammingError
 from waitress import serve
-from models import db, User
+from models import db
 from dotenv import load_dotenv, dotenv_values
 from routes import bp
 import logging
