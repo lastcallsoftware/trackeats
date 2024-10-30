@@ -2,16 +2,27 @@ import os
 import nacl
 import nacl.secret
 import nacl.utils;
+from bcrypt import hashpw, checkpw, gensalt
+import secrets
+
+# FYI, it turns out the Python standard library has function to do most of this
+# stuff (in the secrets package), but we're already using these third-party 
+# libraries and you would THINK that libraries specifically devoted to crypto 
+# would be especially secure, so we'll continue to use them for now.
 
 nacl_box: nacl.secret.SecretBox = None
 
-def create_key():
+def url_token(num_bytes = 32) -> str:
+    return secrets.token_urlsafe(32)
+
+# Create a new key file and store it into a file
+def create_key_file(keyfile: str) -> None:
     key = nacl.utils.random(nacl.secret.SecretBox.KEY_SIZE)
-    with open("trackeats-backend-encryption.key", "wb") as file1:
+    with open(keyfile, "wb") as file1:
         file1.write(key)
 
-def load_key():
-    keyfile = "trackeats-backend-encryption.key"
+# 
+def load_key(keyfile: str) -> bytes:
     if not os.path.exists(keyfile):
         raise  FileNotFoundError(f"Key file does not exist: {keyfile}")
     try:
@@ -37,4 +48,14 @@ def decrypt(encrypted_data: bytes) -> str:
     byte_data = nacl_box.decrypt(encrypted_data)
     return str(byte_data, "utf-8")
 
-#create_key()
+def hash_password(password: str) -> str:
+    # Note that the salt is stored as part of the hash, rather than as a 
+    # separarte value.  The bcrypt API knows how to separate them.
+    salt = gensalt()
+    password_bytes = bytes(password, "utf-8")
+    password_hash = hashpw(password_bytes, salt)
+    password_hash_str = password_hash.decode("utf-8")
+    return password_hash_str
+
+def check_password(password: bytes, password_hash: bytes):
+    return checkpw(password, password_hash)
