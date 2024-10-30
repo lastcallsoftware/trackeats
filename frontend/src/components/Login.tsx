@@ -29,19 +29,23 @@ function Login(props: any) {
 
     return (
         <section className="loginPage">
-            <form className="loginForm" onSubmit={handleSubmit}>
-                <section className="loginBoundingBox">
-                    <section className="loginInputGroup">
-                        <input id="username" className="username" type="text" placeholder="Username"
+            <form className="inputForm" onSubmit={handleSubmit}>
+                <section className="inputBoundingBox">
+                    <section className="inputLine">
+                        <label htmlFor="username">Username:</label>
+                        <input id="username" type="text" placeholder="Username"
                             onChange={(e) => setFormData(prevState => ({...prevState, username: e.target.value}))} />
-                        <br/>
-                        <input id="password" className="password" type="password" placeholder="Password" 
-                            onChange={(e) => setFormData(prevState => ({...prevState, password: e.target.value}))} />
-
-                        <p className="loginError">{loginMessage}</p>
-                        
-                        <button className="button loginButton" type="submit" disabled={loginIsDisabled}>Login</button>
                     </section>
+                    
+                    <section className="inputLine">
+                        <label htmlFor="password">Password:</label>
+                        <input id="password" type="password" placeholder="Password" 
+                            onChange={(e) => setFormData(prevState => ({...prevState, password: e.target.value}))} />
+                    </section>
+
+                    <p className="loginError">{loginMessage}</p>
+
+                    <button className="button loginButton" type="submit" disabled={loginIsDisabled}>Login</button>
                 </section>
             </form>
         </section>

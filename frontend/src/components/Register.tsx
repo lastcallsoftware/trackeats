@@ -65,7 +65,35 @@ function Register(props: any) {
             msg = "Email address is required"
         }
         else if (!email.includes("@")) {
-            msg = "The email address must contain a @ character";
+            msg = "The email address must contain exactly one @ character";
+        }
+        else {
+            const prefixRegex = /[a-zA-Z0-9-_.]/
+            const domainRegex = /[a-zA-Z0-9-.]/
+            const atindex = email.indexOf("@")
+            const prefix = email.substring(0, atindex)
+            const domain = email.substring(atindex+1)
+            if (domain.includes("@")) {
+                msg = "The email address must contain exactly one @ character"
+            }
+            else if (prefix.length < 1) {
+                msg = "The part before the @ must be at least 1 character"
+            }
+            else if (prefix.length > 64) {
+                msg = "The part before the @ must be at most 64 characters"
+            }
+            else if (!prefixRegex.test(prefix)) {
+                msg = "The part before the @ may contain only letters, numbers, dashes, periods, and underscores"
+            }
+            else if (domain.length < 2) {
+                msg = "The part after the @ must be at least 2 characters"
+            }
+            else if (domain.length > 255) {
+                msg = "The part after the @ must be at most 255 characters"
+            }
+            else if (!domainRegex.test(domain)) {
+                msg = "The part after the @ may contain only letters, numbers, dashes, and periods"
+            }
         }
         setFormData(prevState => ({...prevState, email: email, emailMessage: msg}))
     }
@@ -101,38 +129,68 @@ function Register(props: any) {
         }
 
     return (
-        <section className="loginPage">
-            <form className="loginForm" onSubmit={handleSubmit}>
-                <section className="loginBoundingBox">
-                    <section className="loginInputGroup">
-                        <input id="username"type="text" placeholder="Username" maxLength={100}
+        <section className="registerPage">
+            <form className="inputForm" onSubmit={handleSubmit}>
+                <section className="inputBoundingBox">
+                    <section className="inputLine">
+                        <label htmlFor="username">Username:</label>
+                        <input id="username" type="text" placeholder="Username" maxLength={100}
                             onFocus={() => setFormData(prevState => ({...prevState, usernameTouched: false}))}
                             onBlur={() => setFormData(prevState => ({...prevState, usernameTouched: true}))}
                             onChange={usernameChanged} />
-                        {(formData.usernameMessage && formData.usernameTouched && formData.username.length > 0) ? <p className="inputErrorText">{formData.usernameMessage}</p> : ""}
+                    </section>
+                    {(formData.usernameMessage && formData.usernameTouched && formData.username.length > 0) ? 
+                    <section className="inputLine">
+                        <p className = "inputSpacer" />
+                        <p className="inputErrorText">{formData.usernameMessage}</p>
+                    </section> : "" }
 
+                    <section className="inputLine">
+                        <label htmlFor="password">Password:</label>
                         <input id="password" type="password" placeholder="Password" maxLength={100}
                             onFocus={() => setFormData(prevState => ({...prevState, passwordTouched: false}))}
                             onBlur={() => setFormData(prevState => ({...prevState, passwordTouched: true}))}
                             onChange={passwordChanged} />
-                        {(formData.passwordMessage && formData.passwordTouched && formData.password.length > 0) ? <p className="inputErrorText">{formData.passwordMessage}</p> : ""}
+                    </section>
+                    {(formData.passwordMessage && formData.passwordTouched && formData.password.length > 0) ?
+                    <section className="inputLine">
+                        <p className = "inputSpacer" />
+                        <p className="inputErrorText">{formData.passwordMessage}</p>
+                    </section> : ""}
 
+                    <section className="inputLine">
+                        <label htmlFor="password2">Retype Password:</label>
                         <input id="password2" type="password" placeholder="Retype password" maxLength={100}
                             onFocus={() => setFormData(prevState => ({...prevState, password2Touched: false}))}
                             onBlur={() => setFormData(prevState => ({...prevState, password2Touched: true}))}
                             onChange={password2Changed} />
-                        {(formData.password2Message && formData.password2Touched && formData.password2.length > 0) ? <p className="inputErrorText">{formData.password2Message}</p> : ""}
+                    </section>
+                    {(formData.password2Message && formData.password2Touched && formData.password2.length > 0) ?
+                    <section className="inputLine">
+                        <p className = "inputSpacer" />
+                        <p className="inputErrorText">{formData.password2Message}</p>
+                    </section> : ""}
 
-                        <input id="email" type="text" placeholder="Email address" maxLength={320}
+                    <section className="inputLine">
+                        <label htmlFor="email">Email Address:</label>
+                        <input id="email" type="email" placeholder="Email address" maxLength={320}
                             onFocus={() => setFormData(prevState => ({...prevState, emailTouched: false}))}
                             onBlur={() => setFormData(prevState => ({...prevState, emailTouched: true}))}
                             onChange={emailChanged}/>
-                        {(formData.emailMessage && formData.emailTouched && formData.email.length > 0) ? <p className="inputErrorText">{formData.emailMessage}</p> : ""}
-
-                        <p className="loginError">{registerMessage}</p>
-                        
-                        <button className="button loginButton" type="submit" disabled={registerIsDisabled}>Register</button>
                     </section>
+                    {(formData.emailMessage && formData.emailTouched && formData.email.length > 0) ?
+                    <section className="inputLine">
+                        <p className = "inputSpacer" />
+                        <p className="inputErrorText">{formData.emailMessage}</p>
+                    </section> : ""}
+
+                    <p className="loginError">{registerMessage}</p>
+                        
+                    <br/>
+                    <p>When you Register, an email will be sent to your Email Address.</p>
+                    <p>Click on the link in that email (or enter it in a brower) to complete registration and activate your accoount.</p>
+                    <br/>
+                    <button className="button loginButton" type="submit" disabled={registerIsDisabled}>Register</button>
                 </section>
             </form>
         </section>

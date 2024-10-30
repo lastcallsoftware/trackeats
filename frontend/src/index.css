@@ -117,24 +117,38 @@ button:focus-visible {
 }
 
 
-.loginBoundingBox {
-  display: flex;
-  justify-content: center;
+.inputBoundingBox {
+  display: block;
   margin: auto;
   width: 30rem;
   padding: 1rem;
   border: 1px solid black;
 }
-.loginInputGroup {
-  display: block;
-  width: 15rem;
+.inputLine {
+  display: flex;
+  margin: 5px;
+}
+.inputLine label {
+  width: 30%;
+  text-align: right;
+}
+.inputLine input{
+  width: 70%;
+  margin-left: 5px;
+}
+.inputSpacer {
+    width: 30%;
 }
 .inputErrorText {
   font-size: x-small;
   color: red;
+  margin-left: 5px;
 }
 .loginButton {
   padding: 0.3rem 2rem 0.3rem 2rem;
   margin: 0.5rem;
   border: 1px solid black;
+}
+.inputBoundingBox p {
+  font-size: small;
 }
