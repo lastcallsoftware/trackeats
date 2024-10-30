@@ -7,9 +7,9 @@ from sqlalchemy import text
 from sqlalchemy.exc import ProgrammingError
 from waitress import serve
 from models import db, User
-from dotenv import load_dotenv
+from dotenv import load_dotenv, dotenv_values
 from routes import bp
-from logger import log
+import logging
 from crypto import load_key
 
 
@@ -20,6 +20,9 @@ from crypto import load_key
 app = Flask(__name__)
 app.register_blueprint(bp)
 
+# Configure the logger.  Any downstream modules will inherit this config.
+logging.basicConfig(level=logging.DEBUG, 
+                    format='%(asctime)s %(levelname)s: %(message)s')
 
 # LOAD CONFIG
 # -----------
@@ -42,11 +45,12 @@ app.register_blueprint(bp)
 # .get() just returns None.  Also, .get() allows you to speecify a default
 # value to use if the value is not defined.
 env = os.environ.get("ENV", "DEV")
-log(f"Execution environment: {env}")
+logging.info(f"Execution environment: {env}")
+env_file = ".env"
 if (env == "PROD"):
-    load_dotenv(".env.production")
-else:
-    load_dotenv(".env")
+    env_file = ".env.production"
+#env_values = dotenv_values(env_file)
+load_dotenv(env_file)
 
 
 # INITIALIZE DATABASE CONNECTION
@@ -60,16 +64,16 @@ db_hostname = os.environ.get('DB_HOSTNAME')
 db_name = os.environ.get('DB_NAME', 'trackeats')
 exit_now = False
 if (db_hostname == None or len(db_hostname) == 0):
-    log("DB_HOSTNAME not specified - exiting.")
+    logging.error("DB_HOSTNAME not specified - exiting.")
     exit_now = True
 if (db_password == None or len(db_password) == 0):
-    log("DB_PASSWORD not specified - exiting.")
+    logging.error("DB_PASSWORD not specified - exiting.")
     exit_now = True
 if (exit_now):
     sys.exit(0)
 db_connection_uri = f"{db_protocol}{db_user}:{db_password}@{db_hostname}/{db_name}"
 db_safe_connection_uri = f"{db_protocol}{db_user}:DB_PASSWORD@{db_hostname}/{db_name}"
-log(f"Connecting to database: {db_safe_connection_uri}")
+logging.info(f"Connecting to database: {db_safe_connection_uri}")
 
 # Configure Flask-SQLAlchemy.
 # For all Flask-SQLAlchemy config settings, see https://flask-sqlalchemy.palletsprojects.com/en/2.x/config/
@@ -105,20 +109,27 @@ def test_db_connection():
 
 errmsg = test_db_connection()
 if (errmsg):
-    log (errmsg)
+    logging.error(errmsg)
     sys.exit(0)
-log("Database connection verified.")
+logging.info("Database connection verified.")
 
 
 # INITIALIZE JWT MANAGER
 # ----------------------
 # We're using a library (flask-jwt-extended) that handles token management for
 # us.  Intialize it here.
-
+# The key can be anything ("Secret_key" works, for example), but of course you'd
+# prefer it to be something rather harder to guess!
 try:
-    app.config['JWT_SECRET_KEY'] = load_key()
+    keyfile = os.environ.get("BACKEND_ENCRYPTION_KEY", "trackeats-backend-encryption.key")
+    
+    # The key file MUST be stored in the "JWT_SECRET_KEY" app.config value.
+    app.config['JWT_SECRET_KEY'] = load_key(keyfile)
+
+    # With that value properly stored, we can now initialize the token manager.
     jwt = JWTManager(app)
-except:
+except Exception as e:
+    logging.error(f"Error iniitializing token manager: " + repr(e))
     sys.exit(0)
 
 
