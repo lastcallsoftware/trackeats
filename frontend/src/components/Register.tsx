@@ -15,7 +15,10 @@ function Register(props: any) {
     const usernameChanged = (e: React.ChangeEvent<HTMLInputElement>) => {
         const username = e.target.value;
         let msg = "";
-        if (username.length < 3) {
+        if (username.length == 0) {
+            msg = "Username is required"
+        }
+        else if (username.length < 3) {
             msg = "Username must be at least 3 characters";
         }
         setFormData(prevState => ({...prevState, username: username, usernameMessage: msg}))
@@ -25,7 +28,10 @@ function Register(props: any) {
         const specialCharsRegex = /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/;
         const password = e.target.value;
         let msg = ""
-        if (password.length < 8) {
+        if (password.length == 0) {
+            msg = "Password is required"
+        }
+        else if (password.length < 8) {
             msg = "Password must be at least 8 characters";
         }
         else if (!password.match(/[a-z]/)) {
@@ -55,8 +61,11 @@ function Register(props: any) {
     const emailChanged = (e: React.ChangeEvent<HTMLInputElement>) => {
         const email = e.target.value;
         let msg = ""
-        if (email.length > 0 && !email.includes("@")) {
-            msg = "If specified, the email address must contain an @ character";
+        if (email.length == 0) {
+            msg = "Email address is required"
+        }
+        else if (!email.includes("@")) {
+            msg = "The email address must contain a @ character";
         }
         setFormData(prevState => ({...prevState, email: email, emailMessage: msg}))
     }
@@ -96,25 +105,25 @@ function Register(props: any) {
             <form className="loginForm" onSubmit={handleSubmit}>
                 <section className="loginBoundingBox">
                     <section className="loginInputGroup">
-                        <input id="username"type="text" placeholder="Username"
+                        <input id="username"type="text" placeholder="Username" maxLength={100}
                             onFocus={() => setFormData(prevState => ({...prevState, usernameTouched: false}))}
                             onBlur={() => setFormData(prevState => ({...prevState, usernameTouched: true}))}
                             onChange={usernameChanged} />
                         {(formData.usernameMessage && formData.usernameTouched && formData.username.length > 0) ? <p className="inputErrorText">{formData.usernameMessage}</p> : ""}
 
-                        <input id="password" type="password" placeholder="Password" 
+                        <input id="password" type="password" placeholder="Password" maxLength={100}
                             onFocus={() => setFormData(prevState => ({...prevState, passwordTouched: false}))}
                             onBlur={() => setFormData(prevState => ({...prevState, passwordTouched: true}))}
                             onChange={passwordChanged} />
                         {(formData.passwordMessage && formData.passwordTouched && formData.password.length > 0) ? <p className="inputErrorText">{formData.passwordMessage}</p> : ""}
 
-                        <input id="password2" type="password" placeholder="Retype password" 
+                        <input id="password2" type="password" placeholder="Retype password" maxLength={100}
                             onFocus={() => setFormData(prevState => ({...prevState, password2Touched: false}))}
                             onBlur={() => setFormData(prevState => ({...prevState, password2Touched: true}))}
                             onChange={password2Changed} />
                         {(formData.password2Message && formData.password2Touched && formData.password2.length > 0) ? <p className="inputErrorText">{formData.password2Message}</p> : ""}
 
-                        <input id="email" type="text" placeholder="Email address" 
+                        <input id="email" type="text" placeholder="Email address" maxLength={320}
                             onFocus={() => setFormData(prevState => ({...prevState, emailTouched: false}))}
                             onBlur={() => setFormData(prevState => ({...prevState, emailTouched: true}))}
                             onChange={emailChanged}/>
