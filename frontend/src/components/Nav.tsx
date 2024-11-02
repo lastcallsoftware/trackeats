@@ -10,6 +10,7 @@ import Login from './Login';
 import Register from './Register';
 import Footer from './Footer';
 import axios from "axios";
+import ConfirmUser from './ConfirmUser';
 
 // An unused function actually causes the build to FAIL!  Bizarre.
 // So -- for now! -- comment this out.
@@ -33,12 +34,12 @@ axios.defaults.timeout = 4000
 function Nav() {
     const [user, setUser] = useState({username: "", isAuthenticated: false});
 
-    function storeToken(username: string, token: string|null): undefined {
+    const storeToken = (username: string, token: string|null): undefined => {
         sessionStorage.setItem("access_token", JSON.stringify(token))
         setUser({username: username, isAuthenticated: true})
     }
     
-    function removeToken() {
+    const removeToken = () => {
         sessionStorage.removeItem("access_token")
         setUser({username: "", isAuthenticated: false})
     }
@@ -68,7 +69,8 @@ function Nav() {
                 <Route path="/dailylog" element={<DailyLog />} />
                 <Route path="/about" element={<About />} />
                 <Route path="/login" element={<Login storeTokenFunction={storeToken}/>} />
-                <Route path="/register" element={<Register storeTokenFunction={storeToken}/>} />
+                <Route path="/register" element={<Register/>} />
+                <Route path="/confirm" element={<ConfirmUser/>} />
             </Routes>
             <Footer />
         </>

@@ -2,8 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from 'react-router-dom';
 import axios from "axios";
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function Register(props: any) {
+function Register() {
     const defaultFormData = {username: "", usernameTouched: false, usernameMessage: "",
                              password: "", passwordTouched: false, passwordMessage: "",
                              password2: "", password2Touched: false, password2Message: "",
@@ -68,8 +67,15 @@ function Register(props: any) {
             msg = "The email address must contain exactly one @ character";
         }
         else {
-            const prefixRegex = /[a-zA-Z0-9-_.]/
-            const domainRegex = /[a-zA-Z0-9-.]/
+            // I gave up trying to validate email addresses on the front end.
+            // There are StackOverflow posts with insanely complicated regexes,
+            // but what's the point?  If you use a regex to detect an invalid 
+            // address, you can't even tell the user what's wrong with it, just
+            // that it's invalid.  Besides, the real experts on the subject seem
+            // to think that it isn't even possible to do a fully reliable check
+            // using only regular expressions.
+            // So just checking the address length and the presence of the @ 
+            // character is good enough here.  Let the back end do the rest.
             const atindex = email.indexOf("@")
             const prefix = email.substring(0, atindex)
             const domain = email.substring(atindex+1)
@@ -82,17 +88,11 @@ function Register(props: any) {
             else if (prefix.length > 64) {
                 msg = "The part before the @ must be at most 64 characters"
             }
-            else if (!prefixRegex.test(prefix)) {
-                msg = "The part before the @ may contain only letters, numbers, dashes, periods, and underscores"
-            }
             else if (domain.length < 2) {
                 msg = "The part after the @ must be at least 2 characters"
             }
             else if (domain.length > 255) {
                 msg = "The part after the @ must be at most 255 characters"
-            }
-            else if (!domainRegex.test(domain)) {
-                msg = "The part after the @ may contain only letters, numbers, dashes, and periods"
             }
         }
         setFormData(prevState => ({...prevState, email: email, emailMessage: msg}))
@@ -111,20 +111,10 @@ function Register(props: any) {
         e.preventDefault();
 
         // Call the back end's /register API with the username and password from the form.
-        // If successful, log the user in using the back end's /login API
+        // If successful, send the user to the Confirmation page to await final confirmation.
         axios.post("/register", {username: formData.username, password: formData.password, email: formData.email})
             .then(() => {
-                axios.post("/login", {username: formData.username, password: formData.password })
-                .then((response) => {
-                    props.storeTokenFunction(formData.username, response.data.access_token);
-                    navigate("/")
-                })
-                .catch((error) => {
-                    if (error.response)
-                        setRegisterMessage(error.response.data.msg)
-                    else
-                        setRegisterMessage(error.message)
-                })
+                navigate("/confirm", { state: { username: formData.username, password: formData.password } });
             })
             .catch((error) => {
                 if (error.response)
@@ -191,7 +181,7 @@ function Register(props: any) {
                     </section> : ""}
 
                     <br/>
-                    <p>When you Register, an email will be sent to your Email Address.</p>
+                    <p>When you click Register, an email will be sent to this Email Address.</p>
                     <p>Click on the link in that email (or enter it in a brower) to complete registration and activate your accoount.</p>
                     <br/>
                     <button className="button loginButton" type="submit" disabled={registerIsDisabled}>Register</button>

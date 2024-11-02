@@ -12,7 +12,8 @@ import secrets
 
 nacl_box: nacl.secret.SecretBox = None
 
-def url_token(num_bytes = 32) -> str:
+# Generate a token to use in verification emails
+def generate_url_token(num_bytes = 32) -> str:
     return secrets.token_urlsafe(32)
 
 # Create a new key file and store it into a file
@@ -21,7 +22,7 @@ def create_key_file(keyfile: str) -> None:
     with open(keyfile, "wb") as file1:
         file1.write(key)
 
-# 
+# Load key file into memory
 def load_key(keyfile: str) -> bytes:
     if not os.path.exists(keyfile):
         raise  FileNotFoundError(f"Key file does not exist: {keyfile}")
@@ -44,10 +45,12 @@ def encrypt(data: str) -> str:
     encrypted_data = nacl_box.encrypt(byte_data)
     return encrypted_data
 
+# Decrypt data
 def decrypt(encrypted_data: bytes) -> str:
     byte_data = nacl_box.decrypt(encrypted_data)
     return str(byte_data, "utf-8")
 
+# Hash the password
 def hash_password(password: str) -> str:
     # Note that the salt is stored as part of the hash, rather than as a 
     # separarte value.  The bcrypt API knows how to separate them.
@@ -57,5 +60,6 @@ def hash_password(password: str) -> str:
     password_hash_str = password_hash.decode("utf-8")
     return password_hash_str
 
+# Verify the given password against its hash
 def check_password(password: bytes, password_hash: bytes):
     return checkpw(password, password_hash)

@@ -52,6 +52,14 @@ if (env == "PROD"):
 #env_values = dotenv_values(env_file)
 load_dotenv(env_file)
 
+# BACKEND_BASE_URL is the name of THIS server.  We need it to build the links
+# we put in confirmation emails.
+hostname = os.environ.get("BACKEND_BASE_URL")
+if (hostname is None):
+    logging.error("BACKEND_BASE_URL not specified - exiting.")
+    exit_now = True
+logging.info("BACKEND_BASE_URL: " + hostname)
+
 
 # INITIALIZE DATABASE CONNECTION
 # ------------------------------
