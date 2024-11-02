@@ -120,7 +120,7 @@ button:focus-visible {
 .inputBoundingBox {
   display: block;
   margin: auto;
-  width: 30rem;
+  width: 35rem;
   padding: 1rem;
   border: 1px solid black;
 }
