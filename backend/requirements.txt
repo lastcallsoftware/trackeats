@@ -40,6 +40,11 @@ bcrypt
 # I'll leave it be.
 pynacl
 
+# email-validator is a little library whose only purpose is to validate email
+# addresses according to the rules of the offcial internal email address RFC.
+# MUUUUUUCH easier and more reliable than trying to do it myself.
+email-validator
+
 # waitress and gunicorn are production-level WSGI app servers for Python apps.
 # I'm currently using Waitress because (a) it's simple and (b) it allegedly
 # works on Windows.  But Gunicorn is much more popular so maybe I'll switch.
