@@ -114,7 +114,7 @@ function Register() {
         // If successful, send the user to the Confirmation page to await final confirmation.
         axios.post("/register", {username: formData.username, password: formData.password, email: formData.email})
             .then(() => {
-                navigate("/confirm", { state: { username: formData.username, password: formData.password } });
+                navigate("/login", { state: { username: formData.username, password: formData.password, email: formData.email } });
             })
             .catch((error) => {
                 if (error.response)
@@ -181,8 +181,8 @@ function Register() {
                     </section> : ""}
 
                     <br/>
-                    <p>When you click Register, an email will be sent to this Email Address.</p>
-                    <p>Click on the link in that email (or enter it in a brower) to complete registration and activate your accoount.</p>
+                    <p>When you click Register, an email will be sent to the Email Address.</p>
+                    <p>Click on the link in that email (or paste it into a brower) to complete registration and activate your accoount.</p>
                     <br/>
                     <button className="button loginButton" type="submit" disabled={registerIsDisabled}>Register</button>
 

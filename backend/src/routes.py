@@ -333,16 +333,9 @@ def confirm():
         logging.error(msg)
         return jsonify(msg), 500
 
-    msg = f"User confirmed: {username}"
+    msg = f"User {username} confirmed.  You may close this window and log into the Trackeats app now."
     logging.info(msg)
     return jsonify(msg), 200
-
-# VERIFY
-# ------
-# Check whether a user has been confirmed.  The front end repeatedly calls this
-# after after a new user registers to determine whther they have clicked on the
-# email link that was sent to them.
-
 
 
 # LOGIN
@@ -382,7 +375,7 @@ def login():
 
 # USER
 # ----
-# Return the list of users.
+# Return the list of all users.
 # TODO: This is currently an UNPROTECTED API.
 # Make sure to protect it before releasing to production!
 @bp.route("/user", methods = ["GET"])
@@ -399,10 +392,28 @@ def get_users():
                 if longform:
                     data.append(repr(user))
                 else:
-                    data.append(str(user))
+                    data.append(user.json())
         except Exception as e:
             return jsonify({"msg": "Unable to access database: " + str(e)}), 500
         return jsonify(data),200
+
+# Call this to get a particular user's data.
+@bp.route("/user/<string:username>", methods = ["GET"])
+def get_user(username: str):
+    logging.info("/user/" + username)
+    try:
+        longform = False
+        if (request.args.get("long") != None):
+            longform = True
+        query = db.select(User).filter_by(username=username)
+        user = db.session.execute(query).first()[0]
+        if longform:
+            data = repr(user)
+        else:
+            data = user.json()
+    except Exception as e:
+        return jsonify({"msg": "Unable to access database: " + str(e)}), 500
+    return jsonify(data),200
 
 
 # WHOAMI

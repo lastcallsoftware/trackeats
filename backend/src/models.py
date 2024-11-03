@@ -49,3 +49,5 @@ class User(db.Model):
         if self.email and len(self.email) > 0:
             email = decrypt(self.email)
         return f"User({self.id}, \'{self.username}\', {self.status}, \'{email}\', {self.created_at}, \'{self.password_hash}\', {self.confirmation_sent_at}, \'{self.confirmation_token}\')"
+    def json(self):
+        return {"id": self.id, "username": self.username, "status": self.status.name, "created_at": self.created_at, "confirmation_sent_at": self.confirmation_sent_at}

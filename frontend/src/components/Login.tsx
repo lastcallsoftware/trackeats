@@ -1,11 +1,12 @@
 import { useState } from "react";
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import axios from "axios";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function Login(props: any) {
-    const defaultFormData = {username: "", usernameTouched: false,
-                             password: "", passwordTouched: false}
+    const location = useLocation();
+    const defaultFormData = {username: location.state?.username || "", usernameTouched: false,
+                             password: location.state?.password || "", passwordTouched: false}
     const [formData, setFormData] = useState(defaultFormData);
     const [loginMessage, setLoginMessage] = useState("");
     const navigate = useNavigate();
@@ -36,15 +37,18 @@ function Login(props: any) {
                 <section className="inputBoundingBox">
                     <section className="inputLine">
                         <label htmlFor="username">Username:</label>
-                        <input id="username" type="text" placeholder="Username"
+                        <input id="username" type="text" placeholder="Username" value={formData.username}
                             onChange={(e) => setFormData(prevState => ({...prevState, username: e.target.value}))} />
                     </section>
                     
                     <section className="inputLine">
                         <label htmlFor="password">Password:</label>
-                        <input id="password" type="password" placeholder="Password" 
+                        <input id="password" type="password" placeholder="Password" value={formData.password}
                             onChange={(e) => setFormData(prevState => ({...prevState, password: e.target.value}))} />
                     </section>
+
+                    {location.state ? <><p>Check your inbox for an email from Trackeats.</p><p>Click on the link in that email
+                        (or paste it into a browser) to complete registration and activate your account.</p><p>Then you will be able to log in.</p></> : ""}
 
                     <button className="button loginButton" type="submit" disabled={loginIsDisabled}>Login</button>
 
