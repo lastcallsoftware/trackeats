@@ -4,7 +4,6 @@ FROM node:lts-alpine AS build
 
 # Specify production environment (yes this is necessary).
 ENV NODE_ENV=production
-ENV REACT_APP_BACKEND_BASE_URL=http://trackeats.com:5000
 
 # Set container's working directory.
 WORKDIR /app
