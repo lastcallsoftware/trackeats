@@ -55,8 +55,8 @@ def send_confirmation_email(username: str, token:str, email_address: str):
     logging.info(link)
     email_body_text = VERIFY_EMAIL_TEMPLATE_TEXT.format(link=link)
     email_body_html = VERIFY_EMAIL_TEMPLATE_HTML.format(link1=link, link2=link)
-    logging.info("email_body_text: " + email_body_text)
-    logging.info("email_body_html: " + email_body_html)
+    #logging.info("email_body_text: " + email_body_text)
+    #logging.info("email_body_html: " + email_body_html)
     
     err_msg = sendmail_smtp(email_address, VERIFY_EMAIL_SUBJECT, email_body_text, email_body_html)
 
