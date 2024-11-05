@@ -1,4 +1,5 @@
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy.orm import Mapped, mapped_column
 from crypto import decrypt
 import enum
 
@@ -11,17 +12,98 @@ db = SQLAlchemy()
 # for us.  These are the classes that represent the various records in the
 # database.
 
+class Nutrition(db.Model):
+    __tablename__ = "nutrition"
+
+    id = db.Column(db.Integer, primary_key=True)
+    serving_size_description = db.Column(db.String(32), nullable=False)
+    serving_size_g = db.Column(db.Integer)
+    calories =  db.Column(db.Integer, nullable=False)
+    total_fat_g = db.Column(db.Integer)
+    saturated_fat_g = db.Column(db.Integer)
+    trans_fat_g = db.Column(db.Integer)
+    cholesterol_mg = db.Column(db.Integer)
+    sodium_mg = db.Column(db.Integer)
+    total_carb_g = db.Column(db.Integer)
+    fiber_g = db.Column(db.Integer)
+    total_sugar_g = db.Column(db.Integer)
+    added_sugar_g = db.Column(db.Integer)
+    protein_g = db.Column(db.Integer)
+    vitamin_d_mcg = db.Column(db.Integer)
+    calcium_mg = db.Column(db.Integer)
+    iron_mg = db.Column(db.Integer)
+    potassium_mg = db.Column(db.Integer)
+
+    def json(self):
+        return {
+            "id": self.id,
+            "serving_size_description": self.serving_size_description,
+            "serving_size_g": self.serving_size_g,
+            "calories": self.calories,
+            "total_fat_g": self.total_fat_g,
+            "saturated_fat_g": self.saturated_fat_g,
+            "trans_fat_g": self.trans_fat_g,
+            "cholesterol_mg": self.cholesterol_mg,
+            "sodium_mg": self.sodium_mg,
+            "total_carb_g": self.total_carb_g,
+            "fiber_g": self.fiber_g,
+            "total_sugar_g": self.total_sugar_g,
+            "added_sugar_g": self.added_sugar_g,
+            "protein_g": self.protein_g,
+            "vitamin_d_mcg": self.vitamin_d_mcg,
+            "calcium_mg": self.calcium_mg,
+            "iron_mg": self.iron_mg,
+            "potassium_mg": self.potassium_mg
+        }
+
+class FoodCategory(enum.Enum):
+    fruit = 1,
+    vegetable = 2,
+    dairy = 3,
+    meatAndSeafood = 4,
+    grainsAndBakedGoods = 5,
+    herbsAndSpices = 6,
+    condimentsAndSauces = 7,
+    oilsAndBakingNeeds = 8,
+    preparedFoods = 9,
+    beverages = 10,
+    other = 11
+
 class Ingredient(db.Model):
     __tablename__ = "ingredient"
 
     id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     name = db.Column(db.String(100), nullable=False)
-    serving_size = db.Column(db.String(32), nullable=False)
+    category = db.Column(db.Enum(FoodCategory), nullable=False)
+    vendor = db.Column(db.String(64), nullable=False)
+    size = db.Column(db.String(32))
+    servings = db.Column(db.Float, nullable=False)
+    nutrition_id = db.Column(db.Integer, db.ForeignKey('nutrition.id'))
+    nutrition = db.relationship("Nutrition", backref=db.backref("nutrition", uselist=False))
+    price = db.Column(db.Float)
+    price_date = db.Column(db.DateTime)
+    shelf_life = db.Column(db.String(100))
 
-    def __str__(self):
-        return f"<Ingredient {self.name}, serving size: {self.serving_size}>"
-    def __repr__(self):
-        return f"Ingredient({self.name}, {self.serving_size})"
+    #def __str__(self):
+    #    return f"<Ingredient {self.name}, serving size: {self.nutrition.serving_size_description}>"
+    #def __repr__(self):
+    #    return f"Ingredient(\"{self.name}\", \"{self.nutrition.serving_size_description}\")"
+    def json(self):
+        return {
+            "id": self.id,
+            "user_id": self.user_id,
+            "name": self.name,
+            "category": self.category.name,
+            "vendor": self.vendor,
+            "size": self.size,
+            "servings": self.servings,
+            "nutrition_id": self.nutrition_id,
+            "nutrition": self.nutrition.json(),
+            "price": self.price,
+            "price_date": self.price_date,
+            "shelf_life": self.shelf_life
+            }
 
 
 class UserStatus(enum.Enum):
@@ -50,4 +132,10 @@ class User(db.Model):
             email = decrypt(self.email)
         return f"User({self.id}, \'{self.username}\', {self.status}, \'{email}\', {self.created_at}, \'{self.password_hash}\', {self.confirmation_sent_at}, \'{self.confirmation_token}\')"
     def json(self):
-        return {"id": self.id, "username": self.username, "status": self.status.name, "created_at": self.created_at, "confirmation_sent_at": self.confirmation_sent_at}
+        return {
+            "id": self.id,
+            "username": self.username,
+            "status": self.status.name,
+            "created_at": self.created_at,
+            "confirmation_sent_at": self.confirmation_sent_at
+            }

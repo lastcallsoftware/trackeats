@@ -3,11 +3,12 @@ import logging
 from datetime import datetime, timedelta
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import jwt_required, create_access_token, get_jwt_identity
-from models import UserStatus, db, Ingredient, User
-from crypto import encrypt, decrypt, hash_password, check_password
 from sendmail import send_confirmation_email
 from email_validator import validate_email, EmailNotValidError
-from crypto import generate_url_token
+from models import db, User, UserStatus, Ingredient
+from crypto import encrypt, decrypt, hash_password, check_password, generate_url_token
+from data import load_db
+
 
 bp = Blueprint("auth", __name__)
 
@@ -177,21 +178,9 @@ def db_init():
 @bp.route("/db/load", methods=["GET"])
 def db_load():
     logging.info("/db/load")
-    try:
-        Ingredient.query.delete()
-        milk = Ingredient(name="milk", serving_size="1 cup")
-        butter = Ingredient(name="butter", serving_size="1 tbsp")
-        db.session.add(milk)
-        db.session.add(butter)
-        db.session.commit()
 
-        db.session.query(User).delete()
-        errors = add_new_user("admin", "Test*123", "admin@trackeats.com", UserStatus.confirmed)
-        if len(errors) == 0:
-            errors = add_new_user("testuser", "Test*123", "testuser@trackeats.com", UserStatus.confirmed)
-    except Exception as e:
-        errors.append(str(e))
-    
+    errors = load_db(add_new_user=add_new_user)
+
     if len(errors) > 0:
         msg = "\n".join(errors)
         logging.error(msg)
@@ -362,7 +351,7 @@ def login():
         # Generate a JWT token
         access_token = None
         if (len(errors)) == 0:
-            access_token = create_access_token(identity=username, expires_delta=timedelta(seconds=60))
+            access_token = create_access_token(identity=username, expires_delta=timedelta(hours=2))
 
     if (len(errors) > 0):
         error_str = "\n".join(errors)
@@ -441,5 +430,5 @@ def hello_world():
         ingredients = Ingredient.query.all()
         data = []
         for ingredient in ingredients:
-            data.append({"name": ingredient.name, "serving_size": ingredient.serving_size})
+            data.append(ingredient.json())
         return jsonify(data), 200
