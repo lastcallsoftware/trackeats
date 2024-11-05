@@ -1,3 +1,9 @@
+/* The following three groups of definitions (root, button and @media) came with
+  the Vite boilerplate project generation.  I'll have to go over them more 
+  carefully when I get around to the app's visual design, but for now I'll keep
+  them. */
+/* The :root section makes the fonts a little nicer and the line spacing much
+  bigger. */
 :root {
   font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
@@ -13,6 +19,8 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Not sure about the button entries.  They don't seem to do much.
+  I may tweak or eliminate these entries. */
 button {
   border-radius: 8px;
   border: 1px solid transparent;
@@ -32,6 +40,7 @@ button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
 }
 
+/* Honestly I have no idea what this does. */
 @media (prefers-color-scheme: light) {
   :root {
     color: #213547;
@@ -75,22 +84,6 @@ button:focus-visible {
 .logo.react:hover {
   filter: drop-shadow(0 0 2em #61dafbaa);
 }
-
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
-}
-
 
 /* Nav Bar */
 .navbar {
@@ -154,4 +147,17 @@ button:focus-visible {
 }
 .inputBoundingBox p {
   font-size: small;
+}
+
+.aboutBoundingBox {
+  display: block;
+  margin: auto;
+  width: 80%;
+  padding: 1rem;
+  border: 1px solid black;
+  text-align: left;
+}
+.aboutBoundingBox ul {
+  margin-left: 5%;
+  text-align: left;
 }
