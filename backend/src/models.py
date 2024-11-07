@@ -2,6 +2,7 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import Mapped, mapped_column
 from crypto import decrypt
 import enum
+import datetime
 
 # Instantiate the database connector.
 db = SQLAlchemy()
@@ -101,7 +102,7 @@ class Ingredient(db.Model):
             "nutrition_id": self.nutrition_id,
             "nutrition": self.nutrition.json(),
             "price": self.price,
-            "price_date": self.price_date,
+            "price_date": datetime.datetime.strftime(self.price_date, "%d %b %Y"),
             "shelf_life": self.shelf_life
             }
 
