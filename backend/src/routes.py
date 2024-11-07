@@ -414,9 +414,9 @@ def get_user(username: str):
 @jwt_required()
 def protected():
     logging.info("/whoami")
-    current_user = get_jwt_identity()
-    logging.info(f"current_user: {current_user}")
-    return jsonify(logged_in_as=current_user), 200
+    username = get_jwt_identity()
+    logging.info(f"username: {username}")
+    return jsonify(logged_in_as=username), 200
 
 
 # INGREDIENT
@@ -426,8 +426,11 @@ def protected():
 @jwt_required()
 def hello_world():
     logging.info("/ingredient")
+    username = get_jwt_identity()
+    logging.info(f"username: {username}")
     if (request.method == "GET"):
-        ingredients = Ingredient.query.all()
+        user = User.query.filter_by(username=username).first()
+        ingredients = Ingredient.query.filter_by(user_id=user.id).all()
         data = []
         for ingredient in ingredients:
             data.append(ingredient.json())
