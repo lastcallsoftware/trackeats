@@ -41,7 +41,7 @@ const columns = [
         cell: info => info.getValue(),
     }),
     columnHelper.accessor("name", {
-        header: () => "Name",
+        header: () => <div className="w-20">Name</div>,
         cell: info => info.getValue(),
     }),
     columnHelper.accessor("category", {
@@ -133,7 +133,7 @@ const columns = [
         cell: info => info.getValue(),
     }),
     columnHelper.accessor("shelf_life", {
-        header: () => "Shelf Life",
+        header: () => <div className="w-20">Shelf Life</div>,
         cell: info => info.getValue(),
     }),
 ]
@@ -168,8 +168,8 @@ const Ingredients = () => {
     }, [token])
 
     return (
-        <div className="p-2">
-          	<table>
+        <section className="ingredientTableContainer">
+          	<table className="ingredientTable">
         		<thead>
             		{table.getHeaderGroups().map((headerGroup) => (
     					<tr key={headerGroup.id}>
@@ -224,7 +224,7 @@ const Ingredients = () => {
           	</table>
 
 		  	<p>{errorMessage}</p>
-        </div>
+        </section>
       )
 }
   
