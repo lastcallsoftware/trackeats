@@ -38,7 +38,9 @@ def load_db(add_new_user):
         # We COULD find a convoluted way to return the user ID from add_new_user(), or
         # query the database using the username to get the user ID, but... we know for
         # certain that "testuser" will always have ID 2 in a new database.
+        user_id = 2
         milk = Ingredient(
+            user_id = user_id,
             name = "Milk, Fat Free",
             category = FoodCategory.dairy,
             vendor = "Tuscan Farms",
@@ -76,7 +78,7 @@ def load_db(add_new_user):
         butter_nutrition_id = butter_nutrition.id
 
         butter = Ingredient(
-            user_id = 2,
+            user_id = user_id,
             name = "Butter, Unsalted",
             category = FoodCategory.dairy,
             vendor = "Land O'Lakes",
