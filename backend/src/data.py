@@ -1,4 +1,4 @@
-from models import db, User, UserStatus, FoodCategory, Ingredient, Nutrition
+from models import db, User, UserStatus, FoodGroup, Ingredient, Nutrition
 import datetime
 
 # Add some seed data to the database: user records for the admin and the 
@@ -41,10 +41,13 @@ def load_db(add_new_user):
         user_id = 2
         milk = Ingredient(
             user_id = user_id,
-            name = "Milk, Fat Free",
-            category = FoodCategory.dairy,
+            group = FoodGroup.dairy,
+            type = "Milk",
+            subtype = "Fat Free",
+            description = "",
             vendor = "Tuscan Farms",
-            size = "1 quart (946 ml)",
+            size_description = "1 quart",
+            size_g = 946,
             servings = 4,
             nutrition_id = milk_nutrition_id,
             price = 2.89,
@@ -79,10 +82,13 @@ def load_db(add_new_user):
 
         butter = Ingredient(
             user_id = user_id,
-            name = "Butter, Unsalted",
-            category = FoodCategory.dairy,
+            group = FoodGroup.dairy,
+            type = "Butter",
+            subtype = "Unsalted",
+            description = "",
             vendor = "Land O'Lakes",
-            size = "1 pound (454 g)",
+            size_description = "1 pound",
+            size_g = 454,
             servings = 32,
             nutrition_id = butter_nutrition_id,
             price = 7.49,

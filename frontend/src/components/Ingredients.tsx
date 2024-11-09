@@ -1,13 +1,17 @@
 import { createColumnHelper, flexRender, getCoreRowModel, TableOptions, useReactTable } from '@tanstack/react-table';
 import axios from 'axios';
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 type Ingredient = {
     id: number
-    name: string
-    category: string
+    group: string
+    type: string
+    subtype: string
+    description: string
     vendor: string
-    size: string
+    size_description: string
+    size_g: number
     servings: number
     nutrition: {
         serving_size_description: string
@@ -40,109 +44,123 @@ const columns = [
         header: () => "ID",
         cell: info => info.getValue(),
     }),
-    columnHelper.accessor("name", {
-        header: () => <div className="w-20">Name</div>,
+    columnHelper.accessor("group", {
+        header: () => <div className="w-2">Group</div>,
+        cell: info => String(info.getValue()).charAt(0).toUpperCase() + String(info.getValue()).slice(1),
+    }),
+    columnHelper.accessor("type", {
+        header: () => <div className="w-2">Type</div>,
         cell: info => info.getValue(),
     }),
-    columnHelper.accessor("category", {
-        header: () => "Category",
+    columnHelper.accessor("subtype", {
+        header: () => <div className="w-2">Subtype</div>,
+        cell: info => info.getValue(),
+    }),
+    columnHelper.accessor("description", {
+        header: () => <div className="w-3">Description</div>,
         cell: info => info.getValue(),
     }),
     columnHelper.accessor("vendor", {
-        header: () => "Vendor",
+        header: () => <div className="w-2">Vendor</div>,
         cell: info => info.getValue(),
     }),
-    columnHelper.accessor("size", {
-        header: () => "Size",
+    columnHelper.accessor("size_description", {
+        header: () => <div className="w-2">Size</div>,
+        cell: info => info.getValue(),
+    }),
+    columnHelper.accessor("size_g", {
+        header: () => <div className="w-1">Size (g or ml)</div>,
         cell: info => info.getValue(),
     }),
     columnHelper.accessor("servings", {
-        header: () => "Servings",
+        header: () => <div className="w-1">Servings</div>,
         cell: info => info.getValue(),
     }),
     columnHelper.accessor("nutrition.serving_size_description", {
-        header: () => "Serving Size Description",
+        header: () => <div className="w-2">Serving Size</div>,
         cell: info => info.getValue(),
     }),
     columnHelper.accessor("nutrition.serving_size_g", {
-        header: () => "Serving Size (g or ml)",
+        header: () => <div className="w-1">Serving Size (g or ml)</div>,
         cell: info => info.getValue(),
     }),
     columnHelper.accessor("nutrition.calories", {
-        header: () => "Calories",
+        header: () => <div className="w-1">Calories</div>,
         cell: info => info.getValue(),
     }),
     columnHelper.accessor("nutrition.total_fat_g", {
-        header: () => "Total Fat (g)",
+        header: () => <div className="w-1">Total Fat (g)</div>,
         cell: info => info.getValue(),
     }),
     columnHelper.accessor("nutrition.saturated_fat_g", {
-        header: () => "Saturated Fat (g)",
+        header: () => <div className="w-1">Saturated Fat (g)</div>,
         cell: info => info.getValue(),
     }),
     columnHelper.accessor("nutrition.trans_fat_g", {
-        header: () => "Trans Fat (g)",
+        header: () => <div className="w-1">Trans Fat (g)</div>,
         cell: info => info.getValue(),
     }),
     columnHelper.accessor("nutrition.cholesterol_mg", {
-        header: () => "Cholesterol (mg)",
+        header: () => <div className="w-1">Cholesterol (mg)</div>,
         cell: info => info.getValue(),
     }),
     columnHelper.accessor("nutrition.sodium_mg", {
-        header: () => "Sodium (mg)",
+        header: () =><div className="w-1">Sodium (mg)</div>,
         cell: info => info.getValue(),
     }),
     columnHelper.accessor("nutrition.total_carb_g", {
-        header: () => "Total Carbs (g)",
+        header: () => <div className="w-1">Total Carbs (g)</div>,
         cell: info => info.getValue(),
     }),
     columnHelper.accessor("nutrition.total_sugar_g", {
-        header: () => "Total Sugar (g)",
+        header: () => <div className="w-1">Total Sugar (g)</div>,
         cell: info => info.getValue(),
     }),
     columnHelper.accessor("nutrition.added_sugar_g", {
-        header: () => "Added Sugar (g)",
+        header: () => <div className="w-1">Added Sugar (g)</div>,
         cell: info => info.getValue(),
     }),
     columnHelper.accessor("nutrition.protein_g", {
-        header: () => "Protein (g)",
+        header: () => <div className="w-1">Protein (g)</div>,
         cell: info => info.getValue(),
     }),
     columnHelper.accessor("nutrition.vitamin_d_mcg", {
-        header: () => "Vitamin D (mcg)",
+        header: () => <div className="w-1">Vitamin D (mcg)</div>,
         cell: info => info.getValue(),
     }),
     columnHelper.accessor("nutrition.calcium_mg", {
-        header: () => "Calcium (mg)",
+        header: () => <div className="w-1">Calcium (mg)</div>,
         cell: info => info.getValue(),
     }),
     columnHelper.accessor("nutrition.iron_mg", {
-        header: () => "Iron (mg)",
+        header: () => <div className="w-1">Iron (mg)</div>,
         cell: info => info.getValue(),
     }),
     columnHelper.accessor("nutrition.potassium_mg", {
-        header: () => "Potassium (mg)",
+        header: () => <div className="w-1">Potassium (mg)</div>,
         cell: info => info.getValue(),
     }),
     columnHelper.accessor("price", {
-        header: () => "Price",
+        header: () => <div className="w-1">Price</div>,
         cell: info => info.getValue(),
     }),
     columnHelper.accessor("price_date", {
-        header: () => "Price Date",
+        header: () => <div className="w-2">Price Date</div>,
         cell: info => info.getValue(),
     }),
     columnHelper.accessor("shelf_life", {
-        header: () => <div className="w-20">Shelf Life</div>,
+        header: () => <div className="w-4">Shelf Life</div>,
         cell: info => info.getValue(),
     }),
 ]
 
-const Ingredients = () => {
-    //const rerender = React.useReducer(() => ({}), {})[1]
-    const [ingredients, setIngredients] = useState([])
-    const [errorMessage, setErrorMessage] = useState()
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const Ingredients = (props: any) => {
+    const [ingredients, setIngredients] = useState<Ingredient[]>([])
+    const [errorMessage, setErrorMessage] = useState<string>("")
 
+    const navigate = useNavigate()
+    const removeTokenFunction = props.removeTokenFunction
 	const tok = sessionStorage.getItem("access_token")
 	const token = tok ? JSON.parse(tok) : ""
 
@@ -157,15 +175,19 @@ const Ingredients = () => {
 
     useEffect(() => {
         // Call the back end's /login API with the username and password from the form
-        axios.get("/ingredient", {headers: { 'Authorization': `Bearer ${token}`}})
+        axios.get("/ingredient", {headers: { "Authorization": "Bearer " + token}})
             .then((response) => {
                 setIngredients(response.data);
             })
             .catch((error) => {
 				console.log(error)
+                if (error.status == 401) {
+                    removeTokenFunction()
+                    navigate("/", { state: { message: "Your token has expired and you have been logged out." } });
+                }
                 setErrorMessage(error.message)
             })
-    }, [token])
+    }, [token, navigate, removeTokenFunction])
 
     return (
         <section className="ingredientTableContainer">

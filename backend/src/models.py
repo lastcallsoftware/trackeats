@@ -17,11 +17,11 @@ class Nutrition(db.Model):
     __tablename__ = "nutrition"
 
     id = db.Column(db.Integer, primary_key=True)
-    serving_size_description = db.Column(db.String(32), nullable=False)
+    serving_size_description = db.Column(db.String(64), nullable=False)
     serving_size_g = db.Column(db.Integer)
     calories =  db.Column(db.Integer, nullable=False)
-    total_fat_g = db.Column(db.Integer)
-    saturated_fat_g = db.Column(db.Integer)
+    total_fat_g = db.Column(db.Float)
+    saturated_fat_g = db.Column(db.Float)
     trans_fat_g = db.Column(db.Integer)
     cholesterol_mg = db.Column(db.Integer)
     sodium_mg = db.Column(db.Integer)
@@ -32,7 +32,7 @@ class Nutrition(db.Model):
     protein_g = db.Column(db.Integer)
     vitamin_d_mcg = db.Column(db.Integer)
     calcium_mg = db.Column(db.Integer)
-    iron_mg = db.Column(db.Integer)
+    iron_mg = db.Column(db.Float)
     potassium_mg = db.Column(db.Integer)
 
     def json(self):
@@ -57,12 +57,12 @@ class Nutrition(db.Model):
             "potassium_mg": self.potassium_mg
         }
 
-class FoodCategory(enum.Enum):
-    fruit = 1,
-    vegetable = 2,
-    dairy = 3,
-    meatAndSeafood = 4,
-    grainsAndBakedGoods = 5,
+class FoodGroup(enum.Enum):
+    fruits = 1,
+    vegetables = 2,
+    grains = 3,
+    proteins = 4,
+    dairy = 5,
     herbsAndSpices = 6,
     condimentsAndSauces = 7,
     oilsAndBakingNeeds = 8,
@@ -75,10 +75,13 @@ class Ingredient(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
-    name = db.Column(db.String(100), nullable=False)
-    category = db.Column(db.Enum(FoodCategory), nullable=False)
+    group = db.Column(db.Enum(FoodGroup), nullable=False)
+    type = db.Column(db.String(32), nullable=False)
+    subtype = db.Column(db.String(32), nullable=True)
+    description = db.Column(db.String(100), nullable=True)
     vendor = db.Column(db.String(64), nullable=False)
-    size = db.Column(db.String(32))
+    size_description = db.Column(db.String(32))
+    size_g = db.Column(db.Integer)
     servings = db.Column(db.Float, nullable=False)
     nutrition_id = db.Column(db.Integer, db.ForeignKey('nutrition.id'))
     nutrition = db.relationship("Nutrition", backref=db.backref("nutrition", uselist=False))
@@ -94,10 +97,13 @@ class Ingredient(db.Model):
         return {
             "id": self.id,
             "user_id": self.user_id,
-            "name": self.name,
-            "category": self.category.name,
+            "group": self.group.name,
+            "type": self.type,
+            "subtype": self.subtype,
+            "description": self.description,
             "vendor": self.vendor,
-            "size": self.size,
+            "size_description": self.size_description,
+            "size_g": self.size_g,
             "servings": self.servings,
             "nutrition_id": self.nutrition_id,
             "nutrition": self.nutrition.json(),
