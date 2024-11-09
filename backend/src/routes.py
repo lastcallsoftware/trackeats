@@ -1,3 +1,4 @@
+import os
 import re
 import logging
 from datetime import datetime, timedelta
@@ -351,7 +352,8 @@ def login():
         # Generate a JWT token
         access_token = None
         if (len(errors)) == 0:
-            access_token = create_access_token(identity=username, expires_delta=timedelta(hours=2))
+            token_duration = int(os.environ.get("ACCESS_TOKEN_DURATION", 120))
+            access_token = create_access_token(identity=username, expires_delta=timedelta(minutes=token_duration))
 
     if (len(errors) > 0):
         error_str = "\n".join(errors)
