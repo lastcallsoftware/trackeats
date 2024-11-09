@@ -38,12 +38,12 @@ function Nav() {
         sessionStorage.setItem("access_token", JSON.stringify(token))
         setUser({username: username, isAuthenticated: true})
     }
-    
+
     const removeToken = () => {
         sessionStorage.removeItem("access_token")
         setUser({username: "", isAuthenticated: false})
     }
-    
+
     function isLoggedIn() {
         return user.isAuthenticated;
     }
@@ -64,7 +64,7 @@ function Nav() {
 
             <Routes>
                 <Route path="/" element={<Homepage />} />
-                <Route path="/ingredients" element={<Ingredients />} />
+                <Route path="/ingredients" element={<Ingredients removeTokenFunction={removeToken}/>} />
                 <Route path="/meals" element={<Meals />} />
                 <Route path="/dailylog" element={<DailyLog />} />
                 <Route path="/about" element={<About />} />
