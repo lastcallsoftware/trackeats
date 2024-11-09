@@ -175,10 +175,21 @@ td {
   padding: 5px 10px;
   height: 35px;
 }
+/*
 th, td {
-  min-width: 80px;
+  min-width: 10px;
 }
+*/
 
-.w-20 {
+.w-1 {
+  min-width: 3rem;
+}
+.w-2 {
+  min-width: 5rem;
+}
+.w-3 {
+  min-width: 10rem;
+}
+.w-4 {
   width: 20rem;
 }
