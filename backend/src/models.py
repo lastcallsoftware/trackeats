@@ -25,7 +25,7 @@ class Nutrition(db.Model):
     trans_fat_g = db.Column(db.Integer)
     cholesterol_mg = db.Column(db.Integer)
     sodium_mg = db.Column(db.Integer)
-    total_carb_g = db.Column(db.Integer)
+    total_carbs_g = db.Column(db.Integer)
     fiber_g = db.Column(db.Integer)
     total_sugar_g = db.Column(db.Integer)
     added_sugar_g = db.Column(db.Integer)
@@ -35,6 +35,8 @@ class Nutrition(db.Model):
     iron_mg = db.Column(db.Float)
     potassium_mg = db.Column(db.Integer)
 
+    def __str__(self):
+        return str(vars(self))
     def json(self):
         return {
             "id": self.id,
@@ -46,7 +48,7 @@ class Nutrition(db.Model):
             "trans_fat_g": self.trans_fat_g,
             "cholesterol_mg": self.cholesterol_mg,
             "sodium_mg": self.sodium_mg,
-            "total_carb_g": self.total_carb_g,
+            "total_carbs_g": self.total_carbs_g,
             "fiber_g": self.fiber_g,
             "total_sugar_g": self.total_sugar_g,
             "added_sugar_g": self.added_sugar_g,
@@ -84,15 +86,13 @@ class Ingredient(db.Model):
     size_g = db.Column(db.Integer)
     servings = db.Column(db.Float, nullable=False)
     nutrition_id = db.Column(db.Integer, db.ForeignKey('nutrition.id'))
-    nutrition = db.relationship("Nutrition", backref=db.backref("nutrition", uselist=False))
+    nutrition = db.relationship(Nutrition, single_parent=True, cascade="all, delete-orphan", backref=db.backref("nutrition", cascade="all, delete-orphan", uselist=False))
     price = db.Column(db.Float)
     price_date = db.Column(db.DateTime)
     shelf_life = db.Column(db.String(100))
 
-    #def __str__(self):
-    #    return f"<Ingredient {self.name}, serving size: {self.nutrition.serving_size_description}>"
-    #def __repr__(self):
-    #    return f"Ingredient(\"{self.name}\", \"{self.nutrition.serving_size_description}\")"
+    def __str__(self):
+        return str(vars(self))
     def json(self):
         return {
             "id": self.id,
