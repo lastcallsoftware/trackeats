@@ -1,105 +1,62 @@
 from models import db, User, UserStatus, FoodGroup, Ingredient, Nutrition
 import datetime
+import json
+import logging
 
 # Add some seed data to the database: user records for the admin and the 
 def load_db(add_new_user):
+    errors = []
     try:
+        # WIPE THE DATABASE
+        # Note the two different ways of doing the same thing
+        #Ingredient.query.delete()
+        db.session.query(Ingredient).delete()
+        db.session.query(Nutrition).delete()
         db.session.query(User).delete()
+        db.session.commit()
+
+        # ADD USER RECORDS
+        # Add a couple standard users (admin and testuser)
         errors = add_new_user("admin", "Test*123", "admin@trackeats.com", UserStatus.confirmed)
         if len(errors) == 0:
             errors = add_new_user("testuser", "Test*123", "testuser@trackeats.com", UserStatus.confirmed)
 
-        # DELETE ALL INGREDIENTS!
-        Ingredient.query.delete()
+        # Get the userID of the testuser
+        query = db.select(User).filter_by(username="testuser")
+        users = db.session.execute(query).first()
+        user_id = users[0].id
 
-        milk_nutrition = Nutrition(
-            serving_size_description = "1 cup",
-            serving_size_g = 240,
-            calories =  90,
-            total_fat_g = 0,
-            saturated_fat_g = 0,
-            trans_fat_g = 0,
-            cholesterol_mg = 5,
-            sodium_mg = 130,
-            total_carb_g = 13,
-            fiber_g = 0,
-            total_sugar_g = 12,
-            added_sugar_g = 0,
-            protein_g = 8,
-            vitamin_d_mcg = 2.5,
-            calcium_mg = 300,
-            iron_mg = 0,
-            potassium_mg = 150
-            )
-        db.session.add(milk_nutrition)
-        db.session.commit()
-        milk_nutrition_id = milk_nutrition.id
+        # ADD INGREDIENT RECORDS
+        # Read in the JSON data
+        with open("./data/grains.json") as f:
+            data = json.load(f)
+            
+            # Loop through the JSON records
+            for ing in data['ingredients']:
+                # Tweak the data a little
+                ing["user_id"] = user_id
 
-        # We COULD find a convoluted way to return the user ID from add_new_user(), or
-        # query the database using the username to get the user ID, but... we know for
-        # certain that "testuser" will always have ID 2 in a new database.
-        user_id = 2
-        milk = Ingredient(
-            user_id = user_id,
-            group = FoodGroup.dairy,
-            type = "Milk",
-            subtype = "Fat Free",
-            description = "",
-            vendor = "Tuscan Farms",
-            size_description = "1 quart",
-            size_g = 946,
-            servings = 4,
-            nutrition_id = milk_nutrition_id,
-            price = 2.89,
-            price_date = datetime.datetime(2024, 11, 4),
-            shelf_life = "opened: 1 week in fridge"
-            )
-        db.session.add(milk)
-        db.session.commit()
+                # "Pull out" the nutrition child object.
+                # The method we're about to use to deserialize the records
+                # doesn't handle child objects properly.
+                nut = ing["nutrition"]
+                del ing["nutrition"]
 
-        butter_nutrition = Nutrition(
-            serving_size_description = "1 tbsp",
-            serving_size_g = 14,
-            calories =  100,
-            total_fat_g = 11,
-            saturated_fat_g = 7,
-            trans_fat_g = 0,
-            cholesterol_mg = 30,
-            sodium_mg = 0,
-            total_carb_g = 0,
-            fiber_g = 0,
-            total_sugar_g = 0,
-            added_sugar_g = 0,
-            protein_g = 0,
-            vitamin_d_mcg = 0,
-            calcium_mg = 0,
-            iron_mg = 0,
-            potassium_mg = 0
-            )
-        db.session.add(butter_nutrition)
-        db.session.commit()
-        butter_nutrition_id = butter_nutrition.id
+                # Use Pythons ** operator to create an instance of the SQLAlchemy model objects
+                n = Nutrition(**nut)
+                i = Ingredient(**ing)
 
-        butter = Ingredient(
-            user_id = user_id,
-            group = FoodGroup.dairy,
-            type = "Butter",
-            subtype = "Unsalted",
-            description = "",
-            vendor = "Land O'Lakes",
-            size_description = "1 pound",
-            size_g = 454,
-            servings = 32,
-            nutrition_id = butter_nutrition_id,
-            price = 7.49,
-            price_date = datetime.datetime(2024, 11, 4),
-            shelf_life = "1-3 months in fridge; 12 months in freezer"
-        )
-        db.session.add(butter)
+                # No re-add the nutrition child object to the Ingredient object
+                i.nutrition = n
+
+                # Add the new record to the database!
+                db.session.add(i)
+
+        # Commit all the new records to the database
         db.session.commit()
 
     except Exception as e:
+        print(e)
         errors.append(str(e))
 
     return errors
-    
