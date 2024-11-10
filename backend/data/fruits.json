@@ -1,0 +1,491 @@
+{ "ingredients": [
+    {
+    "description": "Apple, Honeycrisp, Organic, Rainier (4 ct, 32 oz = 908 g)",
+    "size_g": 32,
+    "servings": 4,
+    "nutrition": {
+"serving_size_description": "1 medium (223 g)",
+    "calories": 120,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 0
+},
+"price": 9.99,
+    "Price per Serving ($)": 2.4975,
+    "shelf_life": "1-2 weeks in pantry; 4-6 weeks in fridge"
+    },
+    {
+    "description": "Apple, Pink Lady, Organic, FreshDirect (4 ct, 32 oz = 908 g)",
+    "size_g": 32,
+    "servings": 4,
+    "nutrition": {
+"serving_size_description": "1 medium (242 g)",
+    "calories": 130,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 0
+},
+"price": 6.49,
+    "Price per Serving ($)": 1.6225,
+    "shelf_life": "1-2 weeks in pantry; 4-6 weeks in fridge"
+    },
+    {
+    "description": "Apple, Fuji, FreshDirect (4 ct, 32 oz = 908 g)",
+    "size_g": 32,
+    "servings": 4,
+    "nutrition": {
+"serving_size_description": "1 medium (233 g)",
+    "calories": 120,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 0
+},
+"price": 4.99,
+    "Price per Serving ($)": 1.2475,
+    "shelf_life": "1-2 weeks in pantry; 4-6 weeks in fridge"
+    },
+    {
+    "description": "Apricots, Dried, Organic Unsulphured Just FrreshDirect (12 oz = 340 g)",
+    "size_g": 12,
+    "servings": 9,
+    "nutrition": {
+"serving_size_description": "5 pieces (40 g)",
+    "calories": 130,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 0
+},
+"price": 12.99,
+    "Price per Serving ($)": 1.4433333333333334,
+    "shelf_life": "6 months in pantry; 12 months in fridge"
+    },
+    {
+    "description": "Avocado, Large Ready-to-Eat, Hass (2 ct, appx. 0.5 lb = 8 oz = 227 g each)",
+    "size_g": 16,
+    "servings": 2,
+    "nutrition": {
+"serving_size_description": "1 large avocado (8 oz = 227 g)",
+    "calories": 333,
+    "total_fat_g": 29,
+    "saturated_fat_g": 4,
+    "cholesterol_mg": 0,
+    "sodium_mg": 15,
+    "total_carbs_g": 17,
+    "fiber_g": 13,
+    "total_sugar_g": 0,
+    "added_sugar_g": 0,
+    "protein_g": 7
+},
+"price": 5.99,
+    "Price per Serving ($)": 2.995,
+    "shelf_life": "2 weeks in fridge"
+    },
+    {
+    "description": "Avocado, Large Unripe, Hass (1 ct, appx. 0.5 lb = 8 oz = 227 g)",
+    "size_g": 8,
+    "servings": 1,
+    "nutrition": {
+"serving_size_description": "1 large avocado (8 oz = 227 g)",
+    "calories": 333,
+    "total_fat_g": 29,
+    "saturated_fat_g": 4,
+    "cholesterol_mg": 0,
+    "sodium_mg": 15,
+    "total_carbs_g": 17,
+    "fiber_g": 13,
+    "total_sugar_g": 0,
+    "added_sugar_g": 0,
+    "protein_g": 7
+},
+"price": 2.49,
+    "Price per Serving ($)": 2.49,
+    "shelf_life": "2 weeks in fridge"
+    },
+    {
+    "description": "Avocado, Medium Unripe, Hass (5 ct, appx. 2 lb total, appx. 0.4 lb = 6 oz = 170 g each)",
+    "size_g": 32,
+    "servings": 5,
+    "nutrition": {
+"serving_size_description": "1 avocado (6 oz = 170 g)",
+    "calories": 250,
+    "total_fat_g": 22,
+    "saturated_fat_g": 3,
+    "cholesterol_mg": 0,
+    "sodium_mg": 11,
+    "total_carbs_g": 13,
+    "fiber_g": 10,
+    "total_sugar_g": 0,
+    "added_sugar_g": 0,
+    "protein_g": 5
+},
+"price": 7.99,
+    "Price per Serving ($)": 1.598,
+    "shelf_life": "2 weeks in fridge"
+    },
+    {
+    "description": "Banana, Fair Trade Organic, FreshDirect (5-7 ct, 2-3 lb)",
+    "size_g": 40,
+    "servings": 6,
+    "nutrition": {
+"serving_size_description": "1 medium (126 g)",
+    "calories": 110,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 1
+},
+"price": 2.99,
+    "Price per Serving ($)": 0.49833333333333335,
+    "shelf_life": "2-5 days on countertop to ripen; 5-7 days in fridge after ripe; 6 months in freezer (peel first, freeze in tray, then transfer to freezer bag)"
+    },
+    {
+    "description": "Blueberries, Jumbo Ultra-Premium, Family Tree Farms (10 oz = 283 g, 140 g ~ 1 cup)",
+    "size_g": 10,
+    "servings": 2,
+    "nutrition": {
+"serving_size_description": "1 cup (6 oz = 140 g)",
+    "calories": 100,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 0
+},
+"price": 9.99,
+    "Price per Serving ($)": 4.995,
+    "shelf_life": "5-10 days in fridge"
+    },
+    {
+    "description": "Canteloupe, FreshDirect (medium, 20 oz ~ 552 g)",
+    "size_g": 20,
+    "servings": 8,
+    "nutrition": {
+"serving_size_description": "1 wedge (2.5 oz ~ 69 g)",
+    "calories": 25,
+    "saturated_fat_g": 0.1,
+    "cholesterol_mg": 0,
+    "sodium_mg": 11
+},
+"price": 4.99,
+    "Price per Serving ($)": 0.62375,
+    "shelf_life": "uncut: 2-3 weeks in fridge; cut 3-5 days in fridge"
+    },
+    {
+    "description": "Coconut, Unsweetened Shredded, Bob's Red Mill (12 oz = 340 g ~ 4.25 cups)",
+    "size_g": 12,
+    "servings": 23,
+    "nutrition": {
+"serving_size_description": "3 tbsp (15 g)",
+    "calories": 100,
+    "saturated_fat_g": 8,
+    "cholesterol_mg": 0,
+    "sodium_mg": 0
+},
+"price": 6.99,
+    "Price per Serving ($)": 0.30391304347826087,
+    "shelf_life": "2-3 weeks in pantry; 3-4 months in fridge"
+    },
+    {
+    "description": "Dates, Organic Medjool, Just FreshDirect (15 oz = 425 g)",
+    "size_g": 15,
+    "servings": 11,
+    "nutrition": {
+"serving_size_description": "2-3 pieces (40 g)",
+    "calories": 130,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 0
+},
+"price": 10.79,
+    "Price per Serving ($)": 0.9809090909090908,
+    "shelf_life": "6 months in fridge; 12 months in freezer"
+    },
+    {
+    "description": "Grapefruit, Red, FreshDirect (12 oz = 340 g)",
+    "size_g": 12,
+    "servings": 1,
+    "nutrition": {
+"serving_size_description": "1 medium (12 oz = 340 g)",
+    "calories": 52,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 0
+},
+"price": 2.49,
+    "Price per Serving ($)": 2.49,
+    "shelf_life": "2-3 weeks in fridge"
+    },
+    {
+    "description": "Grapes, Candy Heart, FreshDirect (16 oz = 454 g)",
+    "size_g": 16,
+    "servings": 5.5,
+    "nutrition": {
+"serving_size_description": "1\/2 cup (80 g)",
+    "calories": 60,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 0
+},
+"price": 4.99,
+    "Price per Serving ($)": 0.9072727272727273,
+    "shelf_life": "2-3 weeks in fridge"
+    },
+    {
+    "description": "Jelly, Blueberry Preserves, Bonne Maman (13 oz = 368 g)",
+    "size_g": 13,
+    "servings": 18,
+    "nutrition": {
+"serving_size_description": "1 tbsp (0.7 oz = 20 g)",
+    "calories": 50,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 0
+},
+"price": 6.59,
+    "Price per Serving ($)": 0.3661111111111111,
+    "shelf_life": "unopened: 6-12 months in pantry; opened: 6+ months in fridge"
+    },
+    {
+    "description": "Jelly, Raspberry Preserves, Bonne Maman (13 oz = 368 g)",
+    "size_g": 13,
+    "servings": 18,
+    "nutrition": {
+"serving_size_description": "1 tbsp (0.7 oz = 20 g)",
+    "calories": 50,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 0
+},
+"price": 6.59,
+    "Price per Serving ($)": 0.3661111111111111,
+    "shelf_life": "unopened: 6-12 months in pantry; opened: 6+ months in fridge"
+    },
+    {
+    "description": "Jelly, Pineapple Preserves, Smucker's (12 oz = 340 g)",
+    "size_g": 12,
+    "servings": 17,
+    "nutrition": {
+"serving_size_description": "1 tbsp (0.7 oz = 20 g)",
+    "calories": 50,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 0
+},
+"price": 8.17,
+    "Price per Serving ($)": 0.48058823529411765,
+    "shelf_life": "unopened: 6-12 months in pantry; opened: 6+ months in fridge"
+    },
+    {
+    "description": "Lemon, FreshDirect (2 ct, 2 oz = 58 g each)",
+    "size_g": 4,
+    "servings": 2,
+    "nutrition": {
+"serving_size_description": "1 medium (2 oz = 58 g)",
+    "calories": 17,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 0
+},
+"price": 1.78,
+    "Price per Serving ($)": 0.89,
+    "shelf_life": "4-6 weeks in fridge"
+    },
+    {
+    "description": "Lime, FreshDirect (2 ct, 2.4 oz = 67 g each)",
+    "size_g": 5,
+    "servings": 2,
+    "nutrition": {
+"serving_size_description": "1 medium (2.4 oz = 67 g)",
+    "calories": 20,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 0
+},
+"price": 1.78,
+    "Price per Serving ($)": 0.89,
+    "shelf_life": "3-4 weeks in fridge"
+    },
+    {
+    "description": "Mango, Tommy Atkins (1 medium mango ~ 200 g and provides ~ 1 cup diced fruit)",
+    "size_g": 16,
+    "servings": 1,
+    "nutrition": {
+"serving_size_description": "1 medium (7 oz ~ 208 g)",
+    "calories": 140,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 0
+},
+"price": 2.19,
+    "Price per Serving ($)": 2.19,
+    "shelf_life": "2-5 days on countertop to ripen; 5-7 days in fridge after ripe"
+    },
+    {
+    "description": "Orange, Navel, FreshDirect, (11 oz = 318 g)",
+    "size_g": 11,
+    "servings": 1,
+    "nutrition": {
+"serving_size_description": "1 medium (5 oz ~ 140 g)",
+    "calories": 70,
+    "total_fat_g": 0,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 0,
+    "total_carbs_g": 18,
+    "fiber_g": 3,
+    "total_sugar_g": 12,
+    "added_sugar_g": 0,
+    "protein_g": 1
+},
+"price": 1.99,
+    "Price per Serving ($)": 1.99,
+    "shelf_life": "1 week in pantry; 1 month in fridge"
+    },
+    {
+    "description": "Peach, Organic, Sweet2Eat (2 ct, 5 oz = 147 g each)",
+    "size_g": 10,
+    "servings": 2,
+    "nutrition": {
+"serving_size_description": "1 medium (5 oz = 147 g)",
+    "calories": 50,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 0
+},
+"price": 4.49,
+    "Price per Serving ($)": 2.245,
+    "shelf_life": "1-2 days in countertop to ripen; 3-5 days in fridge after ripe"
+    },
+    {
+    "description": "Peaches, Canned Sliced, Del Monte (15 oz = 425 g  ~ 3 servings)",
+    "size_g": 15,
+    "servings": 3,
+    "nutrition": {
+"serving_size_description": "1\/2 cup (124 g)",
+    "calories": 60,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 0
+},
+"price": 3.99,
+    "Price per Serving ($)": 1.33,
+    "shelf_life": "18-24 months in pantry"
+    },
+    {
+    "description": "Pear, Organic Bartlett, FreshDirect (7 oz ~ 189 g)",
+    "size_g": 7,
+    "servings": 1,
+    "nutrition": {
+"serving_size_description": "1 medium (189 g)",
+    "calories": 102,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 2
+},
+"price": 1.99,
+    "Price per Serving ($)": 1.99,
+    "shelf_life": "3-10 days in pantry; once ripe 3-5 days in fridge"
+    },
+    {
+    "description": "Pineapple, Canned, Chunks, Dole (20 oz = 567 g)",
+    "size_g": 20,
+    "servings": 4.5,
+    "nutrition": {
+"serving_size_description": "1\/2 cup (4.3 oz = 122 g)",
+    "calories": 70,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 0
+},
+"price": 2.99,
+    "Price per Serving ($)": 0.6644444444444445,
+    "shelf_life": "unopened: 18-24 months in pantry; opened: 1 week in fridge"
+    },
+    {
+    "description": "Plantain, Green, FreshDirect (2 ct, 0.5 lb = 8 oz = 227 g)",
+    "size_g": 8,
+    "servings": 4,
+    "nutrition": {
+"serving_size_description": "1\/2 medium (~3 oz = 90 g)",
+    "calories": 110,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 0
+},
+"price": 2.58,
+    "Price per Serving ($)": 0.645,
+    "shelf_life": "2-3 weeks in pantry"
+    },
+    {
+    "description": "Plantain, Yellow, FreshDirect (2 ct, 0.5 lb = 8 oz = 227 g)",
+    "size_g": 8,
+    "servings": 4,
+    "nutrition": {
+"serving_size_description": "1\/2 medium (~3 oz = 90 g)",
+    "calories": 110,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 0
+},
+"price": 2.58,
+    "Price per Serving ($)": 0.645,
+    "shelf_life": "2-3 weeks in pantry"
+    },
+    {
+    "description": "Raisins, Thompson, Just FreshDirect (16 oz = 454 g)",
+    "size_g": 16,
+    "servings": 11,
+    "nutrition": {
+"serving_size_description": "1\/4 cup (1.4 oz = 40 g)",
+    "calories": 120,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 0
+},
+"price": 5.49,
+    "Price per Serving ($)": 0.4990909090909091,
+    "shelf_life": "6 months in pantry; 12 months in fridge"
+    },
+    {
+    "description": "Raisins, California Golden, Sun-Maid (12 oz = 340 g)",
+    "size_g": 12,
+    "servings": 9,
+    "nutrition": {
+"serving_size_description": "1\/4 cup (1.4 oz = 40 g)",
+    "calories": 120,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 10
+},
+"price": 4.48,
+    "Price per Serving ($)": 0.4977777777777778,
+    "shelf_life": "6 months in pantry; 12 months in fridge"
+    },
+    {
+    "description": "Strawberries, Organic, Driscoll's (16 ox = 454 g)",
+    "size_g": 16,
+    "servings": 3,
+    "nutrition": {
+"serving_size_description": "1 cup (~ 8 strawberries ~ 144 g)",
+    "calories": 45,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 0
+},
+"price": 8.99,
+    "Price per Serving ($)": 2.9966666666666666,
+    "shelf_life": "1 week in fridge"
+    },
+    {
+    "description": "Tamarind, Sweet, FreshDirect (16 oz = 454 g)",
+    "size_g": 16,
+    "servings": 4.5,
+    "nutrition": {
+"serving_size_description": "3.5 oz (100 g)",
+    "calories": 315,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 0
+},
+"price": 6.99,
+    "Price per Serving ($)": 1.5533333333333335,
+    "shelf_life": "3 months in fridge"
+    }
+]}

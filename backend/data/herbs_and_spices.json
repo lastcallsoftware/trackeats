@@ -1,0 +1,617 @@
+{ "ingredients": [
+    {
+    "description": "Allspice, Ground, Just FreshDirect (1.95 oz = 55 g)",
+    "size_g": 1.95,
+    "servings": 27,
+    "nutrition": {
+"serving_size_description": "1 tsp (2 g)",
+    "calories": 5,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 1
+},
+"price": 4.49,
+    "Price per Serving ($)": 0.1662962962962963,
+    "shelf_life": "4 years in pantry"
+    },
+    {
+    "description": "Ancho Chile Powder, iHerb Store (2.85 oz = 81 g)",
+    "size_g": 2.85,
+    "servings": 27,
+    "nutrition": {
+"serving_size_description": "1 tsp (3 g)",
+    "calories": 7,
+    "saturated_fat_g": 0.1,
+    "cholesterol_mg": 0,
+    "sodium_mg": 72
+},
+"price": 7.71,
+    "Price per Serving ($)": 0.28555555555555556,
+    "shelf_life": "6 months in pantry"
+    },
+    {
+    "description": "Basil, Dried, Just FreshDirect (0.5 oz = 14 g)",
+    "size_g": 0.5,
+    "servings": 20,
+    "nutrition": {
+"serving_size_description": "1 tsp (0.7 g)",
+    "calories": 2,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 0
+},
+"price": 3.99,
+    "Price per Serving ($)": 0.1995,
+    "shelf_life": "2-3 years in pantry"
+    },
+    {
+    "description": "Basil, Fresh Leaves (1 bunch ~ 2 oz = 57 g)",
+    "size_g": 2,
+    "servings": 20,
+    "nutrition": {
+"serving_size_description": "1 tbsp (2.65 g)",
+    "calories": 1,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 0
+},
+"price": 3.99,
+    "Price per Serving ($)": 0.1995,
+    "shelf_life": "2 weeks on countertop in water (like cut flowers)"
+    },
+    {
+    "description": "Bay Leaves, Dried, Just FreshDirect (0.15 oz = 4 g)",
+    "size_g": 0.15,
+    "servings": 6,
+    "nutrition": {
+"serving_size_description": "1 tsp crumbled (0.6 g ~ 3 leaves)",
+    "calories": 2,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 0
+},
+"price": 4.49,
+    "Price per Serving ($)": 0.7483333333333334,
+    "shelf_life": "1-3 years in pantry"
+    },
+    {
+    "description": "Cardamom, Just FreshDirect (1.9 oz = 53 g)",
+    "size_g": 1.9,
+    "servings": 26,
+    "nutrition": {
+"serving_size_description": "1 tsp (2 g)",
+    "calories": 6,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 0
+},
+"price": 7.99,
+    "Price per Serving ($)": 0.30730769230769234,
+    "shelf_life": "8-9 months in pantry"
+    },
+    {
+    "description": "Cayenne Pepper, Just FreshDirect (1.8 oz = 51 g)",
+    "size_g": 1.8,
+    "servings": 28,
+    "nutrition": {
+"serving_size_description": "1 tsp (1.8 g)",
+    "calories": 6,
+    "saturated_fat_g": 0.1,
+    "cholesterol_mg": 0,
+    "sodium_mg": 1
+},
+"price": 3.99,
+    "Price per Serving ($)": 0.14250000000000002,
+    "shelf_life": "6-12 months in pantry"
+    },
+    {
+    "description": "Chili Powder, Organic, Nature's Promise (1.8 oz = 51 g)",
+    "size_g": 1.8,
+    "servings": 20,
+    "nutrition": {
+"serving_size_description": "1 tsp = 1 dried pepper's worth  (2.7 g)",
+    "calories": 8,
+    "saturated_fat_g": 0.1,
+    "cholesterol_mg": 0,
+    "sodium_mg": 44
+},
+"price": 4.99,
+    "Price per Serving ($)": 0.2495,
+    "shelf_life": "6-24 months in pantry"
+    },
+    {
+    "description": "Chives, Fresh, FreshDirect (1 oz = 28 g ~ 8 tbsp chopped)",
+    "size_g": 1,
+    "servings": 6,
+    "nutrition": {
+"serving_size_description": "1.5 tbsp chopped (5 g)",
+    "calories": 7,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 0
+},
+"price": 2.99,
+    "Price per Serving ($)": 0.49833333333333335,
+    "shelf_life": "1-2 weeks in fridge"
+    },
+    {
+    "description": "Cinnamon, Organic Ground, Nature's Promise (1.7 oz = 48 g; 1\/2 tsp = 1 stick)",
+    "size_g": 1.7,
+    "servings": 18,
+    "nutrition": {
+"serving_size_description": "1 tsp (2.6 g)",
+    "calories": 6,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 0
+},
+"price": 4.99,
+    "Price per Serving ($)": 0.27722222222222226,
+    "shelf_life": "1-2 years in pantry"
+    },
+    {
+    "description": "Cilantro, Fresh Leaves, Organic, FreshDirect (4 oz = 113 g ~ 1.5 cup chopped)",
+    "size_g": 4,
+    "servings": 25,
+    "nutrition": {
+"serving_size_description": "1 tbsp (5 g)",
+    "calories": 0,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 0
+},
+"price": 2.99,
+    "Price per Serving ($)": 0.11960000000000001,
+    "shelf_life": "4-7 days in fridge, 1 month if stored carefully (\"plant\" upright in 1\" water)"
+    },
+    {
+    "description": "Cilantro, Organic, Goodness Gardens (0.5 oz = 14 g, `~3 tbsp minced)",
+    "size_g": 0.5,
+    "servings": 3,
+    "nutrition": {
+"serving_size_description": "1 tbsp (5 g)",
+    "calories": 0,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 0
+},
+"price": 2.89,
+    "Price per Serving ($)": 0.9633333333333334,
+    "shelf_life": "4-7 days in fridge"
+    },
+    {
+    "description": "Cloves, Ground, Whole, Just FreshDirect (1.8 oz = 53 g)",
+    "size_g": 1.8,
+    "servings": 25,
+    "nutrition": {
+"serving_size_description": "1 tsp (2.1 g)",
+    "calories": 6,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 0
+},
+"price": 5.99,
+    "Price per Serving ($)": 0.2396,
+    "shelf_life": "2-3 years in pantry"
+    },
+    {
+    "description": "Coriander, Ground, Just FreshDirect (1.4 oz = 40 g)",
+    "size_g": 1.4,
+    "servings": 20,
+    "nutrition": {
+"serving_size_description": "1 tsp (2 g)",
+    "calories": 9,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 0
+},
+"price": 2.85,
+    "Price per Serving ($)": 0.14250000000000002,
+    "shelf_life": "3-4 years in pantry"
+    },
+    {
+    "description": "Cumin, Ground, Just FreshDirect (1.8 oz = 51 g)",
+    "size_g": 1.8,
+    "servings": 25,
+    "nutrition": {
+"serving_size_description": "1 tsp (2 g)",
+    "calories": 10,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 0
+},
+"price": 4.59,
+    "Price per Serving ($)": 0.18359999999999999,
+    "shelf_life": "3-4 years in pantry"
+    },
+    {
+    "description": "Dill, FreshDirect (4 oz = 113 g)",
+    "size_g": 4,
+    "servings": 2.5,
+    "nutrition": {
+"serving_size_description": "5 sprigs (45 g)",
+    "calories": 0,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 0
+},
+"price": 2.49,
+    "Price per Serving ($)": 0.9960000000000001,
+    "shelf_life": "2-3 weeks in fridge"
+    },
+    {
+    "description": "Fennel Seeds, Just FreshDirect (1.6 oz = 45 g)",
+    "size_g": 1.6,
+    "servings": 22,
+    "nutrition": {
+"serving_size_description": "1 tsp (2 g)",
+    "calories": 7,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 2
+},
+"price": 3.99,
+    "Price per Serving ($)": 0.18136363636363637,
+    "shelf_life": "2 years in pantry"
+    },
+    {
+    "description": "Garlic, Organic, FreshDirect (3 heads; 1 clove minced ~ 1\/2 tsp)",
+    "size_g": 4.8,
+    "servings": 30,
+    "nutrition": {
+"serving_size_description": "1 clove (3 g = 1\/2 tbsp)",
+    "calories": 5,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 0
+},
+"price": 4.99,
+    "Price per Serving ($)": 0.16633333333333333,
+    "shelf_life": "unpeeled head: 6 months in pantry; unpeeled clove: 3 weeks in pantry; peeled cloves: 1 week in fridge; peeled or unpeeled cloves: 6-12 months in freezer"
+    },
+    {
+    "description": "Garlic Powder, Just FreshDirect (2.2 oz = 62 g; 1\/4 tsp ~ 1 fresh clove)",
+    "size_g": 2.2,
+    "servings": 28,
+    "nutrition": {
+"serving_size_description": "1 tsp (3.1 g)",
+    "calories": 10,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 2
+},
+"price": 4.59,
+    "Price per Serving ($)": 0.16392857142857142,
+    "shelf_life": "3-4 years in pantry"
+    },
+    {
+    "description": "Garlic Salt, Bottled Spice, Organic, Just FreshDirect (4.1 oz = 116 g)",
+    "size_g": 4.1,
+    "servings": 89,
+    "nutrition": {
+"serving_size_description": "1\/4 tsp (1.3 g)",
+    "calories": 0,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 360
+},
+"price": 3.99,
+    "Price per Serving ($)": 0.0448314606741573,
+    "shelf_life": "2-3 years in pantry"
+    },
+    {
+    "description": "Ginger, Organic Root, FreshDirect (6 oz = 170 g, ~4 oz = 110 g peeled; 1 tbsp fresh = 1\/4 tsp ground)",
+    "size_g": 6,
+    "servings": 55,
+    "nutrition": {
+"serving_size_description": "1 tsp grated (2 g)",
+    "calories": 0,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 0
+},
+"price": 2.99,
+    "Price per Serving ($)": 0.05436363636363637,
+    "shelf_life": "4-6 weeks in fridge (unpeeled)"
+    },
+    {
+    "description": "Ginger, Organic Root, FreshDirect (6 oz = 170 g, ~4 oz = 110 g peeled; 1 tbsp fresh = 1\/4 tsp ground)",
+    "size_g": 6,
+    "servings": 3,
+    "nutrition": {
+"serving_size_description": "1\/2 cup chopped raw (45 g)",
+    "calories": 10,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 10
+},
+"price": 2.99,
+    "Price per Serving ($)": 0.9966666666666667,
+    "shelf_life": "4-6 weeks in fridge (unpeeled)"
+    },
+    {
+    "description": "Ginger, Ground, Just FreshDirect (1.5 oz = 42 g)",
+    "size_g": 1.5,
+    "servings": 25,
+    "nutrition": {
+"serving_size_description": "1 tsp (1.7 g)",
+    "calories": 6,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 0
+},
+"price": 4.49,
+    "Price per Serving ($)": 0.1796,
+    "shelf_life": "3-4 years in pantry"
+    },
+    {
+    "description": "Ginger, Pickled, Organic Sushi, The Ginger People (Amazon) (6.7 oz = 190 g)",
+    "size_g": 6.7,
+    "servings": 38,
+    "nutrition": {
+"serving_size_description": "1 tsp (5 g)",
+    "calories": 5,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 10
+},
+"price": 3.83,
+    "Price per Serving ($)": 0.10078947368421053,
+    "shelf_life": "opened: 3-4 months in fridge "
+    },
+    {
+    "description": "Italian Seasoning, Simply Organic (0.95 oz = 27 g, 0.4 cups = 20 tsp)",
+    "size_g": 0.95,
+    "servings": 20,
+    "nutrition": {
+"serving_size_description": "1 tsp (0.75 g)",
+    "calories": 5,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 0
+},
+"price": 6.99,
+    "Price per Serving ($)": 0.34950000000000003,
+    "shelf_life": "1-2 years in pantry"
+    },
+    {
+    "description": "Marjoram, Dried, Just FreshDirect (0.4 oz = 11 g)",
+    "size_g": 0.4,
+    "servings": 20,
+    "nutrition": {
+"serving_size_description": "1 tsp (0.5 g)",
+    "calories": 2,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 0
+},
+"price": 3.99,
+    "Price per Serving ($)": 0.1995,
+    "shelf_life": "1-2 years in pantry"
+    },
+    {
+    "description": "Mint, Fresh Leaves (1 bunch ~ 2 oz = 57 g ~ 10 servings)",
+    "size_g": 2,
+    "servings": 10,
+    "nutrition": {
+"serving_size_description": "1 tbsp (5.7 g)",
+    "calories": 2,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 0
+},
+"price": 2.99,
+    "Price per Serving ($)": 0.29900000000000004,
+    "shelf_life": "2-3 weeks in fridge if stored in water (like cut flowers)"
+    },
+    {
+    "description": "Mustard, Ground, Just FreshDirect (1.9 oz = 53 g)",
+    "size_g": 1.9,
+    "servings": 26,
+    "nutrition": {
+"serving_size_description": "1 tsp (2 g)",
+    "calories": 10,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 0
+},
+"price": 3.99,
+    "Price per Serving ($)": 0.15346153846153848,
+    "shelf_life": "1-2 years in pantry; indefinite in fridge"
+    },
+    {
+    "description": "Nutmeg, Organic Ground, Nature's Promise (1.6 oz = 51 g)",
+    "size_g": 1.6,
+    "servings": 26,
+    "nutrition": {
+"serving_size_description": "1 tsp (2 g)",
+    "calories": 12,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 0
+},
+"price": 5.29,
+    "Price per Serving ($)": 0.20346153846153847,
+    "shelf_life": "3-4 years in pantry"
+    },
+    {
+    "description": "Onion Powder, Just FreshDirect (2.4 oz = 68 g)",
+    "size_g": 2.4,
+    "servings": 28,
+    "nutrition": {
+"serving_size_description": "1 tsp (2.4 g)",
+    "calories": 8,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 2
+},
+"price": 3.99,
+    "Price per Serving ($)": 0.14250000000000002,
+    "shelf_life": "3-4 years in pantry"
+    },
+    {
+    "description": "Oregano, Dried, Just FreshDirect (0.42 oz = 12g, 0.4 cups = 20 tsp)",
+    "size_g": 2,
+    "servings": 20,
+    "nutrition": {
+"serving_size_description": "1 tsp (0.6 g)",
+    "calories": 6,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 0
+},
+"price": 2.99,
+    "Price per Serving ($)": 0.14950000000000002,
+    "shelf_life": "1-3 years in pantry"
+    },
+    {
+    "description": "Paprika, Dried, Just FreshDirect 2.1 oz = 59 g)",
+    "size_g": 1.9,
+    "servings": 30,
+    "nutrition": {
+"serving_size_description": "1 tsp (2 g)",
+    "calories": 6,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 2
+},
+"price": 3.99,
+    "Price per Serving ($)": 0.133,
+    "shelf_life": "6-24 months in pantry"
+    },
+    {
+    "description": "Parsley, Fresh Leaves, FreshDirect (1 bunch ~ 4 oz = 114 g ~ 30 servings ~ 2 cups)",
+    "size_g": 4,
+    "servings": 30,
+    "nutrition": {
+"serving_size_description": "1 tbsp (3.75 g)",
+    "calories": 1,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 0
+},
+"price": 2.99,
+    "Price per Serving ($)": 0.09966666666666667,
+    "shelf_life": "7-10 days in fridge if stored in water (like cut flowers)"
+    },
+    {
+    "description": "Pepper, Black, Culinary Ground, McCormick (16 oz = 454 g)",
+    "size_g": 16,
+    "servings": 225,
+    "nutrition": {
+"serving_size_description": "1 tsp (2 g)",
+    "calories": 6,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 1
+},
+"price": 18.83,
+    "Price per Serving ($)": 0.08368888888888888,
+    "shelf_life": "3-4 years in pantry"
+    },
+    {
+    "description": "Peppercorn, Organic Whole w\/Grinder, Nature's Promise (1.8 oz = 50 g) (8 peppercorns ~ 1 tsp ~ 1\/4 tsp ground pepper)",
+    "size_g": 1.8,
+    "servings": 25,
+    "nutrition": {
+"serving_size_description": "1 tsp (2 g ~ 8 peppercorns)",
+    "calories": 6,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 0
+},
+"price": 5.49,
+    "Price per Serving ($)": 0.21960000000000002,
+    "shelf_life": "12 months in pantry"
+    },
+    {
+    "description": "Red Pepper Flakes, Crushed, McCormick (1.5 oz = 42 g)",
+    "size_g": 1.5,
+    "servings": 80,
+    "nutrition": {
+"serving_size_description": "1\/4 tsp (0.5 g)",
+    "calories": 0,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 0
+},
+"price": 3.69,
+    "Price per Serving ($)": 0.046125,
+    "shelf_life": "2-3 years in pantry"
+    },
+    {
+    "description": "Salt, Iodized, Morton (26 oz)",
+    "size_g": 26,
+    "servings": 2000,
+    "nutrition": {
+"serving_size_description": "1 pinch (1\/16 tsp = 0.4 g)",
+    "calories": 0,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 148
+},
+"price": 2.99,
+    "Price per Serving ($)": 0.001495,
+    "shelf_life": "forever!"
+    },
+    {
+    "description": "Salt, Iodized, Morton (26 oz)",
+    "size_g": 26,
+    "servings": 491,
+    "nutrition": {
+"serving_size_description": "1\/4 tsp (1.5 g)",
+    "calories": 0,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 590
+},
+"price": 2.99,
+    "Price per Serving ($)": 0.006089613034623218,
+    "shelf_life": "forever!"
+    },
+    {
+    "description": "Salt Substitute, Morton (3 oz = 89 g)",
+    "size_g": 3,
+    "servings": 63,
+    "nutrition": {
+"serving_size_description": "1\/4 tsp (1.5 g)",
+    "calories": 0,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 0
+},
+"price": 7.56,
+    "Price per Serving ($)": 0.12,
+    "shelf_life": "forever!"
+    },
+    {
+    "description": "Sesame Seeds, Just FreshDirect (2.2 oz = 62 g)",
+    "size_g": 2.2,
+    "servings": 20,
+    "nutrition": {
+"serving_size_description": "1 tsp (3 g)",
+    "calories": 17,
+    "saturated_fat_g": 0.6,
+    "cholesterol_mg": 0,
+    "sodium_mg": 0
+},
+"price": 4.59,
+    "Price per Serving ($)": 0.22949999999999998,
+    "shelf_life": "4-6 months in pantry; 6-12 months in fridge"
+    },
+    {
+    "description": "Turmeric Powder, Organic, Nature's Promise (1.8 oz = 50 g)",
+    "size_g": 1.8,
+    "servings": 23,
+    "nutrition": {
+"serving_size_description": "1 tsp (2.2 g)",
+    "calories": 8,
+    "saturated_fat_g": 0.1,
+    "cholesterol_mg": 0,
+    "sodium_mg": 1
+},
+"price": 5.29,
+    "Price per Serving ($)": 0.23,
+    "shelf_life": "3-4 years in pantry"
+    }
+]}

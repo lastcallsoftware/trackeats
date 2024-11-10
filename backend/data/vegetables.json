@@ -1,0 +1,1343 @@
+{ "ingredients": [
+    {
+    "description": "Asparagus, FreshDirect (16 oz = 454 g)",
+    "size_g": 16,
+    "servings": 5,
+    "nutrition": {
+"serving_size_description": "5 spears (2.8 oz = 80 g)",
+    "calories": 15,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 0
+},
+"price": 4.49,
+    "Price per Serving ($)": 0.898,
+    "shelf_life": "3-5 days in fridge; 5-10 days if sealed in a jar with some water; 8-12 months in freezer bag after blanching 2-4 minutes (depending on size)"
+    },
+    {
+    "description": "Arugula, Wild, Satur Farms (5 oz = 142 g)",
+    "size_g": 5,
+    "servings": 2,
+    "nutrition": {
+"serving_size_description": "4 cups (2.8 oz = 80 g)",
+    "calories": 20,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 22
+},
+"price": 3.49,
+    "Price per Serving ($)": 1.745,
+    "shelf_life": "3-7 days in fridge"
+    },
+    {
+    "description": "Beans, Black, Low Sodium, Goya* (15.5 oz = 439 g)",
+    "size_g": 15.5,
+    "servings": 3.5,
+    "nutrition": {
+"serving_size_description": "1\/2 cup (4.3 oz = 122 g)",
+    "calories": 130,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 135
+},
+"price": 3.39,
+    "Price per Serving ($)": 0.9685714285714286,
+    "shelf_life": "unopened: 2-5 years in pantry; opened: 3-4 days in fridge"
+    },
+    {
+    "description": "Beans, Cannellini, Low Sodium Organic, Nature's Promise (15 oz = 425 g, about 1.75 cups)",
+    "size_g": 15,
+    "servings": 3.5,
+    "nutrition": {
+"serving_size_description": "1\/2 cup (4.4 oz = 130 g)",
+    "calories": 110,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 90
+},
+"price": 1.79,
+    "Price per Serving ($)": 0.5114285714285715,
+    "shelf_life": "unopened: 2-5 years in pantry; opened: 3-4 days in fridge"
+    },
+    {
+    "description": "Beans, Navy, Organic Dried, Nature's Promise (16 oz = 454 g ~ 3x15-oz canned beans)",
+    "size_g": 16,
+    "servings": 9,
+    "nutrition": {
+"serving_size_description": "1\/4 cup dry (1.7 oz = 49 g)",
+    "calories": 120,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 10
+},
+"price": 2.49,
+    "Price per Serving ($)": 0.27666666666666667,
+    "shelf_life": "2-3 years in pantry"
+    },
+    {
+    "description": "Beans, Pinto, Dried, Goya (16 oz = 454 g, 2 cups dry or 6 cups soaked\/cooked)",
+    "size_g": 16,
+    "servings": 11,
+    "nutrition": {
+"serving_size_description": "1\/4 cup dry (1.45 oz = 41 g)",
+    "calories": 140,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 0
+},
+"price": 2.89,
+    "Price per Serving ($)": 0.26272727272727275,
+    "shelf_life": "2-3 years in pantry"
+    },
+    {
+    "description": "Beets, Bunched Red, Deer Run Farms (appx 3 ct, 16 oz = 454 g)",
+    "size_g": 16,
+    "servings": 6,
+    "nutrition": {
+"serving_size_description": "1\/2 cup chopped ~1\/2 beet, 3 oz = 85 g)",
+    "calories": 35,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 65
+},
+"price": 2.99,
+    "Price per Serving ($)": 0.49833333333333335,
+    "shelf_life": "7-10 days in fridge; 12 months in freezer"
+    },
+    {
+    "description": "Bell Pepper, Green, FreshDirect (0.32 lb = 5.2 oz = 148 g)",
+    "size_g": 5.2,
+    "servings": 1,
+    "nutrition": {
+"serving_size_description": "1 medium (5.2 oz = 148 g)",
+    "calories": 25,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 40
+},
+"price": 1.25,
+    "Price per Serving ($)": 1.25,
+    "shelf_life": "1-2 weeks in fridge"
+    },
+    {
+    "description": "Bell Pepper, Red, FreshDirect (0.32 lb = 5.2 oz = 148 g)",
+    "size_g": 5.2,
+    "servings": 1,
+    "nutrition": {
+"serving_size_description": "1 medium (5.2 oz = 148 g)",
+    "calories": 39,
+    "total_fat_g": 0,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 6,
+    "total_carbs_g": 9,
+    "fiber_g": 3,
+    "total_sugar_g": 4,
+    "added_sugar_g": 0,
+    "protein_g": 1
+},
+"price": 2,
+    "Price per Serving ($)": 2,
+    "shelf_life": "1-2 weeks in fridge"
+    },
+    {
+    "description": "Bok Choy, Shanghai Green Baby, FreshDirect (16 oz = 454 g)",
+    "size_g": 16,
+    "servings": 6,
+    "nutrition": {
+"serving_size_description": "1 cup (2.5 oz = 70 g)",
+    "calories": 10,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 45
+},
+"price": 3.49,
+    "Price per Serving ($)": 0.5816666666666667,
+    "shelf_life": "3-6 days in fridge"
+    },
+    {
+    "description": "Broccoli, Heads, Ocean Mist Farms (3 heads = 1.2 lb = 542 g; 4-5 cups florets = 9.1 oz = 259 g; stems 10 oz = 283 g)",
+    "size_g": 32,
+    "servings": 3,
+    "nutrition": {
+"serving_size_description": "1 stalk (5.3 oz = 150 g)",
+    "calories": 50,
+    "saturated_fat_g": 0.1,
+    "cholesterol_mg": 0,
+    "sodium_mg": 50
+},
+"price": 2.99,
+    "Price per Serving ($)": 0.9966666666666667,
+    "shelf_life": "3-5 days in fridge, 2 days if chopped"
+    },
+    {
+    "description": "Broccoli, Florets, FreshDirect (~1 lb = 454 g = 3-4 cups; 1.75x florets by weight than buying whole heads for 2.2x the price -- not worth it!)",
+    "size_g": 16,
+    "servings": 5,
+    "nutrition": {
+"serving_size_description": "2\/3 cup (4 oz = 113 g)",
+    "calories": 30,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 30
+},
+"price": 6.49,
+    "Price per Serving ($)": 1.298,
+    "shelf_life": "3-5 days in fridge"
+    },
+    {
+    "description": "Brussel Sprouts, FreshDirect (16 oz = 454 g)",
+    "size_g": 16,
+    "servings": 10,
+    "nutrition": {
+"serving_size_description": "1\/2 cup raw (1.6 oz = 44 g)",
+    "calories": 20,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 10
+},
+"price": 4.49,
+    "Price per Serving ($)": 0.449,
+    "shelf_life": "5-14 days in fridge"
+    },
+    {
+    "description": "Brussel Sprouts, Ocean Mist Farms (16 oz = 454 g)",
+    "size_g": 16,
+    "servings": 5,
+    "nutrition": {
+"serving_size_description": "4.5 sprouts (3 oz = 86 g)",
+    "calories": 35,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 20
+},
+"price": 4.29,
+    "Price per Serving ($)": 0.858,
+    "shelf_life": "5-14 days in fridge"
+    },
+    {
+    "description": "Butternut Squash, FreshDirect (3.7 lb raw = 59 oz = 1673 g; MEASURE to get a typical mass AFTER trimming and calculate servings from that)",
+    "size_g": 59,
+    "servings": 12,
+    "nutrition": {
+"serving_size_description": "3\/5 cup raw cubed (3 oz = 84 g)",
+    "calories": 40,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 0
+},
+"price": 3.66,
+    "Price per Serving ($)": 0.305,
+    "shelf_life": "1-3 months in pantry"
+    },
+    {
+    "description": "Cabbage, Red, FreshDirect (3.15 lb = 50 oz =  1400 g) ",
+    "size_g": 34,
+    "servings": 10,
+    "nutrition": {
+"serving_size_description": "1\/2 cup chopped (3 oz = 84 g)",
+    "calories": 25,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 25
+},
+"price": 6.27,
+    "Price per Serving ($)": 0.627,
+    "shelf_life": "14 days in fridge; once cut 2-3 days in fridge"
+    },
+    {
+    "description": "Cabbage, Green, Organic, FreshDirect (3.3 lb = 53 oz = 1500 g)",
+    "size_g": 53,
+    "servings": 10,
+    "nutrition": {
+"serving_size_description": "1\/2 cup chopped (2.5 oz = 73 g)",
+    "calories": 18,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 10
+},
+"price": 6.57,
+    "Price per Serving ($)": 0.657,
+    "shelf_life": "14 days in fridge; once cut 2-3 days in fridge"
+    },
+    {
+    "description": "Carrots,  FreshDirect (4-6 ct, 16 oz = 454 g total, 3 oz = 85 g each)",
+    "size_g": 16,
+    "servings": 5,
+    "nutrition": {
+"serving_size_description": "1\/2 cup raw chopped (2.3 oz = 64 g ~ 3\/4  large carrot)",
+    "calories": 30,
+    "total_fat_g": 0,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 60,
+    "total_carbs_g": 6,
+    "fiber_g": 2,
+    "total_sugar_g": 3,
+    "added_sugar_g": 0,
+    "protein_g": 1
+},
+"price": 3.99,
+    "Price per Serving ($)": 0.798,
+    "shelf_life": "3-4 weeks in fridge"
+    },
+    {
+    "description": "Carrots, Jumbo, FreshDirect (1 ct, 4 oz = 112 g)",
+    "size_g": 4,
+    "servings": 2,
+    "nutrition": {
+"serving_size_description": "1\/2 cup raw chopped (2.3 oz = 64 g ~ 1\/2 jumbo carrot)",
+    "calories": 26,
+    "total_fat_g": 0,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 40,
+    "total_carbs_g": 6,
+    "fiber_g": 2,
+    "total_sugar_g": 3,
+    "added_sugar_g": 0,
+    "protein_g": 1
+},
+"price": 0.52,
+    "Price per Serving ($)": 0.26,
+    "shelf_life": "3-4 weeks in fridge"
+    },
+    {
+    "description": "Carrot, Baby, Organic, Cal-Organic (1 lb = 454 g)",
+    "size_g": 16,
+    "servings": 5,
+    "nutrition": {
+"serving_size_description": "8.5 pieces (3 oz = 85 g ~ 1\/2 cup chopped)",
+    "calories": 30,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 65
+},
+"price": 1.99,
+    "Price per Serving ($)": 0.398,
+    "shelf_life": "2-3 weeks in fridge"
+    },
+    {
+    "description": "Cauliflower, Jumbo White, Ocean Mist (whole, appx. 2.5 lb = 40 oz = 1134 g; trimmed, about 50% of that; 1 cup ~ 4.6 oz = 130 g)",
+    "size_g": 40,
+    "servings": 6,
+    "nutrition": {
+"serving_size_description": "1\/6 head (3.5 oz = 100 g)",
+    "calories": 25,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 30
+},
+"price": 5.49,
+    "Price per Serving ($)": 0.915,
+    "shelf_life": "7-10 days whole in fridge; 3-5 days once cut"
+    },
+    {
+    "description": "Cauliflower, White Florets, FreshDirect (appx. 1 lb = 16 oz = 454 g)",
+    "size_g": 16,
+    "servings": 5,
+    "nutrition": {
+"serving_size_description": "2\/3 cup (3 oz = 86 g)",
+    "calories": 20,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 25
+},
+"price": 6.49,
+    "Price per Serving ($)": 1.298,
+    "shelf_life": "3-5 days in fridge"
+    },
+    {
+    "description": "Celery, Ocean Mist Farms (bunch, total 1 lb = 454 g; 1 stalk ~ 1\/2 cup chopped)",
+    "size_g": 16,
+    "servings": 4,
+    "nutrition": {
+"serving_size_description": "2 stalks (3.9 oz = 110 g ~ 1 cup)",
+    "calories": 15,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 90
+},
+"price": 2.99,
+    "Price per Serving ($)": 0.7475,
+    "shelf_life": "2-4 weeks tightly wrapped in fridge"
+    },
+    {
+    "description": "Corn, Canned, Fresh No Salt Added, Del Monte (15.25 oz = 232 g)",
+    "size_g": 15.25,
+    "servings": 3.5,
+    "nutrition": {
+"serving_size_description": "1\/2 cup (4.4 oz = 125 g)",
+    "calories": 60,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 10
+},
+"price": 2.49,
+    "Price per Serving ($)": 0.7114285714285715,
+    "shelf_life": "unopened: 2-5 years in pantry; opened: 4-6 days in fridge"
+    },
+    {
+    "description": "Corn, Frozen, Organic Sweet Yellow, Nature's Promise (16 oz = 454 g)",
+    "size_g": 16,
+    "servings": 5,
+    "nutrition": {
+"serving_size_description": "1\/2 cup (3 oz = 85 g)",
+    "calories": 70,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 0
+},
+"price": 3.49,
+    "Price per Serving ($)": 0.6980000000000001,
+    "shelf_life": "8-12 months in freezer"
+    },
+    {
+    "description": "Corn, Frozen, Steamfresh Super Sweet, Bierds Eye (10 oz = 284 g)",
+    "size_g": 10,
+    "servings": 3,
+    "nutrition": {
+"serving_size_description": "2\/3 cup (3.4 oz = 95 g)",
+    "calories": 80,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 0
+},
+"price": 2.99,
+    "Price per Serving ($)": 0.9966666666666667,
+    "shelf_life": "8-12 months in freezer"
+    },
+    {
+    "description": "Corn, On Cob, Bicolor, Altobelli Family Farm (4 ct, each ~2.7 oz = 77 g, 1 ear ~ 1\/2 cup)",
+    "size_g": 11,
+    "servings": 4,
+    "nutrition": {
+"serving_size_description": "1 medium 7\" ear (2.7 oz = 77 g)",
+    "calories": 70,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 10
+},
+"price": 3,
+    "Price per Serving ($)": 0.75,
+    "shelf_life": "1-3 days in fridge in husk"
+    },
+    {
+    "description": "Cucumber, English, FreshDirect (10.5 oz = 300 g)",
+    "size_g": 12,
+    "servings": 1,
+    "nutrition": {
+"serving_size_description": "1 large (10 oz = 300 g)",
+    "calories": 30,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 0
+},
+"price": 2.99,
+    "Price per Serving ($)": 2.99,
+    "shelf_life": "7 days in fridge"
+    },
+    {
+    "description": "Cucumber, Mini Seedless (Persian), FreshDirect (5 ct, total 16 oz ~ 500 g)",
+    "size_g": 16,
+    "servings": 5,
+    "nutrition": {
+"serving_size_description": "1 medium (3.5 oz = 100 g)",
+    "calories": 10,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 0
+},
+"price": 3.99,
+    "Price per Serving ($)": 0.798,
+    "shelf_life": "7 days in fridge"
+    },
+    {
+    "description": "Green Beans, FreshDirect (12 oz = 340 g)",
+    "size_g": 12,
+    "servings": 4,
+    "nutrition": {
+"serving_size_description": "3\/4 cup raw (3 oz = 83 g)",
+    "calories": 25,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 5
+},
+"price": 3.99,
+    "Price per Serving ($)": 0.9975,
+    "shelf_life": "7 days in fridge"
+    },
+    {
+    "description": "Green Onion (Scallion), Ocean Mist Farms (bunch, 5.5 oz = 156 g ~ 1.5 cups chopped total)",
+    "size_g": 5.5,
+    "servings": 6,
+    "nutrition": {
+"serving_size_description": "1 scallion (0.9 oz = 25 g ~ 3-4 tbsp chopped)",
+    "calories": 10,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 4
+},
+"price": 2.99,
+    "Price per Serving ($)": 0.49833333333333335,
+    "shelf_life": "2-3 weeks in fridge"
+    },
+    {
+    "description": "Lemongrass, FreshDirect (2 ct, ~75g ~ 2.6 oz each, 5.5 oz ~ 150 g total)",
+    "size_g": 5.5,
+    "servings": 2,
+    "nutrition": {
+"serving_size_description": "1 peeled lemongrass stalk (5.5 oz = 75 g)",
+    "calories": 75,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 0
+},
+"price": 6.49,
+    "Price per Serving ($)": 3.245,
+    "shelf_life": "7-10 days in fridge"
+    },
+    {
+    "description": "Lettuce, Romaine Hearts, Ocean Mist (1.5 lb = 24 oz ~ 640 g)",
+    "size_g": 24,
+    "servings": 24,
+    "nutrition": {
+"serving_size_description": "1 large leaf (0.85 oz = 24 g)",
+    "calories": 4,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 7
+},
+"price": 3.49,
+    "Price per Serving ($)": 0.14541666666666667,
+    "shelf_life": "7-10 days in fridge"
+    },
+    {
+    "description": "Lettuce, Romaine, Deer Run Farms (2 lb = 32 oz = 908 g)",
+    "size_g": 32,
+    "servings": 19,
+    "nutrition": {
+"serving_size_description": "1 cup shredded (1.7 oz = 47 g)",
+    "calories": 10,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 0
+},
+"price": 1.99,
+    "Price per Serving ($)": 0.10473684210526316,
+    "shelf_life": "7-10 days in fridge"
+    },
+    {
+    "description": "Mung Bean Sprouts, Organic Chinese, Jonathan's Sprouts (7 oz = 198 g)",
+    "size_g": 7,
+    "servings": 2,
+    "nutrition": {
+"serving_size_description": "1 cup (3 oz = 85 g)",
+    "calories": 30,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 5
+},
+"price": 4.49,
+    "Price per Serving ($)": 2.245,
+    "shelf_life": "1-2 weeks in fridge, 1 month if submerged in water"
+    },
+    {
+    "description": "Mushrooms, Cremini (aka Baby Bella) (8 oz = 227 g ~ 2.5 cups)",
+    "size_g": 8,
+    "servings": 2.5,
+    "nutrition": {
+"serving_size_description": "1 cup (3 oz = 87 g)",
+    "calories": 20,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 5
+},
+"price": 2.99,
+    "Price per Serving ($)": 1.1960000000000002,
+    "shelf_life": "5-7 days in fridge"
+    },
+    {
+    "description": "Nori, Sushi Chef (5 ct, 0.45 oz = 13 g)",
+    "size_g": 0.45,
+    "servings": 5,
+    "nutrition": {
+"serving_size_description": "1 sheet (0.1 oz = 2.5 g)",
+    "calories": 10,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 20
+},
+"price": 5.39,
+    "Price per Serving ($)": 1.0779999999999998,
+    "shelf_life": "opened: 2-3 weeks in fridge"
+    },
+    {
+    "description": "Okra, Packaged, FreshDirect (appx. 25 ct, 12 oz = 340 g)",
+    "size_g": 12,
+    "servings": 4,
+    "nutrition": {
+"serving_size_description": "3\/4 cup raw (2.6 oz = 75 g ~ 6 pieces)",
+    "calories": 25,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 5
+},
+"price": 4.49,
+    "Price per Serving ($)": 1.1225,
+    "shelf_life": "2-3 days in fridge"
+    },
+    {
+    "description": "Olives, Black, Sliced, Goya (5.75 oz = 163 g)",
+    "size_g": 5.75,
+    "servings": 10,
+    "nutrition": {
+"serving_size_description": "2 tbsp (0.6 oz = 16 g)",
+    "calories": 30,
+    "saturated_fat_g": 0.5,
+    "cholesterol_mg": 0,
+    "sodium_mg": 120
+},
+"price": 3.99,
+    "Price per Serving ($)": 0.399,
+    "shelf_life": "12-18 months in fridge"
+    },
+    {
+    "description": "Olives, Black, Jumbo Pitted California Ripe, Cento (5.75 oz = 163 g)",
+    "size_g": 5.75,
+    "servings": 9,
+    "nutrition": {
+"serving_size_description": "3 olives (0.6 oz = 18 g)",
+    "calories": 15,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 150
+},
+"price": 4.89,
+    "Price per Serving ($)": 0.5433333333333333,
+    "shelf_life": "12-18 months in fridge"
+    },
+    {
+    "description": "Olives, Pitted Kalamata, Just FreshDirect (8 oz = 227 g)",
+    "size_g": 8,
+    "servings": 15,
+    "nutrition": {
+"serving_size_description": "3 olives (0.5 oz = 15 g)",
+    "calories": 35,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 310
+},
+"price": 5.99,
+    "Price per Serving ($)": 0.3993333333333334,
+    "shelf_life": "12-18 months in fridge"
+    },
+    {
+    "description": "Onion, Red, Large, FreshDirect (0.8 lb = 13 oz = 369 g)",
+    "size_g": 13,
+    "servings": 4,
+    "nutrition": {
+"serving_size_description": "1\/4 onion (3.3 oz = 93 g)",
+    "calories": 35,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 0
+},
+"price": 1.19,
+    "Price per Serving ($)": 0.2975,
+    "shelf_life": "2-3 months in fridge"
+    },
+    {
+    "description": "Onion, Yellow, Medium, FreshDirect (appx 6 ct, 2 lb = 908 g)",
+    "size_g": 32,
+    "servings": 6,
+    "nutrition": {
+"serving_size_description": "1 medium (148 g ~ 1 cup chopped)",
+    "calories": 64,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 6,
+    "total_carbs_g": 11,
+    "fiber_g": 3,
+    "total_sugar_g": 9,
+    "added_sugar_g": 0,
+    "protein_g": 1
+},
+"price": 2.99,
+    "Price per Serving ($)": 0.49833333333333335,
+    "shelf_life": "2-3 months in fridge"
+    },
+    {
+    "description": "Onion, Yellow, Jumbo, FreshDirect (1 onion, 0.6 lb ~ 10 oz = 284 g)",
+    "size_g": 10,
+    "servings": 1,
+    "nutrition": {
+"serving_size_description": "1 jumbo (250 g ~ 1.5 cups chopped)",
+    "calories": 100,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 10
+},
+"price": 0.95,
+    "Price per Serving ($)": 0.95,
+    "shelf_life": "2-3 months in fridge"
+    },
+    {
+    "description": "Parsnip, FreshDirect (~1 lb = 16 oz = 454 g ~ 3 cups chopped )",
+    "size_g": 16,
+    "servings": 6,
+    "nutrition": {
+"serving_size_description": "1\/2 cup chopped raw (2.4 oz = 67 g)",
+    "calories": 50,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 0,
+    "total_carbs_g": 12,
+    "fiber_g": 3,
+    "total_sugar_g": 3,
+    "added_sugar_g": 0,
+    "protein_g": 1
+},
+"price": 2.24,
+    "Price per Serving ($)": 0.37333333333333335,
+    "shelf_life": "2 weeks in fridge"
+    },
+    {
+    "description": "Peas, Canned, Orgnic Sweet, Nature's Promise (15 oz = 425 g)",
+    "size_g": 15,
+    "servings": 3.5,
+    "nutrition": {
+"serving_size_description": "1\/2 cup (4.4 oz = 125 g)",
+    "calories": 110,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 300
+},
+"price": 2.99,
+    "Price per Serving ($)": 0.8542857142857143,
+    "shelf_life": "1-2 years in pantry"
+    },
+    {
+    "description": "Peas, Frozen, Organic, Nature's Promise (1 lb = 16 oz = 454 g)",
+    "size_g": 16,
+    "servings": 5,
+    "nutrition": {
+"serving_size_description": "1\/2 cup (3 oz = 85 g)",
+    "calories": 70,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 60
+},
+"price": 3.89,
+    "Price per Serving ($)": 0.778,
+    "shelf_life": "8-12 months in freezer"
+    },
+    {
+    "description": "Peas, Frozen, Steamfresh, Bird's Eye (10 oz = 283 g)",
+    "size_g": 10,
+    "servings": 3,
+    "nutrition": {
+"serving_size_description": "2\/3 cup frozen,1\/2 cup cooked (3.2 oz = 90 g)",
+    "calories": 70,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 0
+},
+"price": 2.29,
+    "Price per Serving ($)": 0.7633333333333333,
+    "shelf_life": "8-12 months in freezer"
+    },
+    {
+    "description": "Peas, Sugar Snap, FreshDirect (12 oz = 340 g)",
+    "size_g": 12,
+    "servings": 4,
+    "nutrition": {
+"serving_size_description": "1.33 cup raw (3 oz = 84 g)",
+    "calories": 35,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 0
+},
+"price": 5.99,
+    "Price per Serving ($)": 1.4975,
+    "shelf_life": "7-10 days in fridge"
+    },
+    {
+    "description": "Pepper, Chipotle, Canned in Adobo, Goya (7 oz = 198 g)",
+    "size_g": 7,
+    "servings": 6,
+    "nutrition": {
+"serving_size_description": "2 tbsp (1.2 oz = 34 g)",
+    "calories": 25,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 240
+},
+"price": 2.99,
+    "Price per Serving ($)": 0.49833333333333335,
+    "shelf_life": "7 days in fridge; 6 months in freezer"
+    },
+    {
+    "description": "Pepper, Dried Chile, Ancho Ole Rico (4 oz = 113 g)",
+    "size_g": 4,
+    "servings": 4,
+    "nutrition": {
+"serving_size_description": "4 peppers (1 oz = 28 g)",
+    "calories": 80,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 0
+},
+"price": 5.99,
+    "Price per Serving ($)": 1.4975,
+    "shelf_life": "12 months in freezer; best within 3-6 months"
+    },
+    {
+    "description": "Pepper, Dried Chile, Arbol, Ole Rico (4 oz = 113 g)",
+    "size_g": 4,
+    "servings": 4,
+    "nutrition": {
+"serving_size_description": "8 peppers (1 oz = 28 g)",
+    "calories": 80,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 0
+},
+"price": 5.99,
+    "Price per Serving ($)": 1.4975,
+    "shelf_life": "12 months in freezer; best within 3-6 months"
+    },
+    {
+    "description": "Pepper, Dried Chile, Bird's Eye, Unpretentious Baker (16 oz = 454 g)",
+    "size_g": 16,
+    "servings": 126,
+    "nutrition": {
+"serving_size_description": "1 tbsp (0.13 oz = 3.6 g)",
+    "calories": 1,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 0
+},
+"price": 19.99,
+    "Price per Serving ($)": 0.15865079365079363,
+    "shelf_life": "5 years in freezer"
+    },
+    {
+    "description": "Pepper, Dried Chile, Guajillo, Ole Rico (4 oz = 113 g)",
+    "size_g": 4,
+    "servings": 4,
+    "nutrition": {
+"serving_size_description": "6 peppers (1 oz = 28 g)",
+    "calories": 100,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 0
+},
+"price": 5.99,
+    "Price per Serving ($)": 1.4975,
+    "shelf_life": "12 months in freezer; best within 3-6 months"
+    },
+    {
+    "description": "Pepper, Dried Chile, Pasilla, Ole Rico (4 oz = 113 g)",
+    "size_g": 4,
+    "servings": 4,
+    "nutrition": {
+"serving_size_description": "X peppers (1 oz = 28 g)",
+    "calories": 100,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 25
+},
+"price": 7.25,
+    "Price per Serving ($)": 1.8125,
+    "shelf_life": "12 months in freezer; best within 3-6 months"
+    },
+    {
+    "description": "Pepper, Dried Chile, Tien Tsin (\"Tianjin\"), The Spice House (4 oz = 113 g)",
+    "size_g": 4,
+    "servings": 226,
+    "nutrition": {
+"serving_size_description": "1 pepper (0.5 g)",
+    "calories": 2,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 0
+},
+"price": 7.99,
+    "Price per Serving ($)": 0.035353982300884955,
+    "shelf_life": "12 months in freezer; best within 3-6 months"
+    },
+    {
+    "description": "Pepper, Jalapeno, FreshDirect (4 peppers ~ 1 oz each, 4 oz total = 113 g)",
+    "size_g": 4,
+    "servings": 4,
+    "nutrition": {
+"serving_size_description": "1 medium (1 oz = 8 g)",
+    "calories": 8,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 0
+},
+"price": 1.96,
+    "Price per Serving ($)": 0.49,
+    "shelf_life": "1 week in fridge"
+    },
+    {
+    "description": "Pepper, Jalapeno, Sliced Pickled, Cento (12 oz = 340 g)",
+    "size_g": 12,
+    "servings": 7,
+    "nutrition": {
+"serving_size_description": "1\/4 cup (1 oz = 28 g)",
+    "calories": 10,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 460
+},
+"price": 3.69,
+    "Price per Serving ($)": 0.5271428571428571,
+    "shelf_life": "1-12 months in fridge"
+    },
+    {
+    "description": "Pepper, Serrano, FreshDirect (3-5 ct, 4 oz = 113 g)",
+    "size_g": 4,
+    "servings": 4,
+    "nutrition": {
+"serving_size_description": "1 pepper (0.2 oz = 6 g)",
+    "calories": 2,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 0
+},
+"price": 0.79,
+    "Price per Serving ($)": 0.1975,
+    "shelf_life": "1-2 weeks in fridge"
+    },
+    {
+    "description": "Pickle, Bread & Butter Chips, Nature's Promise (24 oz jar) ",
+    "size_g": 24,
+    "servings": 16,
+    "nutrition": {
+"serving_size_description": "6 chips (1 oz = 28g)",
+    "calories": 30,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 220
+},
+"price": 6.59,
+    "Price per Serving ($)": 0.411875,
+    "shelf_life": "opened: 2 years in fridge"
+    },
+    {
+    "description": "Potato, Russet \"Idaho\" (12 ct, 5 lbs = 80 oz = 2270 g)",
+    "size_g": 80,
+    "servings": 12,
+    "nutrition": {
+"serving_size_description": "1 medium (5.2 oz = 148 g)",
+    "calories": 110,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 0
+},
+"price": 4.99,
+    "Price per Serving ($)": 0.41583333333333333,
+    "shelf_life": "uncooked: 1-2 months in pantry, 1-2 weeks in fridge; cooked: 3 days in fridge"
+    },
+    {
+    "description": "Shallot, FreshDirect (1 lb = 454 g; ~6 shallots @ 2.5 oz = 70 g each, ~350 g peeled)",
+    "size_g": 16,
+    "servings": 5,
+    "nutrition": {
+"serving_size_description": "1\/2 cup chopped raw (80 g ~ 1 shallot)",
+    "calories": 60,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 10
+},
+"price": 4.39,
+    "Price per Serving ($)": 0.8779999999999999,
+    "shelf_life": "2 months in fridge"
+    },
+    {
+    "description": "Shallot, Organic, Christopher Ranch (3 ct ~ 5 oz =  142 g)",
+    "size_g": 5,
+    "servings": 3,
+    "nutrition": {
+"serving_size_description": "1 medium (1.5 oz = 42 g)",
+    "calories": 30,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 5
+},
+"price": 2.99,
+    "Price per Serving ($)": 0.9966666666666667,
+    "shelf_life": "2 months in fridge"
+    },
+    {
+    "description": "Snow Peas (8 oz = 228 g)",
+    "size_g": 8,
+    "servings": 8,
+    "nutrition": {
+"serving_size_description": "1\/8 package (1 oz = 28 g)",
+    "calories": 12,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 0
+},
+"price": 4.99,
+    "Price per Serving ($)": 0.62375,
+    "shelf_life": "4-5 days in fridge"
+    },
+    {
+    "description": "Spinach, Organic Baby, Earthbound Farm (10 oz = 284 g)",
+    "size_g": 10,
+    "servings": 2,
+    "nutrition": {
+"serving_size_description": "1\/2 container (5 oz = 142 g)",
+    "calories": 40,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 110
+},
+"price": 6.49,
+    "Price per Serving ($)": 3.245,
+    "shelf_life": "7-10 days in fridge"
+    },
+    {
+    "description": "Spinach, Organic Baby, Nature's Promise (5 oz = 142 g)",
+    "size_g": 5,
+    "servings": 4,
+    "nutrition": {
+"serving_size_description": "1 cup (1 oz = 30 g)",
+    "calories": 5,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 25
+},
+"price": 3.99,
+    "Price per Serving ($)": 0.9975,
+    "shelf_life": "7-10 days in fridge"
+    },
+    {
+    "description": "Sweet Potato, Organic Covington, FreshDirect (12 oz = 340 g)",
+    "size_g": 12,
+    "servings": 5,
+    "nutrition": {
+"serving_size_description": "2\/3 cup ~ 1\/4 potato (2.4 oz = 67 g)",
+    "calories": 60,
+    "total_fat_g": 0,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 35,
+    "total_carbs_g": 13,
+    "fiber_g": 2,
+    "total_sugar_g": 3,
+    "added_sugar_g": 0,
+    "protein_g": 1
+},
+"price": 2.24,
+    "Price per Serving ($)": 0.44800000000000006,
+    "shelf_life": "3-5 weeks in pantry; 2-3 months in fridge, but quality suffers"
+    },
+    {
+    "description": "Sweet Potato, Organic Garnet, FreshDirect (10 oz = 283 g)",
+    "size_g": 10,
+    "servings": 3,
+    "nutrition": {
+"serving_size_description": "2\/3 cup ~ 1\/3 potato (3 oz = 85 g)",
+    "calories": 70,
+    "total_fat_g": 0,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 45,
+    "total_carbs_g": 17,
+    "fiber_g": 3,
+    "total_sugar_g": 4,
+    "added_sugar_g": 0,
+    "protein_g": 1
+},
+"price": 1.62,
+    "Price per Serving ($)": 0.54,
+    "shelf_life": "3-5 weeks in pantry; 2-3 months in fridge, but quality suffers"
+    },
+    {
+    "description": "Tomato, Beefsteak, Altobelli Family Farm (0.85 lb = 14 oz = 400 ; 1\/4\" slice ~ 1.4 oz = 40  g))",
+    "size_g": 14,
+    "servings": 1,
+    "nutrition": {
+"serving_size_description": "1 medium (14 oz = 400 g)",
+    "calories": 320,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 20
+},
+"price": 1.99,
+    "Price per Serving ($)": 1.99,
+    "shelf_life": "2 weeks in fridge"
+    },
+    {
+    "description": "Tomato, Cherry, On Vine, FreshDirect (12 oz = 340 g)",
+    "size_g": 12,
+    "servings": 20,
+    "nutrition": {
+"serving_size_description": "1 medium (0.6 oz = 17 g)",
+    "calories": 3,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 1
+},
+"price": 5.99,
+    "Price per Serving ($)": 0.2995,
+    "shelf_life": "2 weeks in fridge"
+    },
+    {
+    "description": "Tomato, Cherry, Local Organic, Hepworth Farms (12 oz = 340 g)",
+    "size_g": 12,
+    "servings": 5,
+    "nutrition": {
+"serving_size_description": "5 pieces (3 oz = 85g)",
+    "calories": 15,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 0
+},
+"price": 4.99,
+    "Price per Serving ($)": 0.998,
+    "shelf_life": "2 weeks in fridge"
+    },
+    {
+    "description": "Tomato, Grape, FreshDirect (10 oz = 293 g)",
+    "size_g": 10,
+    "servings": 6,
+    "nutrition": {
+"serving_size_description": "5 tomatoes (1.8 oz = 50 g)",
+    "calories": 13,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 0
+},
+"price": 5.99,
+    "Price per Serving ($)": 0.9983333333333334,
+    "shelf_life": "10 days in fridge"
+    },
+    {
+    "description": "Tomato, Plum (aka Roma), Organic, FreshDirect (16 oz = 454 g)",
+    "size_g": 16,
+    "servings": 7,
+    "nutrition": {
+"serving_size_description": "1 tomato (2.2 oz = 62 g)",
+    "calories": 11,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 0
+},
+"price": 4.99,
+    "Price per Serving ($)": 0.7128571428571429,
+    "shelf_life": "2 weeks in fridge"
+    },
+    {
+    "description": "Tomatoes, Crushed w\/Basil, Nature's Promise (28 oz = 795 ml = 3.5 cup)",
+    "size_g": 28,
+    "servings": 1,
+    "nutrition": {
+"serving_size_description": "1 can (28 oz = 794 ml)",
+    "calories": 200,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 1040
+},
+"price": 3.19,
+    "Price per Serving ($)": 3.19,
+    "shelf_life": "18-24 months in pantry"
+    },
+    {
+    "description": "Tomatoes, Diced, No Salt Added, Nature's Promise (14.5 oz = 420 ml = 1.75 cup)",
+    "size_g": 14.5,
+    "servings": 1,
+    "nutrition": {
+"serving_size_description": "1 can (14.5 oz = 420 ml)",
+    "calories": 88,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 53
+},
+"price": 2.29,
+    "Price per Serving ($)": 2.29,
+    "shelf_life": "18-24 months in pantry"
+    },
+    {
+    "description": "Tomatoes, Diced, No Salt Added, Colavita (13.76 oz = 390 g)",
+    "size_g": 13.8,
+    "servings": 1,
+    "nutrition": {
+"serving_size_description": "1 box (13.76 oz = 390 g)",
+    "calories": 120,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 30
+},
+"price": 1.79,
+    "Price per Serving ($)": 1.79
+    },
+    {
+    "description": "Tomatoes, Diced, No Salt Added, Organic, Muir Glen (14.5 oz = 420 ml = 1.75 cup)",
+    "size_g": 14.5,
+    "servings": 1,
+    "nutrition": {
+"serving_size_description": "1 can (14.5 oz = 420 ml)",
+    "calories": 100,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 65
+},
+"price": 2.89,
+    "Price per Serving ($)": 2.89,
+    "shelf_life": "18-24 months in pantry"
+    },
+    {
+    "description": "Tomato Paste, Organic, Nature's Promise (6 oz = 170 g ~ 1\/2 cup)",
+    "size_g": 6,
+    "servings": 5,
+    "nutrition": {
+"serving_size_description": "2 tbsp (1.1 oz = 33 g)",
+    "calories": 25,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 20
+},
+"price": 1.69,
+    "Price per Serving ($)": 0.33799999999999997,
+    "shelf_life": "18-24 months in pantry; opened: 5-7 days in fridge"
+    },
+    {
+    "description": "Tomato Paste, Cento (6 oz = 170 g)",
+    "size_g": 6,
+    "servings": 5,
+    "nutrition": {
+"serving_size_description": "2 tbsp (1.1 oz = 33 g)",
+    "calories": 30,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 20
+},
+"price": 1.49,
+    "Price per Serving ($)": 0.298,
+    "shelf_life": "18-24 months in pantry; opened: 5-7 days in fridge"
+    },
+    {
+    "description": "Tomato Paste, Tube, Double Concentrated, Cento (4.6 oz = 130 g = 8 tbsp)",
+    "size_g": 4.6,
+    "servings": 4,
+    "nutrition": {
+"serving_size_description": "2 tbsp (1.1 oz = 32 g)",
+    "calories": 40,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 70
+},
+"price": 4.29,
+    "Price per Serving ($)": 1.0725,
+    "shelf_life": "18-24 months in pantry; opened: 2-3 months in fridge"
+    },
+    {
+    "description": "Tomato Paste, Tube, Double Concentrated, Mutti (4.6 oz = 130 g = 8 tbsp)",
+    "size_g": 4.6,
+    "servings": 4,
+    "nutrition": {
+"serving_size_description": "2 tbsp (2.4 oz = 67 g)",
+    "calories": 30,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 60
+},
+"price": 3.49,
+    "Price per Serving ($)": 0.8725,
+    "shelf_life": "18-24 months in pantry; opened: 2-3 months in fridge"
+    },
+    {
+    "description": "Tomato Sauce, Organic No Salt Added, Nature's Promise (15 oz = 425 g ~ 2 cups)",
+    "size_g": 15,
+    "servings": 7,
+    "nutrition": {
+"serving_size_description": "1\/4 cup (2.2 oz = 63 g)",
+    "calories": 25,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 20
+},
+"price": 2.59,
+    "Price per Serving ($)": 0.37
+    },
+    {
+    "description": "Tomato, Sundried, Cento (10 oz = 284 g)",
+    "size_g": 10,
+    "servings": 16,
+    "nutrition": {
+"serving_size_description": "1 piece (10 g)",
+    "calories": 20,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 105
+},
+"price": 7.49,
+    "Price per Serving ($)": 0.468125
+    },
+    {
+    "description": "Tomato, Sundried Pesto, Rao's Homemade (6.7 oz = 190 g)",
+    "size_g": 6.7,
+    "servings": 3,
+    "nutrition": {
+"serving_size_description": "1\/4 cup (2.2 oz = 63 g)",
+    "calories": 160,
+    "saturated_fat_g": 2,
+    "cholesterol_mg": 6,
+    "sodium_mg": 680
+},
+"price": 7.59,
+    "Price per Serving ($)": 2.53
+    },
+    {
+    "description": "Turnip, FreshDirect (0.4 lb = 6.4 oz = 181 g)",
+    "size_g": 6.4,
+    "servings": 3,
+    "nutrition": {
+"serving_size_description": "1\/2 cup chopped raw (2.3 oz = 65 g)",
+    "calories": 20,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 45
+},
+"price": 0.64,
+    "Price per Serving ($)": 0.21333333333333335,
+    "shelf_life": "sources vary from 2-3 weeks to 3-5 months in fridge; 8-10 months in freezer"
+    },
+    {
+    "description": "Vegetables, Frozen, Mized, Nature's Promise Organic (1 lb = 454 g)",
+    "size_g": 16,
+    "servings": 5,
+    "nutrition": {
+"serving_size_description": "1\/2 cup (3 oz = 85 g)",
+    "calories": 50,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 30
+},
+"price": 3.49,
+    "Price per Serving ($)": 0.6980000000000001,
+    "shelf_life": "8-12 months in freezer"
+    },
+    {
+    "description": "Zucchini, Green, FreshDirect (2 ct, 0.4 lb = 6.4 oz = 181 g each, 0.8 lb =  12.8 oz = 360 g total)",
+    "size_g": 13,
+    "servings": 4,
+    "nutrition": {
+"serving_size_description": "1\/2 medium (3.2 oz = 91 g)",
+    "calories": 20,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 0
+},
+"price": 1.83,
+    "Price per Serving ($)": 0.4575,
+    "shelf_life": "7 days in fridge"
+    }
+]}

@@ -1,0 +1,372 @@
+{ "ingredients": [
+    {
+    "description": "Apple Cider, 100% Natural, Red Jacket (64 oz)",
+    "size_g": 64,
+    "servings": 8,
+    "nutrition": {
+"serving_size_description": "1 cup (8 oz)",
+    "calories": 110,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 0
+},
+"price": 6.29,
+    "Price per Serving ($)": 0.78625,
+    "shelf_life": "7-10 days in fridge"
+    },
+    {
+    "description": "Apple Juice, Organic 100%, Nature's Promise (64 oz)",
+    "size_g": 64,
+    "servings": 8,
+    "nutrition": {
+"serving_size_description": "1 cup (8 oz)",
+    "calories": 110,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 0
+},
+"price": 3.49,
+    "Price per Serving ($)": 0.43625,
+    "shelf_life": "unopened: 18-24 months in pantry; opened: 7-10 days in fridge"
+    },
+    {
+    "description": "Beer, Dos Equis Lager Especial (6 pack, 12 fl oz = 355 ml each)",
+    "size_g": 72,
+    "servings": 6,
+    "nutrition": {
+"serving_size_description": "1 bottle (12 fl oz = 355 ml)",
+    "calories": 131,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 10
+},
+"price": 11.99,
+    "Price per Serving ($)": 1.9983333333333333
+    },
+    {
+    "description": "Beer, Guiness Pub Draught Irish Dry Stout (4 pack, 14.9 fl oz = 422 ml each)",
+    "size_g": 60,
+    "servings": 4,
+    "nutrition": {
+"serving_size_description": "1 can (14.9 fl oz = 422 ml)",
+    "calories": 126,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 0
+},
+"price": 11.99,
+    "Price per Serving ($)": 2.9975
+    },
+    {
+    "description": "Beer, Guiness Draught Stout (6 pack, 11.2 fl oz = 328 ml)",
+    "size_g": 67,
+    "servings": 6,
+    "nutrition": {
+"serving_size_description": "1 bottle (11.2 fl oz = 328 ml)",
+    "calories": 126,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 0
+},
+"price": 13.99,
+    "Price per Serving ($)": 2.3316666666666666
+    },
+    {
+        "description": "Coffee, Caramel Latte, La Colombe (4 ct, 9 fl oz = 266 ml each)",
+        "size_g": 36,
+        "servings": 4,
+        "nutrition": {
+            "serving_size_description": "1 can (255 g)",
+            "calories": 110,
+            "saturated_fat_g": 2,
+            "cholesterol_mg": 10,
+            "sodium_mg": 90
+        },
+        "price": 14.59,
+        "Price per Serving ($)": 3.6475
+    },
+    {
+        "description": "Coffee, Hazelnut Latte, La Colombe (12 ct,  9 fl oz = 255 ml each)",
+        "size_g": 108,
+        "servings": 12,
+        "nutrition": {
+            "serving_size_description": "1 can (255 g)",
+            "calories": 110,
+            "saturated_fat_g": 2,
+            "cholesterol_mg": 10,
+            "sodium_mg": 105
+            }
+        },
+    {
+        "description": "Coffee, Mocha Draft Latte, La Colombe (4 ct, 9 fl oz = 266 ml each)",
+        "size_g": 36,
+        "servings": 4,
+        "nutrition": {
+            "serving_size_description": "1 can (255 g)",
+            "calories": 120,
+            "saturated_fat_g": 2,
+            "cholesterol_mg": 10,
+            "sodium_mg": 90
+        },
+        "price": 14.59,
+        "Price per Serving ($)": 3.6475
+    },
+    {
+    "description": "Coffee, Vanilla Latte, La Colombe (4 ct, 9 fl oz = 266 ml each)",
+    "size_g": 36,
+    "servings": 4,
+    "nutrition": {
+"serving_size_description": "1 can (255 g)",
+    "calories": 100,
+    "saturated_fat_g": 2,
+    "cholesterol_mg": 15,
+    "sodium_mg": 100
+},
+"price": 14.59,
+    "Price per Serving ($)": 3.6475
+    },
+    {
+    "description": "Cola, Caffeine Free Diet Coke (1 can = 12 fl oz = 355 ml)",
+    "size_g": 144,
+    "servings": 12,
+    "nutrition": {
+"serving_size_description": "1 can (12 fl oz = 355 ml)",
+    "calories": 0,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 40
+},
+"price": 9.29,
+    "Price per Serving ($)": 0.7741666666666666
+    },
+    {
+    "description": "Cola, Cherry Coke Zero  (1 can = 12 fl oz = 355 ml)",
+    "size_g": 144,
+    "servings": 12,
+    "nutrition": {
+"serving_size_description": "1 can (12 fl oz = 355 ml)",
+    "calories": 0,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 40
+},
+"price": 9.29,
+    "Price per Serving ($)": 0.7741666666666666
+    },
+    {
+    "description": "Cola, Diet Dr. Pepper (1 can = 12 fl oz = 355 ml)",
+    "size_g": 144,
+    "servings": 12,
+    "nutrition": {
+"serving_size_description": "1 can (12 fl oz = 355 ml)",
+    "calories": 0,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 60
+},
+"price": 9.29,
+    "Price per Serving ($)": 0.7741666666666666
+    },
+    {
+    "description": "Cola, Fresca Grapefruit Citrus  (1 can = 12 fl oz = 355 ml)",
+    "size_g": 144,
+    "servings": 12,
+    "nutrition": {
+"serving_size_description": "1 can (12 fl oz = 355 ml)",
+    "calories": 0,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 35
+},
+"price": 9.29,
+    "Price per Serving ($)": 0.7741666666666666
+    },
+    {
+    "description": "Cola, Zero Sugar Sunkist Orange (1 can = 12 fl oz = 355 ml)",
+    "size_g": 144,
+    "servings": 12,
+    "nutrition": {
+"serving_size_description": "1 can (12 fl oz = 355 ml)",
+    "calories": 0,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 85
+},
+"price": 9.99,
+    "Price per Serving ($)": 0.8325
+    },
+    {
+    "description": "Cola, Zero Sugar A&W Root Beer  (1 can = 12 fl oz = 355 ml)",
+    "size_g": 144,
+    "servings": 12,
+    "nutrition": {
+"serving_size_description": "1 can (12 fl oz = 355 ml)",
+    "calories": 0,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 115
+},
+"price": 9.99,
+    "Price per Serving ($)": 0.8325
+    },
+    {
+    "description": "Hot Chocolate, Hot Cocoa Mix, Swiss Miss (10 ct, 1 oz each)",
+    "size_g": 10,
+    "servings": 10,
+    "nutrition": {
+"serving_size_description": "1 packet (1 oz = 28 g)",
+    "calories": 160,
+    "saturated_fat_g": 2,
+    "cholesterol_mg": 0,
+    "sodium_mg": 170
+},
+"price": 3.49,
+    "Price per Serving ($)": 0.34900000000000003
+    },
+    {
+    "description": "Iced Tea, Diet Snapple (12 ct, 16 oz each)",
+    "size_g": 192,
+    "servings": 12,
+    "nutrition": {
+"serving_size_description": "1 bottle (16 fl oz = 473 ml)",
+    "calories": 10,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 15
+},
+"price": 14.49,
+    "Price per Serving ($)": 1.2075
+    },
+    {
+    "description": "Orange Juice, Pure Premium Some Pulp, Tropicana (52 fl oz = 1530 ml)",
+    "size_g": 52,
+    "servings": 6,
+    "nutrition": {
+"serving_size_description": "1 cup (8 fl oz = 240 ml)",
+    "calories": 110,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 0
+},
+"price": 4.99,
+    "Price per Serving ($)": 0.8316666666666667,
+    "shelf_life": "unopened: 12-18 months in pantry; opened: 7-10 days in fridge"
+    },
+    {
+    "description": "Pineapple Juice, Dole (59 fl oz = 1.8 qt = 1.75 liter)",
+    "size_g": 59,
+    "servings": 7,
+    "nutrition": {
+"serving_size_description": "1 cup (8 fl oz = 240 ml)",
+    "calories": 100,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 10
+},
+"price": 4.49,
+    "Price per Serving ($)": 0.6414285714285715
+    },
+    {
+    "description": "Sake, Gekkeikan Traditional (51 fl oz = 1.5 liter)",
+    "size_g": 51,
+    "servings": 8.5,
+    "nutrition": {
+"serving_size_description": "1 go (6 fl oz = 177 ml = 12 tbsp)",
+    "calories": 228,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 0
+},
+"price": 19.99,
+    "Price per Serving ($)": 2.3517647058823528
+    },
+    {
+    "description": "Seltzer, Black Cherry, Polar (1 can = 12 fl oz = 355 ml)",
+    "size_g": 144,
+    "servings": 12,
+    "nutrition": {
+"serving_size_description": "1 can (12 fl oz = 355 ml)",
+    "calories": 0,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 0
+},
+"price": 6.99,
+    "Price per Serving ($)": 0.5825
+    },
+    {
+    "description": "Smoothie, Berry Blast, Naked Juice (15.2 fl oz = 450 ml)",
+    "size_g": 15.2,
+    "servings": 1,
+    "nutrition": {
+"serving_size_description": "1 smoothie(474 g)",
+    "calories": 210,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 25
+},
+"price": 4.29,
+    "Price per Serving ($)": 4.29,
+    "shelf_life": "12-18 months in fridge"
+    },
+    {
+    "description": "Smoothie, Blue Machine, Naked Juice (15.2 fl oz = 450 ml)",
+    "size_g": 15.2,
+    "servings": 1,
+    "nutrition": {
+"serving_size_description": "1 smoothie(474 g)",
+    "calories": 270,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 20
+},
+"price": 4.29,
+    "Price per Serving ($)": 4.29,
+    "shelf_life": "12-18 months in fridge"
+    },
+    {
+    "description": "Smoothie, Green Machine, Naked Juice (15.2 fl oz = 450 ml)",
+    "size_g": 15.2,
+    "servings": 1,
+    "nutrition": {
+"serving_size_description": "1 smoothie(474 g)",
+    "calories": 270,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 25
+},
+"price": 4.29,
+    "Price per Serving ($)": 4.29,
+    "shelf_life": "12-18 months in fridge"
+    },
+    {
+    "description": "Smoothie, Mighty Mango, Naked Juice (15.2 fl oz = 450 ml)",
+    "size_g": 15.2,
+    "servings": 1,
+    "nutrition": {
+"serving_size_description": "1 smoothie(474 g)",
+    "calories": 290,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 20
+},
+"price": 4.29,
+    "Price per Serving ($)": 4.29,
+    "shelf_life": "12-18 months in fridge"
+    },
+    {
+    "description": "Smoothie, Strawberry Banana, Naked Juice (15.2 fl oz = 450 ml)",
+    "size_g": 15.2,
+    "servings": 1,
+    "nutrition": {
+"serving_size_description": "1 smoothie(474 g)",
+    "calories": 270,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 5
+},
+"price": 4.29,
+    "Price per Serving ($)": 4.29,
+    "shelf_life": "12-18 months in fridge"
+    }
+]}

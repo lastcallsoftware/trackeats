@@ -1,0 +1,1331 @@
+{ "ingredients": [
+    {
+    "description": "Baking Powder, Double Acting, Davis (8.1 oz = 230 g)",
+    "size_g": 8.1,
+    "servings": 383,
+    "nutrition": {
+"serving_size_description": "1\/8 tsp (0.6 g)",
+    "calories": 0,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 60
+},
+"price": 4.99,
+    "Price per Serving ($)": 0.013028720626631855,
+    "shelf_life": "6 months in pantry"
+    },
+    {
+    "description": "Baking Soda, Arm & Hammer (16 oz = 454 g)",
+    "size_g": 16,
+    "servings": 806,
+    "nutrition": {
+"serving_size_description": "1\/8 tsp (0.6 g)",
+    "calories": 0,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 150
+},
+"price": 1.39,
+    "Price per Serving ($)": 0.0017245657568238212,
+    "shelf_life": "6 months in pantry; replace monthly if used in fridge or freezer to absord odors and don't cook with that"
+    },
+    {
+    "description": "Bolognese Sauce, Fresh, Just FreshDirect (16 oz = 454 g = 2 cups)",
+    "size_g": 16,
+    "servings": 4,
+    "nutrition": {
+"serving_size_description": "1\/2 cup (4.2 oz = 123 g)",
+    "calories": 110,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 25,
+    "sodium_mg": 300
+},
+"price": 7.99,
+    "Price per Serving ($)": 1.9975,
+    "shelf_life": " 7 days in fridge"
+    },
+    {
+    "description": "Bolognese Sauce, Rao's (24 oz = 680 g = 2.5 cups)",
+    "size_g": 24,
+    "servings": 5,
+    "nutrition": {
+"serving_size_description": "1\/2 cup (4.2 oz = 123 g)",
+    "calories": 110,
+    "saturated_fat_g": 2,
+    "cholesterol_mg": 10,
+    "sodium_mg": 350
+},
+"price": 8.99,
+    "Price per Serving ($)": 1.798,
+    "shelf_life": "unopened: 3 years in pantry; opened: 10-12 days in fridge"
+    },
+    {
+    "description": "Boullion, Cubes, Knoss Chicken (6 cubes, 71 g)",
+    "size_g": 2.5,
+    "servings": 12,
+    "nutrition": {
+"serving_size_description": "1\/2 cube makes 1 cup",
+    "calories": 20,
+    "saturated_fat_g": 1,
+    "cholesterol_mg": 0,
+    "sodium_mg": 1110
+},
+"price": 1.79,
+    "Price per Serving ($)": 0.14916666666666667,
+    "shelf_life": "18-24 months in pantry"
+    },
+    {
+    "description": "Boullion, Beef, Granulated Sodium-Free, Herb Ox (7 oz = 200 g, 50 packets, makes 1 cup stock each)",
+    "size_g": 7,
+    "servings": 50,
+    "nutrition": {
+"serving_size_description": "1 packet",
+    "calories": 10,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 0
+},
+"price": 17.5,
+    "Price per Serving ($)": 0.35,
+    "shelf_life": "forever?"
+    },
+    {
+    "description": "Boullion, Chicken, Granulated Sodium-Free, Herb Ox (7 oz = 200 g, 50 packets, makes 1 cup stock each)",
+    "size_g": 7,
+    "servings": 50,
+    "nutrition": {
+"serving_size_description": "1 packet",
+    "calories": 10,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 0
+},
+"price": 17.5,
+    "Price per Serving ($)": 0.35,
+    "shelf_life": "forever?"
+    },
+    {
+    "description": "Chicken Broth, Organic Free-Range Low-Sodium, Pacific Foods (32 oz, 4 servings)",
+    "size_g": 32,
+    "servings": 4,
+    "nutrition": {
+"serving_size_description": "1 cup (240 ml)",
+    "calories": 10,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 40
+},
+"price": 4.99,
+    "Price per Serving ($)": 1.2475,
+    "shelf_life": "unopened: 6 months in fridge; opened: 3-4 days in fridge"
+    },
+    {
+    "description": "Chili Sauce, Sweet Red, Taste of Thai (7 floz)",
+    "size_g": 7,
+    "servings": 36,
+    "nutrition": {
+"serving_size_description": "1 tsp (5.5 g)",
+    "calories": 13,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 50
+},
+"price": 4.99,
+    "Price per Serving ($)": 0.13861111111111113,
+    "shelf_life": "opened: 6-9 months in fridge"
+    },
+    {
+    "description": "Chili Oil, Szechuan, Blank Slate Kitchen (8 fl oz = 240 ml)",
+    "size_g": 8,
+    "servings": 16,
+    "nutrition": {
+"serving_size_description": "1 tbsp (15 ml)",
+    "calories": 100,
+    "saturated_fat_g": 1,
+    "cholesterol_mg": 0,
+    "sodium_mg": 35
+},
+"price": 16.99,
+    "Price per Serving ($)": 1.061875,
+    "shelf_life": "unopened: \"several\" weeks in pantry; opened: 6 months in fridge"
+    },
+    {
+    "description": "Chili Oil, Chili Crunch, Momofuku (5.3 oz = 150 g)",
+    "size_g": 5.3,
+    "servings": 31,
+    "nutrition": {
+"serving_size_description": "1 tsp (5 g)",
+    "calories": 35,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 50
+},
+"price": 13.99,
+    "Price per Serving ($)": 0.45129032258064516,
+    "shelf_life": "unopened: \"several\" weeks in pantry; opened: 6 months in fridge"
+    },
+    {
+    "description": "Chocolate, Mexican, Classic Collection, Taza Chocolate Store (6 ct, each 2.7 oz = 77 g)",
+    "size_g": 16,
+    "servings": 12,
+    "nutrition": {
+"serving_size_description": "1\/2 disc (1.4 oz = 38 g)",
+    "calories": 210,
+    "saturated_fat_g": 7,
+    "cholesterol_mg": 0,
+    "sodium_mg": 8
+},
+"price": 22.95,
+    "Price per Serving ($)": 1.9125,
+    "shelf_life": "12-18 months in pantry"
+    },
+    {
+    "description": "Chocolate Chips, Semi-Sweet, Toll House (12 oz = 340 g)",
+    "size_g": 12,
+    "servings": 24,
+    "nutrition": {
+"serving_size_description": "1 tbsp (14 g)",
+    "calories": 70,
+    "saturated_fat_g": 2.5,
+    "cholesterol_mg": 0,
+    "sodium_mg": 0
+},
+"price": 4.99,
+    "Price per Serving ($)": 0.20791666666666667
+    },
+    {
+    "description": "Cocoa Powder, Hershey's (8 oz = 227 g)",
+    "size_g": 8,
+    "servings": 45,
+    "nutrition": {
+"serving_size_description": "1 tbsp (5 g)",
+    "calories": 10,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 0
+},
+"price": 6.79,
+    "Price per Serving ($)": 0.15088888888888888
+    },
+    {
+    "description": "Cocoa Powder, Unsweetened, Ghirardelli (8 oz = 227 g)",
+    "size_g": 8,
+    "servings": 38,
+    "nutrition": {
+"serving_size_description": "1 tbsp (6 g)",
+    "calories": 15,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 0
+},
+"price": 4.99,
+    "Price per Serving ($)": 0.13131578947368422
+    },
+    {
+    "description": "Condensed Millk, Sweetened, Borden Ragle Brand (14 oz = 396 g)",
+    "size_g": 14,
+    "servings": 10,
+    "nutrition": {
+"serving_size_description": "2 tbsp (39 g)",
+    "calories": 130,
+    "saturated_fat_g": 2,
+    "cholesterol_mg": 10,
+    "sodium_mg": 35
+},
+"price": 4.49,
+    "Price per Serving ($)": 0.449
+    },
+    {
+    "description": "Corn Starch, Argo (16 oz)",
+    "size_g": 16,
+    "servings": 56,
+    "nutrition": {
+"serving_size_description": "1 tbsp (8 g)",
+    "calories": 30,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 0
+},
+"price": 2.59,
+    "Price per Serving ($)": 0.04625,
+    "shelf_life": "indefinite in pantry"
+    },
+    {
+    "description": "Corn Syrup, Light, Karo (16 fl oz = 473 ml)",
+    "size_g": 16,
+    "servings": 16,
+    "nutrition": {
+"serving_size_description": "2 tbsp (30 ml)",
+    "calories": 80,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 70
+},
+"price": 4.89,
+    "Price per Serving ($)": 0.305625,
+    "shelf_life": "indefinite in pantry"
+    },
+    {
+    "description": "Fish Sauce, Red Boat (8.5 fl oz = 250 ml)",
+    "size_g": 8.5,
+    "servings": 3,
+    "nutrition": {
+"serving_size_description": "1 tbsp (19 g)",
+    "calories": 15,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 1490
+},
+"price": 10.49,
+    "Price per Serving ($)": 3.4966666666666666,
+    "shelf_life": "opened: 2-3 years in pantry; keeping in fridge helps preserve quality"
+    },
+    {
+    "description": "Flaxseed, Spectrum Ground Premium (14 oz = 396 g)",
+    "size_g": 14,
+    "servings": 28,
+    "nutrition": {
+"serving_size_description": "2 tbsp (14 g)",
+    "calories": 70,
+    "saturated_fat_g": 0.5,
+    "cholesterol_mg": 0,
+    "sodium_mg": 0
+},
+"price": 9.99,
+    "Price per Serving ($)": 0.3567857142857143,
+    "shelf_life": "opened: 3-4 months in fridge"
+    },
+    {
+    "description": "Flour, All-Purpose Unbleached, Just FreshDirect (5 lb = 2270 g)",
+    "size_g": 80,
+    "servings": 75,
+    "nutrition": {
+"serving_size_description": "1\/4 cup (1.1 oz = 30 g)",
+    "calories": 100,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 0
+},
+"price": 4.69,
+    "Price per Serving ($)": 0.06253333333333334,
+    "shelf_life": "3-8 months in pantry"
+    },
+    {
+    "description": "Flour, All-Purpose Unbleached, Just FreshDirect (5 lb = 2270 g)",
+    "size_g": 80,
+    "servings": 284,
+    "nutrition": {
+"serving_size_description": "1 tbsp (8 g)",
+    "calories": 27,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 0
+},
+"price": 4.69,
+    "Price per Serving ($)": 0.016514084507042254,
+    "shelf_life": "3-8 months in pantry"
+    },
+    {
+    "description": "Flour, Rye, Organic Stone Ground Dark, Bob's Red Mill (20 oz = 567 g)",
+    "size_g": 20,
+    "servings": 12,
+    "nutrition": {
+"serving_size_description": "1\/4 cup (1.1 oz = 30 g)",
+    "calories": 110,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 0
+},
+"price": 4.79,
+    "Price per Serving ($)": 0.39916666666666667,
+    "shelf_life": "3-8 months in pantry"
+    },
+    {
+    "description": "Flour, Type 00 Chef's, Antimo Caputo (2.2 lb = 1 kg)",
+    "size_g": 35,
+    "servings": 33,
+    "nutrition": {
+"serving_size_description": "1\/4 cup (1.1 oz = 30 g)",
+    "calories": 110,
+    "saturated_fat_g": 0.3,
+    "cholesterol_mg": 0,
+    "sodium_mg": 0
+},
+"price": 9.66,
+    "Price per Serving ($)": 0.2927272727272727,
+    "shelf_life": "3-8 months in pantry"
+    },
+    {
+    "description": "Gochujang Chili Paste, Fermeted, Mother In Law's (10 oz = 263 g)",
+    "size_g": 10,
+    "servings": 10,
+    "nutrition": {
+"serving_size_description": "1 tbsp (0.7 oz = 22 g)",
+    "calories": 45,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 400
+},
+"price": 10.99,
+    "Price per Serving ($)": 1.099,
+    "shelf_life": "2 years in fridge"
+    },
+    {
+    "description": "Harissa Sauce, Spicy Moroccan Red Pepper, Mina (10 oz = 283 g)",
+    "size_g": 10,
+    "servings": 20,
+    "nutrition": {
+"serving_size_description": "1 tbsp (15 g)",
+    "calories": 10,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 65
+},
+"price": 9.49,
+    "Price per Serving ($)": 0.47450000000000003,
+    "shelf_life": "unopened: 2-3 years in pantry; opened: 3-4 months in fridge"
+    },
+    {
+    "description": "Hoisin Sauce, Dynasty (7 oz = 196 g, 6 servings)",
+    "size_g": 7,
+    "servings": 36,
+    "nutrition": {
+"serving_size_description": "1 tsp (5.5 g)",
+    "calories": 8,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 72
+},
+"price": 3.99,
+    "Price per Serving ($)": 0.11083333333333334,
+    "shelf_life": "opened: 18 months in fridge"
+    },
+    {
+    "description": "Hoisin Sauce, Dynasty (7 oz = 196 g, 6 servings)",
+    "size_g": 7,
+    "servings": 6,
+    "nutrition": {
+"serving_size_description": "2 tbsp (33 g)",
+    "calories": 50,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 430
+},
+"price": 3.99,
+    "Price per Serving ($)": 0.665,
+    "shelf_life": "opened: 18 months in fridge"
+    },
+    {
+    "description": "Honey, Just FreshDirect (16 oz)",
+    "size_g": 16,
+    "servings": 21,
+    "nutrition": {
+"serving_size_description": "1 tbsp (21 g)",
+    "calories": 64,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 1
+},
+"price": 7.29,
+    "Price per Serving ($)": 0.34714285714285714,
+    "shelf_life": "12+ months in pantry (do NOT refrigerate!)"
+    },
+    {
+    "description": "Hot Sauce, Cholula",
+    "size_g": 5,
+    "servings": 30,
+    "nutrition": {
+"serving_size_description": "1 tsp (5 g)",
+    "calories": 0,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 130
+},
+"price": 4.49,
+    "Price per Serving ($)": 0.14966666666666667,
+    "shelf_life": "unopened: 24 months in pantry; opened: 2+ years in fridge"
+    },
+    {
+    "description": "Ketchup, Squeezable, Heinz (20 oz = 567 g)",
+    "size_g": 20,
+    "servings": 33,
+    "nutrition": {
+"serving_size_description": "1 tbsp (17 g)",
+    "calories": 20,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 160
+},
+"price": 3.29,
+    "Price per Serving ($)": 0.0996969696969697,
+    "shelf_life": "unopened: best-by +6-12 months in pantry; opened: 6-12 months in fridge"
+    },
+    {
+    "description": "Ketchup, Squeezable, No Salt, Heinz (14 oz = 369 g ~ 1.75 cups)",
+    "size_g": 14,
+    "servings": 23,
+    "nutrition": {
+"serving_size_description": "1 tbsp (17 g)",
+    "calories": 20,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 5
+},
+"price": 4.99,
+    "Price per Serving ($)": 0.21695652173913044,
+    "shelf_life": "unopened: best-by +6-12 months in pantry; opened: 6-12 months in fridge"
+    },
+    {
+    "description": "Kimchi, Napa Cabbage, Mother-In-Law's (16 fl oz = 473 ml)",
+    "size_g": 16,
+    "servings": 16,
+    "nutrition": {
+"serving_size_description": "1 oz (28 g)",
+    "calories": 10,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 150
+},
+"price": 10.79,
+    "Price per Serving ($)": 0.674375,
+    "shelf_life": "3-6 months in fridge"
+    },
+    {
+    "description": "Kimchi, Kim Chee Pride (16 fl oz = 473 ml)",
+    "size_g": 16,
+    "servings": 16,
+    "nutrition": {
+"serving_size_description": "1 oz (28 g)",
+    "calories": 10,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 150
+},
+"price": 4.99,
+    "Price per Serving ($)": 0.311875,
+    "shelf_life": "3-6 months in fridge"
+    },
+    {
+    "description": "Lemon Juice, Plastic Bottle, Organic, FreshDirect (4 fl oz =118 ml)",
+    "size_g": 4,
+    "servings": 24,
+    "nutrition": {
+"serving_size_description": "1 tbsp (15 g)",
+    "calories": 3,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 0
+},
+"price": 1.99,
+    "Price per Serving ($)": 0.08291666666666667,
+    "shelf_life": "unopened: 6-12 months in fridge; opened: 6 months in fridge"
+    },
+    {
+    "description": "Lemon Juice (squeezed from 1 fresh medium lemon)",
+    "size_g": 1.3,
+    "servings": 2.5,
+    "nutrition": {
+"serving_size_description": "1 tbsp (0.5 fl oz = 15 ml)",
+    "calories": 3,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 0
+},
+"price": 0.89,
+    "Price per Serving ($)": 0.356,
+    "shelf_life": "inside lemon: 4-6 weeks in fridge"
+    },
+    {
+    "description": "Lime Juice (squeezed from 1 fresh medium lime)",
+    "size_g": 1,
+    "servings": 2,
+    "nutrition": {
+"serving_size_description": "1 tbsp (0.5 fl oz = 15 ml)",
+    "calories": 4,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 1
+},
+"price": 0.89,
+    "Price per Serving ($)": 0.445,
+    "shelf_life": "inside lime: 3-4 weeks in fridge"
+    },
+    {
+    "description": "Maple Syrup, Local Amber Rich Taste, Just FreshDirect (12.5 fl oz = 370 ml)",
+    "size_g": 12.5,
+    "servings": 6,
+    "nutrition": {
+"serving_size_description": "1 tbsp (0.5 fl oz = 15 ml)",
+    "calories": 50,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 0
+},
+"price": 10.99,
+    "Price per Serving ($)": 1.8316666666666668,
+    "shelf_life": "opened: 12 months in fridge"
+    },
+    {
+    "description": "Marinara Sauce. Homemade, Rao's (32 oz = 907 g)",
+    "size_g": 24,
+    "servings": 5,
+    "nutrition": {
+"serving_size_description": "1\/2 cup (4.2 oz = 125 g)",
+    "calories": 100,
+    "saturated_fat_g": 1,
+    "cholesterol_mg": 0,
+    "sodium_mg": 420
+},
+"price": 5.99,
+    "Price per Serving ($)": 1.198,
+    "shelf_life": "unopened: 3 years in pantry; opened: 10-12 days in fridge"
+    },
+    {
+    "description": "Mayonnaise, Squeeze Bottle, Hellmann's (11.5 oz)",
+    "size_g": 11.5,
+    "servings": 33,
+    "nutrition": {
+"serving_size_description": "1 tbsp (0.5 oz = 14 g)",
+    "calories": 94,
+    "saturated_fat_g": 1.6,
+    "cholesterol_mg": 6,
+    "sodium_mg": 88
+},
+"price": 5.99,
+    "Price per Serving ($)": 0.18151515151515152,
+    "shelf_life": "unopened: best-by +3-4 months; opened: best-by +2 months in fridge"
+    },
+    {
+    "description": "Molasses, Unsulfured, Gramdma's (12 fl oz = 354 ml)",
+    "size_g": 12,
+    "servings": 24,
+    "nutrition": {
+"serving_size_description": "1 tbsp (0.5 fl oz = 15 ml)",
+    "calories": 60,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 5
+},
+"price": 5.59,
+    "Price per Serving ($)": 0.23291666666666666,
+    "shelf_life": "unopened: 12 months in pantry; opened: 6 months in pantry"
+    },
+    {
+    "description": "Mustard, Brown Spicy, Gulden's (12 oz)",
+    "size_g": 12,
+    "servings": 68,
+    "nutrition": {
+"serving_size_description": "1 tsp (5 g)",
+    "calories": 5,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 50
+},
+"price": 2.99,
+    "Price per Serving ($)": 0.04397058823529412,
+    "shelf_life": "unopened: 1-2 years in pantry; opened: 12 months in fridge"
+    },
+    {
+    "description": "Mustard, Dijon,  Grey Poupon (10 oz = 263 g)",
+    "size_g": 10,
+    "servings": 37,
+    "nutrition": {
+"serving_size_description": "1 tsp (5 g)",
+    "calories": 5,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 115
+},
+"price": 5.59,
+    "Price per Serving ($)": 0.15108108108108106,
+    "shelf_life": "unopened: 1-2 years in pantry; opened: 12 months in fridge"
+    },
+    {
+    "description": "Mustard, Yellow, Nature's Promise (12 oz)",
+    "size_g": 12,
+    "servings": 68,
+    "nutrition": {
+"serving_size_description": "1 tsp (5 g)",
+    "calories": 0,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 55
+},
+"price": 3.39,
+    "Price per Serving ($)": 0.04985294117647059,
+    "shelf_life": "unopened: 1-2 years in pantry; opened: 12 months in fridge"
+    },
+    {
+    "description": "Oil, Avocado Oil Spray, Primal Kitchen (4.7 oz = 134 g)",
+    "size_g": 4.7,
+    "servings": 536,
+    "nutrition": {
+"serving_size_description": "1\/4 sec spray (0.25 g)",
+    "calories": 0,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 0
+},
+"price": 8.99,
+    "Price per Serving ($)": 0.016772388059701493,
+    "shelf_life": "unopened: 1-2 years in pantry; opened: 6 months in pantry"
+    },
+    {
+    "description": "Oil, Canola, Wesson (48 oz)",
+    "size_g": 48,
+    "servings": 95,
+    "nutrition": {
+"serving_size_description": "1 tbsp (14 g)",
+    "calories": 120,
+    "saturated_fat_g": 1.1,
+    "cholesterol_mg": 0,
+    "sodium_mg": 0
+},
+"price": 9.49,
+    "Price per Serving ($)": 0.09989473684210527,
+    "shelf_life": "unopened: 12-24 months in pantry; opened: 6-12 months in pantry"
+    },
+    {
+    "description": "Oil, Coconut, Unrefined, Organic Virgin, Spectrum (14 fl oz = 414 ml)",
+    "size_g": 14,
+    "servings": 28,
+    "nutrition": {
+"serving_size_description": "1 tbsp (15 ml)",
+    "calories": 120,
+    "saturated_fat_g": 12,
+    "cholesterol_mg": 0,
+    "sodium_mg": 0
+},
+"price": 13.59,
+    "Price per Serving ($)": 0.4853571428571429,
+    "shelf_life": "opened: 3 years in pantry"
+    },
+    {
+    "description": "Oil, Olive",
+    "size_g": 33.8,
+    "servings": 198,
+    "nutrition": {
+"serving_size_description": "1 tsp (5 g)",
+    "calories": 40,
+    "saturated_fat_g": 1,
+    "cholesterol_mg": 0,
+    "sodium_mg": 0
+},
+"price": 10.99,
+    "Price per Serving ($)": 0.05550505050505051,
+    "shelf_life": "unopened: 18-24 months in pantry; opened: 2-6 months in pantry"
+    },
+    {
+    "description": "Oil, Olive",
+    "size_g": 33.8,
+    "servings": 66,
+    "nutrition": {
+"serving_size_description": "1 tbsp (15 g)",
+    "calories": 120,
+    "saturated_fat_g": 2,
+    "cholesterol_mg": 0,
+    "sodium_mg": 0
+},
+"price": 10.99,
+    "Price per Serving ($)": 0.1665151515151515,
+    "shelf_life": "unopened: 18-24 months in pantry; opened: 2-6 months in pantry"
+    },
+    {
+    "description": "Oil, Peanut, Planters (24 fl oz = 709 ml)",
+    "size_g": 24,
+    "servings": 48,
+    "nutrition": {
+"serving_size_description": "1 tbsp (14 g)",
+    "calories": 120,
+    "saturated_fat_g": 2.5,
+    "cholesterol_mg": 0,
+    "sodium_mg": 0
+},
+"price": 6.79,
+    "Price per Serving ($)": 0.14145833333333332,
+    "shelf_life": "unopened: 12-24 months in pantry; opened: 6 months in pantry"
+    },
+    {
+    "description": "Oil, Sesame, Organic Toasted, Spectrum (8 fl oz = 236 ml)",
+    "size_g": 8,
+    "servings": 48,
+    "nutrition": {
+"serving_size_description": "1 tsp (5 ml)",
+    "calories": 40,
+    "saturated_fat_g": 0.7,
+    "cholesterol_mg": 0,
+    "sodium_mg": 0
+},
+"price": 8.99,
+    "Price per Serving ($)": 0.18729166666666666,
+    "shelf_life": "unopened: 12 months in fridge; opened: 6-9 months in fridge"
+    },
+    {
+    "description": "Oil, Sesame, Organic Toasted, Spectrum (8 fl oz = 236 ml)",
+    "size_g": 8,
+    "servings": 16,
+    "nutrition": {
+"serving_size_description": "1 tbsp (15 ml)",
+    "calories": 120,
+    "saturated_fat_g": 2,
+    "cholesterol_mg": 0,
+    "sodium_mg": 0
+},
+"price": 8.99,
+    "Price per Serving ($)": 0.561875,
+    "shelf_life": "unopened: 12 months in fridge; opened: 6-9 months in fridge"
+    },
+    {
+    "description": "Oyster Sauce, Lee Kum Kee (9 oz = 255 g)",
+    "size_g": 9,
+    "servings": 13,
+    "nutrition": {
+"serving_size_description": "1 tbsp (20 g)",
+    "calories": 30,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 830
+},
+"price": 7.39,
+    "Price per Serving ($)": 0.5684615384615385,
+    "shelf_life": "opened: 18-24 months in fridge"
+    },
+    {
+    "description": "Panko, Gluten Free Plain Crumbs, Jason (10 oz = 283 g)",
+    "size_g": 10,
+    "servings": 9,
+    "nutrition": {
+"serving_size_description": "1\/2 cup (1.1 oz = 32 g)",
+    "calories": 120,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 20
+},
+"price": 9.89,
+    "Price per Serving ($)": 1.098888888888889,
+    "shelf_life": "unopened: 8-12 months in pantry; opened: 4-6 months in pantry"
+    },
+    {
+    "description": "Pizza Sauce, Neapolitan Style, Taste of Inspirations (16 oz = 454 g  ~ 2 cups)",
+    "size_g": 16,
+    "servings": 7,
+    "nutrition": {
+"serving_size_description": "1\/4 cup (62 g)",
+    "calories": 25,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 150
+},
+"price": 4.49,
+    "Price per Serving ($)": 0.6414285714285715,
+    "shelf_life": "unopened: 18-24 months in pantry; opened: 7 days in fridge"
+    },
+    {
+    "description": "Sherry, Cooking, Roland (13 oz = 382 ml, 13 servings)",
+    "size_g": 12.9,
+    "servings": 13,
+    "nutrition": {
+"serving_size_description": "2 tbsp (30 g)",
+    "calories": 30,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 180
+},
+"price": 3.99,
+    "Price per Serving ($)": 0.30692307692307697,
+    "shelf_life": "unopened: 18-24 months in pantry; opened: 2-3 weeks in fridge"
+    },
+    {
+    "description": "Soy Sauce Alternative, Coconut Aminos, Coconut Secret (16.9 fl oz)",
+    "size_g": 16.9,
+    "servings": 33,
+    "nutrition": {
+"serving_size_description": "1 tbsp (15 ml)",
+    "calories": 15,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 270
+},
+"price": 12.99,
+    "Price per Serving ($)": 0.3936363636363636,
+    "shelf_life": "unopened: 36 months in pantry; opened: 6-12 months in fridge"
+    },
+    {
+    "description": "Soy Sauce, Kikkoman (10 oz = 296 ml)",
+    "size_g": 10,
+    "servings": 20,
+    "nutrition": {
+"serving_size_description": "1 tbsp (15 g)",
+    "calories": 10,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 960
+},
+"price": 3.79,
+    "Price per Serving ($)": 0.1895,
+    "shelf_life": "unopened: 2+ years; opened: 2-3 years in fridge"
+    },
+    {
+    "description": "Soy Sauce, Kikkoman Less Sodium (10 oz = 296 ml)",
+    "size_g": 10,
+    "servings": 60,
+    "nutrition": {
+"serving_size_description": "1 tsp (5 g)",
+    "calories": 3,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 190
+},
+"price": 3.79,
+    "Price per Serving ($)": 0.06316666666666666,
+    "shelf_life": "unopened: 2+ years; opened: 2-3 years in fridge"
+    },
+    {
+    "description": "Soy Sauce, Kikkoman Less Sodium (10 oz = 296 ml)",
+    "size_g": 10,
+    "servings": 20,
+    "nutrition": {
+"serving_size_description": "1 tbsp (15 g)",
+    "calories": 10,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 570
+},
+"price": 3.79,
+    "Price per Serving ($)": 0.1895,
+    "shelf_life": "unopened: 2+ years; opened: 2-3 years in fridge"
+    },
+    {
+    "description": "Sriracha Sauce, Huy Fong (17 oz = 482 g)",
+    "size_g": 17,
+    "servings": 96,
+    "nutrition": {
+"serving_size_description": "1 tsp (5 g)",
+    "calories": 5,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 100
+},
+"price": 9.69,
+    "Price per Serving ($)": 0.1009375,
+    "shelf_life": "unopened: 24 months in pantry; opened: 2+ years in fridge"
+    },
+    {
+    "description": "Sriracha Sauce, Huy Fong (17 oz = 482 g)",
+    "size_g": 17,
+    "servings": 32,
+    "nutrition": {
+"serving_size_description": "1 tbsp (15 g)",
+    "calories": 15,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 300
+},
+"price": 9.69,
+    "Price per Serving ($)": 0.3028125,
+    "shelf_life": "unopened: 24 months in pantry; opened: 2+ years in fridge"
+    },
+    {
+    "description": "Sriracha Sauce, Roland (17 oz = 482 g)",
+    "size_g": 17,
+    "servings": 96,
+    "nutrition": {
+"serving_size_description": "1 tsp (5 g)",
+    "calories": 5,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 170
+},
+"price": 5.99,
+    "Price per Serving ($)": 0.06239583333333334,
+    "shelf_life": "unopened: 24 months in pantry; opened: 2+ years in fridge"
+    },
+    {
+    "description": "Sriracha Sauce, Roland (17 oz = 482 g)",
+    "size_g": 17,
+    "servings": 32,
+    "nutrition": {
+"serving_size_description": "1 tbsp (15 g)",
+    "calories": 15,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 510
+},
+"price": 5.99,
+    "Price per Serving ($)": 0.1871875,
+    "shelf_life": "unopened: 24 months in pantry; opened: 2+ years in fridge"
+    },
+    {
+    "description": "Sugar, Light Brown, Domino (16 oz = 453 g)",
+    "size_g": 16,
+    "servings": 113,
+    "nutrition": {
+"serving_size_description": "1 tsp packed (0.15 oz = 4.2 g)",
+    "calories": 17,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 0
+},
+"price": 2.49,
+    "Price per Serving ($)": 0.022035398230088498,
+    "shelf_life": "forever!"
+    },
+    {
+    "description": "Sugar, Light Brown, Domino (16 oz = 453 g)",
+    "size_g": 16,
+    "servings": 38,
+    "nutrition": {
+"serving_size_description": "1 tbsp packed (0.45 oz = 13 g)",
+    "calories": 50,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 0
+},
+"price": 2.49,
+    "Price per Serving ($)": 0.0655263157894737,
+    "shelf_life": "forever!"
+    },
+    {
+    "description": "Sugar, Light Brown, Domino (16 oz = 453 g)",
+    "size_g": 16,
+    "servings": 2,
+    "nutrition": {
+"serving_size_description": "1 cup packed (7 oz = 200 g)",
+    "calories": 836,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 0
+},
+"price": 2.49,
+    "Price per Serving ($)": 1.245,
+    "shelf_life": "forever!"
+    },
+    {
+    "description": "Sugar, Granulated White, Domino (4 lb = 64 oz = 1814 g)",
+    "size_g": 64,
+    "servings": 454,
+    "nutrition": {
+"serving_size_description": "1 tsp (0.15 oz = 4.2 g)",
+    "calories": 16,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 0
+},
+"price": 4.49,
+    "Price per Serving ($)": 0.009889867841409692,
+    "shelf_life": "forever!"
+    },
+    {
+    "description": "Sugar, Granulated White, Domino (4 lb = 64 oz = 1814 g)",
+    "size_g": 64,
+    "servings": 151,
+    "nutrition": {
+"serving_size_description": "1 tbsp (0.45 oz = 13 g)",
+    "calories": 50,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 0
+},
+"price": 4.49,
+    "Price per Serving ($)": 0.029735099337748344,
+    "shelf_life": "forever!"
+    },
+    {
+    "description": "Sugar, Granulated White, Domino (4 lb = 64 oz = 1814 g)",
+    "size_g": 64,
+    "servings": 9,
+    "nutrition": {
+"serving_size_description": "1 cup (7 oz = 200 g)",
+    "calories": 773,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 0
+},
+"price": 4.49,
+    "Price per Serving ($)": 0.49888888888888894,
+    "shelf_life": "forever!"
+    },
+    {
+    "description": "Sugar, Powdered Confectioners, Domino (16 oz = 454 g)",
+    "size_g": 16,
+    "servings": 180,
+    "nutrition": {
+"serving_size_description": "1 tsp (2.5 g)",
+    "calories": 10,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 0
+},
+"price": 2.49,
+    "Price per Serving ($)": 0.013833333333333335,
+    "shelf_life": "forever!"
+    },
+    {
+    "description": "Sugar, Powdered Confectioners, Domino (16 oz = 454 g)",
+    "size_g": 16,
+    "servings": 60,
+    "nutrition": {
+"serving_size_description": "1 tbsp (7.5 g)",
+    "calories": 30,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 0
+},
+"price": 2.49,
+    "Price per Serving ($)": 0.0415,
+    "shelf_life": "forever!"
+    },
+    {
+    "description": "Sugar, Powdered Confectioners, Domino (16 oz = 454 g)",
+    "size_g": 16,
+    "servings": 15,
+    "nutrition": {
+"serving_size_description": "1\/4 cup (30 g)",
+    "calories": 120,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 0
+},
+"price": 2.49,
+    "Price per Serving ($)": 0.166,
+    "shelf_life": "forever!"
+    },
+    {
+    "description": "Teriyaki Sauce, Organic No-Soy, Primal Kitchen (8.5 oz = 241 g)",
+    "size_g": 8.5,
+    "servings": 16,
+    "nutrition": {
+"serving_size_description": "1 tbsp (15 g)",
+    "calories": 15,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 220
+},
+"price": 9.59,
+    "Price per Serving ($)": 0.599375,
+    "shelf_life": "unopened: 1-2 years in pantry; opened: 3-4 months in fridge"
+    },
+    {
+    "description": "Tahini Sauce, Premium Sesame, Soom (11 oz = 312 g)",
+    "size_g": 11,
+    "servings": 11,
+    "nutrition": {
+"serving_size_description": "2 tbsp (1 oz = 28 g)",
+    "calories": 190,
+    "saturated_fat_g": 3,
+    "cholesterol_mg": 0,
+    "sodium_mg": 0
+},
+"price": 8.99,
+    "Price per Serving ($)": 0.8172727272727273,
+    "shelf_life": "6+ months in fridge"
+    },
+    {
+    "description": "Tamarind Mix, Knorr, Amazon (pack of 4, 1.4 oz = 40 g each)",
+    "size_g": 5.6,
+    "servings": 4,
+    "nutrition": {
+"serving_size_description": "1 packet (1.4 oz = 40 g)",
+    "calories": 10,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 810
+},
+"price": 6.99,
+    "Price per Serving ($)": 1.7475,
+    "shelf_life": "9-12 months in pantry"
+    },
+    {
+    "description": "Vanilla, All Natural Pure Extract, McCormick (2 oz = 59 ml)",
+    "size_g": 2,
+    "servings": 14,
+    "nutrition": {
+"serving_size_description": "1 tsp (4.2 g)",
+    "calories": 12,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 0
+},
+"price": 10.99,
+    "Price per Serving ($)": 0.785,
+    "shelf_life": "5 years"
+    },
+    {
+    "description": "Vegetable Broth, Pacific Foods (32 oz = 4 cups = 946 ml)",
+    "size_g": 32,
+    "servings": 4,
+    "nutrition": {
+"serving_size_description": "1 cup (8 oz = 240 ml)",
+    "calories": 15,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 500
+},
+"price": 4.99,
+    "Price per Serving ($)": 1.2475,
+    "shelf_life": "unopened: 6 months in fridge; opened: 7-10 days in fridge"
+    },
+    {
+    "description": "Vegetable Broth, Organic Low Sodium, Pacific Foods (32 oz = 4 cups = 946 ml)",
+    "size_g": 32,
+    "servings": 4,
+    "nutrition": {
+"serving_size_description": "1 cup (8 oz = 240 ml)",
+    "calories": 15,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 120
+},
+"price": 4.99,
+    "Price per Serving ($)": 1.2475,
+    "shelf_life": "unopened: 6 months in fridge; opened: 7-10 days in fridge"
+    },
+    {
+    "description": "Vinegar, Apple Cider, Nature's Promise (16 fl oz = 473 ml)",
+    "size_g": 16,
+    "servings": 32,
+    "nutrition": {
+"serving_size_description": "1 tbsp (0.5 fl oz =15 ml)",
+    "calories": 0,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 0
+},
+"price": 3.39,
+    "Price per Serving ($)": 0.1059375,
+    "shelf_life": "1 year in pantry"
+    },
+    {
+    "description": "Vinegar, Balsamic, Just FreshDirect (8.45 fl oz = 250 ml)",
+    "size_g": 8.45,
+    "servings": 17,
+    "nutrition": {
+"serving_size_description": "1 tbsp (0.5 f oz = 15 ml)",
+    "calories": 16,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 0
+},
+"price": 7.49,
+    "Price per Serving ($)": 0.44058823529411767,
+    "shelf_life": "3-5 years in pantry"
+    },
+    {
+    "description": "Vinegar, Rice, Seasoned, Marukan (12 fl oz)",
+    "size_g": 12,
+    "servings": 24,
+    "nutrition": {
+"serving_size_description": "1 tbsp (0.5 fl oz =15 ml)",
+    "calories": 25,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 480
+},
+"price": 4.69,
+    "Price per Serving ($)": 0.19541666666666668,
+    "shelf_life": "2+  years in pantry"
+    },
+    {
+    "description": "Vinegar, Rice, Unseasoned, Marukan (12 fl oz = 355 ml)",
+    "size_g": 12,
+    "servings": 24,
+    "nutrition": {
+"serving_size_description": "1 tbsp (0.5 fl oz = 15 ml)",
+    "calories": 0,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 0
+},
+"price": 4.69,
+    "Price per Serving ($)": 0.19541666666666668,
+    "shelf_life": "2+  years in pantry"
+    },
+    {
+    "description": "Vinegar, White, Heinz (32 oz = 946 ml)",
+    "size_g": 32,
+    "servings": 64,
+    "nutrition": {
+"serving_size_description": "1 tbsp (0.5 fl oz = 15 ml)",
+    "calories": 0,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 0
+},
+"price": 3.99,
+    "Price per Serving ($)": 0.06234375,
+    "shelf_life": "forever!"
+    },
+    {
+    "description": "Vinegar, White Wine, Just FreshDirect (17 fl oz = 500 ml)",
+    "size_g": 17,
+    "servings": 33,
+    "nutrition": {
+"serving_size_description": "1 tbsp (0.5 fl oz = 15 ml)",
+    "calories": 0,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 0
+},
+"price": 5.99,
+    "Price per Serving ($)": 0.18151515151515152,
+    "shelf_life": "2+  years in pantry"
+    },
+    {
+    "description": "Wasabi, S&B (1.52 fl oz = 43g)",
+    "size_g": 1.5,
+    "servings": 9,
+    "nutrition": {
+"serving_size_description": "1 tsp (5 g)",
+    "calories": 15,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 160
+},
+"price": 3.99,
+    "Price per Serving ($)": 0.44333333333333336
+    },
+    {
+    "description": "Worstershire Sauce, Lea & Perrins (10 fl oz = 296 ml)",
+    "size_g": 10,
+    "servings": 59,
+    "nutrition": {
+"serving_size_description": "1 tsp (5 g)",
+    "calories": 5,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 65
+},
+"price": 5.49,
+    "Price per Serving ($)": 0.09305084745762712,
+    "shelf_life": "3 years in fridge"
+    },
+    {
+    "description": "Wine, Cooking, Sherry, Roland (12.9 fl oz = 382 ml)",
+    "size_g": 12.9,
+    "servings": 13,
+    "nutrition": {
+"serving_size_description": "2 tbsp (30 g)",
+    "calories": 30,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 0
+},
+"price": 3.99,
+    "Price per Serving ($)": 0.30692307692307697
+    },
+    {
+    "description": "Yeast, Active Dry, Fleischmann's (3 ct, 0.25 oz = 7 g = 2.25 tsp each)",
+    "size_g": 0.75,
+    "servings": 3,
+    "nutrition": {
+"serving_size_description": "1 packet (7 g)",
+    "calories": 0,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 0
+},
+"price": 2.99,
+    "Price per Serving ($)": 0.9966666666666667,
+    "shelf_life": "Unopened: 2 years in pantry; Opened: 4 months in fridge; 6 months in freezer"
+    }
+]}

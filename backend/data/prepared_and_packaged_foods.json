@@ -1,0 +1,384 @@
+{ "ingredients": [
+    {
+    "description": "Chicken Tikka Masala, Deep India Kitchen (9 oz = 255 g)",
+    "size_g": 9,
+    "servings": 1,
+    "nutrition": {
+"serving_size_description": "1 container (9 oz = 255 g)",
+    "calories": 370,
+    "saturated_fat_g": 2.5,
+    "cholesterol_mg": 55,
+    "sodium_mg": 630
+},
+"price": 7.89,
+    "Price per Serving ($)": 7.89
+    },
+    {
+    "description": "Chickpea Masala w\/Rice, Deep India Kitchen (10 oz = 283 g)",
+    "size_g": 10,
+    "servings": 1,
+    "nutrition": {
+"serving_size_description": "1 container (10 oz = 283 g)",
+    "calories": 290,
+    "saturated_fat_g": 1,
+    "cholesterol_mg": 0,
+    "sodium_mg": 870
+},
+"price": 7.89,
+    "Price per Serving ($)": 7.89
+    },
+    {
+    "description": "Crackers, Wheat Thins, 100% Whole Grain Hint of Salt (8.5 oz = 240 g)",
+    "size_g": 8.5,
+    "servings": 8,
+    "nutrition": {
+"serving_size_description": "16 pieces (1.1 oz = 31 g)",
+    "calories": 140,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 55
+},
+"price": 5.39,
+    "Price per Serving ($)": 0.67375
+    },
+    {
+    "description": "Cream of Chicken Soup, Campbell's  (10.75 oz = 305 g)",
+    "size_g": 10.75,
+    "servings": 2.5,
+    "nutrition": {
+"serving_size_description": "1\/2 cup (120 ml)",
+    "calories": 120,
+    "saturated_fat_g": 2,
+    "cholesterol_mg": 10,
+    "sodium_mg": 870
+},
+"price": 2.69,
+    "Price per Serving ($)": 1.076
+    },
+    {
+    "description": "Garlic Naan, Deep Indian Kitchen (3 ct, 8 oz = 225 g)",
+    "size_g": 8,
+    "servings": 3,
+    "nutrition": {
+"serving_size_description": "1 piece (75 g)",
+    "calories": 220,
+    "saturated_fat_g": 1.5,
+    "cholesterol_mg": 5,
+    "sodium_mg": 240
+},
+"price": 6.19,
+    "Price per Serving ($)": 2.0633333333333335
+    },
+    {
+    "description": "Marshmallow, Jet-Puffed (12 oz = 340 g, 12 servings)",
+    "size_g": 12,
+    "servings": 12,
+    "nutrition": {
+"serving_size_description": "4 pieces (29g)",
+    "calories": 100,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 25
+},
+"price": 2.49,
+    "Price per Serving ($)": 0.20750000000000002
+    },
+    {
+    "description": "Marshmallows, Mini, Jet-Puffed (10 oz)",
+    "size_g": 10,
+    "servings": 9,
+    "nutrition": {
+"serving_size_description": "2\/3 cup (30 g)",
+    "calories": 100,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 25
+},
+"price": 2.19,
+    "Price per Serving ($)": 0.24333333333333332
+    },
+    {
+    "description": "Pancake Mix, Chocolate Chip, Kodiak Cakes (18 oz = 510 g)",
+    "size_g": 18,
+    "servings": 10,
+    "nutrition": {
+"serving_size_description": "1\/2 cup (53 g)",
+    "calories": 200,
+    "saturated_fat_g": 1,
+    "cholesterol_mg": 10,
+    "sodium_mg": 390
+},
+"price": 6.99,
+    "Price per Serving ($)": 0.6990000000000001
+    },
+    {
+    "description": "Pancake Mix, Dark Chocolate, Kodiak Cakes (18 oz = 510 g)",
+    "size_g": 18,
+    "servings": 10,
+    "nutrition": {
+"serving_size_description": "1\/2 cup (53 g)",
+    "calories": 190,
+    "saturated_fat_g": 2,
+    "cholesterol_mg": 5,
+    "sodium_mg": 280
+},
+"price": 6.99,
+    "Price per Serving ($)": 0.6990000000000001
+    },
+    {
+    "description": "Pizza, standard fast food medium 14\" pie (30 oz = 853 g, 8 slices per pie)",
+    "size_g": 30,
+    "servings": 1,
+    "nutrition": {
+"serving_size_description": "1 pie (30 oz = 853 g)",
+    "calories": 2269,
+    "saturated_fat_g": 38,
+    "cholesterol_mg": 145,
+    "sodium_mg": 5101
+},
+"price": 24,
+    "Price per Serving ($)": 24
+    },
+    {
+    "description": "Pizza, standard fast food slice (3.8 oz = 107 g)",
+    "size_g": 4,
+    "servings": 1,
+    "nutrition": {
+"serving_size_description": "1 slice (3.8 oz = 107 g)",
+    "calories": 285,
+    "saturated_fat_g": 4.8,
+    "cholesterol_mg": 18,
+    "sodium_mg": 640
+},
+"price": 3,
+    "Price per Serving ($)": 3
+    },
+    {
+    "description": "Pizza, Margherita slice (3.8 oz = 107 g)",
+    "size_g": 4,
+    "servings": 1,
+    "nutrition": {
+"serving_size_description": "1 slice (3.8 oz = 107 g)",
+    "calories": 175,
+    "saturated_fat_g": 1.5,
+    "cholesterol_mg": 5,
+    "sodium_mg": 200
+},
+"price": 3,
+    "Price per Serving ($)": 3
+    },
+    {
+    "description": "Rice Crackers, Wasabi, Kame (3.5 oz = 100 g)",
+    "size_g": 3.5,
+    "servings": 3.5,
+    "nutrition": {
+"serving_size_description": "16 crackers (1 oz = 28 g)",
+    "calories": 120,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 80
+},
+"price": 4.59,
+    "Price per Serving ($)": 1.3114285714285714
+    },
+    {
+    "description": "Samosas, Potato & Pea, Deep India Kitchen (4 ct, 12 oz = 340 g)",
+    "size_g": 12,
+    "servings": 6,
+    "nutrition": {
+"serving_size_description": "1 samosa + 1 tbsp chutney (85 g)",
+    "calories": 120,
+    "saturated_fat_g": 1,
+    "cholesterol_mg": 0,
+    "sodium_mg": 260
+},
+"price": 7.89,
+    "Price per Serving ($)": 1.315
+    },
+    {
+    "description": "Soft Pretzels, Superpretzel (13 oz = 369 g)",
+    "size_g": 13,
+    "servings": 6,
+    "nutrition": {
+"serving_size_description": "1 pretzel (64 g)",
+    "calories": 160,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 100
+},
+"price": 5.59,
+    "Price per Serving ($)": 0.9316666666666666
+    },
+    {
+    "description": "Sun Chips, Wholegrain (7 oz = 200 g, 7 servings)",
+    "size_g": 7,
+    "servings": 7,
+    "nutrition": {
+"serving_size_description": "16 chips (1 oz = 28 g)",
+    "calories": 140,
+    "saturated_fat_g": 0.5,
+    "cholesterol_mg": 0,
+    "sodium_mg": 110
+},
+"price": 4.39,
+    "Price per Serving ($)": 0.6271428571428571
+    },
+    {
+    "description": "Tostitos, Lightly Salted (12 oz)",
+    "size_g": 12,
+    "servings": 12,
+    "nutrition": {
+"serving_size_description": "7 chips (28 g)",
+    "calories": 140,
+    "saturated_fat_g": 1,
+    "cholesterol_mg": 0,
+    "sodium_mg": 55
+},
+"price": 5.29,
+    "Price per Serving ($)": 0.44083333333333335
+    },
+    {
+    "description": "Tamale, Black Bean & Corn, Tucson Tamale (5 oz = 142 g)",
+    "size_g": 5,
+    "servings": 1,
+    "nutrition": {
+"serving_size_description": "1 tamale (5 oz = 142 g)",
+    "calories": 210,
+    "saturated_fat_g": 0.5,
+    "cholesterol_mg": 0,
+    "sodium_mg": 390
+},
+"price": 3.99,
+    "Price per Serving ($)": 3.99,
+    "shelf_life": "2 weeks in fridge; indefinitely in freezer"
+    },
+    {
+    "description": "Tamale, Breakfast Sausage & Cheese, Tucson Tamale (5 oz = 142 g)",
+    "size_g": 5,
+    "servings": 1,
+    "nutrition": {
+"serving_size_description": "1 tamale (5 oz = 142 g)",
+    "calories": 340,
+    "saturated_fat_g": 6,
+    "cholesterol_mg": 35,
+    "sodium_mg": 580
+},
+"price": 3.99,
+    "Price per Serving ($)": 3.99,
+    "shelf_life": "2 weeks in fridge; indefinitely in freezer"
+    },
+    {
+    "description": "Tamale, Green Chile & Cheese, Tucson Tamale (5 oz = 142 g)",
+    "size_g": 5,
+    "servings": 1,
+    "nutrition": {
+"serving_size_description": "1 tamale (5 oz = 142 g)",
+    "calories": 300,
+    "saturated_fat_g": 6,
+    "cholesterol_mg": 30,
+    "sodium_mg": 420
+},
+"price": 3.99,
+    "Price per Serving ($)": 3.99,
+    "shelf_life": "2 weeks in fridge; indefinitely in freezer"
+    },
+    {
+    "description": "Tamale, Green Chile Pork & Cheese, Tucson Tamale (5 oz = 142 g)",
+    "size_g": 5,
+    "servings": 1,
+    "nutrition": {
+"serving_size_description": "1 tamale (5 oz = 142 g)",
+    "calories": 330,
+    "saturated_fat_g": 6,
+    "cholesterol_mg": 45,
+    "sodium_mg": 430
+},
+"price": 3.99,
+    "Price per Serving ($)": 3.99,
+    "shelf_life": "2 weeks in fridge; indefinitely in freezer"
+    },
+    {
+    "description": "Tortilla chips, Xochitl",
+    "size_g": 16,
+    "servings": 16,
+    "nutrition": {
+"serving_size_description": "21 chips (1 oz = 28 g)",
+    "calories": 150,
+    "saturated_fat_g": 3.5,
+    "cholesterol_mg": 0,
+    "sodium_mg": 85
+},
+"price": 6.29,
+    "Price per Serving ($)": 0.393125
+    },
+    {
+    "description": "Trail Mix, Organic Fruit & Nut, Just FreshDirect (14 oz = 397 g)",
+    "size_g": 14,
+    "servings": 13,
+    "nutrition": {
+"serving_size_description": "1\/4 cup (30 g)",
+    "calories": 140,
+    "saturated_fat_g": 0.5,
+    "cholesterol_mg": 0,
+    "sodium_mg": 0
+},
+"price": 14.99,
+    "Price per Serving ($)": 1.153076923076923
+    },
+    {
+    "description": "Trail Mix, Rainbow's End, Just FreshDirect (14 oz = 397 g)",
+    "size_g": 14,
+    "servings": 13,
+    "nutrition": {
+"serving_size_description": "1\/4 cup (30 g)",
+    "calories": 160,
+    "saturated_fat_g": 2.5,
+    "cholesterol_mg": 0,
+    "sodium_mg": 0
+},
+"price": 13.99,
+    "Price per Serving ($)": 1.0761538461538462
+    },
+    {
+    "description": "Trail Mix, Monster, Nature's Promise (12 oz = 340 g)",
+    "size_g": 12,
+    "servings": 11,
+    "nutrition": {
+"serving_size_description": "1\/4 cup (30 g)",
+    "calories": 160,
+    "saturated_fat_g": 2.5,
+    "cholesterol_mg": 0,
+    "sodium_mg": 5
+},
+"price": 5.19,
+    "Price per Serving ($)": 0.47181818181818186
+    },
+    {
+    "description": "Trail Mix,  Peanut Butter Lover's, Nature's Promise (12 oz = 340 g)",
+    "size_g": 12,
+    "servings": 11,
+    "nutrition": {
+"serving_size_description": "1\/4 cup (30 g)",
+    "calories": 160,
+    "saturated_fat_g": 2.5,
+    "cholesterol_mg": 0,
+    "sodium_mg": 5
+},
+"price": 7.99,
+    "Price per Serving ($)": 0.7263636363636364
+    },
+    {
+    "description": "Yams, Sweet Potato Fries, Alexia (20 oz = 566 g,  6 servings)",
+    "size_g": 20,
+    "servings": 6,
+    "nutrition": {
+"serving_size_description": "12 fries (3 oz = 84 g)",
+    "calories": 140,
+    "saturated_fat_g": 0,
+    "cholesterol_mg": 0,
+    "sodium_mg": 140
+},
+"price": 7.69,
+    "Price per Serving ($)": 1.2816666666666667
+    }
+]}
