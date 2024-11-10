@@ -14,6 +14,7 @@
             "calories": 350,
             "total_fat_g": 1,
             "saturated_fat_g": 0,
+            "trans_fat_g": 0,
             "cholesterol_mg": 0,
             "sodium_mg": 390,
             "total_carbs_g": 73,
@@ -27,6 +28,7 @@
             "potassium_mg": 150
         },
         "price": 8.49,
+        "price_date": "2024-11-09",
         "shelf_life": "7 days in fridge"
     },
     {
@@ -58,6 +60,7 @@
             "potassium_mg": 100
         },
         "price": 5.29,
+        "price_date": "2024-11-09",
         "shelf_life": "2-4 days in pantry; 7-14 days in fridge; 3 months in freezer"
     },
     {
@@ -82,12 +85,14 @@
             "fiber_g": 2,
             "total_sugar_g": 1,
             "added_sugar_g": 1,
+            "protein_g": 3,
             "vitamin_d_mcg": 0,
             "calcium_mg": 30,
             "iron_mg": 0.7,
             "potassium_mg": 60
         },
         "price": 4.29,
+        "price_date": "2024-11-09",
         "shelf_life": "2-4 days in pantry; 7-14 days in fridge; 3 months in freezer"
     },
     {
@@ -119,6 +124,7 @@
             "potassium_mg": 70
         },
         "price": 6.99,
+        "price_date": "2024-11-09",
         "shelf_life": "2-4 days in pantry; 7-14 days in fridge; 3 months in freezer"
     },
     {
@@ -150,7 +156,8 @@
             "potassium_mg": 0
         },
         "price": 5.99,
-        "shelf_life": "2-4 days in pantry; 7-14 days in fridge; 3 months in freezer"
+        "price_date": "2024-11-09",
+       "shelf_life": "2-4 days in pantry; 7-14 days in fridge; 3 months in freezer"
     },
     {
         "group": "grains",
@@ -181,6 +188,7 @@
             "potassium_mg": 92
         },
         "price": 4.59,
+        "price_date": "2024-11-09",
         "shelf_life": "2-4 days in pantry; 7-14 days in fridge; 3 months in freezer"
     },
     {
@@ -198,6 +206,7 @@
             "calories": 140,
             "total_fat_g": 2,
             "saturated_fat_g": 0.5,
+            "trans_fat_g": 0,
             "cholesterol_mg": 0,
             "sodium_mg": 170,
             "total_carbs_g": 23,
@@ -211,6 +220,7 @@
             "potassium_mg": 91
         },
         "price": 4.59,
+        "price_date": "2024-11-09",
         "shelf_life": "2-4 days in pantry; 7-14 days in fridge; 3 months in freezer"
     },
     {
@@ -242,6 +252,7 @@
             "potassium_mg": 70
         },
         "price": 6.99,
+        "price_date": "2024-11-09",
         "shelf_life": "2-4 days in pantry; 7-14 days in fridge; 3 months in freezer"
     },
     {
@@ -262,6 +273,7 @@
             "trans_fat_g": 0,
             "cholesterol_mg": 0,
             "sodium_mg": 280,
+            "total_carbs_g": 28,
             "fiber_g": 4,
             "total_sugar_g": 3,
             "added_sugar_g": 2,
@@ -272,6 +284,7 @@
             "potassium_mg": 150
         },
         "price": 5.09,
+        "price_date": "2024-11-09",
         "shelf_life": "2-4 days in pantry; 7-14 days in fridge; 3 months in freezer"
     },
     {
@@ -303,6 +316,7 @@
             "potassium_mg": 10
         },
         "price": 8.29,
+        "price_date": "2024-11-09",
         "shelf_life": "10-12 months in freezer"
     },
     {
@@ -334,6 +348,7 @@
             "potassium_mg": 0
         },
         "price": 3.69,
+        "price_date": "2024-11-09",
         "shelf_life": "6-12 months"
     },
     {
@@ -365,6 +380,7 @@
             "potassium_mg": 0
         },
         "price": 7.99,
+        "price_date": "2024-11-09",
         "shelf_life": "7 days in pantry; 3-4 weeks in fridge; 3 months in freezer"
     },
     {
@@ -396,6 +412,7 @@
             "potassium_mg": 150
         },
         "price": 6.99,
+        "price_date": "2024-11-09",
         "shelf_life": "unopened:6-8 months past BBD in pantry; opened: 4-6 months in pantry"
     },
     {
@@ -427,6 +444,7 @@
             "potassium_mg": 350
         },
         "price": 6.59,
+        "price_date": "2024-11-09",
         "shelf_life": "unopened: 6-12 months in pantry; opened: 2-3 months in pantry"
     },
     {
@@ -458,6 +476,7 @@
             "potassium_mg": 280
         },
         "price": 7.99,
+        "price_date": "2024-11-09",
         "shelf_life": "unopened: 6-12 months in pantry; opened: 2-3 months in pantry"
     },
     {
@@ -489,6 +508,7 @@
             "potassium_mg": 71
         },
         "price": 5.99,
+        "price_date": "2024-11-09",
         "shelf_life": "up to 12 months in pantry"
     },
     {
@@ -520,6 +540,7 @@
             "potassium_mg": 0
         },
         "price": 4.89,
+        "price_date": "2024-11-09",
         "shelf_life": "unopened: 1 month in fridge, several months in freezer; opened: 1 week in fridge"
     },
     {
@@ -544,12 +565,14 @@
             "fiber_g": 4,
             "total_sugar_g": 1,
             "added_sugar_g": 0,
+            "protein_g": 4,
             "vitamin_d_mcg": 0,
             "calcium_mg": 11,
             "iron_mg": 1,
             "potassium_mg": 122
         },
         "price": 7.29,
+        "price_date": "2024-11-09",
         "shelf_life": "raw: 12-24 months in pantry"
     },
       {
@@ -581,6 +604,7 @@
             "potassium_mg": 105
         },
         "price": 3.89,
+        "price_date": "2024-11-09",
         "shelf_life": "raw: 12-24 months in pantry"
     },
     {
@@ -612,6 +636,7 @@
             "potassium_mg": 0
         },
         "price": 3.59,
+        "price_date": "2024-11-09",
         "shelf_life": "raw: 12-24 months in pantry; cooked: 3-5 days in fridge"
     },
     {
@@ -643,6 +668,7 @@
             "potassium_mg": 118
         },
         "price": 2.49,
+        "price_date": "2024-11-09",
         "shelf_life": "raw: 12-24 months in pantry; cooked: 3-5 days in fridge"
     },
     {
@@ -674,6 +700,7 @@
             "potassium_mg": 2
         },
         "price": 6.39,
+        "price_date": "2024-11-09",
         "shelf_life": "3 days in fridge; 2 months in freezer"
     },
     {
@@ -705,6 +732,7 @@
             "potassium_mg": 20
         },
         "price": 6.39,
+        "price_date": "2024-11-09",
         "shelf_life": "3 days in fridge; 2 months in freezer"
     },
     {
@@ -736,6 +764,7 @@
             "potassium_mg": 380
         },
         "price": 3.99,
+        "price_date": "2024-11-09",
         "shelf_life": "2-3 days in fridge; 3 months in freezer"
     },
     {
@@ -767,6 +796,7 @@
             "potassium_mg": 10
         },
         "price": 4.89,
+        "price_date": "2024-11-09",
         "shelf_life": "2-3 days in fridge; 3 months in freezer"
     },
     {
@@ -798,6 +828,7 @@
             "potassium_mg":50
         },
         "price": 8.79,
+        "price_date": "2024-11-09",
         "shelf_life": "raw: 6-12 months in pantry, even longer in fridge; cooked: 4 days in fridge; may be frozen "
     },
     {
@@ -829,6 +860,7 @@
             "potassium_mg": 115
         },
         "price": 8.79,
+        "price_date": "2024-11-09",
         "shelf_life": "raw: 6-12 months in pantry, even longer in fridge; cooked: 4 days in fridge; may be frozen "
     },
     {
@@ -860,6 +892,7 @@
             "potassium_mg": 105
         },
         "price": 8.79,
+        "price_date": "2024-11-09",
         "shelf_life": "raw: 6-12 months in pantry, even longer in fridge; cooked: 4 days in fridge; may be frozen "
     },
     {
@@ -877,6 +910,7 @@
             "calories": 160,
             "total_fat_g": 0,
             "saturated_fat_g": 0,
+            "trans_fat_g": 0,
             "cholesterol_mg": 0,
             "sodium_mg": 0,
             "total_carbs_g": 36,
@@ -890,6 +924,7 @@
             "potassium_mg": 0
         },
         "price": 6.99,
+        "price_date": "2024-11-09",
         "shelf_life": "raw: 6-12 months in pantry, even longer in fridge; cooked: 4 days in fridge; may be frozen "
     },
     {
@@ -907,6 +942,7 @@
             "calories": 160,
             "total_fat_g": 0,
             "saturated_fat_g": 0,
+            "trans_fat_g": 0,
             "cholesterol_mg": 0,
             "sodium_mg": 0,
             "total_carbs_g": 36,
@@ -920,6 +956,7 @@
             "potassium_mg": 35
         },
         "price": 11.39,
+        "price_date": "2024-11-09",
         "shelf_life": "raw: 6-12 months in pantry, even longer in fridge; cooked: 4 days in fridge; may be frozen "
     },
     {
@@ -951,6 +988,7 @@
             "potassium_mg": 34
         },
         "price": 10.99,
+        "price_date": "2024-11-09",
         "shelf_life": "raw: 6-12 months in pantry, even longer in fridge; cooked: 4 days in fridge; may be frozen "
     },
     {
@@ -966,6 +1004,7 @@
             "serving_size_description": "1/4 cup dry -> 3/4 cups cooked",
             "serving_size_g": 45,
             "calories": 160,
+            "total_fat_g": 0,
             "saturated_fat_g": 0,
             "trans_fat_g": 0,
             "cholesterol_mg": 0,
@@ -974,12 +1013,14 @@
             "fiber_g": 1,
             "total_sugar_g": 0,
             "added_sugar_g": 0,
+            "protein_g": 3,
             "vitamin_d_mcg": 0,
             "calcium_mg": 9,
             "iron_mg": 0,
             "potassium_mg": 52
         },
         "price": 8.79,
+        "price_date": "2024-11-09",
         "shelf_life": "raw: 6-12 months in pantry, even longer in fridge; cooked: 4 days in fridge; may be frozen "
     },
     {
@@ -1010,6 +1051,7 @@
             "potassium_mg": 0
         },
         "price": 3.99,
+        "price_date": "2024-11-09",
         "shelf_life": "wildly varying answers, from 2-3 days in fridge, to indefinitely in pantry"
     }
 ]}
