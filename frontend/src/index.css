@@ -23,24 +23,25 @@
 
 /* Not sure about the button entries.  They don't seem to do much.
   I may tweak or eliminate these entries. */
-button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
-  cursor: pointer;
-  transition: border-color 0.25s;
-}
-button:hover {
-  border-color: #646cff;
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
-}
+  button {
+    border-radius: 8px;
+    border: 1px solid transparent;
+    padding: 0.6em 1.2em;
+    font-size: 1em;
+    font-weight: 500;
+    font-family: inherit;
+    background-color: #1a1a1a;
+    cursor: pointer;
+    transition: border-color 0.25s;
+  }
+  button:hover {
+    border-color: #646cff;
+  }
+  button:focus,
+  button:focus-visible {
+    outline: 4px auto -webkit-focus-ring-color;
+  }
+  
 
 /* Honestly I have no idea what this does. */
 @media (prefers-color-scheme: light) {
@@ -56,11 +57,14 @@ button:focus-visible {
   }
 }
 
-
 /* Fonts:
   font-family: 'Karla Variable', sans-serif;
   font-family: 'Markazi Text Variable', serif;
 */
+
+.logo {
+  width: 60px;
+}
 
 * {
   margin: 0;
@@ -155,7 +159,8 @@ button:focus-visible {
   padding: 0;
   margin: 0;
   border: 2px solid red;
-  overflow-x: scroll;
+  overflow: scroll scroll;
+  max-height: 600px;
 }
 .ingredientTable {
   table-layout: fixed;
@@ -191,5 +196,5 @@ th, td {
   min-width: 10rem;
 }
 .w-4 {
-  width: 20rem;
+  width: 22rem;
 }

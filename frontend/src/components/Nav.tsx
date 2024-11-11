@@ -56,7 +56,7 @@ function Nav() {
                 { isLoggedIn() ? <Link to="/ingredients" className="nav-item">Ingredients</Link> : ""}
                 { isLoggedIn() ? <Link to="/meals" className="nav-item">Meals</Link> : ""}
                 { isLoggedIn() ? <Link to="/dailylog" className="nav-item">Daily Log</Link> : ""}
-                { isLoggedIn() ? <Link to="#" className="nav-item" onClick={removeToken}>Log Out</Link>
+                { isLoggedIn() ? <Link to="/login" className="nav-item" onClick={removeToken}>Log Out</Link>
                                : <Link to="/login" className="nav-item">Log In</Link>}
                                  <Link to="/register" className="nav-item">Register</Link>
                                  <Link to="/about" className="nav-item">About</Link>

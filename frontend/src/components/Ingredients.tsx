@@ -61,7 +61,7 @@ const columns = [
         cell: info => info.getValue(),
     }),
     columnHelper.accessor("vendor", {
-        header: () => <div className="w-2">Vendor</div>,
+        header: () => <div className="w-3">Vendor</div>,
         cell: info => info.getValue(),
     }),
     columnHelper.accessor("size_description", {
@@ -77,7 +77,7 @@ const columns = [
         cell: info => info.getValue(),
     }),
     columnHelper.accessor("nutrition.serving_size_description", {
-        header: () => <div className="w-2">Serving Size</div>,
+        header: () => <div className="w-3">Serving Size</div>,
         cell: info => info.getValue(),
     }),
     columnHelper.accessor("nutrition.serving_size_g", {
@@ -183,7 +183,7 @@ const Ingredients = (props: any) => {
 				console.log(error)
                 if (error.status == 401) {
                     removeTokenFunction()
-                    navigate("/", { state: { message: "Your token has expired and you have been logged out." } });
+                    navigate("/login", { state: { message: "Your token has expired and you have been logged out." } });
                 }
                 setErrorMessage(error.message)
             })

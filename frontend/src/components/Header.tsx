@@ -1,8 +1,8 @@
-import logo from '../assets/react.svg';
+import logo from '../assets/bell.svg';
 
 function Header() {
     return (
-        <img src={logo} alt="TrackEats logo" />
+        <img className="logo" src={logo} alt="TrackEats logo" />
     );
 }
 

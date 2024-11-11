@@ -1,7 +1,8 @@
 function Footer() {
     return (
         <>
-            <p>Footer Placeholder</p>
+            <br/>
+            <p>Copyright: © 2024 Last Call Software.  All rights reserved.</p>
         </>
     );
 }

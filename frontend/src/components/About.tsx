@@ -5,10 +5,10 @@ function About() {
                 <p>I know, I know, it's not much to look at... yet!  But we'll get there.</p>
                 <br/>
                 <p>I've always said that a good user interface is the most crucial part of any 
-                    application since it constitutes the user's entire experience of the app... but
-                    for now I've been more focused on getting the full tech stack working.  This 
-                    application's actual functionality is almost trivial compared to all the machinery
-                    needed behind the scenes to get it working at a basic level.</p>
+                    application since it constitutes the user's entire experience of the app.
+                    Nevertheless, for starters I've been more focused on getting the full tech 
+                    stack working.  This application's actual functionality is almost trivial 
+                    compared to all the machinery needed behind the scenes to get it working.</p>
                 <br/>
                 <p>At the time of this writing, that tech stack includes:</p>
                 <ul>
@@ -45,10 +45,10 @@ function About() {
                 <br/>
                 <p>As a longtime back end Java developer, I was familiar with only a few of these technologies 
                     when I started working on the app in earnest about 10 weeks ago.  The rest I picked up along
-                    the way, mostly from scratch.  Frankly I was a little intimidated by the bewildering number
-                    and variety of technologies and products that are required to get even a simple web app
-                    working when you take ownership of the whole thing from end to end, and to be honest there's
-                    still a lot to do before I'm satisfied with the end result.  Yet I'm pleased with how much 
+                    the way, mostly from scratch.  Frankly I was a little intimidated at first by the bewildering
+                    number and variety of technologies and products that are required to get even a simple web app
+                    working when you take ownership of the whole thing from end to end, and there's still a lot 
+                    left to do before I'll be satisfied with the end result.  Yet I'm pleased with how much 
                     I've learned and what I've been able to accomplish in a relatively short amount of time,
                     completely on my own.</p>
                 <br/>
@@ -57,6 +57,9 @@ function About() {
                     But don't worry, one of the items on my to-do list is to implement a pluggable alternate 
                     back end using Java/Spring Boot/Hibernate.
                 </p>
+                <br/>
+                <p>Paul Holmes</p>
+                <p>04 Nov 2024</p>
             </section>
         </section>
     );
