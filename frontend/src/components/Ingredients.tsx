@@ -3,8 +3,8 @@ import axios from 'axios';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-type Ingredient = {
-    id: number
+export type Ingredient = {
+    id?: number
     group: string
     type: string
     subtype: string
@@ -22,7 +22,7 @@ type Ingredient = {
         trans_fat_g: number
         cholesterol_mg: number
         sodium_mg: number
-        total_carb_g: number
+        total_carbs_g: number
         fiber_g: number
         total_sugar_g: number
         added_sugar_g: number
@@ -37,8 +37,8 @@ type Ingredient = {
     shelf_life: string
 }
 
+// Define the table
 const columnHelper = createColumnHelper<Ingredient>()
-
 const columns = [
     columnHelper.accessor("id", {
         header: () => "ID",
@@ -108,7 +108,7 @@ const columns = [
         header: () =><div className="w-1">Sodium (mg)</div>,
         cell: info => info.getValue(),
     }),
-    columnHelper.accessor("nutrition.total_carb_g", {
+    columnHelper.accessor("nutrition.total_carbs_g", {
         header: () => <div className="w-1">Total Carbs (g)</div>,
         cell: info => info.getValue(),
     }),
@@ -158,7 +158,6 @@ const columns = [
 const Ingredients = (props: any) => {
     const [ingredients, setIngredients] = useState<Ingredient[]>([])
     const [errorMessage, setErrorMessage] = useState<string>("")
-
     const navigate = useNavigate()
     const removeTokenFunction = props.removeTokenFunction
 	const tok = sessionStorage.getItem("access_token")
@@ -173,8 +172,12 @@ const Ingredients = (props: any) => {
     // Use the table hooks from TanStack Table
     const table = useReactTable(tableOptions)
 
+    const addRecord = () => {
+        navigate("/ingredientForm", { state: {} });
+    }
+    
     useEffect(() => {
-        // Call the back end's /login API with the username and password from the form
+        // Call the back end's /ingredient API to get the data to populate the table
         axios.get("/ingredient", {headers: { "Authorization": "Bearer " + token}})
             .then((response) => {
                 setIngredients(response.data);
@@ -209,7 +212,6 @@ const Ingredients = (props: any) => {
                 		</tr>
               		))}
             	</thead>
-
             	<tbody>
               		{table.getRowModel().rows.map((row) => (
                 		<tr key={row.id}>
@@ -224,7 +226,6 @@ const Ingredients = (props: any) => {
                 		</tr>
               		))}
             	</tbody>
-
             	<tfoot>
               		{table.getFooterGroups().map(footerGroup => (
                 		<tr key={footerGroup.id}>
@@ -242,12 +243,14 @@ const Ingredients = (props: any) => {
                 		</tr>
               		))}
             	</tfoot>
-
           	</table>
 
-		  	<p>{errorMessage}</p>
-        </section>
-      )
+            <button onClick={addRecord}>Add</button>
+
+            <p>{errorMessage}</p>
+</section>
+
+)
 }
   
 export default Ingredients;

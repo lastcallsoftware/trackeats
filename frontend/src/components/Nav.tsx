@@ -11,6 +11,7 @@ import Register from './Register';
 import Footer from './Footer';
 import axios from "axios";
 import ConfirmUser from './ConfirmUser';
+import IngredientForm from './IngredientForm';
 
 // An unused function actually causes the build to FAIL!  Bizarre.
 // So -- for now! -- comment this out.
@@ -71,6 +72,7 @@ function Nav() {
                 <Route path="/login" element={<Login storeTokenFunction={storeToken}/>} />
                 <Route path="/register" element={<Register/>} />
                 <Route path="/confirm" element={<ConfirmUser/>} />
+                <Route path="/ingredientForm" element={<IngredientForm />} />
             </Routes>
             <Footer />
         </>
