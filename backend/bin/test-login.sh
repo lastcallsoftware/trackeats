@@ -1,2 +1,5 @@
 #!/bin/bash
-curl -d '{"username": "testuser", "password": "Test*123" }' -H "Content-Type: application/json" -X POST http://localhost:5000/login
+curl \
+-H "Content-Type: application/json" \
+-d '{"username": "testuser", "password": "Test*123" }' \
+http://localhost:5000/login
