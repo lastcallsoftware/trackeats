@@ -62,27 +62,22 @@
   font-family: 'Markazi Text Variable', serif;
 */
 
-.logo {
-  width: 60px;
-}
-
+/* #root is another global selector to consider */
 * {
   margin: 0;
   padding: 0;
+  text-align: center;
 }
 
-#root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
+.logo {
+  margin-top: 1rem;
+  width: 60px;
 }
 
 /* Nav Bar */
 .navbar {
   display: flex;
   flex-wrap: wrap;
-  margin-top: 1rem;
   align-items: center;
   justify-content: center;
 }
@@ -145,7 +140,7 @@
 .aboutBoundingBox {
   display: block;
   margin: auto;
-  width: 80%;
+  width: 60%;
   padding: 1rem;
   border: 1px solid black;
   text-align: left;
@@ -156,8 +151,7 @@
 }
 
 .ingredientTableContainer {
-  padding: 0;
-  margin: 0;
+  margin: 0 2rem;
   border: 2px solid red;
   overflow: scroll scroll;
   max-height: 600px;
@@ -165,6 +159,7 @@
 .ingredientTable {
   table-layout: fixed;
   margin: 0 auto 0 auto;
+  width: 100%;
 }
 .ingredientTable, td, th {
   border-collapse: collapse;
@@ -177,24 +172,10 @@ th {
   background: #66C2E0;
 }
 td {
-  padding: 5px 10px;
+  font-size: 15px;
+  padding: 5px 5px;
   height: 35px;
 }
-/*
-th, td {
-  min-width: 10px;
-}
-*/
-
-.w-1 {
-  min-width: 3rem;
-}
-.w-2 {
-  min-width: 5rem;
-}
-.w-3 {
-  min-width: 10rem;
-}
-.w-4 {
-  width: 22rem;
+.selected {
+  background-color: lightblue;
 }

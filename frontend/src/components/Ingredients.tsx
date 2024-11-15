@@ -41,116 +41,144 @@ export type Ingredient = {
 const columnHelper = createColumnHelper<Ingredient>()
 const columns = [
     columnHelper.accessor("id", {
-        header: () => "ID",
+        header: "ID",
         cell: info => info.getValue(),
+        size: 55
     }),
     columnHelper.accessor("group", {
-        header: () => <div className="w-2">Group</div>,
+        header: "Group",
         cell: info => String(info.getValue()).charAt(0).toUpperCase() + String(info.getValue()).slice(1),
+        size: 75
     }),
     columnHelper.accessor("type", {
-        header: () => <div className="w-2">Type</div>,
+        header: "Type",
         cell: info => info.getValue(),
+        size: 150,
     }),
     columnHelper.accessor("subtype", {
-        header: () => <div className="w-2">Subtype</div>,
+        header: "Subtype",
         cell: info => info.getValue(),
+        size: 150
     }),
     columnHelper.accessor("description", {
-        header: () => <div className="w-3">Description</div>,
+        header: "Description",
         cell: info => info.getValue(),
+        size: 150
     }),
     columnHelper.accessor("vendor", {
-        header: () => <div className="w-3">Vendor</div>,
+        header: "Vendor",
         cell: info => info.getValue(),
+        size: 100
     }),
     columnHelper.accessor("size_description", {
-        header: () => <div className="w-2">Size</div>,
+        header: "Size",
         cell: info => info.getValue(),
+        size: 100
     }),
     columnHelper.accessor("size_g", {
-        header: () => <div className="w-1">Size (g or ml)</div>,
+        header: "Size (g or ml)",
         cell: info => info.getValue(),
+        size: 55
     }),
     columnHelper.accessor("servings", {
-        header: () => <div className="w-1">Servings</div>,
+        header: "Servings",
         cell: info => info.getValue(),
+        size: 60
     }),
     columnHelper.accessor("nutrition.serving_size_description", {
-        header: () => <div className="w-3">Serving Size</div>,
+        header: "Serving Size",
         cell: info => info.getValue(),
+        size: 100
     }),
     columnHelper.accessor("nutrition.serving_size_g", {
-        header: () => <div className="w-1">Serving Size (g or ml)</div>,
+        header: "Serving Size (g or ml)",
         cell: info => info.getValue(),
+        size: 55
     }),
     columnHelper.accessor("nutrition.calories", {
-        header: () => <div className="w-1">Calories</div>,
+        header: "Calories",
         cell: info => info.getValue(),
+        size: 55
     }),
     columnHelper.accessor("nutrition.total_fat_g", {
-        header: () => <div className="w-1">Total Fat (g)</div>,
+        header: "Total Fat (g)",
         cell: info => info.getValue(),
+        size: 55
     }),
     columnHelper.accessor("nutrition.saturated_fat_g", {
-        header: () => <div className="w-1">Saturated Fat (g)</div>,
+        header: "Satu- rated Fat (g)",
         cell: info => info.getValue(),
+        size: 55
     }),
     columnHelper.accessor("nutrition.trans_fat_g", {
-        header: () => <div className="w-1">Trans Fat (g)</div>,
+        header: "Trans Fat (g)",
         cell: info => info.getValue(),
+        size: 55
     }),
     columnHelper.accessor("nutrition.cholesterol_mg", {
-        header: () => <div className="w-1">Cholesterol (mg)</div>,
+        header: "Choles- terol (mg)",
         cell: info => info.getValue(),
+        size: 55
     }),
     columnHelper.accessor("nutrition.sodium_mg", {
-        header: () =><div className="w-1">Sodium (mg)</div>,
+        header: "Sodium (mg)",
         cell: info => info.getValue(),
+        size: 55
     }),
     columnHelper.accessor("nutrition.total_carbs_g", {
-        header: () => <div className="w-1">Total Carbs (g)</div>,
+        header: "Total Carbs (g)",
         cell: info => info.getValue(),
+        size: 55
     }),
     columnHelper.accessor("nutrition.total_sugar_g", {
-        header: () => <div className="w-1">Total Sugar (g)</div>,
+        header: "Total Sugar (g)",
         cell: info => info.getValue(),
+        size: 55
     }),
     columnHelper.accessor("nutrition.added_sugar_g", {
-        header: () => <div className="w-1">Added Sugar (g)</div>,
+        header: "Added Sugar (g)",
         cell: info => info.getValue(),
+        size: 55
     }),
     columnHelper.accessor("nutrition.protein_g", {
-        header: () => <div className="w-1">Protein (g)</div>,
+        header: "Protein (g)",
         cell: info => info.getValue(),
+        size: 55
     }),
     columnHelper.accessor("nutrition.vitamin_d_mcg", {
-        header: () => <div className="w-1">Vitamin D (mcg)</div>,
+        header: "Vitamin D (mcg)",
         cell: info => info.getValue(),
+        size: 55
     }),
     columnHelper.accessor("nutrition.calcium_mg", {
-        header: () => <div className="w-1">Calcium (mg)</div>,
+        header: "Calcium (mg)",
         cell: info => info.getValue(),
+        size: 55
     }),
     columnHelper.accessor("nutrition.iron_mg", {
-        header: () => <div className="w-1">Iron (mg)</div>,
+        header: "Iron (mg)",
         cell: info => info.getValue(),
+        size: 55
     }),
     columnHelper.accessor("nutrition.potassium_mg", {
-        header: () => <div className="w-1">Potassium (mg)</div>,
+        header: "Potas- sium (mg)",
         cell: info => info.getValue(),
+        size: 55
     }),
     columnHelper.accessor("price", {
-        header: () => <div className="w-1">Price</div>,
+        header: "Price",
         cell: info => info.getValue(),
+        size: 55
     }),
     columnHelper.accessor("price_date", {
-        header: () => <div className="w-2">Price Date</div>,
+        header: "Price Date",
         cell: info => info.getValue(),
+        size: 100
     }),
     columnHelper.accessor("shelf_life", {
-        header: () => <div className="w-4">Shelf Life</div>,
+        header: "Shelf Life",
         cell: info => info.getValue(),
+        size: 400
     }),
 ]
 
@@ -166,7 +194,8 @@ const Ingredients = (props: any) => {
     const tableOptions: TableOptions<Ingredient> = {
         data: ingredients,
         columns,
-        getCoreRowModel: getCoreRowModel()
+        getCoreRowModel: getCoreRowModel(),
+        enableMultiRowSelection: false
     }
 
     // Use the table hooks from TanStack Table
@@ -199,7 +228,7 @@ const Ingredients = (props: any) => {
             		{table.getHeaderGroups().map((headerGroup) => (
     					<tr key={headerGroup.id}>
         					{headerGroup.headers.map((header) => (
-        						<th key={header.id}>
+        						<th key={header.id} style={{width: header.getSize()}} colSpan={header.colSpan}>
         							{header.isPlaceholder
         								? null
 										: flexRender(
@@ -214,7 +243,7 @@ const Ingredients = (props: any) => {
             	</thead>
             	<tbody>
               		{table.getRowModel().rows.map((row) => (
-                		<tr key={row.id}>
+                		<tr key={row.id} className={row.getIsSelected() ? "selected" : undefined} onClick={row.getToggleSelectedHandler()}>
                   			{row.getVisibleCells().map((cell) => (
                     			<td key={cell.id}>
                       				{flexRender(
