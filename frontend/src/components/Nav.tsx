@@ -53,7 +53,7 @@ function Nav() {
         <>
             <Header />
             <nav id="navbar" className="navbar">
-                                 <Link to="/" className="nav-item">Home</Link>
+                               {/*<Link to="/" className="nav-item">Home</Link>*/}
                 { isLoggedIn() ? <Link to="/ingredients" className="nav-item">Ingredients</Link> : ""}
                 { isLoggedIn() ? <Link to="/meals" className="nav-item">Meals</Link> : ""}
                 { isLoggedIn() ? <Link to="/dailylog" className="nav-item">Daily Log</Link> : ""}
