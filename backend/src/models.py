@@ -286,7 +286,7 @@ class Ingredient(db.Model):
     nutrition_id = db.Column(db.Integer, db.ForeignKey('nutrition.id'))
     nutrition = db.relationship(Nutrition, single_parent=True, cascade="all, delete-orphan", backref=db.backref("nutrition", cascade="all, delete-orphan", uselist=False))
     price = db.Column(db.Float)
-    price_date = db.Column(db.DateTime)
+    price_date = db.Column(db.Date)
     shelf_life = db.Column(db.String(100))
 
     def __str__(self):
@@ -318,24 +318,27 @@ class Ingredient(db.Model):
     # commit is a boolean indicating whether the record should be committed to
     #   the database.  Set it to false when you want to add a bunch of records
     #   at once (calling this function multiple times), in which case the caller
-    #   is required to commit the records (via db.session.commit()).
+    #   is required to commit the records afterwards (via db.session.commit()).
     def add(user_id: int, ingredient: dict[str, str|int|float], commit: bool) -> list[str]:
         errors = []
         try: 
-            # Tweak the data a little
+            # Add the user_id to the ingredient record.
+            # I've been debating whether the caller should do this.  Unsure.
             ingredient["user_id"] = user_id
 
             # "Pull out" the nutrition child object.
-            # The method we're about to use to deserialize the records
-            # doesn't handle child objects properly.
+            # The method we're about to use to deserialize the JSON fields
+            # doesn't handle child objects properly, so we'll remove the
+            # child object, deserialize it separately, and then re-add it.
             nutrition = ingredient["nutrition"]
             del ingredient["nutrition"]
 
-            # Use Pythons ** operator to create an instance of the SQLAlchemy model objects
+            # Use Python's ** operator to populate an instance of the SQLAlchemy
+            # model objects.
             n = Nutrition(**nutrition)
             i = Ingredient(**ingredient)
 
-            # Now re-add the nutrition child object to the Ingredient object
+            # Now re-add the Nutrition child object to the Ingredient object.
             i.nutrition = n
 
             # Add the new record to the database!
