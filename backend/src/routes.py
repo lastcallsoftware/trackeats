@@ -1,148 +1,14 @@
 import os
-import re
 import logging
 from datetime import datetime, timedelta
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import jwt_required, create_access_token, get_jwt_identity
 from sendmail import send_confirmation_email
-from email_validator import validate_email, EmailNotValidError
 from models import db, User, UserStatus, Ingredient
-from crypto import encrypt, decrypt, hash_password, check_password, generate_url_token
+from crypto import generate_url_token
 from data import load_db
 
-
 bp = Blueprint("auth", __name__)
-
-# HELPER FUNCTIONS
-# ----------------
-
-# ADD_NEW_USER
-# ------------
-# Add a new user to the database and send them a verification email.
-# This function does not issue a JWT token; if registration is successful, the
-# caller may then use the /login API to get a token using these same credentials.
-def add_new_user(username: str, password: str, email_addr: str, status=UserStatus.pending, confirmation_token: str=None) -> list[str]:
-    # Add a catch-all try-except block, because who knows what could fail in
-    # the ORM and JWT libraries we use here?  If there is a failure, we want
-    # to return our own error message instad of an exception stack!
-    try:
-        errors = []
-
-        if not username:
-            errors.append("Username is required but missing.")
-        else:
-            username = username.strip()
-            if len(username) < 3:
-                errors.append("Username must be at least 3 characters.")
-            elif len(username) > 100:
-                errors.append("Username must be at most 100 characters.")
-        
-        if not password:
-            errors.append("Password is required but missing.")
-        else:
-            password = password.strip()
-            if len(password) < 8:
-                errors.append("Password must be at least 8 characters.")
-            elif len(password) > 100:
-                errors.append("Password must be at most 100 characters.")
-            if not re.search(r"[a-z]", password):
-                errors.append("Password must contain at least one lowercase letter.")
-            if not re.search(r"[A-Z]", password):
-                errors.append("Password must contain at least one uppercase letter.")
-            if not re.search(r"\d", password):
-                errors.append("Password must contain at least one digit.")
-            if not re.search(r"[!@#$%^&*()_+\-=\[\]{};':\"\\|,.<>\/?]", password):
-                errors.append("Password must contain at least one special character.")
-
-        if not email_addr:
-            errors.append("Email address is required but missing.")
-        else:
-            try:
-                email_info = validate_email(email_addr, check_deliverability=True)
-                email_addr = email_info.normalized
-            except EmailNotValidError as e:
-                errors.append(str(e) + " ")
-
-        if len(errors) == 0:
-            # Check whether this username is already in the database
-            query = db.select(User).filter_by(username=username)
-            existing_user = db.session.execute(query).first()
-            if (existing_user is not None):
-                errors.append(f"User {username} already exists.")
-            else:
-                # Salt and hash the password
-                password_hash_str = hash_password(password)
-
-                # Encrypt the user data.  Currently that is just the email address.
-                encrypted_email = None
-                if email_addr and len(email_addr) > 0:
-                    encrypted_email_addr = encrypt(email_addr)
-
-                # Store the user record in the database
-                now = datetime.now()
-                confirmation_sent_at = None
-                if confirmation_token is not None:
-                    confirmation_sent_at = now
-                new_user = User(
-                    username=username, 
-                    status=status, 
-                    email=encrypted_email_addr, 
-                    created_at=now, 
-                    password_hash=password_hash_str,
-                    confirmation_sent_at=confirmation_sent_at, 
-                    confirmation_token=confirmation_token)
-                db.session.add(new_user)
-                db.session.commit()
-    except Exception as e:
-        errors.append("User could not be added: " + repr(e))
-
-    return errors
-
-
-# VERIFY_USER
-# -----------
-# Verify that the given user credentials are valid
-def verify_user(username: str, password: str) -> list[str]:
-    errors = []
-
-    try:
-        if not username:
-            errors.append("Username is required but missing.")
-        if not password:
-            errors.append("Password is required but missing.")
-
-        if len(errors) == 0:
-            # Validate the credentials
-            # Retrieve user record from database
-            # I know that in the case of a validation failure you're not supposed to 
-            # tell the caller whether the username or password was invalid.  In the
-            # interests of easier debugging, I'll take my chances here... :P
-            query = db.select(User).filter_by(username=username)
-            users = db.session.execute(query).first()
-            if users is None:
-                errors.append(f"Invalid username {username}.")
-            else:
-                user = users[0]
-
-                # Make sure the user has been confirmed
-                if user.status != UserStatus.confirmed:
-                    errors.append(f"User {username} has not been confirmed.")
-                else:
-                    # Validate the password.
-                    # Note that the salt is stored as part of the hash, rather than as a 
-                    # separarte value.  The bcrypt API knows how to separate them.
-                    password_hash_bytes = bytes(user.password_hash, "utf-8")
-                    password_bytes = bytes(password, "utf-8")
-                    if (not check_password(password_bytes, password_hash_bytes)):
-                        errors.append(f"Invalid password for username {username}.")
-    except:
-        errors.append("Internal server error: user could not be validated.")
-
-    return errors
-
-
-# ROUTE HANDLERS
-# --------------
 
 # HEALTH
 # ------
@@ -173,14 +39,14 @@ def db_init():
 
 # DB/LOAD
 # -------
-# Populate the (presumably newly crEated) database with a little seed data
+# Populate the (presumably newly created) database with a little seed data
 # for testing.
 # Be aware that this API first deletes the contents of tables it populates!
 @bp.route("/db/load", methods=["GET"])
 def db_load():
     logging.info("/db/load")
 
-    errors = load_db(add_new_user=add_new_user)
+    errors = load_db()
 
     if len(errors) > 0:
         msg = "\n".join(errors)
@@ -213,7 +79,7 @@ def register():
         token = generate_url_token()
 
         # Add the user to the database in "pending" state
-        errors = add_new_user(username, password, email_addr, UserStatus.pending, token)
+        errors = User.add(username, password, email_addr, UserStatus.pending, token)
         if len(errors) == 0:
             logging.info(f"New user added to database: {username} at {email_addr}")
 
@@ -323,7 +189,7 @@ def confirm():
         logging.error(msg)
         return jsonify(msg), 500
 
-    msg = f"User {username} confirmed.  You may close this window and log into the Trackeats app now."
+    msg = f"User {username} confirmed.  You may now close this window and log into the Trackeats app."
     logging.info(msg)
     return jsonify(msg), 200
 
@@ -347,7 +213,7 @@ def login():
         password = request.json.get('password', None)
 
         # Verify that the user's credentials are valid
-        errors = verify_user(username, password)
+        errors = User.verify(username, password)
 
         # Generate a JWT token
         access_token = None
@@ -366,7 +232,7 @@ def login():
 
 # USER
 # ----
-# Return the list of all users.
+# Return the list of all Users.
 # TODO: This is currently an UNPROTECTED API.
 # Make sure to protect it before releasing to production!
 @bp.route("/user", methods = ["GET"])
@@ -388,7 +254,7 @@ def get_users():
             return jsonify({"msg": "Unable to access database: " + str(e)}), 500
         return jsonify(data),200
 
-# Call this to get a particular user's data.
+# Get a particular User record.
 @bp.route("/user/<string:username>", methods = ["GET"])
 def get_user(username: str):
     logging.info("/user/" + username)
@@ -404,6 +270,7 @@ def get_user(username: str):
             data = user.json()
     except Exception as e:
         return jsonify({"msg": "Unable to access database: " + str(e)}), 500
+
     return jsonify(data),200
 
 
@@ -423,17 +290,56 @@ def protected():
 
 # INGREDIENT
 # ----------
-# Finally, an API that actually retrieves app data!
+# Get the list of all ingredients for this user
 @bp.route("/ingredient", methods = ["GET"])
 @jwt_required()
-def hello_world():
-    logging.info("/ingredient")
-    username = get_jwt_identity()
-    logging.info(f"username: {username}")
-    if (request.method == "GET"):
-        user = User.query.filter_by(username=username).first()
-        ingredients = Ingredient.query.filter_by(user_id=user.id).all()
+def get_ingredients():
+    logging.info("/ingredient GET")
+
+    errors = []
+    try:
+        # Get the user_id for the user identified by the token
+        username = get_jwt_identity()
+        user_id = User.get_id(username)
+
+        # Get all the Ingredients associated with that user_id
+        ingredients = Ingredient.query.filter_by(user_id=user_id).all()
         data = []
         for ingredient in ingredients:
             data.append(ingredient.json())
+    except Exception as e:
+        errors.append("Could not retrieve Ingredient records: " + repr(e))
+
+    if (len(errors) > 0):
+        msg = "\n".join(errors)
+        logging.error(msg)
+        return jsonify({"msg": msg}), 400
+    else:
         return jsonify(data), 200
+    
+# Add a new Ingredient to the database for this user
+@bp.route("/ingredient", methods = ["POST"])
+@jwt_required()
+def add_ingredient():
+    logging.info("/ingredient POST")
+
+    errors = []
+    try:
+        # Get the user_id for the user identified by the token
+        username = get_jwt_identity()
+        user_id = User.get_id(username)
+
+        # Add the ingredient to the database
+        ingredient = request.json
+        errors = Ingredient.add(user_id, ingredient, True)
+    except Exception as e:
+        errors.append("Ingredient record could not be added: " + repr(e))
+
+    if (len(errors) > 0):
+        msg = "\n".join(errors)
+        logging.error(msg)
+        return jsonify({"msg": msg}), 400
+    else:
+        msg = f"Ingredient added"
+        logging.info(msg)
+        return jsonify({"msg": msg}), 200

@@ -1,18 +1,210 @@
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import Mapped, mapped_column
-from crypto import decrypt
+from email_validator import validate_email, EmailNotValidError
+from crypto import check_password, encrypt, decrypt, hash_password
 import enum
 import datetime
+import re
+
+# We're using a library (flask-sqlalchemy) that handles database interactions
+# for us.  This file contains the classes that represent the various records in 
+# the database.  I've beefed up these classes to be more than just thin shells
+# around the database tables, though.  They contain things like validation, too.
 
 # Instantiate the database connector.
 db = SQLAlchemy()
 
-# SQL ALCHEMY ORM MODELS
-# ----------------------
-# We're using a library (flask-sqlalchemy) that handles database interactions
-# for us.  These are the classes that represent the various records in the
-# database.
+# USER
+# ----
+# A user of this app.  This record contains their password hash and other
+# authentication data.  Any personal data (such as email address) is encrypted.
+# Each user owns their own app data.
+class UserStatus(enum.Enum):
+    pending = 1
+    confirmed = 2
+    cancelled = 3
+    banned = 4
 
+class User(db.Model):
+    __tablename__ = "user"
+
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(100), index=True, unique=True, nullable=False)
+    status = db.Column(db.Enum(UserStatus), nullable=False)
+    email = db.Column(db.LargeBinary, nullable=True)
+    created_at = db.Column(db.DateTime, nullable=False)
+    password_hash = db.Column(db.String(64), nullable=False)
+    confirmation_sent_at = db.Column(db.DateTime, nullable=True)
+    confirmation_token = db.Column(db.String(64), nullable=True)
+
+    def __str__(self):
+        return f"<User {self.id} {self.username}, status: {self.status}, created_at: {self.created_at}, confirmation_sent_at: {self.confirmation_sent_at}>"
+    def __repr__(self):
+        email = ""
+        if self.email and len(self.email) > 0:
+            email = decrypt(self.email)
+        return f"User({self.id}, \'{self.username}\', {self.status}, \'{email}\', {self.created_at}, \'{self.password_hash}\', {self.confirmation_sent_at}, \'{self.confirmation_token}\')"
+    def json(self):
+        return {
+            "id": self.id,
+            "username": self.username,
+            "status": self.status.name,
+            "created_at": self.created_at,
+            "confirmation_sent_at": self.confirmation_sent_at
+            }
+    
+    # Get the user_id for the given username
+    def get_id(username: str) -> int:
+        #query = db.select(User).filter_by(username)
+        #users = db.session.execute(query).first()
+        user = User.query.filter_by(username=username).first()
+        return user.id
+
+    # Add a new User to the database.
+    # Returns a list of error messages, or an empty list on success.
+    # This function validates the data before adding it.
+    def add(username: str, password: str, email_addr: str, status=UserStatus.pending, confirmation_token: str=None) -> list[str]:
+    # Add a catch-all try-except block, because who knows what could fail in
+    # the ORM and JWT libraries we use here?  If there is a failure, we want
+    # to return our own error message instad of an exception stack!
+        errors = []
+        try:
+            if not username:
+                errors.append("Username is required but missing.")
+            else:
+                username = username.strip()
+                if len(username) < 3:
+                    errors.append("Username must be at least 3 characters.")
+                elif len(username) > 100:
+                    errors.append("Username must be at most 100 characters.")
+            
+            if not password:
+                errors.append("Password is required but missing.")
+            else:
+                password = password.strip()
+                if len(password) < 8:
+                    errors.append("Password must be at least 8 characters.")
+                elif len(password) > 100:
+                    errors.append("Password must be at most 100 characters.")
+                if not re.search(r"[a-z]", password):
+                    errors.append("Password must contain at least one lowercase letter.")
+                if not re.search(r"[A-Z]", password):
+                    errors.append("Password must contain at least one uppercase letter.")
+                if not re.search(r"\d", password):
+                    errors.append("Password must contain at least one digit.")
+                if not re.search(r"[!@#$%^&*()_+\-=\[\]{};':\"\\|,.<>\/?]", password):
+                    errors.append("Password must contain at least one special character.")
+
+            if not email_addr:
+                errors.append("Email address is required but missing.")
+            else:
+                try:
+                    email_info = validate_email(email_addr, check_deliverability=True)
+                    email_addr = email_info.normalized
+                except EmailNotValidError as e:
+                    errors.append(str(e) + " ")
+
+            if len(errors) == 0:
+                # Check whether this username is already in the database
+                query = db.select(User).filter_by(username=username)
+                existing_user = db.session.execute(query).first()
+                if (existing_user is not None):
+                    errors.append(f"User {username} already exists.")
+                else:
+                    # Salt and hash the password
+                    password_hash_str = hash_password(password)
+
+                    # Encrypt the user data.  Currently that is just the email address.
+                    encrypted_email = None
+                    if email_addr and len(email_addr) > 0:
+                        encrypted_email_addr = encrypt(email_addr)
+
+                    # Store the user record in the database
+                    now = datetime.datetime.now()
+                    confirmation_sent_at = None
+                    if confirmation_token is not None:
+                        confirmation_sent_at = now
+                    new_user = User(
+                        username=username, 
+                        status=status, 
+                        email=encrypted_email_addr, 
+                        created_at=now, 
+                        password_hash=password_hash_str,
+                        confirmation_sent_at=confirmation_sent_at, 
+                        confirmation_token=confirmation_token)
+                    db.session.add(new_user)
+                    db.session.commit()
+        except Exception as e:
+            errors.append(f"User {username} could not be added: " + repr(e))
+
+        return errors
+
+    # Verify that the given user credentials are valid.
+    # Return a list of error messages, or an empty list on success.
+    def verify(username: str, password: str) -> list[str]:
+        errors = []
+        try:
+            if not username:
+                errors.append("Username is required but missing.")
+            if not password:
+                errors.append("Password is required but missing.")
+
+            if len(errors) == 0:
+                # Validate the credentials
+                # Retrieve user record from database
+                # I know that in the case of a validation failure you're not supposed to 
+                # tell the caller whether the username or password was invalid.  In the
+                # interests of easier debugging, I'll take my chances here... :P
+                query = db.select(User).filter_by(username=username)
+                users = db.session.execute(query).first()
+                if users is None:
+                    errors.append(f"Invalid username {username}.")
+                else:
+                    user = users[0]
+
+                    # Make sure the user has been confirmed
+                    if user.status != UserStatus.confirmed:
+                        errors.append(f"User {username} has not been confirmed.")
+                    else:
+                        # Validate the password.
+                        # Note that the salt is stored as part of the hash, rather than as a 
+                        # separarte value.  The bcrypt API knows how to separate them.
+                        password_hash_bytes = bytes(user.password_hash, "utf-8")
+                        password_bytes = bytes(password, "utf-8")
+                        if (not check_password(password_bytes, password_hash_bytes)):
+                            errors.append(f"Invalid password for username {username}.")
+        except Exception as e:
+            errors.append("User record could not be validated: " + repr(e))
+
+        return errors
+
+
+# NUTRITION
+# ---------
+# This is the nutrition data that this app is intended to track.  It's basically
+# the same data you see on a USDA nutrition label.
+# Nutrition is a separate record because the same data fields are reused for 
+# Ingredients, Meals, and the Daily Log.
+# When used with the Ingedient record, it represents the nutrition for one 
+# serving of one food item.  It is then combined in the proper proportions to 
+# calculate the nutrition for Meals and Daily Logs.  Though as I type this I'm
+# realizing that for the other records, the Nutrition data is calculated and 
+# therefore denormalized if we store it separately for those records.  Hmmm.
+# I'll cross that bridge when I get to it.
+# IN THE MEAN TIME, FOR NOW... each of those tables is intended to have a 1-to-1
+# relationship with this table.
+# As a result, because we want Nutrition to be used with multiple tables, we 
+# cannot put a foreign key to the associated table in the Nutrition table.  This
+# means that although each of these tables has a 1-to-1 relationship with 
+# Nutriion, technically Nutrition is the PARENT record.  As such, if you delete,
+# say, an Ingredient record, we CANNOT configure the ORM layer to automatically 
+# cascade delete the corresponding Nutrition record -- we'd have to do it the 
+# other way around, which doesn't really make sense from a usage standpoint.
+# So when we want to delete an Ingredient record (or Meal or Daily Log), we have 
+# to code the delete of the corresponding Nutrition record manually.
+# More generally, we say that the referential integrity only goes in one
+# direction.  I'm not sure yet if that has other side effects that might bite
+# us, but keep it in mind.
 class Nutrition(db.Model):
     __tablename__ = "nutrition"
 
@@ -59,6 +251,12 @@ class Nutrition(db.Model):
             "potassium_mg": self.potassium_mg
         }
 
+
+# INGREDIENT
+# ----------
+# This represents one "atomic" food item that you'd buy at the grocery store:
+# a loaf of bread, a box of cereal, an orange, a head of lettuce, a package of 
+# chicken breasts, etc.  This is the app's basic building-block record.
 class FoodGroup(enum.Enum):
     fruits = 1,
     vegetables = 2,
@@ -112,37 +310,40 @@ class Ingredient(db.Model):
             "shelf_life": self.shelf_life
             }
 
+    # Add a new ingredient to the database.
+    # Returns a list of error messages, or an empty list on success.
+    # ingredient is expected to be a JSON-like dictionary object with the same 
+    #   fields as the Ingredient record itself (including its child Nutrition 
+    #   object), with the exception of the user_id field, which gets assigned here.
+    # commit is a boolean indicating whether the record should be committed to
+    #   the database.  Set it to false when you want to add a bunch of records
+    #   at once (calling this function multiple times), in which case the caller
+    #   is required to commit the records (via db.session.commit()).
+    def add(user_id: int, ingredient: dict[str, str|int|float], commit: bool) -> list[str]:
+        errors = []
+        try: 
+            # Tweak the data a little
+            ingredient["user_id"] = user_id
 
-class UserStatus(enum.Enum):
-    pending = 1
-    confirmed = 2
-    cancelled = 3
-    banned = 4
+            # "Pull out" the nutrition child object.
+            # The method we're about to use to deserialize the records
+            # doesn't handle child objects properly.
+            nutrition = ingredient["nutrition"]
+            del ingredient["nutrition"]
 
-class User(db.Model):
-    __tablename__ = "user"
+            # Use Pythons ** operator to create an instance of the SQLAlchemy model objects
+            n = Nutrition(**nutrition)
+            i = Ingredient(**ingredient)
 
-    id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(100), index=True, unique=True, nullable=False)
-    status = db.Column(db.Enum(UserStatus), nullable=False)
-    email = db.Column(db.LargeBinary, nullable=True)
-    created_at = db.Column(db.DateTime, nullable=False)
-    password_hash = db.Column(db.String(64), nullable=False)
-    confirmation_sent_at = db.Column(db.DateTime, nullable=True)
-    confirmation_token = db.Column(db.String(64), nullable=True)
+            # Now re-add the nutrition child object to the Ingredient object
+            i.nutrition = n
 
-    def __str__(self):
-        return f"<User {self.id} {self.username}, status: {self.status}, created_at: {self.created_at}, confirmation_sent_at: {self.confirmation_sent_at}>"
-    def __repr__(self):
-        email = ""
-        if self.email and len(self.email) > 0:
-            email = decrypt(self.email)
-        return f"User({self.id}, \'{self.username}\', {self.status}, \'{email}\', {self.created_at}, \'{self.password_hash}\', {self.confirmation_sent_at}, \'{self.confirmation_token}\')"
-    def json(self):
-        return {
-            "id": self.id,
-            "username": self.username,
-            "status": self.status.name,
-            "created_at": self.created_at,
-            "confirmation_sent_at": self.confirmation_sent_at
-            }
+            # Add the new record to the database!
+            db.session.add(i)
+
+            if commit:
+                db.session.commit()
+        except Exception as e:
+            errors.append("Ingredient record could not be added: " + repr(e))
+
+        return errors

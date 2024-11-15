@@ -1,10 +1,8 @@
-from models import db, User, UserStatus, FoodGroup, Ingredient, Nutrition
-import datetime
+from models import db, User, UserStatus, Ingredient, Nutrition
 import json
-import logging
 
 # Add some seed data to the database: user records for the admin and the 
-def load_db(add_new_user):
+def load_db():
     errors = []
     try:
         # WIPE THE DATABASE
@@ -16,41 +14,22 @@ def load_db(add_new_user):
         db.session.commit()
 
         # ADD USER RECORDS
-        # Add a couple standard users (admin and testuser)
-        errors = add_new_user("admin", "Test*123", "admin@trackeats.com", UserStatus.confirmed)
+        errors = User.add("admin", "Test*123", "admin@trackeats.com", UserStatus.confirmed)
         if len(errors) == 0:
-            errors = add_new_user("testuser", "Test*123", "testuser@trackeats.com", UserStatus.confirmed)
-
-        # Get the userID of the testuser
-        query = db.select(User).filter_by(username="testuser")
-        users = db.session.execute(query).first()
-        user_id = users[0].id
+            errors = User.add("testuser", "Test*123", "testuser@trackeats.com", UserStatus.confirmed)
 
         # ADD INGREDIENT RECORDS
-        # Read in the JSON data
-        with open("./data/grains.json") as f:
-            data = json.load(f)
-            
-            # Loop through the JSON records
-            for ing in data['ingredients']:
-                # Tweak the data a little
-                ing["user_id"] = user_id
+        if len(errors) == 0:
+            # Get the userID of the testuser
+            user_id = User.get_id("testuser")
 
-                # "Pull out" the nutrition child object.
-                # The method we're about to use to deserialize the records
-                # doesn't handle child objects properly.
-                nut = ing["nutrition"]
-                del ing["nutrition"]
-
-                # Use Pythons ** operator to create an instance of the SQLAlchemy model objects
-                n = Nutrition(**nut)
-                i = Ingredient(**ing)
-
-                # No re-add the nutrition child object to the Ingredient object
-                i.nutrition = n
-
-                # Add the new record to the database!
-                db.session.add(i)
+            # Read in the JSON data
+            with open("./data/grains.json") as f:
+                data = json.load(f)
+                
+                # Loop through the JSON records
+                for ingredient in data['ingredients']:
+                    Ingredient.add(user_id, ingredient, False)
 
         # Commit all the new records to the database
         db.session.commit()
