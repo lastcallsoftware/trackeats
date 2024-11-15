@@ -8,7 +8,7 @@ function Register() {
                              password2: "", password2Touched: false, password2Message: "",
                              email: "", emailTouched: false, emailMessage: ""}
     const [formData, setFormData] = useState(defaultFormData);
-    const [registerMessage, setRegisterMessage] = useState("");
+    const [errorMessage, setErrorMessage] = useState("");
     const navigate = useNavigate();
 
     const usernameChanged = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -118,9 +118,9 @@ function Register() {
             })
             .catch((error) => {
                 if (error.response)
-                    setRegisterMessage(error.response.data.msg)
+                    setErrorMessage(error.response.data.msg)
                 else
-                    setRegisterMessage(error.message)
+                    setErrorMessage(error.message)
             })
         }
 
@@ -128,6 +128,8 @@ function Register() {
         <section className="registerPage">
             <form className="inputForm" onSubmit={handleSubmit}>
                 <section className="inputBoundingBox">
+
+                    {/* Username */}
                     <section className="inputLine">
                         <label htmlFor="username">Username:</label>
                         <input id="username" type="text" placeholder="Username" maxLength={100}
@@ -141,6 +143,7 @@ function Register() {
                         <p className="inputErrorText">{formData.usernameMessage}</p>
                     </section> : "" }
 
+                    {/* Password */}
                     <section className="inputLine">
                         <label htmlFor="password">Password:</label>
                         <input id="password" type="password" placeholder="Password" maxLength={100}
@@ -154,6 +157,7 @@ function Register() {
                         <p className="inputErrorText">{formData.passwordMessage}</p>
                     </section> : ""}
 
+                    {/* Password 2 */}
                     <section className="inputLine">
                         <label htmlFor="password2">Retype Password:</label>
                         <input id="password2" type="password" placeholder="Retype password" maxLength={100}
@@ -167,6 +171,7 @@ function Register() {
                         <p className="inputErrorText">{formData.password2Message}</p>
                     </section> : ""}
 
+                    {/* Email Address */}
                     <section className="inputLine">
                         <label htmlFor="email">Email Address:</label>
                         <input id="email" type="email" placeholder="Email address" maxLength={320}
@@ -186,7 +191,7 @@ function Register() {
                     <br/>
                     <button className="button loginButton" type="submit" disabled={registerIsDisabled}>Register</button>
 
-                    <p className="errorText">{registerMessage}</p>
+                    <p className="errorText">{errorMessage}</p>
                 </section>
             </form>
         </section>
