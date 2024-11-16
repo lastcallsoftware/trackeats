@@ -2,6 +2,8 @@ import { createColumnHelper, flexRender, getCoreRowModel, TableOptions, useReact
 import axios from 'axios';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { IconContext } from "react-icons";
+import { MdAddCircleOutline, MdRemoveCircleOutline } from "react-icons/md";
 
 export type Ingredient = {
     id?: number
@@ -205,6 +207,28 @@ const Ingredients = (props: any) => {
         navigate("/ingredientForm", { state: {} });
     }
     
+    const deleteRecord = () => {
+        const selectedRows = table.getSelectedRowModel().rows
+        if (selectedRows.length > 0) {
+            const confirmed = confirm("Delete record.  Are you sure?  This cannot be undone.")
+            if (confirmed) {
+                const record_id = selectedRows[0].getValue("id");
+                const table_idx = Number(selectedRows[0].id);
+                axios.delete("/ingredient/" + record_id, {headers: { "Authorization": "Bearer " + token}})
+                .then(() => {
+                    setIngredients(prevItems => prevItems.filter((_item, idx) => idx != table_idx));
+                })
+                .catch((error) => {
+                    if (error.status == 401) {
+                        removeTokenFunction()
+                        navigate("/login", { state: { message: "Your token has expired and you have been logged out." } });
+                    }
+                    setErrorMessage(error.message)
+                })
+            }
+        }
+    }
+
     useEffect(() => {
         // Call the back end's /ingredient API to get the data to populate the table
         axios.get("/ingredient", {headers: { "Authorization": "Bearer " + token}})
@@ -222,64 +246,76 @@ const Ingredients = (props: any) => {
     }, [token, navigate, removeTokenFunction])
 
     return (
-        <section className="ingredientTableContainer">
-          	<table className="ingredientTable">
-        		<thead>
-            		{table.getHeaderGroups().map((headerGroup) => (
-    					<tr key={headerGroup.id}>
-        					{headerGroup.headers.map((header) => (
-        						<th key={header.id} style={{width: header.getSize()}} colSpan={header.colSpan}>
-        							{header.isPlaceholder
-        								? null
-										: flexRender(
-											header.column.columnDef.header,
-											header.getContext()
-										)
-                          			}
-                    			</th>
-                  			))}
-                		</tr>
-              		))}
-            	</thead>
-            	<tbody>
-              		{table.getRowModel().rows.map((row) => (
-                		<tr key={row.id} className={row.getIsSelected() ? "selected" : undefined} onClick={row.getToggleSelectedHandler()}>
-                  			{row.getVisibleCells().map((cell) => (
-                    			<td key={cell.id}>
-                      				{flexRender(
-                						cell.column.columnDef.cell, 
-                        				cell.getContext()
-									)}
-								</td>
-                  			))}
-                		</tr>
-              		))}
-            	</tbody>
-            	<tfoot>
-              		{table.getFooterGroups().map(footerGroup => (
-                		<tr key={footerGroup.id}>
-                  			{footerGroup.headers.map(header => (
-                    			<th key={header.id}>
-									{header.isPlaceholder
-                        				? null
-										: flexRender(
-											header.column.columnDef.footer,
-											header.getContext()
-                          				)
-									}
-                    			</th>
-                  			))}
-                		</tr>
-              		))}
-            	</tfoot>
-          	</table>
+        <section className="ingredientPage">
+            <section className="ingredientTableContainer">
+                <table className="ingredientTable">
+                    <thead>
+                        {table.getHeaderGroups().map((headerGroup) => (
+                            <tr key={headerGroup.id}>
+                                {headerGroup.headers.map((header) => (
+                                    <th key={header.id} style={{width: header.getSize()}} colSpan={header.colSpan}>
+                                        {header.isPlaceholder
+                                            ? null
+                                            : flexRender(
+                                                header.column.columnDef.header,
+                                                header.getContext()
+                                            )
+                                        }
+                                    </th>
+                                ))}
+                            </tr>
+                        ))}
+                    </thead>
+                    <tbody>
+                        {table.getRowModel().rows.map((row) => (
+                            <tr key={row.id} className={row.getIsSelected() ? "selected" : undefined} onClick={row.getToggleSelectedHandler()}>
+                                {row.getVisibleCells().map((cell) => (
+                                    <td key={cell.id}>
+                                        {flexRender(
+                                            cell.column.columnDef.cell, 
+                                            cell.getContext()
+                                        )}
+                                    </td>
+                                ))}
+                            </tr>
+                        ))}
+                    </tbody>
+                    <tfoot>
+                        {table.getFooterGroups().map(footerGroup => (
+                            <tr key={footerGroup.id}>
+                                {footerGroup.headers.map(header => (
+                                    <th key={header.id}>
+                                        {header.isPlaceholder
+                                            ? null
+                                            : flexRender(
+                                                header.column.columnDef.footer,
+                                                header.getContext()
+                                            )
+                                        }
+                                    </th>
+                                ))}
+                            </tr>
+                        ))}
+                    </tfoot>
+                </table>
+            </section>
 
-            <button onClick={addRecord}>Add</button>
+            <section className="buttonBar">
+                <button onClick={addRecord}>
+                    <IconContext.Provider value={{ size: "1.5em", color: "green"}}>
+                        Add <MdAddCircleOutline/>
+                    </IconContext.Provider>
+                </button>
+                <button onClick={deleteRecord}>
+                    <IconContext.Provider value={{ size: "1.5em", color: "red"}}>
+                        Delete <MdRemoveCircleOutline/>
+                    </IconContext.Provider>
+                </button>
+            </section>
 
             <p>{errorMessage}</p>
-</section>
-
-)
+        </section>
+    )
 }
   
 export default Ingredients;
