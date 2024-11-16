@@ -343,3 +343,29 @@ def add_ingredient():
         msg = f"Ingredient added"
         logging.info(msg)
         return jsonify({"msg": msg}), 200
+
+# Add a new Ingredient to the database for this user
+@bp.route("/ingredient/<int:record_id>", methods = ["DELETE"])
+@jwt_required()
+def delete_ingredient(record_id:int):
+    logging.info(f"/ingredient DELETE {record_id}")
+
+    errors = []
+    try:
+        ingredient = Ingredient.query.get(record_id)
+        if ingredient:
+            db.session.delete(ingredient)
+            db.session.commit()
+        else:
+            errors.append(f"Ingredient record {record_id} not found.")
+    except Exception as e:
+        errors.append(f"Ingredient record {record_id} could not be deleted: " + repr(e))
+
+    if (len(errors) > 0):
+        msg = "\n".join(errors)
+        logging.error(msg)
+        return jsonify({"msg": msg}), 400
+    else:
+        msg = f"Ingredient {record_id} deleted"
+        logging.info(msg)
+        return jsonify({"msg": msg}), 200
