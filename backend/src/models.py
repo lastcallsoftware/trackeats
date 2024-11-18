@@ -5,6 +5,7 @@ from crypto import check_password, encrypt, decrypt, hash_password
 import enum
 import datetime
 import re
+import logging
 
 # We're using a library (flask-sqlalchemy) that handles database interactions
 # for us.  This file contains the classes that represent the various records in 
@@ -306,7 +307,7 @@ class Ingredient(db.Model):
             "nutrition_id": self.nutrition_id,
             "nutrition": self.nutrition.json(),
             "price": self.price,
-            "price_date": datetime.datetime.strftime(self.price_date, "%d %b %Y"),
+            "price_date": datetime.datetime.strftime(self.price_date, "%Y-%m-%d"),
             "shelf_life": self.shelf_life
             }
 
@@ -322,19 +323,24 @@ class Ingredient(db.Model):
     def add(user_id: int, ingredient: dict[str, str|int|float], commit: bool) -> list[str]:
         errors = []
         try: 
-            # Add the user_id to the ingredient record.
-            # I've been debating whether the caller should do this.  Unsure.
+            # Add the user_id field to the ingredient record.
             ingredient["user_id"] = user_id
 
             # "Pull out" the nutrition child object.
-            # The method we're about to use to deserialize the JSON fields
-            # doesn't handle child objects properly, so we'll remove the
-            # child object, deserialize it separately, and then re-add it.
+            # The nutrition data is of course a separate detabase record, so we
+            # have to instantiate and save it separately.
             nutrition = ingredient["nutrition"]
             del ingredient["nutrition"]
 
             # Use Python's ** operator to populate an instance of the SQLAlchemy
             # model objects.
+            # We're making a HUGE assumption here, which is that the database 
+            # records have EXACTLY the same fields as the corresponding records
+            # on the front end.  It's probably a lot safer to manually, explicitly
+            # copy the data from one to the other.  That way we could account for
+            # any differences in the field names, the data formats, and even the
+            # absense of certain fields on one side or the other.  BUT I AIN'T
+            # GOT TIME FOR THAT!
             n = Nutrition(**nutrition)
             i = Ingredient(**ingredient)
 
@@ -348,5 +354,35 @@ class Ingredient(db.Model):
                 db.session.commit()
         except Exception as e:
             errors.append("Ingredient record could not be added: " + repr(e))
+
+        return errors
+    
+    # Update an existing record.
+    # Similar to the add method, this copies all the values from the JSON 
+    # dictionary passed in the request into an Ingredient ORM record, and
+    # likewise for the child Nutrition record.  I'm unsure if this is a
+    # recommended method.  Probably not.  Probably the safer thing would 
+    # be to manually, explicitly copy each field.  But I ain't got time for 
+    # that!
+    def update(user_id: int, ingredient: dict[str, str|int|float]) -> list[str]:
+        errors = []
+        try: 
+            # 
+            nutrition = ingredient["nutrition"]
+            del ingredient["nutrition"]
+            ingredient_id = ingredient["id"]
+            nutrition_id = ingredient["nutrition_id"]
+
+            num_updates = Nutrition.query.filter_by(id=nutrition_id).update(nutrition)
+            if (num_updates != 1):
+                errors.append(f"Expected to update 1 Nutrition record but attempted to update {num_updates}.")
+            num_updates = Ingredient.query.filter_by(user_id=user_id, id=ingredient_id).update(ingredient)
+            if (num_updates != 1):
+                errors.append(f"Expected to update 1 Ingredient record but attempted to update {num_updates}.")
+
+            if (len(errors) == 0):
+                db.session.commit()
+        except Exception as e:
+            errors.append("Ingredient record could not be updated: " + repr(e))
 
         return errors
