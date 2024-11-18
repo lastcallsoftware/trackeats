@@ -1,9 +1,11 @@
+import logo from '../assets/lcs3.png';
+
 function Footer() {
     return (
-        <>
-            <br/>
+        <section className="footerContainer">
+            <img className="lcsLogo" src={logo} alt="LCS Logo" height="60"/>
             <p>Copyright: © 2024 Last Call Software.  All rights reserved.</p>
-        </>
+        </section>
     );
 }
 
