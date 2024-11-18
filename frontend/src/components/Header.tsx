@@ -1,4 +1,4 @@
-import logo from '../assets/bell.svg';
+import logo from '../assets/trackeats.png';
 
 function Header() {
     return (
