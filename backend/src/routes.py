@@ -317,6 +317,31 @@ def get_ingredients():
     else:
         return jsonify(data), 200
     
+# Get a single ingredient for this user
+@bp.route("/ingredient/<int:record_id>", methods = ["GET"])
+@jwt_required()
+def get_ingredient(record_id:int):
+    logging.info(f"/ingredient GET {record_id}")
+
+    errors = []
+    try:
+        # Get the user_id for the user identified by the token
+        username = get_jwt_identity()
+        user_id = User.get_id(username)
+
+        # Get all the Ingredients associated with that user_id
+        ingredient = Ingredient.query.filter_by(user_id=user_id, id=record_id).first()
+        data = ingredient.json()
+    except Exception as e:
+        errors.append("Could not retrieve Ingredient records: " + repr(e))
+
+    if (len(errors) > 0):
+        msg = "\n".join(errors)
+        logging.error(msg)
+        return jsonify({"msg": msg}), 400
+    else:
+        return jsonify(data), 200
+
 # Add a new Ingredient to the database for this user
 @bp.route("/ingredient", methods = ["POST"])
 @jwt_required()
@@ -344,7 +369,35 @@ def add_ingredient():
         logging.info(msg)
         return jsonify({"msg": msg}), 200
 
-# Add a new Ingredient to the database for this user
+# Update an existing ingredient record for this user
+@bp.route("/ingredient", methods = ["PUT"])
+@jwt_required()
+def update_ingredient():
+    logging.info("/ingredient PUT")
+
+    errors = []
+    try:
+        # Get the user_id for the user identified by the token
+        username = get_jwt_identity()
+        user_id = User.get_id(username)
+
+        # Replace the database's record with the data in the request
+        ingredient = request.json
+        print(ingredient)
+        errors = Ingredient.update(user_id, ingredient)
+    except Exception as e:
+        errors.append("Ingredient record could not be added: " + repr(e))
+
+    if (len(errors) > 0):
+        msg = "\n".join(errors)
+        logging.error(msg)
+        return jsonify({"msg": msg}), 400
+    else:
+        msg = f"Ingredient updated"
+        logging.info(msg)
+        return jsonify({"msg": msg}), 200
+
+# Delete an Ingredient record for this user
 @bp.route("/ingredient/<int:record_id>", methods = ["DELETE"])
 @jwt_required()
 def delete_ingredient(record_id:int):
