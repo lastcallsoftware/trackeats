@@ -1,9 +1,9 @@
-import { createColumnHelper, flexRender, getCoreRowModel, TableOptions, useReactTable } from '@tanstack/react-table';
+import { createColumnHelper, flexRender, getCoreRowModel, getSortedRowModel, Row, SortingState, TableOptions, useReactTable } from '@tanstack/react-table';
 import axios from 'axios';
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { IconContext } from "react-icons";
-import { MdAddCircleOutline, MdRemoveCircleOutline } from "react-icons/md";
+import { MdAddCircleOutline, MdEdit, MdRemoveCircleOutline } from "react-icons/md";
 
 export type Ingredient = {
     id?: number
@@ -15,6 +15,7 @@ export type Ingredient = {
     size_description: string
     size_g: number
     servings: number
+    nutrition_id?: number
     nutrition: {
         serving_size_description: string
         serving_size_g: number
@@ -174,7 +175,7 @@ const columns = [
     }),
     columnHelper.accessor("price_date", {
         header: "Price Date",
-        cell: info => info.getValue(),
+        cell: info => new Date(info.getValue().replace(/-/g, '/').replace(/T.+/, '')).toLocaleDateString('en-US', {year: 'numeric', month: 'short', day: 'numeric'}),
         size: 100
     }),
     columnHelper.accessor("shelf_life", {
@@ -192,28 +193,59 @@ const Ingredients = (props: any) => {
     const removeTokenFunction = props.removeTokenFunction
 	const tok = sessionStorage.getItem("access_token")
 	const token = tok ? JSON.parse(tok) : ""
+    const [sorting, setSorting] = React.useState<SortingState>([])
 
     const tableOptions: TableOptions<Ingredient> = {
         data: ingredients,
         columns,
         getCoreRowModel: getCoreRowModel(),
-        enableMultiRowSelection: false
+        getSortedRowModel: getSortedRowModel(),
+        enableMultiRowSelection: false,
+        onSortingChange: setSorting,
+        state: {
+            sorting
+        }
     }
 
     // Use the table hooks from TanStack Table
     const table = useReactTable(tableOptions)
 
+    const onDoubleClick = (row: Row<Ingredient>) => {
+        console.log("doubleclick")
+        const record_id:number = row.getValue("id")
+        doEdit(record_id)
+    }
+
     const addRecord = () => {
+        // Go to the edit form
         navigate("/ingredientForm", { state: {} });
     }
-    
-    const deleteRecord = () => {
+
+    const editRecord = () => {
+        // Get the selected record
         const selectedRows = table.getSelectedRowModel().rows
         if (selectedRows.length > 0) {
+            const record_id:number = selectedRows[0].getValue("id");
+            doEdit(record_id)
+        }
+    }
+    
+    const doEdit = (record_id: number) => {
+        const ingredient = ingredients.find(item => item.id == record_id);
+        navigate("/ingredientForm", { state: { ingredient } });
+    }
+
+    const deleteRecord = () => {
+        // Get the selected record
+        const selectedRows = table.getSelectedRowModel().rows
+        if (selectedRows.length > 0) {
+            // Confirm the deletion request
             const confirmed = confirm("Delete record.  Are you sure?  This cannot be undone.")
             if (confirmed) {
                 const record_id = selectedRows[0].getValue("id");
                 const table_idx = Number(selectedRows[0].id);
+
+                // Call the back end's "delete ingredient" API
                 axios.delete("/ingredient/" + record_id, {headers: { "Authorization": "Bearer " + token}})
                 .then(() => {
                     setIngredients(prevItems => prevItems.filter((_item, idx) => idx != table_idx));
@@ -229,8 +261,9 @@ const Ingredients = (props: any) => {
         }
     }
 
+    // On page load/rerender, call the back end's /ingredient API to get the 
+    // data to populate the table
     useEffect(() => {
-        // Call the back end's /ingredient API to get the data to populate the table
         axios.get("/ingredient", {headers: { "Authorization": "Bearer " + token}})
             .then((response) => {
                 setIngredients(response.data);
@@ -249,26 +282,61 @@ const Ingredients = (props: any) => {
         <section className="ingredientPage">
             <section className="ingredientTableContainer">
                 <table className="ingredientTable">
+                    {/* The thead, tbody, and tfooter elements are the functional components of the Tanstack Table. 
+                        They are mostly boilerplate code, with additional stuff thrown in to add functionality,
+                        like the onClick handler you see below adding the sorting functionality. */}
                     <thead>
                         {table.getHeaderGroups().map((headerGroup) => (
                             <tr key={headerGroup.id}>
                                 {headerGroup.headers.map((header) => (
-                                    <th key={header.id} style={{width: header.getSize()}} colSpan={header.colSpan}>
-                                        {header.isPlaceholder
-                                            ? null
-                                            : flexRender(
-                                                header.column.columnDef.header,
-                                                header.getContext()
-                                            )
-                                        }
-                                    </th>
+                                    <th key={header.id} 
+                                        // Do a little custom styling here
+                                        // For the width attribute, the getSize() call retrieves the size attribute
+                                        // in the column definitions above.
+                                        // Setting the userSelect attribute to none prevents the user from being able
+                                        // to select the header text.  We do this because clicking on the header is
+                                        // how we make sorting happen, and you have a tendency to double-click, which
+                                        // by default selects the text in the header cell -- and looks ugly!
+                                        style={{width: header.getSize(), userSelect: "none"}} 
+                                        colSpan={header.colSpan} 
+                                        onClick={header.column.getToggleSortingHandler()}>
+                                        {header.isPlaceholder ? null : (
+                                            <div>
+                                                { flexRender(
+                                                    header.column.columnDef.header,
+                                                    header.getContext()
+                                                )}
+                                                {/* This little bit is the INCREDIBLY clever magic that adds the 
+                                                    appropriate directional arrows to the header when a column is sorted.
+                                                    First it defines a little two-item dictionary, and then immediately 
+                                                    follows it with an index selector which will evaluate to one of the 
+                                                    dictioary's two item keys depending on how the column is currently 
+                                                    being sorted.  Thus the expression always evaluates to one of the
+                                                    dictonary's two values, or to undefined if getIsSorted() returns false.
+                                                    The ?? on the end is the Typescript "nullish coalescing operator" which
+                                                    provides a "fallback value" if the expression on the left evaluates to
+                                                    null or undefined (which it would do in the default case of the column
+                                                    not being sorted).  You'll notice that the fallback value is null
+                                                    anyway, so really it's only proteting against the expression evaluating
+                                                    to undefined.  Presumably the author felt that would be a bad thing,
+                                                    though if I take out the ?? it doesn't seem to matter -- the page still
+                                                    renders just fine.  But I'll leave it in, in the 100% certain case that 
+                                                    I don't completely understand how this page works. */}
+                                                {{asc: ' 🔼', desc: ' 🔽'}[header.column.getIsSorted() as string] ?? null}
+                                            </div>
+                                        )}
+                                   </th>
                                 ))}
                             </tr>
                         ))}
                     </thead>
+
                     <tbody>
                         {table.getRowModel().rows.map((row) => (
-                            <tr key={row.id} className={row.getIsSelected() ? "selected" : undefined} onClick={row.getToggleSelectedHandler()}>
+                            <tr key={row.id} 
+                                className={row.getIsSelected() ? "selected" : undefined} 
+                                onClick={row.getToggleSelectedHandler()}
+                                onDoubleClick={() => onDoubleClick(row)}>
                                 {row.getVisibleCells().map((cell) => (
                                     <td key={cell.id}>
                                         {flexRender(
@@ -280,6 +348,7 @@ const Ingredients = (props: any) => {
                             </tr>
                         ))}
                     </tbody>
+
                     <tfoot>
                         {table.getFooterGroups().map(footerGroup => (
                             <tr key={footerGroup.id}>
@@ -301,14 +370,19 @@ const Ingredients = (props: any) => {
             </section>
 
             <section className="buttonBar">
-                <button onClick={addRecord}>
-                    <IconContext.Provider value={{ size: "1.5em", color: "green"}}>
-                        Add <MdAddCircleOutline/>
+                <button className="editButton" onClick={addRecord}>
+                    <IconContext.Provider value={{ size: "30px", color: "green"}}>
+                        <p className="editButtonText">Add</p><MdAddCircleOutline/>
                     </IconContext.Provider>
                 </button>
-                <button onClick={deleteRecord}>
-                    <IconContext.Provider value={{ size: "1.5em", color: "red"}}>
-                        Delete <MdRemoveCircleOutline/>
+                <button className="editButton" onClick={editRecord}>
+                    <IconContext.Provider value={{ size: "30px", color: "orange"}}>
+                        <p className="editButtonText">Edit</p><MdEdit/>
+                    </IconContext.Provider>
+                </button>
+                <button className="editButton" onClick={deleteRecord}>
+                    <IconContext.Provider value={{ size: "30px", color: "red"}}>
+                        <p className="editButtonText">Delete</p><MdRemoveCircleOutline/>
                     </IconContext.Provider>
                 </button>
             </section>
