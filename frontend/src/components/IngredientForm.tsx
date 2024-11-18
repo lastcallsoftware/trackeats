@@ -1,11 +1,12 @@
 import { useState } from "react"
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { Ingredient } from "./Ingredients";
 import axios from "axios";
 
 function IngredientForm() {
+    const location = useLocation();
     const navigate = useNavigate()
-    const defaultFormData: Ingredient = {
+    const emptyFormData: Ingredient = {
         group: "", type: "", subtype: "", description: "", vendor: "",
         size_description: "", size_g: 0, servings: 0,
         nutrition: {
@@ -16,7 +17,10 @@ function IngredientForm() {
         },
         price: 0, price_date: "", shelf_life: ""
     }
-    const [formData, setFormData] = useState(defaultFormData);
+    const isEdit = (location.state != null);
+    const defaultFormData = location.state?.ingredient || emptyFormData;
+    const [formData, setFormData] = useState<Ingredient>(defaultFormData);
+
     const foodGroups = [
         { value: "", label: "-- select one --" },
         { value: "fruits", label: "Fruits" },
@@ -41,20 +45,35 @@ function IngredientForm() {
         e.preventDefault();
 
         // Save the new Ingredient
-        axios.post("/ingredient", formData, {headers: { "Authorization": "Bearer " + token}})
-        .then (() => {
-            // Return to the main ingredients page
-            navigate("/ingredients")
-        })
-        .catch ((error) => {
-            if (error.response)
-                setErrorMessage(error.response.data.msg)
-            else
-                setErrorMessage(error.message)
-        })
+        if (isEdit) {
+            axios.put("/ingredient", formData, {headers: { "Authorization": "Bearer " + token}})
+            .then (() => {
+                // Return to the main ingredients page
+                navigate("/ingredients")
+            })
+            .catch ((error) => {
+                if (error.response)
+                    setErrorMessage(error.response.data.msg)
+                else
+                    setErrorMessage(error.message)
+            })
+        } else {
+            axios.post("/ingredient", formData, {headers: { "Authorization": "Bearer " + token}})
+            .then (() => {
+                // Return to the main ingredients page
+                navigate("/ingredients")
+            })
+            .catch ((error) => {
+                if (error.response)
+                    setErrorMessage(error.response.data.msg)
+                else
+                    setErrorMessage(error.message)
+            })
+        }
     }
 
-    const handleCancel = () => {
+    const handleCancel = (e: { preventDefault: () => void; }) => {
+        e.preventDefault();
         navigate("/ingredients", { state: { } })
     }
 
@@ -148,21 +167,21 @@ function IngredientForm() {
                     {/* Total Fat (g) */}
                     <section className="inputLine">
                         <label htmlFor="total_fat_g">Total Fat (g):</label>
-                        <input id="total_fat_g" type="number" value={formData.nutrition.total_fat_g} min={0}
+                        <input id="total_fat_g" type="number" value={formData.nutrition.total_fat_g} min={0} step="0.1"
                             onChange={(e) => setFormData(prevState => ({...prevState, nutrition: {...prevState.nutrition, total_fat_g: Number(e.target.value)}}))} />
                     </section>
 
                     {/* Saturated Fat (g) */}
                     <section className="inputLine">
                         <label htmlFor="saturated_fat_g">Saturated Fat (g):</label>
-                        <input id="saturated_fat_g" type="number" value={formData.nutrition.saturated_fat_g} min={0}
+                        <input id="saturated_fat_g" type="number" value={formData.nutrition.saturated_fat_g} min={0} step="0.1"
                             onChange={(e) => setFormData(prevState => ({...prevState, nutrition: {...prevState.nutrition, saturated_fat_g: Number(e.target.value)}}))} />
                     </section>
 
                     {/* Trans Fat (g) */}
                     <section className="inputLine">
                         <label htmlFor="trans_fat_g">Trans Fat (g):</label>
-                        <input id="trans_fat_g" type="number" value={formData.nutrition.trans_fat_g} min={0}
+                        <input id="trans_fat_g" type="number" value={formData.nutrition.trans_fat_g} min={0} step="0.1"
                             onChange={(e) => setFormData(prevState => ({...prevState, nutrition: {...prevState.nutrition, trans_fat_g: Number(e.target.value)}}))} />
                     </section>
 
@@ -232,7 +251,7 @@ function IngredientForm() {
                     {/* Iron (mg) */}
                     <section className="inputLine">
                         <label htmlFor="iron_mg">Iron (mg):</label>
-                        <input id="iron_mg" type="number" value={formData.nutrition.iron_mg} min={0}
+                        <input id="iron_mg" type="number" value={formData.nutrition.iron_mg} min={0} step="0.1"
                             onChange={(e) => setFormData(prevState => ({...prevState, nutrition: {...prevState.nutrition, iron_mg: Number(e.target.value)}}))} />
                     </section>
 
@@ -246,7 +265,7 @@ function IngredientForm() {
                     {/* Price ($) */}
                     <section className="inputLine">
                         <label htmlFor="price">Price (mg):</label>
-                        <input id="price" type="number" value={formData.price} min={0}
+                        <input id="price" type="number" value={formData.price} min={0}  step="0.01"
                             onChange={(e) => setFormData(prevState => ({...prevState, price: Number(e.target.value)}))} />
                     </section>
 
@@ -264,8 +283,8 @@ function IngredientForm() {
                             onChange={(e) => setFormData(prevState => ({...prevState, nutrition: {...prevState.nutrition, potassium_mg: Number(e.target.value)}}))} />
                     </section>
 
-                    <button className="button loginButton" type="submit" disabled={saveIsDisabled}>Save</button>
-                    <button className="button loginButton" onClick={handleCancel}>Cancel</button>
+                    <button className="button" type="submit" disabled={saveIsDisabled}>Save</button>
+                    <button className="button" onClick={handleCancel}>Cancel</button>
 
                     <p>{errorMessage}</p>
                 </section>
