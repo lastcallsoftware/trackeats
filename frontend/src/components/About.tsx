@@ -2,17 +2,19 @@ function About() {
     return (
         <section className="aboutPage">
             <section className="aboutBoundingBox">
-                <p>I know, I know, it's not much to look at... yet!  But we'll get there.</p>
+                <p>The nominal purpose of this app is to track the nutritional content of one's
+                    diet.  And this is indeed a real objective!  In fact I chose this goal 
+                    because it's something I wanted myself.  None of the apps I found out there
+                    did quite what I wanted in a product of this type -- so I decided to make my
+                    own.</p>
                 <br/>
-                <p>I've always said that a good user interface is the most crucial part of any 
-                    application since it constitutes the user's entire experience of the app.
-                    Nevertheless, for starters I've been more focused on getting the full tech 
-                    stack working.  This application's actual functionality is almost trivial 
-                    compared to all the machinery needed behind the scenes to get it working.</p>
+                <p>But the app's actual functionality is secondary.  Its REAL purpose is to 
+                    excerise and demonstrate a working knowledge of all the products and technologies
+                    necessary to design, construct, and deploy a full-stack web app.</p>
                 <br/>
                 <p>At the time of this writing, that tech stack includes:</p>
                 <ul>
-                    <li>Amazon EC2 - for provisioning the server on which it all runs</li>
+                    <li>Amazon EC2 - for provisioning the server that hosts everything</li>
                     <li>Ubuntu - the OS on which it all runs</li>
                     <li>Docker - for deploying the various pieces</li>
                     <li>Vite + React + HTML + CSS + JavaScript/Typescript - for building the front end</li>
