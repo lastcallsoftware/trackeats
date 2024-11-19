@@ -288,7 +288,7 @@ class Ingredient(db.Model):
     nutrition = db.relationship(Nutrition, single_parent=True, cascade="all, delete-orphan", backref=db.backref("nutrition", cascade="all, delete-orphan", uselist=False))
     price = db.Column(db.Float)
     price_date = db.Column(db.Date)
-    shelf_life = db.Column(db.String(100))
+    shelf_life = db.Column(db.String(150))
 
     def __str__(self):
         return str(vars(self))
