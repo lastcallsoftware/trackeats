@@ -4,7 +4,9 @@ import axios from "axios";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function Login(props: any) {
+    // If we were sent here from the Confirm page, the state will contain username and password
     const location = useLocation();
+    const isConfirm = location.state && location.state.username
     const defaultFormData = {username: location.state?.username || "", usernameTouched: false,
                              password: location.state?.password || "", passwordTouched: false}
     const [formData, setFormData] = useState(defaultFormData);
@@ -47,7 +49,7 @@ function Login(props: any) {
                             onChange={(e) => setFormData(prevState => ({...prevState, password: e.target.value}))} />
                     </section>
 
-                    {location.state ? <><p>Check your inbox for an email from Trackeats.</p><p>Click on the link in that email
+                    {isConfirm ? <><p>Check your inbox for an email from Trackeats.</p><p>Click on the link in that email
                         (or paste it into a browser) to complete registration and activate your account.</p><p>Then you will be able to log in.</p></> : ""}
 
                     <button className="button loginButton" type="submit" disabled={loginIsDisabled}>Login</button>
