@@ -36,7 +36,6 @@ def load_db():
                 
                 # Loop through the JSON records
                 for ingredient in data['ingredients']:
-                    print(ingredient["type"])
                     Ingredient.add(user_id, ingredient, False)
 
         # Commit all the new records to the database
