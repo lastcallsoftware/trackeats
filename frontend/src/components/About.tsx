@@ -35,6 +35,7 @@ function About() {
                     <li>VS Code - the code editor/development environment</li>
                     <li>Git - for version control</li>
                     <li>WSL - for developing a Linux app on a Windows PC!</li>
+                    <li>Figma - for designing and prototyping the UI</li>
                     <li>Jira - for planning and defect tracking</li>
                     <li>Just the whole subject of domain name registration and email hosting!</li>
                 </ul>
