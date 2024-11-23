@@ -331,7 +331,10 @@ def get_ingredient(record_id:int):
 
         # Get all the Ingredients associated with that user_id
         ingredient = Ingredient.query.filter_by(user_id=user_id, id=record_id).first()
-        data = ingredient.json()
+        if (ingredient == None):
+            errors.append(f"Ingredient {record_id} not found.")
+        else:
+            data = ingredient.json()
     except Exception as e:
         errors.append("Could not retrieve Ingredient records: " + repr(e))
 
