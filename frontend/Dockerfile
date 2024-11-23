@@ -29,9 +29,9 @@ RUN npm run build
 # ---------------
 FROM nginx:alpine
 
-# Not sure I want to specify this here -- running in a container does not not 
-# necessarily running in production!  I'll revisit this at some point when I
-# sort out the proper way to do separate Docker builds for dev and production.
+# Not sure I want to specify this here -- running in a container does not 
+# necessarily imply running in production!  I'll revisit this at some point when
+# I sort out the proper way to do separate Docker builds for dev and production.
 # TODO: Change this!
 ENV NODE_ENV=production
 
@@ -41,8 +41,12 @@ COPY nginx.conf /etc/nginx/conf.d/default.conf
 # Copy React app build files (from the directory where the VITE compiler puts them)
 # into the container (to the directory where NGINX looks for content to serve).
 COPY --from=build /app/dist /usr/share/nginx/html
+COPY portfolio/ /usr/share/nginx/portfolio/
+COPY lastcallsw/ /usr/share/nginx/lastcallsw/
 
-# Expose the port for the app's front end.
+# Expose the ports for the app's front end.
+# This all works because of the interplay between this Dockerfile, the
+# -p switches used in the docker run commands, and the Nginx config.
 EXPOSE 8080
 EXPOSE 8443
 EXPOSE 5443

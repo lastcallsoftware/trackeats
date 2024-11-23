@@ -5,4 +5,6 @@
 curl \
 -X GET \
 -H "Authorization: Bearer $ACCESS_TOKEN" \
-http://localhost:5000/ingredient
+https://trackeats.lastcallsw.com:5443/ingredient
+
+#http://localhost:5000/ingredient

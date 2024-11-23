@@ -38,4 +38,6 @@ curl \
 "price": 8.49,
 "price_date": "2024-11-09",
 "shelf_life": "7 days in fridge"}' \
-http://localhost:5000/ingredient
+https://trackeats.lastcallsw.com:54443/ingredient
+
+#http://localhost:5000/ingredient

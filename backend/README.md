@@ -59,15 +59,19 @@ To run Docker commands in a WSL Linux VM (e.g., an Ubuntu 24.04 command prompt),
 you must have the "Use the WSL 2 based engine" option enabled in the General
 Settings of the Docker Desktop app for Windows.  (You may have to restart the app 
 after enabling this setting.)  Also, you must have started Docker Desktop at some
-point since your last reboot (presumably some background daemon is started when
-you start the app).<br>
+point since your last reboot.  Doing so starts the Docker Engine as a background 
+daemon.  You can immediately close Docker Desktop after it has initialized.<br>
 
 ## Locally
 
-Make sure you are in the backend directory when you run any of these commands.<br>
+Make sure you are in the backend directory when you run any of these commands.
+Naturally, I have written shell scripts to do all these things and more with far
+fewer keystrokes.  Look in the ./bin/ directory.<br>
 
 Log on to Docker.  When prompted, provide your Docker Hub personal access token:<br>
 ```docker login -u <username>```
+This is only necessary once.  I think.  TBH I'm not sure what the rules are, but
+I haven't had to do it in months.<br>
 
 To build the Docker image (note the . on the end):<br>
 ```docker build -t lastcallsoftware/trackeats-backend .```

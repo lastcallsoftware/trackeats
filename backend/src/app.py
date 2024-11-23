@@ -152,6 +152,7 @@ except Exception as e:
 
 # I haven't worked out the correct domain names yet, so for now just allow
 # EVERYTHING.  This isn't secure, obviously, but I'll take my chances!
+#TODO: fix this!
 CORS(app)
 
 

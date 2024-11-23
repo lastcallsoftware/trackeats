@@ -21,7 +21,7 @@ SMTP_PORT = 465
 # CONFIGURATION_SET = "ConfigSet"
 
 # The email address of the sender.  This address must be verified by AWS.
-EMAIL_SENDER_ADDRESS = 'admin@trackeats.com'
+EMAIL_SENDER_ADDRESS = 'admin@lastcallsw.com'
 EMAIL_SENDER_NAME = 'Trackeats'
 
 # The subject line of the email.
@@ -156,7 +156,7 @@ def sendmail_smtp(email_address: str, email_subject: str, email_body_text, email
 # from botocore.exceptions import ClientError, WaiterError
 # ------------------------------------------
 # def sendmail_boto3(email_address: str):
-#     sender_email_address = "admin@trackeats.com"
+#     sender_email_address = "admin@lastcallsw.com"
 #     message_subject = "Trackeats User Verification"
 #     message_text = "Hello from Trackeats!"
 #     message_html = "<p>Hello from <b>Trackeats!</b></p>"

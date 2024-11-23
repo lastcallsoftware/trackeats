@@ -43,7 +43,7 @@ You should be in your home directory (~, which is an alias for
 5. Log on to the trackeats server and change your password
 I have already created a userID for you on the trackeats server with a
 username of "alex", and password of "password":
-    ssh alex@trackeats.com
+    ssh alex@lastcallsw.com
 Once you are successfully logged on, please change your password:
     passwd
 NOTE YOUR NEW PASSWORD!
@@ -65,7 +65,7 @@ but you could also use it for GitHub or anything else.
 There are several ways to do this.  I'm going to tell you the standard way,
 even though I haven't actually tried it myself, so again there may be bumps.
 From an Ubuntu command prompt, run:
-    ssh-copy-id alex@trackeats.com
+    ssh-copy-id alex@lastcallsw.com
 I have never run this command myself, but I think what it does is, prompt
 you for your userID and password on the server, then log on, append the 
 contents of your publc key file to ~/.ssh/authorized_keys, and log out.
@@ -74,7 +74,7 @@ one of the standard recognized names.  If not, you have to specify its name
 with the -i parameter.
 
 Assuming this works, you should now be able to log on to the server via:
-    ssh alex@trackeats.com
+    ssh alex@lastcallsw.com
 ...and it will use your key file to authenticate you, so you don't need to 
 specify a username or password any more.  This will be very handy down the
 line.  Now log out again:

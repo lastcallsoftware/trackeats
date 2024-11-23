@@ -9,9 +9,11 @@ services:
       backend:
         condition: service_started
     ports:
-      - 8080:8080
-    environment:
-      REACT_APP_BACKEND_BASE_URL: http://trackeats.com:5000
+      - 80:8080
+      - 443:8443
+      - 5443:5443
+    extra_hosts:
+      host.docker.internal: host-gateway
 
   backend:
     container_name: trackeats-backend
@@ -25,7 +27,8 @@ services:
     ports:
       - 5000:5000
     environment:
-      DB_HOSTNAME: trackeats.com
+      ENV: PROD
+      DB_HOSTNAME: lastcallw.com
       DB_PASSWORD: Yay*LJ54XOAN
 
   db:

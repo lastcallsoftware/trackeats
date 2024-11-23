@@ -14,9 +14,9 @@ def load_db():
         db.session.commit()
 
         # ADD USER RECORDS
-        errors = User.add("admin", "Test*123", "admin@trackeats.com", UserStatus.confirmed)
+        errors = User.add("admin", "Test*123", "admin@lastcallsw.com", UserStatus.confirmed)
         if len(errors) == 0:
-            errors = User.add("testuser", "Test*123", "testuser@trackeats.com", UserStatus.confirmed)
+            errors = User.add("testuser", "Test*123", "testuser@lastcallsw.com", UserStatus.confirmed)
 
         # ADD INGREDIENT RECORDS
         if len(errors) == 0:

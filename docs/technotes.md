@@ -139,11 +139,11 @@ If you are installing MySQL Server on Linux, read on!
     On your local system, start up MySQL Workbench and add a connection.  On the Parameters tab:
         Connection name: any name you like
         Connection method: Standard TCP/IP over SSH
-        SSH Hostname: trackeats.com:22
+        SSH Hostname: lastcallsw.com:22
         SSH Username: your SSH user name (e.g., 'paul' or 'alex')
         SSH Password: leave this blank, we use a key file for SSH authentication
         SSH Key File: point it to your SSH .pem (private key) file
-        MySQL Hostname: trackeats.com (or 127.0.0.1?  not sure)
+        MySQL Hostname: lastcallsw.com (or 127.0.0.1?  not sure)
         Username: the name we created in step 5 (e.g., 'mysql-admin')
         Password/Store In Vault: the password we created in step 5
         Default schema: leave blank (for now)

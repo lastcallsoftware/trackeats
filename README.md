@@ -10,9 +10,9 @@ This project is a small web application.  Conceptually it is a portfolio app int
 
 It is bad practice to hardcode environment-specific config values in the app 
 code.  For example, the backend server URL would be "localhost" when you're 
-developing the app locally on your own desktop, but "trackeats.com" when you
-deploy the app to production.  You don't want to have to modify the code every
-time you deploy the app!
+developing the app locally on your own desktop, but "trackeats.lastcallsw.com"
+when you deploy the app to production.  You don't want to have to modify the 
+code every time you deploy the app!
 
 Moreover, it's even worse practice, as well as a massive security violation, to
 hardcode "secrets" like a database password in the code -- especially when the

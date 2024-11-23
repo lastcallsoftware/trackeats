@@ -16,7 +16,7 @@ import react from '@vitejs/plugin-react-swc'
 // In addition to the port numbers, I had to add the strictPort and host
 // properties.  I just scraped that out of a post somewhere I can't remember
 // and really have no idea what they do.  The app runs fine locally without
-// those peoperties, but not on the trackeats.com server.
+// those peoperties, but not on the lastcallsw.com server.
 // WHY?  No f-ing idea.
 //
 // The origin property was recommended in that same post but it was causing
