@@ -2,12 +2,12 @@ import { useState } from 'react';
 import { Routes, Route, Link } from 'react-router-dom';
 import Header from './Header';
 import Homepage from './Home';
-import About from './About';
-import Ingredients from './Ingredients';
-import Meals from './Meals';
-import DailyLog from './DailyLog';
-import Login from './Login';
-import Register from './Register';
+import AboutPage from './AboutPage';
+import IngredientsPage from './IngredientsPage';
+import MealsPage from './MealsPage';
+import DailyLogPage from './DailyLogPage';
+import LoginPage from './LoginPage';
+import RegisterPage from './RegisterPage';
 import Footer from './Footer';
 import axios from "axios";
 import ConfirmUser from './ConfirmUser';
@@ -61,16 +61,16 @@ function Nav() {
                                : <Link to="/login" className="nav-item">Log In</Link>}
                                  <Link to="/register" className="nav-item">Register</Link>
                                  <Link to="/about" className="nav-item">About</Link>
-                                 </nav>
+            </nav>
 
             <Routes>
                 <Route path="/" element={<Homepage />} />
-                <Route path="/ingredients" element={<Ingredients removeTokenFunction={removeToken}/>} />
-                <Route path="/meals" element={<Meals />} />
-                <Route path="/dailylog" element={<DailyLog />} />
-                <Route path="/about" element={<About />} />
-                <Route path="/login" element={<Login storeTokenFunction={storeToken}/>} />
-                <Route path="/register" element={<Register/>} />
+                <Route path="/ingredients" element={<IngredientsPage />} />
+                <Route path="/meals" element={<MealsPage />} />
+                <Route path="/dailylog" element={<DailyLogPage />} />
+                <Route path="/about" element={<AboutPage />} />
+                <Route path="/login" element={<LoginPage storeTokenFunction={storeToken}/>} />
+                <Route path="/register" element={<RegisterPage />} />
                 <Route path="/confirm" element={<ConfirmUser/>} />
                 <Route path="/ingredientForm" element={<IngredientForm />} />
             </Routes>

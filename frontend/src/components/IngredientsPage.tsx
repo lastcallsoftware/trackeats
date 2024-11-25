@@ -1,47 +1,12 @@
 import { createColumnHelper, flexRender, getCoreRowModel, getSortedRowModel, Row, SortingState, TableOptions, useReactTable } from '@tanstack/react-table';
-import axios from 'axios';
-import React, { useEffect, useState } from 'react';
+import React, { useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { IconContext } from "react-icons";
 import { MdAddCircleOutline, MdEdit, MdRemoveCircleOutline } from "react-icons/md";
-
-export type Ingredient = {
-    id?: number
-    group: string
-    type: string
-    subtype: string
-    description: string
-    vendor: string
-    size_description: string
-    size_g: number
-    servings: number
-    nutrition_id?: number
-    nutrition: {
-        serving_size_description: string
-        serving_size_g: number
-        calories: number
-        total_fat_g: number
-        saturated_fat_g: number
-        trans_fat_g: number
-        cholesterol_mg: number
-        sodium_mg: number
-        total_carbs_g: number
-        fiber_g: number
-        total_sugar_g: number
-        added_sugar_g: number
-        protein_g: number
-        vitamin_d_mcg: number
-        calcium_mg: number
-        iron_mg: number
-        potassium_mg: number
-        }
-    price: number
-    price_date: string
-    shelf_life: string
-}
+import { IIngredient, IngredientContext } from "./IngredientProvider";
 
 // Define the table
-const columnHelper = createColumnHelper<Ingredient>()
+const columnHelper = createColumnHelper<IIngredient>()
 const columns = [
     columnHelper.accessor("id", {
         header: "ID",
@@ -175,7 +140,12 @@ const columns = [
     }),
     columnHelper.accessor("price_date", {
         header: "Price Date",
-        cell: info => new Date(info.getValue().replace(/-/g, '/').replace(/T.+/, '')).toLocaleDateString('en-US', {year: 'numeric', month: 'short', day: 'numeric'}),
+        cell: info => {
+            if (info.getValue().trim().length > 0)
+                return new Date(info.getValue().replace(/-/g, '/').replace(/T.+/, '')).toLocaleDateString('en-US', {year: 'numeric', month: 'short', day: 'numeric'})
+            else
+                return "";
+        },
         size: 100
     }),
     columnHelper.accessor("shelf_life", {
@@ -185,32 +155,30 @@ const columns = [
     }),
 ]
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const Ingredients = (props: any) => {
-    const [ingredients, setIngredients] = useState<Ingredient[]>([])
-    const [errorMessage, setErrorMessage] = useState<string>("")
+const IngredientsPage = () => {
     const navigate = useNavigate()
-    const removeTokenFunction = props.removeTokenFunction
-	const tok = sessionStorage.getItem("access_token")
-	const token = tok ? JSON.parse(tok) : ""
     const [sorting, setSorting] = React.useState<SortingState>([])
+    const context = useContext(IngredientContext)
+    if (!context)
+        throw Error("useIngredientContext can only be used inside an IngredientProvider")
+    const ingredients = context.ingredients;
+    const errorMessage = context.errorMessage;
+    const deleteIngredient = context.deleteIngredient;
 
-    const tableOptions: TableOptions<Ingredient> = {
+    const tableOptions: TableOptions<IIngredient> = {
         data: ingredients,
         columns,
         getCoreRowModel: getCoreRowModel(),
         getSortedRowModel: getSortedRowModel(),
         enableMultiRowSelection: false,
         onSortingChange: setSorting,
-        state: {
-            sorting
-        }
+        state: { sorting }
     }
 
     // Use the table hooks from TanStack Table
     const table = useReactTable(tableOptions)
 
-    const onDoubleClick = (row: Row<Ingredient>) => {
+    const onDoubleClick = (row: Row<IIngredient>) => {
         console.log("doubleclick")
         const record_id:number = row.getValue("id")
         doEdit(record_id)
@@ -218,7 +186,7 @@ const Ingredients = (props: any) => {
 
     const addRecord = () => {
         // Go to the edit form
-        navigate("/ingredientForm", { state: {} });
+        navigate("/ingredientForm");
     }
 
     const editRecord = () => {
@@ -231,7 +199,7 @@ const Ingredients = (props: any) => {
     }
     
     const doEdit = (record_id: number) => {
-        const ingredient = ingredients.find(item => item.id == record_id);
+        const ingredient = ingredients.find((item:IIngredient) => item.id == record_id);
         navigate("/ingredientForm", { state: { ingredient } });
     }
 
@@ -242,41 +210,14 @@ const Ingredients = (props: any) => {
             // Confirm the deletion request
             const confirmed = confirm("Delete record.  Are you sure?  This cannot be undone.")
             if (confirmed) {
-                const record_id = selectedRows[0].getValue("id");
-                const table_idx = Number(selectedRows[0].id);
-
-                // Call the back end's "delete ingredient" API
-                axios.delete("/ingredient/" + record_id, {headers: { "Authorization": "Bearer " + token}})
-                .then(() => {
-                    setIngredients(prevItems => prevItems.filter((_item, idx) => idx != table_idx));
-                })
-                .catch((error) => {
-                    if (error.status == 401) {
-                        removeTokenFunction()
-                        navigate("/login", { state: { message: "Your token has expired and you have been logged out." } });
-                    }
-                    setErrorMessage(error.message)
-                })
+                const record_id:number = selectedRows[0].getValue("id");
+                //const table_idx = Number(selectedRows[0].id);
+                // Delete the record from the database and the ingredients list.
+                //TODO: Not sure if this will also update the table on the GUI.
+                deleteIngredient(record_id);
             }
         }
     }
-
-    // On page load/rerender, call the back end's /ingredient API to get the 
-    // data to populate the table
-    useEffect(() => {
-        axios.get("/ingredient", {headers: { "Authorization": "Bearer " + token}})
-            .then((response) => {
-                setIngredients(response.data);
-            })
-            .catch((error) => {
-				console.log(error)
-                if (error.status == 401) {
-                    removeTokenFunction()
-                    navigate("/login", { state: { message: "Your token has expired and you have been logged out." } });
-                }
-                setErrorMessage(error.message)
-            })
-    }, [token, navigate, removeTokenFunction])
 
     return (
         <section className="ingredientPage">
@@ -307,21 +248,7 @@ const Ingredients = (props: any) => {
                                                     header.getContext()
                                                 )}
                                                 {/* This little bit is the INCREDIBLY clever magic that adds the 
-                                                    appropriate directional arrows to the header when a column is sorted.
-                                                    First it defines a little two-item dictionary, and then immediately 
-                                                    follows it with an index selector which will evaluate to one of the 
-                                                    dictioary's two item keys depending on how the column is currently 
-                                                    being sorted.  Thus the expression always evaluates to one of the
-                                                    dictonary's two values, or to undefined if getIsSorted() returns false.
-                                                    The ?? on the end is the Typescript "nullish coalescing operator" which
-                                                    provides a "fallback value" if the expression on the left evaluates to
-                                                    null or undefined (which it would do in the default case of the column
-                                                    not being sorted).  You'll notice that the fallback value is null
-                                                    anyway, so really it's only proteting against the expression evaluating
-                                                    to undefined.  Presumably the author felt that would be a bad thing,
-                                                    though if I take out the ?? it doesn't seem to matter -- the page still
-                                                    renders just fine.  But I'll leave it in, in the 100% certain case that 
-                                                    I don't completely understand how this page works. */}
+                                                    appropriate directional arrows to the header when a column is sorted. */}
                                                 {{asc: ' 🔼', desc: ' 🔽'}[header.column.getIsSorted() as string] ?? null}
                                             </div>
                                         )}
@@ -392,4 +319,4 @@ const Ingredients = (props: any) => {
     )
 }
   
-export default Ingredients;
+export default IngredientsPage;

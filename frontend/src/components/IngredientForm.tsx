@@ -1,12 +1,11 @@
-import { useState } from "react"
+import { useContext, useState } from "react"
 import { useLocation, useNavigate } from "react-router-dom";
-import { Ingredient } from "./Ingredients";
-import axios from "axios";
+import { IIngredient, IngredientContext } from "./IngredientProvider";
 
 function IngredientForm() {
     const location = useLocation();
     const navigate = useNavigate()
-    const emptyFormData: Ingredient = {
+    const emptyFormData: IIngredient = {
         group: "", type: "", subtype: "", description: "", vendor: "",
         size_description: "", size_g: 0, servings: 0,
         nutrition: {
@@ -18,8 +17,9 @@ function IngredientForm() {
         price: 0, price_date: "", shelf_life: ""
     }
     const isEdit = (location.state != null);
+    console.log("state: " + location.state)
     const defaultFormData = location.state?.ingredient || emptyFormData;
-    const [formData, setFormData] = useState<Ingredient>(defaultFormData);
+    const [formData, setFormData] = useState<IIngredient>(defaultFormData);
 
     const foodGroups = [
         { value: "", label: "-- select one --" },
@@ -35,45 +35,32 @@ function IngredientForm() {
         { value: "beverages", label: "Beverages" },
         { value: "other", label: "Other" }
     ];
-	const tok = sessionStorage.getItem("access_token")
-	const token = tok ? JSON.parse(tok) : ""
-    const [errorMessage, setErrorMessage] = useState();
     const saveIsDisabled = false;
+    const context = useContext(IngredientContext)
+    if (!context)
+        throw Error("useIngredientContext can only be used inside an IngredientProvider")
+    const errorMessage = context.errorMessage;
+    const addIngredient = context.addIngredient;
+    const updateIngredient = context.updateIngredient;
 
     const handleSubmit = (e: { preventDefault: () => void; }) => {
         // Prevent default behavior for form submission (namely, sending the form to the server)
         e.preventDefault();
 
         // Save the new Ingredient
-        if (isEdit) {
-            axios.put("/ingredient", formData, {headers: { "Authorization": "Bearer " + token}})
-            .then (() => {
-                // Return to the main ingredients page
-                navigate("/ingredients")
-            })
-            .catch ((error) => {
-                if (error.response)
-                    setErrorMessage(error.response.data.msg)
-                else
-                    setErrorMessage(error.message)
-            })
-        } else {
-            axios.post("/ingredient", formData, {headers: { "Authorization": "Bearer " + token}})
-            .then (() => {
-                // Return to the main ingredients page
-                navigate("/ingredients")
-            })
-            .catch ((error) => {
-                if (error.response)
-                    setErrorMessage(error.response.data.msg)
-                else
-                    setErrorMessage(error.message)
-            })
-        }
+        if (isEdit)
+            updateIngredient(formData);
+        else
+            addIngredient(formData);
+        
+        // Return to the Ingredients page
+        navigate("/ingredients")
     }
 
     const handleCancel = (e: { preventDefault: () => void; }) => {
         e.preventDefault();
+
+        // Return to the Ingredients page
         navigate("/ingredients", { state: { } })
     }
 
@@ -280,7 +267,7 @@ function IngredientForm() {
                     <section className="inputLine">
                         <label htmlFor="shelf_life">Shelf Life:</label>
                         <input id="shelf_life" type="text" value={formData.shelf_life} maxLength={100}
-                            onChange={(e) => setFormData(prevState => ({...prevState, nutrition: {...prevState.nutrition, potassium_mg: Number(e.target.value)}}))} />
+                            onChange={(e) => setFormData(prevState => ({...prevState, shelf_life: e.target.value}))} />
                     </section>
 
                     <button className="button" type="submit" disabled={saveIsDisabled}>Save</button>

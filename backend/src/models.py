@@ -287,12 +287,15 @@ class Ingredient(db.Model):
     nutrition_id = db.Column(db.Integer, db.ForeignKey('nutrition.id'))
     nutrition = db.relationship(Nutrition, single_parent=True, cascade="all, delete-orphan", backref=db.backref("nutrition", cascade="all, delete-orphan", uselist=False))
     price = db.Column(db.Float)
-    price_date = db.Column(db.Date)
+    price_date = db.Column(db.Date, nullable=True)
     shelf_life = db.Column(db.String(150))
 
     def __str__(self):
         return str(vars(self))
     def json(self):
+        price_date = ""
+        if (self.price_date):
+            price_date = datetime.datetime.strftime(self.price_date, "%Y-%m-%d")
         return {
             "id": self.id,
             "user_id": self.user_id,
@@ -307,7 +310,7 @@ class Ingredient(db.Model):
             "nutrition_id": self.nutrition_id,
             "nutrition": self.nutrition.json(),
             "price": self.price,
-            "price_date": datetime.datetime.strftime(self.price_date, "%Y-%m-%d"),
+            "price_date": price_date,
             "shelf_life": self.shelf_life
             }
 
@@ -331,6 +334,9 @@ class Ingredient(db.Model):
             # have to instantiate and save it separately.
             nutrition = ingredient["nutrition"]
             del ingredient["nutrition"]
+
+            if (len(ingredient["price_date"].strip()) == 0):
+                del ingredient["price_date"]
 
             # Use Python's ** operator to populate an instance of the SQLAlchemy
             # model objects.
@@ -372,6 +378,8 @@ class Ingredient(db.Model):
             del ingredient["nutrition"]
             ingredient_id = ingredient["id"]
             nutrition_id = ingredient["nutrition_id"]
+            if (len(ingredient["price_date"].strip()) == 0):
+                del ingredient["price_date"]
 
             num_updates = Nutrition.query.filter_by(id=nutrition_id).update(nutrition)
             if (num_updates != 1):

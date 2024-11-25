@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import axios from "axios";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function Login(props: any) {
+function LoginPage(props: any) {
     // If we were sent here from the Confirm page, the state will contain username and password
     const location = useLocation();
     const isConfirm = location.state && location.state.username
@@ -61,4 +61,4 @@ function Login(props: any) {
     );
 }
 
-export default Login;
+export default LoginPage;

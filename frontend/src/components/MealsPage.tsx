@@ -1,4 +1,4 @@
-function Meals() {
+function MealsPage() {
     return (
         <>
             <p>Meals Placeholder</p>
@@ -6,4 +6,4 @@ function Meals() {
     );
 }
 
-export default Meals;
+export default MealsPage;

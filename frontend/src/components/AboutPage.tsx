@@ -1,4 +1,4 @@
-function About() {
+function AboutPage() {
     return (
         <section className="aboutPage">
             <section className="aboutBoundingBox">
@@ -68,4 +68,4 @@ function About() {
     );
 }
 
-export default About;
+export default AboutPage;

@@ -1,4 +1,4 @@
-function DailyLog() {
+function DailyLogPage() {
     return (
         <>
             <p>Daily Log Placeholder</p>
@@ -6,4 +6,4 @@ function DailyLog() {
     );
 }
 
-export default DailyLog;
+export default DailyLogPage;

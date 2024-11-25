@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from 'react-router-dom';
 import axios from "axios";
 
-function Register() {
+function RegisterPage() {
     const defaultFormData = {username: "", usernameTouched: false, usernameMessage: "",
                              password: "", passwordTouched: false, passwordMessage: "",
                              password2: "", password2Touched: false, password2Message: "",
@@ -198,4 +198,4 @@ function Register() {
     );
 }
 
-export default Register;
+export default RegisterPage;
