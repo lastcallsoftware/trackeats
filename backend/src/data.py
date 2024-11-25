@@ -38,6 +38,13 @@ def load_db():
                 for ingredient in data['ingredients']:
                     Ingredient.add(user_id, ingredient, False)
 
+            with open("./data/proteins.json") as f:
+                data = json.load(f)
+                
+                # Loop through the JSON records
+                for ingredient in data['ingredients']:
+                    Ingredient.add(user_id, ingredient, False)
+
         # Commit all the new records to the database
         db.session.commit()
 
