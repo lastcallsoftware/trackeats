@@ -30,7 +30,8 @@ const columns = [
     columnHelper.accessor("group", {
         header: "Group",
         cell: info => String(info.getValue()).charAt(0).toUpperCase() + String(info.getValue()).slice(1),
-        size: 75
+        size: 75,
+        meta: { filterVariant: "text" }
     }),
     columnHelper.accessor("type", {
         header: "Type",
@@ -41,17 +42,20 @@ const columns = [
     columnHelper.accessor("subtype", {
         header: "Subtype",
         cell: info => info.getValue(),
-        size: 150
+        size: 150,
+        meta: { filterVariant: "text" }
     }),
     columnHelper.accessor("description", {
         header: "Description",
         cell: info => info.getValue(),
-        size: 150
+        size: 150,
+        meta: { filterVariant: "text" }
     }),
     columnHelper.accessor("vendor", {
         header: "Vendor",
         cell: info => info.getValue(),
-        size: 100
+        size: 100,
+        meta: { filterVariant: "text" }
     }),
     columnHelper.accessor("size_description", {
         header: "Size",
@@ -66,7 +70,7 @@ const columns = [
     columnHelper.accessor("servings", {
         header: "Servings",
         cell: info => info.getValue(),
-        size: 60
+        size: 65
     }),
     columnHelper.accessor("nutrition.serving_size_description", {
         header: "Serving Size",
@@ -76,82 +80,82 @@ const columns = [
     columnHelper.accessor("nutrition.serving_size_g", {
         header: "Serving Size (g or ml)",
         cell: info => info.getValue(),
-        size: 55
+        size: 65
     }),
     columnHelper.accessor("nutrition.calories", {
         header: "Calories",
         cell: info => info.getValue(),
-        size: 55
+        size: 65
     }),
     columnHelper.accessor("nutrition.total_fat_g", {
         header: "Total Fat (g)",
         cell: info => info.getValue(),
-        size: 55
+        size: 65
     }),
     columnHelper.accessor("nutrition.saturated_fat_g", {
         header: "Satu- rated Fat (g)",
         cell: info => info.getValue(),
-        size: 55
+        size: 65
     }),
     columnHelper.accessor("nutrition.trans_fat_g", {
         header: "Trans Fat (g)",
         cell: info => info.getValue(),
-        size: 55
+        size: 65
     }),
     columnHelper.accessor("nutrition.cholesterol_mg", {
         header: "Choles- terol (mg)",
         cell: info => info.getValue(),
-        size: 55
+        size: 65
     }),
     columnHelper.accessor("nutrition.sodium_mg", {
         header: "Sodium (mg)",
         cell: info => info.getValue(),
-        size: 55
+        size: 65
     }),
     columnHelper.accessor("nutrition.total_carbs_g", {
         header: "Total Carbs (g)",
         cell: info => info.getValue(),
-        size: 55
+        size: 65
     }),
     columnHelper.accessor("nutrition.total_sugar_g", {
         header: "Total Sugar (g)",
         cell: info => info.getValue(),
-        size: 55
+        size: 65
     }),
     columnHelper.accessor("nutrition.added_sugar_g", {
         header: "Added Sugar (g)",
         cell: info => info.getValue(),
-        size: 55
+        size: 65
     }),
     columnHelper.accessor("nutrition.protein_g", {
         header: "Protein (g)",
         cell: info => info.getValue(),
-        size: 55
+        size: 65
     }),
     columnHelper.accessor("nutrition.vitamin_d_mcg", {
         header: "Vitamin D (mcg)",
         cell: info => info.getValue(),
-        size: 55
+        size: 65
     }),
     columnHelper.accessor("nutrition.calcium_mg", {
         header: "Calcium (mg)",
         cell: info => info.getValue(),
-        size: 55
+        size: 65
     }),
     columnHelper.accessor("nutrition.iron_mg", {
         header: "Iron (mg)",
         cell: info => info.getValue(),
-        size: 55
+        size: 65
     }),
     columnHelper.accessor("nutrition.potassium_mg", {
         header: "Potas- sium (mg)",
         cell: info => info.getValue(),
-        size: 55
+        size: 65
     }),
     columnHelper.accessor("price", {
         header: "Price",
         cell: info => info.getValue(),
-        size: 55
+        size: 65
     }),
     columnHelper.accessor("price_date", {
         header: "Price Date",
@@ -185,17 +189,17 @@ function Filter({ column }: { column: Column<any, unknown> }) {
         <div>
             <div className="flex space-x-2">
                 <DebouncedInput
+                    //className="w-24 border shadow rounded" 
                     type="number"
                     value={(columnFilterValue as [number, number])?.[0] ?? ''}
                     onChange={value => column.setFilterValue((old: [number, number]) => [value, old?.[1]])}
-                    placeholder={`Min`}
-                    className="w-24 border shadow rounded" />
+                    placeholder={`Min`} />
                 <DebouncedInput
+                    //className="w-24 border shadow rounded"
                     type="number"
                     value={(columnFilterValue as [number, number])?.[1] ?? ''}
                     onChange={value => column.setFilterValue((old: [number, number]) => [old?.[0], value]) }
-                    placeholder={`Max`}
-                    className="w-24 border shadow rounded" />
+                    placeholder={`Max`} />
             </div>
             {/* Put a lil' separator.  Why?  Dunno! */}
             <div className="h-1" />
@@ -213,10 +217,10 @@ function Filter({ column }: { column: Column<any, unknown> }) {
     // The default is the "text" filterVariant, for which we implement a text input.
     ) : filterVariant === 'text' ? (
         <DebouncedInput
-            style={{width: column.getSize()}}
-            className="w-36 border shadow rounded"
+            style={{width: column.getSize() - 6}}
+            //className="w-36 border shadow rounded"
             onChange={value => column.setFilterValue(value)}
-            placeholder={`Search...`}
+            placeholder={`Filter...`}
             type="text"
             value={(columnFilterValue ?? '') as string} />
     // The default is no filter input.
@@ -325,9 +329,9 @@ const IngredientsTable = (props: any) => {
                                 colSpan={header.colSpan}
                                 onClick={header.column.getToggleSortingHandler()}>
                                 {header.isPlaceholder ? null : (
-                                    <>
+                                    <section className='header_cell'>
                                         {/* Add */}
-                                        <div {...{ className: header.column.getCanSort() ? 'cursor-pointer select-none' : '' }}>
+                                        <p {...{ className: header.column.getCanSort() ? 'cursor-pointer select-none' : '' }}>
                                             {/* Add the appropriate header text */}
                                             { flexRender(
                                                 header.column.columnDef.header,
@@ -336,18 +340,18 @@ const IngredientsTable = (props: any) => {
                                             {/* This is the clever magic that adds the appropriate directional arrows 
                                                 to the header when a column is sorted. */}
                                             {{asc: ' 🔼', desc: ' 🔽'}[header.column.getIsSorted() as string] ?? null}
-                                        </div>
+                                        </p>
 
                                         {/* Add the header's appropriate Filter input widget */}
                                         {/* The stopPropagation() call in the onClick handler prevents clicks on the Filter 
                                             widget from passing through to its parent, the header div.  We need this because 
                                             clicking on the header enacts the table's sorting functionality. */}
                                         {header.column.getCanFilter() ? (
-                                            <div onClick={(e) => {e.stopPropagation()}}>
+                                            <section className='filter_box' onClick={(e) => {e.stopPropagation()}}>
                                                 <Filter column={header.column}/>
-                                            </div>
+                                            </section>
                                         ) : null}
-                                    </>
+                                    </section>
                                     )}
                             </th>
                         ))}

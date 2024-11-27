@@ -150,10 +150,19 @@ thead {
 th {
   border-right: 1px solid black;
   border-bottom: 1px solid black;
-  padding: 10px 7px;
   font-size: 14px;
   color: black;
   background: #66C2E0;
+}
+.header_cell {
+  display: flex;
+  flex-direction: column;
+}
+.filter_box {
+}
+th p {
+  padding: 10px 5px;
+  margin: auto;
 }
 td {
   border-right: 1px solid black;
