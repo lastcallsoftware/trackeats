@@ -158,8 +158,6 @@ th {
   display: flex;
   flex-direction: column;
 }
-.filter_box {
-}
 th p {
   padding: 10px 5px;
   margin: auto;
