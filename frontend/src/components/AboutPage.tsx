@@ -8,7 +8,7 @@ function AboutPage() {
                     did quite what I wanted in a product of this type -- so I decided to make my
                     own.</p>
                 <br/>
-                <p>But the app's actual functionality is secondary.  Its REAL purpose is to 
+                <p>But the app's functionality is secondary.  Its REAL purpose is to 
                     excerise and demonstrate a working knowledge of all the products and technologies
                     necessary to design, construct, and deploy a full-stack web app.</p>
                 <br/>
@@ -40,7 +40,9 @@ function AboutPage() {
                     <li>Just the whole subject of domain name registration and email hosting!</li>
                 </ul>
                 <br/>
-                <p>And there are still a few techs I want to add in when I have time:</p>
+                <p>And there are a couple more techs I want to add in when I have time.  They're total overkill for a
+                    little project like this one, but of course, the idea is to get experience using them, so their
+                    fit for the project is secondary:</p>
                 <ul>
                     <li>Kubernetes - for smoother orchestration</li>
                     <li>Jenkins or GitHub Actions - for CI/CD</li>
