@@ -132,7 +132,8 @@ button:active {
 .ingredientTable {
   table-layout: fixed;
   width: 100%;
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0;
 }
 /* The thead's style attribute, with the specified position, top, and zindex parameters
     you see here, combine to make the header row "sticky", so it's always visible.  I searched 
@@ -147,20 +148,18 @@ thead {
   z-index: 2;
 }
 th {
-  border: 1px solid;
-}
-td {
-  border: 1px solid;
-}
-th {
+  border-right: 1px solid black;
+  border-bottom: 1px solid black;
   padding: 10px 7px;
-  font-size: 15px;
+  font-size: 14px;
   color: black;
   background: #66C2E0;
 }
 td {
-  font-size: 15px;
-  padding: 5px 5px;
+  border-right: 1px solid black;
+  border-bottom: 1px solid black;
+  font-size: 14px;
+  padding: 2px 3px;
   height: 35px;
 }
 .selected {
