@@ -17,7 +17,7 @@ function IngredientForm() {
         price: 0, price_date: "", shelf_life: ""
     }
     const isEdit = (location.state != null);
-    console.log("state: " + location.state)
+
     const defaultFormData = location.state?.ingredient || emptyFormData;
     const [formData, setFormData] = useState<IIngredient>(defaultFormData);
 
