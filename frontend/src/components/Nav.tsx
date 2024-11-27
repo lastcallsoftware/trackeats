@@ -33,20 +33,16 @@ axios.defaults.baseURL = import.meta.env.VITE_BACKEND_BASE_URL
 axios.defaults.timeout = 4000
 
 function Nav() {
-    const [user, setUser] = useState({username: "", isAuthenticated: false});
+    const [isAuthenticated, setAuthenticated] = useState(sessionStorage.getItem("access_token") != null);
 
-    const storeToken = (username: string, token: string|null): undefined => {
+    const storeToken = (token: string): undefined => {
         sessionStorage.setItem("access_token", JSON.stringify(token))
-        setUser({username: username, isAuthenticated: true})
+        setAuthenticated(true)
     }
 
     const removeToken = () => {
         sessionStorage.removeItem("access_token")
-        setUser({username: "", isAuthenticated: false})
-    }
-
-    function isLoggedIn() {
-        return user.isAuthenticated;
+        setAuthenticated(false)
     }
 
     return (
@@ -54,10 +50,10 @@ function Nav() {
             <Header />
             <nav id="navbar" className="navbar">
                                {/*<Link to="/" className="nav-item">Home</Link>*/}
-                { isLoggedIn() ? <Link to="/ingredients" className="nav-item">Ingredients</Link> : ""}
-                { isLoggedIn() ? <Link to="/meals" className="nav-item">Meals</Link> : ""}
-                { isLoggedIn() ? <Link to="/dailylog" className="nav-item">Daily Log</Link> : ""}
-                { isLoggedIn() ? <Link to="/login" className="nav-item" onClick={removeToken}>Log Out</Link>
+                { isAuthenticated ? <Link to="/ingredients" className="nav-item">Ingredients</Link> : ""}
+                { isAuthenticated ? <Link to="/meals" className="nav-item">Meals</Link> : ""}
+                { isAuthenticated ? <Link to="/dailylog" className="nav-item">Daily Log</Link> : ""}
+                { isAuthenticated ? <Link to="/login" className="nav-item" onClick={removeToken}>Log Out</Link>
                                : <Link to="/login" className="nav-item">Log In</Link>}
                                  <Link to="/register" className="nav-item">Register</Link>
                                  <Link to="/about" className="nav-item">About</Link>

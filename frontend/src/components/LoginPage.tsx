@@ -22,7 +22,7 @@ function LoginPage(props: any) {
         // Call the back end's /login API with the username and password from the form
         axios.post("/login", {username: formData.username, password: formData.password })
             .then((response) => {
-                props.storeTokenFunction(formData.username, response.data.access_token);
+                props.storeTokenFunction(response.data.access_token);
                 navigate("/ingredients")
             })
             .catch((error) => {
