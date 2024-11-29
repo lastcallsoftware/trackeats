@@ -1,0 +1,241 @@
+{ "ingredients": [
+    {
+        "description": "Chocolate, Mexican, Classic Collection, Taza Chocolate Store (6 ct, each 2.7 oz = 77 g)",
+        "size_g": 16,
+        "servings": 12,
+        "nutrition": {
+        "serving_size_description": "1\/2 disc (1.4 oz = 38 g)",
+            "calories": 210,
+            "saturated_fat_g": 7,
+            "cholesterol_mg": 0,
+            "sodium_mg": 8
+        },
+        "price": 22.95,
+        "Price per Serving ($)": 1.9125,
+        "shelf_life": "12-18 months in pantry"
+    },
+    {
+        "description": "Chocolate Chips, Semi-Sweet, Toll House (12 oz = 340 g)",
+        "size_g": 12,
+        "servings": 24,
+        "nutrition": {
+        "serving_size_description": "1 tbsp (14 g)",
+            "calories": 70,
+            "saturated_fat_g": 2.5,
+            "cholesterol_mg": 0,
+            "sodium_mg": 0
+        },
+        "price": 4.99,
+        "Price per Serving ($)": 0.20791666666666667
+    },
+    {
+        "description": "Cocoa Powder, Hershey's (8 oz = 227 g)",
+        "size_g": 8,
+        "servings": 45,
+        "nutrition": {
+        "serving_size_description": "1 tbsp (5 g)",
+            "calories": 10,
+            "saturated_fat_g": 0,
+            "cholesterol_mg": 0,
+            "sodium_mg": 0
+        },
+        "price": 6.79,
+        "Price per Serving ($)": 0.15088888888888888
+    },
+    {
+        "description": "Cocoa Powder, Unsweetened, Ghirardelli (8 oz = 227 g)",
+        "size_g": 8,
+        "servings": 38,
+        "nutrition": {
+        "serving_size_description": "1 tbsp (6 g)",
+            "calories": 15,
+            "saturated_fat_g": 0,
+            "cholesterol_mg": 0,
+            "sodium_mg": 0
+        },
+        "price": 4.99
+    },
+    {
+        "description": "Corn Syrup, Light, Karo (16 fl oz = 473 ml)",
+        "size_g": 16,
+        "servings": 16,
+        "nutrition": {
+        "serving_size_description": "2 tbsp (30 ml)",
+            "calories": 80,
+            "saturated_fat_g": 0,
+            "cholesterol_mg": 0,
+            "sodium_mg": 70
+        },
+        "price": 4.89,
+        "shelf_life": "indefinite in pantry"
+    },
+    {
+        "description": "Honey, Just FreshDirect (16 oz)",
+        "size_g": 16,
+        "servings": 21,
+        "nutrition": {
+        "serving_size_description": "1 tbsp (21 g)",
+            "calories": 64,
+            "saturated_fat_g": 0,
+            "cholesterol_mg": 0,
+            "sodium_mg": 1
+        },
+        "price": 7.29,
+        "Price per Serving ($)": 0.34714285714285714,
+        "shelf_life": "12+ months in pantry (do NOT refrigerate!)"
+    },
+    {
+        "description": "Maple Syrup, Local Amber Rich Taste, Just FreshDirect (12.5 fl oz = 370 ml)",
+        "size_g": 12.5,
+        "servings": 6,
+        "nutrition": {
+        "serving_size_description": "1 tbsp (0.5 fl oz = 15 ml)",
+            "calories": 50,
+            "saturated_fat_g": 0,
+            "cholesterol_mg": 0,
+            "sodium_mg": 0
+        },
+        "price": 10.99,
+        "shelf_life": "opened: 12 months in fridge"
+        },
+    {
+        "description": "Molasses, Unsulfured, Gramdma's (12 fl oz = 354 ml)",
+        "size_g": 12,
+        "servings": 24,
+        "nutrition": {
+        "serving_size_description": "1 tbsp (0.5 fl oz = 15 ml)",
+            "calories": 60,
+            "saturated_fat_g": 0,
+            "cholesterol_mg": 0,
+            "sodium_mg": 5
+        },
+        "price": 5.59,
+        "shelf_life": "unopened: 12 months in pantry; opened: 6 months in pantry"
+    },
+    {
+        "description": "Oil, Avocado Oil Spray, Primal Kitchen (4.7 oz = 134 g)",
+        "size_g": 4.7,
+        "servings": 536,
+        "nutrition": {
+        "serving_size_description": "1\/4 sec spray (0.25 g)",
+            "calories": 0,
+            "saturated_fat_g": 0,
+            "cholesterol_mg": 0,
+            "sodium_mg": 0
+        },
+        "price": 8.99,
+        "shelf_life": "unopened: 1-2 years in pantry; opened: 6 months in pantry"
+    },
+    {
+        "description": "Oil, Canola, Wesson (48 oz)",
+        "size_g": 48,
+        "servings": 95,
+        "nutrition": {
+        "serving_size_description": "1 tbsp (14 g)",
+            "calories": 120,
+            "saturated_fat_g": 1.1,
+            "cholesterol_mg": 0,
+            "sodium_mg": 0
+        },
+        "price": 9.49,
+        "shelf_life": "unopened: 12-24 months in pantry; opened: 6-12 months in pantry"
+    },
+    {
+        "description": "Oil, Coconut, Unrefined, Organic Virgin, Spectrum (14 fl oz = 414 ml)",
+        "size_g": 14,
+        "servings": 28,
+            "nutrition": {
+            "serving_size_description": "1 tbsp (15 ml)",
+            "calories": 120,
+            "saturated_fat_g": 12,
+            "cholesterol_mg": 0,
+            "sodium_mg": 0
+        },
+        "price": 13.59,
+        "shelf_life": "opened: 3 years in pantry"
+    },
+    {
+        "description": "Oil, Olive",
+        "size_g": 33.8,
+        "servings": 66,
+        "nutrition": {
+        "serving_size_description": "1 tbsp (15 g)",
+            "calories": 120,
+            "saturated_fat_g": 2,
+            "cholesterol_mg": 0,
+            "sodium_mg": 0
+        },
+        "price": 10.99,
+        "shelf_life": "unopened: 18-24 months in pantry; opened: 2-6 months in pantry"
+    },
+    {
+        "description": "Oil, Peanut, Planters (24 fl oz = 709 ml)",
+        "size_g": 24,
+        "servings": 48,
+        "nutrition": {
+        "serving_size_description": "1 tbsp (14 g)",
+            "calories": 120,
+            "saturated_fat_g": 2.5,
+            "cholesterol_mg": 0,
+            "sodium_mg": 0
+        },
+        "price": 6.79,
+        "shelf_life": "unopened: 12-24 months in pantry; opened: 6 months in pantry"
+    },
+    {
+        "description": "Oil, Sesame, Organic Toasted, Spectrum (8 fl oz = 236 ml)",
+        "size_g": 8,
+        "servings": 16,
+        "nutrition": {
+        "serving_size_description": "1 tbsp (15 ml)",
+            "calories": 120,
+            "saturated_fat_g": 2,
+            "cholesterol_mg": 0,
+            "sodium_mg": 0
+        },
+        "price": 8.99,
+        "shelf_life": "unopened: 12 months in fridge; opened: 6-9 months in fridge"
+    },
+    {
+        "description": "Sugar, Light Brown, Domino (16 oz = 453 g)",
+        "size_g": 16,
+        "servings": 38,
+        "nutrition": {
+        "serving_size_description": "1 tbsp packed (0.45 oz = 13 g)",
+            "calories": 50,
+            "saturated_fat_g": 0,
+            "cholesterol_mg": 0,
+            "sodium_mg": 0
+        },
+        "price": 2.49,
+        "shelf_life": "forever!"
+    },
+    {
+        "description": "Sugar, Granulated White, Domino (4 lb = 64 oz = 1814 g)",
+        "size_g": 64,
+        "servings": 151,
+        "nutrition": {
+        "serving_size_description": "1 tbsp (0.45 oz = 13 g)",
+            "calories": 50,
+            "saturated_fat_g": 0,
+            "cholesterol_mg": 0,
+            "sodium_mg": 0
+        },
+        "price": 4.49,
+        "shelf_life": "forever!"
+    },
+    {
+        "description": "Sugar, Powdered Confectioners, Domino (16 oz = 454 g)",
+        "size_g": 16,
+        "servings": 60,
+        "nutrition": {
+        "serving_size_description": "1 tbsp (7.5 g)",
+            "calories": 30,
+            "saturated_fat_g": 0,
+            "cholesterol_mg": 0,
+            "sodium_mg": 0
+        },
+        "price": 2.49,
+        "shelf_life": "forever!"
+    }
+]}

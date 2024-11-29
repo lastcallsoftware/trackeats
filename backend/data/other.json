@@ -1,0 +1,44 @@
+{ "ingredients": [
+    {
+        "description": "Baking Powder, Double Acting, Davis (8.1 oz = 230 g)",
+        "size_g": 8.1,
+        "servings": 383,
+        "nutrition": {
+        "serving_size_description": "1\/8 tsp (0.6 g)",
+            "calories": 0,
+            "saturated_fat_g": 0,
+            "cholesterol_mg": 0,
+            "sodium_mg": 60
+        },
+        "price": 4.99,
+        "shelf_life": "6 months in pantry"
+    },
+    {
+        "description": "Baking Soda, Arm & Hammer (16 oz = 454 g)",
+        "size_g": 16,
+        "servings": 806,
+        "nutrition": {
+            "serving_size_description": "1\/8 tsp (0.6 g)",
+            "calories": 0,
+            "saturated_fat_g": 0,
+            "cholesterol_mg": 0,
+            "sodium_mg": 150
+        },
+        "price": 1.39,
+        "shelf_life": "6 months in pantry; replace monthly if used in fridge or freezer to absord odors and don't cook with that"
+    },
+    {
+        "description": "Yeast, Active Dry, Fleischmann's (3 ct, 0.25 oz = 7 g = 2.25 tsp each)",
+        "size_g": 0.75,
+        "servings": 3,
+        "nutrition": {
+        "serving_size_description": "1 packet (7 g)",
+            "calories": 0,
+            "saturated_fat_g": 0,
+            "cholesterol_mg": 0,
+            "sodium_mg": 0
+        },
+        "price": 2.99,
+        "shelf_life": "Unopened: 2 years in pantry; Opened: 4 months in fridge; 6 months in freezer"
+    }
+]}
