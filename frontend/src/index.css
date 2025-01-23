@@ -123,13 +123,13 @@ button:active {
   text-align: left;
 }
 
-.ingredientTableContainer {
+.foodTableContainer {
   margin: 0 2rem;
   overflow: scroll scroll;
   max-height: 570px;
   border: 1px solid;
 }
-.ingredientTable {
+.foodTable {
   table-layout: fixed;
   width: 100%;
   border-collapse: separate;
