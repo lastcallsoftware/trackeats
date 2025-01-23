@@ -180,32 +180,38 @@ class User(db.Model):
         return errors
 
 
-# NUTRITION
-# ---------
+##############################
+# NURITION
+##############################
 # This is the nutrition data that this app is intended to track.  It's basically
 # the same data you see on a USDA nutrition label.
+#
 # Nutrition is a separate record because the same data fields are reused for 
-# Ingredients, Meals, and the Daily Log.
-# When used with the Ingedient record, it represents the nutrition for one 
+# the Food, Recipe, and DailyLog tables.
+#
+# When used with the Food record, it represents the nutrition for one 
 # serving of one food item.  It is then combined in the proper proportions to 
-# calculate the nutrition for Meals and Daily Logs.  Though as I type this I'm
-# realizing that for the other records, the Nutrition data is calculated and 
-# therefore denormalized if we store it separately for those records.  Hmmm.
-# I'll cross that bridge when I get to it.
-# IN THE MEAN TIME, FOR NOW... each of those tables is intended to have a 1-to-1
-# relationship with this table.
-# As a result, because we want Nutrition to be used with multiple tables, we 
-# cannot put a foreign key to the associated table in the Nutrition table.  This
-# means that although each of these tables has a 1-to-1 relationship with 
-# Nutriion, technically Nutrition is the PARENT record.  As such, if you delete,
-# say, an Ingredient record, we CANNOT configure the ORM layer to automatically 
-# cascade delete the corresponding Nutrition record -- we'd have to do it the 
-# other way around, which doesn't really make sense from a usage standpoint.
-# So when we want to delete an Ingredient record (or Meal or Daily Log), we have 
-# to code the delete of the corresponding Nutrition record manually.
-# More generally, we say that the referential integrity only goes in one
-# direction.  I'm not sure yet if that has other side effects that might bite
-# us, but keep it in mind.
+# calculate the nutrition for Recipes and DailyLogs.
+# 
+# Each of those tables has a 1-to-1 relationship with the Nutrition table.
+# Note that the Nutrition record is the parent record in this relationship.
+# This is because the Nutrition record is the one that is reused in multiple
+# places.
+# As such, if you delete of of these records, we CANNOT configure the ORM layer
+# to automatically cascade delete its corresponding Nutrition record -- we'd 
+# have to do it the other way around, which doesn't really make sense from a 
+# usage standpoint.
+# So when we want to delete a Food, Recipe, or DailyLog, we have to code the 
+# delete of the corresponding Nutrition record manually.  Technically speaking, 
+# we say that the referential integrity only goes in one direction.
+#
+# The Nutrition data is technically denormalized for the Recipe and DailyLog
+# tables.  This is because the Nutrition data is not expected to change often,
+# and it is more efficient to store it rather than recalculate it every time a
+# Recipe or DailyLog record is loaded.  We just have to remember to recalculate 
+# the Nutrition data when necessary, such as when a Recipe's ingredients are 
+# changed.
+##############################
 class Nutrition(db.Model):
     __tablename__ = "nutrition"
 
@@ -227,6 +233,25 @@ class Nutrition(db.Model):
     calcium_mg = db.Column(db.Integer)
     iron_mg = db.Column(db.Float)
     potassium_mg = db.Column(db.Integer)
+
+    def __init__(self, data: dict):
+        self.serving_size_description = data.get("serving_size_description")
+        self.serving_size_g = data.get("serving_size_g")
+        self.calories = data.get("calories")
+        self.total_fat_g = data.get("total_fat_g")
+        self.saturated_fat_g = data.get("saturated_fat_g")
+        self.trans_fat_g = data.get("trans_fat_g")
+        self.cholesterol_mg = data.get("cholesterol_mg")
+        self.sodium_mg = data.get("sodium_mg")
+        self.total_carbs_g = data.get("total_carbs_g")
+        self.fiber_g = data.get("fiber_g")
+        self.total_sugar_g = data.get("total_sugar_g")
+        self.added_sugar_g = data.get("added_sugar_g")
+        self.protein_g = data.get("protein_g")
+        self.vitamin_d_mcg = data.get("vitamin_d_mcg")
+        self.calcium_mg = data.get("calcium_mg")
+        self.iron_mg = data.get("iron_mg")
+        self.potassium_mg = data.get("potassium_mg")
 
     def __str__(self):
         return str(vars(self))
@@ -253,42 +278,64 @@ class Nutrition(db.Model):
         }
 
 
-# INGREDIENT
-# ----------
+##############################
+# FOOD
+##############################
 # This represents one "atomic" food item that you'd buy at the grocery store:
-# a loaf of bread, a box of cereal, an orange, a head of lettuce, a package of 
-# chicken breasts, etc.  This is the app's basic building-block record.
+# a loaf of bread, a box of cereal, an orange, a head of lettuce, etc.
+# This is the app's basic building-block record.
+##############################
 class FoodGroup(enum.Enum):
-    fruits = 1,
-    vegetables = 2,
-    grains = 3,
-    proteins = 4,
-    dairy = 5,
-    herbsAndSpices = 6,
-    condimentsAndSauces = 7,
-    oilsAndBakingNeeds = 8,
+    beverages = 1,
+    condiments = 2,
+    dairy = 3,
+    fatsAndSugars = 4,
+    fruits = 5,
+    grains = 6,
+    herbsAndSpices = 7,
+    nutsAndSeeds = 8,
     preparedFoods = 9,
-    beverages = 10,
-    other = 11
+    proteins = 10,
+    vegetables = 11,
+    other = 12
 
-class Ingredient(db.Model):
-    __tablename__ = "ingredient"
+class Food(db.Model):
+    __tablename__ = "food"
 
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     group = db.Column(db.Enum(FoodGroup), nullable=False)
-    type = db.Column(db.String(50), nullable=False)
-    subtype = db.Column(db.String(100), nullable=True)
-    description = db.Column(db.String(100), nullable=True)
+    name = db.Column(db.String(64), nullable=False)
+    subtype = db.Column(db.String(64), nullable=True)
+    description = db.Column(db.String(128), nullable=True)
     vendor = db.Column(db.String(64), nullable=False)
-    size_description = db.Column(db.String(32))
+    size_description = db.Column(db.String(64))
     size_g = db.Column(db.Integer)
     servings = db.Column(db.Float, nullable=False)
     nutrition_id = db.Column(db.Integer, db.ForeignKey('nutrition.id'))
-    nutrition = db.relationship(Nutrition, single_parent=True, cascade="all, delete-orphan", backref=db.backref("nutrition", cascade="all, delete-orphan", uselist=False))
+    nutrition = db.relationship(
+        Nutrition, 
+        single_parent=True, 
+        cascade="all, delete-orphan", 
+        backref=db.backref("food", cascade="all, delete-orphan", uselist=False))
     price = db.Column(db.Float)
     price_date = db.Column(db.Date, nullable=True)
     shelf_life = db.Column(db.String(150))
+
+    def __init__(self, data: dict):
+        self.user_id = data.get("user_id")
+        self.group = FoodGroup[data.get("group")]
+        self.name = data.get("name")
+        self.subtype = data.get("subtype")
+        self.description = data.get("description")
+        self.vendor = data.get("vendor")
+        self.size_description = data.get("size_description")
+        self.size_g = data.get("size_g")
+        self.servings = data.get("servings")
+        self.nutrition = Nutrition(data.get("nutrition"))
+        self.price = data.get("price")
+        self.price_date = data.get("price_date")
+        self.shelf_life = data.get("shelf_life")
 
     def __str__(self):
         return str(vars(self))
@@ -300,7 +347,7 @@ class Ingredient(db.Model):
             "id": self.id,
             "user_id": self.user_id,
             "group": self.group.name,
-            "type": self.type,
+            "name": self.name,
             "subtype": self.subtype,
             "description": self.description,
             "vendor": self.vendor,
@@ -314,83 +361,221 @@ class Ingredient(db.Model):
             "shelf_life": self.shelf_life
             }
 
-    # Add a new ingredient to the database.
+    # Add a new food to the database.
     # Returns a list of error messages, or an empty list on success.
-    # ingredient is expected to be a JSON-like dictionary object with the same 
-    #   fields as the Ingredient record itself (including its child Nutrition 
+    # food is expected to be a JSON-like dictionary object with the same 
+    #   fields as the Food record itself (including its child Nutrition 
     #   object), with the exception of the user_id field, which gets assigned here.
     # commit is a boolean indicating whether the record should be committed to
     #   the database.  Set it to false when you want to add a bunch of records
     #   at once (calling this function multiple times), in which case the caller
     #   is required to commit the records afterwards (via db.session.commit()).
-    def add(user_id: int, ingredient: dict[str, str|int|float], commit: bool) -> list[str]:
+    def add(user_id: int, food: dict[str, str|int|float], commit: bool) -> list[str]:
         errors = []
         try: 
-            # Add the user_id field to the ingredient record.
-            ingredient["user_id"] = user_id
+            # Add the user_id field.
+            food["user_id"] = user_id
 
-            # "Pull out" the nutrition child object.
-            # The nutrition data is of course a separate detabase record, so we
-            # have to instantiate and save it separately.
-            nutrition = ingredient["nutrition"]
-            del ingredient["nutrition"]
+            # Remove the price_date field if it's empty.
+            if (len(food["price_date"].strip()) == 0):
+                del food["price_date"]
 
-            if (len(ingredient["price_date"].strip()) == 0):
-                del ingredient["price_date"]
-
-            # Use Python's ** operator to populate an instance of the SQLAlchemy
-            # model objects.
-            # We're making a HUGE assumption here, which is that the database 
-            # records have EXACTLY the same fields as the corresponding records
-            # on the front end.  It's probably a lot safer to manually, explicitly
-            # copy the data from one to the other.  That way we could account for
-            # any differences in the field names, the data formats, and even the
-            # absense of certain fields on one side or the other.  BUT I AIN'T
-            # GOT TIME FOR THAT!
-            n = Nutrition(**nutrition)
-            i = Ingredient(**ingredient)
-
-            # Now re-add the Nutrition child object to the Ingredient object.
-            i.nutrition = n
+            # Construct the new Food database record.
+            f = Food(food)
 
             # Add the new record to the database!
-            db.session.add(i)
+            db.session.add(f)
 
             if commit:
                 db.session.commit()
         except Exception as e:
-            errors.append("Ingredient record could not be added: " + repr(e))
+            errors.append("Food record could not be added: " + repr(e))
 
         return errors
     
     # Update an existing record.
-    # Similar to the add method, this copies all the values from the JSON 
-    # dictionary passed in the request into an Ingredient ORM record, and
-    # likewise for the child Nutrition record.  I'm unsure if this is a
-    # recommended method.  Probably not.  Probably the safer thing would 
-    # be to manually, explicitly copy each field.  But I ain't got time for 
-    # that!
-    def update(user_id: int, ingredient: dict[str, str|int|float]) -> list[str]:
+    # This method passes the values to be updated to the update() method via a 
+    # dictionary.  Therefore the caller must pass in a dictionary with the
+    # same keys as the Food record itself (including its child Nutrition object).
+    # I'm not crazy about this method, but it's quick and dirty.
+    # The alternative would be to manually, explicitly copy each field into a 
+    # new dictionary whose keys we definitively know.  Obviously, that's a lot 
+    # more work.
+    # The user_id field is not passed in the dictionary, but is passed as a
+    # separate argument.
+    def update(user_id: int, food: dict[str, str|int|float]) -> list[str]:
         errors = []
-        try: 
-            # 
-            nutrition = ingredient["nutrition"]
-            del ingredient["nutrition"]
-            ingredient_id = ingredient["id"]
-            nutrition_id = ingredient["nutrition_id"]
-            if (len(ingredient["price_date"].strip()) == 0):
-                del ingredient["price_date"]
+        try:
+            # Add the user_id field.
+            food["user_id"] = user_id
 
+            # Remove the Nutrition object from the dictionary.
+            nutrition = food["nutrition"]
+            del food["nutrition"]
+
+            # Remove the price_date field if it's empty.
+            if (len(food["price_date"].strip()) == 0):
+                del food["price_date"]
+
+            # Get the ID fields so we can update the proper records.
+            food_id = food["id"]
+            nutrition_id = food["nutrition_id"]
+
+            # Update the Nutrition and Food records.
             num_updates = Nutrition.query.filter_by(id=nutrition_id).update(nutrition)
             if (num_updates != 1):
                 errors.append(f"Expected to update 1 Nutrition record but attempted to update {num_updates}.")
-            num_updates = Ingredient.query.filter_by(user_id=user_id, id=ingredient_id).update(ingredient)
+            num_updates = Food.query.filter_by(user_id=user_id, id=food_id).update(food)
             if (num_updates != 1):
-                errors.append(f"Expected to update 1 Ingredient record but attempted to update {num_updates}.")
+                errors.append(f"Expected to update 1 Food record but attempted to update {num_updates}.")
 
             if (len(errors) == 0):
                 db.session.commit()
         except Exception as e:
-            errors.append("Ingredient record could not be updated: " + repr(e))
+            errors.append("Food record could not be updated: " + repr(e))
 
         return errors
+
+
+##############################
+# RECIPE_FOODS
+##############################
+# This is a many-to-many relationship table that links Recipes to their
+# constituent Food items.  It also stores the number of servings of each 
+# Food item in the Recipe.
+##############################
+recipe_foods = db.Table(
+    "recipe_foods",
+    db.Column("recipe_id", db.Integer, db.ForeignKey("recipe.id"), primary_key=True),
+    db.Column("ingredient_id", db.Integer, db.ForeignKey("food.id"), primary_key=True),
+    db.Column("servings", db.Float, nullable=False)
+)
+
+
+##############################
+# RECIPE_RECIPES
+##############################
+# This is a many-to-many relationship table that links Recipes to itself.
+# It also stores the number of servings of each Recips item in the Recipe.
+# This is used when a Recipe includes other Recipes as ingredients.
+# For example, a Recipe for a pizza might include a Recipe for pizza dough.
+##############################
+recipe_recipes = db.Table(
+    "recipe_recipes",
+    db.Column("recipe_id", db.Integer, db.ForeignKey("recipe.id"), primary_key=True),
+    db.Column("ingredient_id", db.Integer, db.ForeignKey("recipe.id"), primary_key=True),
+    db.Column("servings", db.Float, nullable=False)
+)
+
+
+##############################
+# RECIPE
+##############################
+# This represents a collection of Food items that are combined to make a meal.
+# It includes a denormalized copy of the Nutrition data for the Recipe.
+# This is the app"s second-level building-block record.
+##############################
+class Recipe(db.Model):
+    __tablename__ = "recipe"
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
+    name = db.Column(db.String(50), nullable=False)
+    servings = db.Column(db.Float, nullable=False)
+    ingredients = db.relationship(
+        "Food",
+        secondary=recipe_foods,
+        #lazy="subquery",
+        #backref=db.backref("recipes", lazy=True))
+        backref=db.backref("recipes"))
+    recipes = db.relationship(
+        "Recipe",
+        secondary=recipe_recipes,
+        primaryjoin=id == recipe_recipes.c.recipe_id,
+        secondaryjoin=id == recipe_recipes.c.ingredient_id,
+        #lazy="subquery",
+        #backref=db.backref("recipe_recipes", lazy=True))
+        backref=db.backref("recipe_recipes"))
+    nutrition_id = db.Column(db.Integer, db.ForeignKey("nutrition.id"))
+    nutrition = db.relationship(
+        Nutrition, 
+        single_parent=True, 
+        cascade="all, delete-orphan", 
+        backref=db.backref("recipe", cascade="all, delete-orphan", uselist=False))
+
+    def __str__(self):
+        return str(vars(self))
+    def json(self):
+        return {
+            "id": self.id,
+            "name": self.name,
+            "nutrition_id": self.nutrition_id,
+            "nutrition": self.nutrition.json(),
+            }
+    
+    # Add a new recipe to the database.
+    # Returns a list of error messages, or an empty list on success.
+    # recipe is expected to be a JSON-like dictionary object with the same 
+    #   fields as the Recipe record itself (including its child Nutrition 
+    #   object), with the exception of the user_id field, which gets assigned here.
+    # commit is a boolean indicating whether the record should be committed to
+    #   the database.  Set it to false when you want to add a bunch of records
+    #   at once (calling this function multiple times), in which case the caller
+    #   is required to commit the records afterwards (via db.session.commit()).
+    def add(user_id: int, name: str, servings: int, nutrition, foods, recipes, commit: bool) -> list[str]:
+        errors = []
+        try:
+            recipe = Recipe()
+            recipe.user_id = user_id
+            recipe.name = name
+            recipe.servings = servings
+            recipe.nutrition = Nutrition(nutrition)
+            # For the many-to-many relaionships, we have to add each child record
+            # However, since this is a new record, we don't have to worry about 
+            # that.  Those elements will start out empty and be added later.
+            # Also the Food and Recipe constructors you see there are not correct.
+            #for food in foods:
+            #    recipe.ingredients.append(Food(**food))
+            #for recipe in recipes:
+            #    recipe.recipes.append(Recipe(**recipe))
+
+            # Add the new record to the database!
+            db.session.add(recipe)
+
+            if commit:
+                db.session.commit()
+        except Exception as e:
+            errors.append("Recipe record could not be added: " + repr(e))
+
+        return errors
+
+    # Update an existing record.
+    # Similar to the add method, this copies all the values from the JSON 
+    # dictionary passed in the request into an Recipe ORM record, and
+    # likewise for the child Nutrition record.  I'm unsure if this is a
+    # recommended method.  Probably not.  Probably the safer thing would 
+    # be to manually, explicitly copy each field.  But I ain't got time for 
+    # that!
+    def update(user_id: int, recipe: dict[str, str|int|float]) -> list[str]:
+        errors = []
+        try: 
+            # 
+            nutrition = recipe["nutrition"]
+            del recipe["nutrition"]
+            recipe_id = recipe["id"]
+            nutrition_id = recipe["nutrition_id"]
+
+            num_updates = Nutrition.query.filter_by(id=nutrition_id).update(nutrition)
+            if (num_updates != 1):
+                errors.append(f"Expected to update 1 Nutrition record but attempted to update {num_updates}.")
+            num_updates = Food.query.filter_by(user_id=user_id, id=recipe_id).update(recipe)
+            if (num_updates != 1):
+                errors.append(f"Expected to update 1 Recipe record but attempted to update {num_updates}.")
+
+            if (len(errors) == 0):
+                db.session.commit()
+        except Exception as e:
+            errors.append("Recipe record could not be updated: " + repr(e))
+
+        return errors
+
