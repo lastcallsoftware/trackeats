@@ -2,15 +2,16 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import {BrowserRouter } from 'react-router-dom'
 import Nav from './components/Nav'
-import { IngredientProvider } from "./components/IngredientProvider"
+import { DataProvider } from "./components/DataProvider"
 import './index.css'
+//import 'bootstrap/dist/css/bootstrap.min.css';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <BrowserRouter>
-      <IngredientProvider>
+      <DataProvider>
         <Nav/>
-      </IngredientProvider>
+      </DataProvider>
     </BrowserRouter>
   </StrictMode>,
 )
