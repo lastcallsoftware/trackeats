@@ -1,6 +1,12 @@
 import { useEffect, useState } from 'react';
 import axios from "axios";
 
+// This component was originally intended to be used during the registration 
+// process to intermittently poll the back end to see whether the user
+// has registered yet, but the way registration works now this is unnecessary.
+// But for now I'm keeping this code around, just in case we want to revisit
+// the old method, or maybe use this for some other purpose.
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function PollingComponent(props: any) {
 	const [loading, setLoading] = useState(true);

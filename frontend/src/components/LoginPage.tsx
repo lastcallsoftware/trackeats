@@ -23,7 +23,7 @@ function LoginPage(props: any) {
         axios.post("/login", {username: formData.username, password: formData.password })
             .then((response) => {
                 props.storeTokenFunction(response.data.access_token);
-                navigate("/ingredients")
+                navigate("/foods")
             })
             .catch((error) => {
                 if (error.response)

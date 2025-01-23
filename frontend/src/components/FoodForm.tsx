@@ -1,12 +1,12 @@
 import { useContext, useState } from "react"
 import { useLocation, useNavigate } from "react-router-dom";
-import { IIngredient, IngredientContext } from "./IngredientProvider";
+import { IFood, DataContext } from "./DataProvider";
 
-function IngredientForm() {
+function FoodForm() {
     const location = useLocation();
     const navigate = useNavigate()
-    const emptyFormData: IIngredient = {
-        group: "", type: "", subtype: "", description: "", vendor: "",
+    const emptyFormData: IFood = {
+        group: "", name: "", subtype: "", description: "", vendor: "",
         size_description: "", size_g: 0, servings: 0,
         nutrition: {
             serving_size_description: "", serving_size_g: 0,
@@ -18,50 +18,51 @@ function IngredientForm() {
     }
     const isEdit = (location.state != null);
 
-    const defaultFormData = location.state?.ingredient || emptyFormData;
-    const [formData, setFormData] = useState<IIngredient>(defaultFormData);
+    const defaultFormData = location.state?.food || emptyFormData;
+    const [formData, setFormData] = useState<IFood>(defaultFormData);
 
     const foodGroups = [
         { value: "", label: "-- select one --" },
-        { value: "fruits", label: "Fruits" },
-        { value: "vegetables", label: "Vegetables" },
-        { value: "grains", label: "Grains" },
-        { value: "proteins", label: "Proteins" },
-        { value: "dairy", label: "Dairy" },
-        { value: "herbsAndSpices", label: "Herbs and Spices" },
-        { value: "condimentsAndSauces", label: "Condiments and Sauces" },
-        { value: "oilsAndBakingNeeds ", label: "Oils and Baking Needs" },
-        { value: "preparedFoods", label: "Prepared Foods" },
         { value: "beverages", label: "Beverages" },
+        { value: "condiments", label: "Condiments" },
+        { value: "dairy", label: "Dairy" },
+        { value: "fatsAndSugars ", label: "Fats and Sugars" },
+        { value: "fruits", label: "Fruits" },
+        { value: "grains", label: "Grains" },
+        { value: "herbsAndSpices", label: "Herbs and Spices" },
+        { value: "nutsAndSeeds", label: "Nuts and Seeds" },
+        { value: "preparedFoods", label: "Prepared and Packaged Foods" },
+        { value: "proteins", label: "Proteins" },
+        { value: "vegetables", label: "Vegetables" },
         { value: "other", label: "Other" }
     ];
     const saveIsDisabled = false;
-    const context = useContext(IngredientContext)
+    const context = useContext(DataContext)
     if (!context)
-        throw Error("useIngredientContext can only be used inside an IngredientProvider")
+        throw Error("useDataContext can only be used inside a DataProvider")
     const errorMessage = context.errorMessage;
-    const addIngredient = context.addIngredient;
-    const updateIngredient = context.updateIngredient;
+    const addFood = context.addFood;
+    const updateFood = context.updateFood;
 
     const handleSubmit = (e: { preventDefault: () => void; }) => {
         // Prevent default behavior for form submission (namely, sending the form to the server)
         e.preventDefault();
 
-        // Save the new Ingredient
+        // Save the new Food
         if (isEdit)
-            updateIngredient(formData);
+            updateFood(formData);
         else
-            addIngredient(formData);
+            addFood(formData);
         
-        // Return to the Ingredients page
-        navigate("/ingredients")
+        // Return to the Foods page
+        navigate("/foods")
     }
 
     const handleCancel = (e: { preventDefault: () => void; }) => {
         e.preventDefault();
 
-        // Return to the Ingredients page
-        navigate("/ingredients", { state: { } })
+        // Return to the Foods page
+        navigate("/foods", { state: { } })
     }
 
     return (
@@ -80,11 +81,11 @@ function IngredientForm() {
                         </select>
                     </section>
 
-                    {/* Type */}
+                    {/* Name */}
                     <section className="inputLine">
-                        <label htmlFor="type">Type:</label>
-                        <input id="type" type="text" value={formData.type} maxLength={100}
-                            onChange={(e) => setFormData(prevState => ({...prevState, type: e.target.value}))} />
+                        <label htmlFor="name">Type:</label>
+                        <input id="name" type="text" value={formData.name} maxLength={100}
+                            onChange={(e) => setFormData(prevState => ({...prevState, name: e.target.value}))} />
                     </section>
 
                     {/* Subtype */}
@@ -280,4 +281,4 @@ function IngredientForm() {
     );
 }
 
-export default IngredientForm;
+export default FoodForm;

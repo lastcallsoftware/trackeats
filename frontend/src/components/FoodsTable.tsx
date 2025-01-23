@@ -1,26 +1,12 @@
-import { Column, ColumnFiltersState, createColumnHelper, flexRender, getCoreRowModel, getFilteredRowModel, getSortedRowModel, Row, RowData, SortingState, TableOptions, useReactTable } from '@tanstack/react-table';
+import { ColumnFiltersState, createColumnHelper, flexRender, getCoreRowModel, getFilteredRowModel, getSortedRowModel, Row, SortingState, TableOptions, useReactTable } from '@tanstack/react-table';
 import React, { useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { IIngredient, IngredientContext } from "./IngredientProvider";
+import { IFood, DataContext } from "./DataProvider";
+import { Filter } from "./Widgets"
 
 
-// Define a filterVariant property, which will be used in the table column
-// definitions to choose what kind of filter input each column gets.
-// The default type is "none". 
-// The "text" type is just a standard text filter for text columns.
-// The "range" type allows you to specify a min and max value for numeric columns.
-// The "select" type is for columns with dropdown lists (of which there is just one, 
-// the food group column).
-declare module '@tanstack/react-table' {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    interface ColumnMeta<TData extends RowData, TValue> {
-      filterVariant?: 'text' | 'range' | 'select'
-    }
-}
-
-
-// Define the table
-const columnHelper = createColumnHelper<IIngredient>()
+// Define the table's columns
+const columnHelper = createColumnHelper<IFood>()
 const columns = [
     columnHelper.accessor("id", {
         header: "ID",
@@ -33,8 +19,8 @@ const columns = [
         size: 75,
         meta: { filterVariant: "text" }
     }),
-    columnHelper.accessor("type", {
-        header: "Type",
+    columnHelper.accessor("name", {
+        header: "Name",
         cell: info => info.getValue(),
         size: 150,
         meta: { filterVariant: "text" }
@@ -174,106 +160,20 @@ const columns = [
     }),
 ]
 
-
-// Define a Filter component, which is the input widget at the top of each column
-// which determines if and how the column is filtered.
-// See Tanstack's "faceted column filters" example for details about min-max values, 
-// dynamic select options, and suggestions about searching.
+// Now declare the foods table itself
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function Filter({ column }: { column: Column<any, unknown> }) {
-    const columnFilterValue = column.getFilterValue()
-    const { filterVariant } = column.columnDef.meta ?? {}
-  
-    {/* For the 'range' filterVariant, we implement min-max inputs.  This is for numeric columns */}
-    return filterVariant === 'range' ? (
-        <div>
-            <div className="flex space-x-2">
-                <DebouncedInput
-                    //className="w-24 border shadow rounded" 
-                    type="number"
-                    value={(columnFilterValue as [number, number])?.[0] ?? ''}
-                    onChange={value => column.setFilterValue((old: [number, number]) => [value, old?.[1]])}
-                    placeholder={`Min`} />
-                <DebouncedInput
-                    //className="w-24 border shadow rounded"
-                    type="number"
-                    value={(columnFilterValue as [number, number])?.[1] ?? ''}
-                    onChange={value => column.setFilterValue((old: [number, number]) => [old?.[0], value]) }
-                    placeholder={`Max`} />
-            </div>
-            {/* Put a lil' separator.  Why?  Dunno! */}
-            <div className="h-1" />
-        </div>
-    // For the "select" filterVariant, we implement a dropdown (select) input.
-    ) : filterVariant === 'select' ? (
-        <select
-            onChange={e => column.setFilterValue(e.target.value)}
-            value={columnFilterValue?.toString()}>
-            <option value="">All</option>
-            <option value="dairy">dairy</option>
-            <option value="grains">grains</option>
-            <option value="proteins">proteins</option>
-        </select>
-    // The default is the "text" filterVariant, for which we implement a text input.
-    ) : filterVariant === 'text' ? (
-        <DebouncedInput
-            style={{width: column.getSize() - 6}}
-            //className="w-36 border shadow rounded"
-            onChange={value => column.setFilterValue(value)}
-            placeholder={`Filter...`}
-            type="text"
-            value={(columnFilterValue ?? '') as string} />
-    // The default is no filter input.
-    ) : ""
-}
-
-
-// Define a DebouncedInput component, for use in the Filter component defined above.
-// "Debounced" means there is a small delay between the user input and its processing,
-// intended to prevent unnecessary processing of "noisy" user input.
-// TBH I have no idea how this thing works.  Can't even trace through the code.
-// I'm just taking it as a fait accomplis from the Tanstack example code.
-function DebouncedInput({
-    value: initialValue,
-    onChange,
-    debounce = 500,
-    ...props
-}: {
-    value: string | number
-    onChange: (value: string | number) => void
-    debounce?: number
-} & Omit<React.InputHTMLAttributes<HTMLInputElement>, 'onChange'>) {
-    const [value, setValue] = React.useState(initialValue)
-  
-    React.useEffect(() => {
-      setValue(initialValue)
-    }, [initialValue])
-  
-    React.useEffect(() => {
-        const timeout = setTimeout(() => { onChange(value)}, debounce)
-        return () => clearTimeout(timeout)
-    }, [value, debounce, onChange])
-  
-    return (
-      <input {...props} value={value} onChange={e => setValue(e.target.value)} />
-    )
-}
-
-
-// Finally, the Ingredients table itself!
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const IngredientsTable = (props: any) => {
+const FoodsTable = (props: any) => {
     const navigate = useNavigate()
     const [sorting, setSorting] = React.useState<SortingState>([])
     const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
-    const context = useContext(IngredientContext)
+    const context = useContext(DataContext)
     if (!context)
-        throw Error("useIngredientContext can only be used inside an IngredientProvider")
-    const ingredients = context.ingredients;
+        throw Error("useDataContext can only be used inside a DataProvider")
+    const foods = context.foods;
 
     // Define the table's properties.
-    const tableOptions: TableOptions<IIngredient> = {
-        data: ingredients,
+    const tableOptions: TableOptions<IFood> = {
+        data: foods,
         columns,
         getCoreRowModel: getCoreRowModel(),
         getSortedRowModel: getSortedRowModel(),
@@ -286,7 +186,7 @@ const IngredientsTable = (props: any) => {
     }
     const table = useReactTable(tableOptions)
 
-    const handleClick = (row: Row<IIngredient>) => {
+    const handleClick = (row: Row<IFood>) => {
         // Toggle the row's state (selected/unselected).
         row.toggleSelected()
         // Inform our parent about which row was selected.
@@ -299,17 +199,17 @@ const IngredientsTable = (props: any) => {
             props.setSelectedRowId(row.getValue("id"))
     }
 
-    const handleDoubleClick = (row: Row<IIngredient>) => {
+    const handleDoubleClick = (row: Row<IFood>) => {
         if (!row.getIsSelected())
             row.toggleSelected()
         // Retrieve the selected record from the context and send it to the edit form.
         const record_id:number = row.getValue("id")
-        const ingredient = ingredients.find((item:IIngredient) => item.id == record_id);
-        navigate("/ingredientForm", { state: { ingredient } });
+        const food = foods.find((item:IFood) => item.id == record_id);
+        navigate("/foodForm", { state: { food } });
     }
 
     return (
-        <table className="ingredientTable table-bordered">
+        <table className="foodTable table-bordered">
             {/* The thead, tbody, and tfooter elements are the functional components of the Tanstack Table. 
                 The basic skeleton is boilerplate code, but with loads of additional stuff thrown in to add
                 functionality, like the onClick handler you see below adding the sorting functionality. */}
@@ -398,4 +298,4 @@ const IngredientsTable = (props: any) => {
     )
 }
 
-export default IngredientsTable;
+export default FoodsTable;

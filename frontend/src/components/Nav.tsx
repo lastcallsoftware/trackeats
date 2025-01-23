@@ -3,15 +3,15 @@ import { Routes, Route, Link } from 'react-router-dom';
 import Header from './Header';
 import Homepage from './Home';
 import AboutPage from './AboutPage';
-import IngredientsPage from './IngredientsPage';
-import MealsPage from './MealsPage';
+import FoodsPage from './FoodsPage';
+import RecipesPage from './RecipesPage';
 import DailyLogPage from './DailyLogPage';
 import LoginPage from './LoginPage';
 import RegisterPage from './RegisterPage';
 import Footer from './Footer';
 import axios from "axios";
 import ConfirmUser from './ConfirmUser';
-import IngredientForm from './IngredientForm';
+import FoodForm from './FoodForm';
 
 // An unused function actually causes the build to FAIL!  Bizarre.
 // So -- for now! -- comment this out.
@@ -50,8 +50,8 @@ function Nav() {
             <Header />
             <nav id="navbar" className="navbar">
                                {/*<Link to="/" className="nav-item">Home</Link>*/}
-                { isAuthenticated ? <Link to="/ingredients" className="nav-item">Ingredients</Link> : ""}
-                { isAuthenticated ? <Link to="/meals" className="nav-item">Meals</Link> : ""}
+                { isAuthenticated ? <Link to="/foods" className="nav-item">Foods</Link> : ""}
+                { isAuthenticated ? <Link to="/recipes" className="nav-item">Recipes</Link> : ""}
                 { isAuthenticated ? <Link to="/dailylog" className="nav-item">Daily Log</Link> : ""}
                 { isAuthenticated ? <Link to="/login" className="nav-item" onClick={removeToken}>Log Out</Link>
                                : <Link to="/login" className="nav-item">Log In</Link>}
@@ -61,14 +61,14 @@ function Nav() {
 
             <Routes>
                 <Route path="/" element={<Homepage />} />
-                <Route path="/ingredients" element={<IngredientsPage />} />
-                <Route path="/meals" element={<MealsPage />} />
+                <Route path="/foods" element={<FoodsPage />} />
+                <Route path="/recipes" element={<RecipesPage />} />
                 <Route path="/dailylog" element={<DailyLogPage />} />
                 <Route path="/about" element={<AboutPage />} />
                 <Route path="/login" element={<LoginPage storeTokenFunction={storeToken}/>} />
                 <Route path="/register" element={<RegisterPage />} />
                 <Route path="/confirm" element={<ConfirmUser/>} />
-                <Route path="/ingredientForm" element={<IngredientForm />} />
+                <Route path="/foodForm" element={<FoodForm />} />
             </Routes>
             <Footer />
         </>

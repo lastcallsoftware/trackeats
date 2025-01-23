@@ -1,30 +1,30 @@
 import { IconContext } from "react-icons";
 import { MdAddCircleOutline, MdEdit, MdRemoveCircleOutline } from "react-icons/md";
-import IngredientsTable from "./IngredientsTable";
+import FoodsTable from "./FoodsTable";
 import { useContext, useState } from "react";
 import { useNavigate } from 'react-router-dom';
-import { IIngredient, IngredientContext } from "./IngredientProvider";
+import { IFood, DataContext } from "./DataProvider";
 
-const IngredientsPage = () => {
+const FoodsPage = () => {
     const navigate = useNavigate();
     const [selectedRowId, setSelectedRowId] = useState(null)
-    const context = useContext(IngredientContext)
+    const context = useContext(DataContext)
     if (!context)
-        throw Error("useIngredientContext can only be used inside an IngredientProvider")
-    const ingredients = context.ingredients;
-    const deleteIngredient = context.deleteIngredient;
+        throw Error("useDataContext can only be used inside a DataProvider")
+    const foods = context.foods;
+    const deleteFood = context.deleteFood;
     const errorMessage = context.errorMessage;
 
     const addRecord = () => {
         // Go to the edit form
-        navigate("/ingredientForm");
+        navigate("/foodForm");
     }
 
     const editRecord = () => {
         if (selectedRowId) {
             // Get the selected record and go to the edit form
-            const ingredient = ingredients.find((item:IIngredient) => item.id == selectedRowId);
-            navigate("/ingredientForm", { state: { ingredient } });
+            const food = foods.find((item:IFood) => item.id == selectedRowId);
+            navigate("/foodForm", { state: { food } });
         }
     }
 
@@ -34,16 +34,16 @@ const IngredientsPage = () => {
             // Confirm the deletion request
             const confirmed = confirm("Delete record.  Are you sure?  This cannot be undone.")
             if (confirmed) {
-                // Delete the record from the database and the ingredients list.
-                deleteIngredient(selectedRowId);
+                // Delete the record from the database and the foods list.
+                deleteFood(selectedRowId);
             }
         }
     }
 
     return (
-        <section className="ingredientPage">
-            <section className="ingredientTableContainer">
-                <IngredientsTable setSelectedRowId={setSelectedRowId} />
+        <section className="foodPage">
+            <section className="foodTableContainer">
+                <FoodsTable setSelectedRowId={setSelectedRowId} />
             </section>
 
             <section className="buttonBar">
@@ -69,4 +69,4 @@ const IngredientsPage = () => {
     )
 }
 
-export default IngredientsPage;
+export default FoodsPage;
