@@ -1,7 +1,7 @@
-{ "ingredients": [
+{ "foods": [
     {
         "group": "vegetables",
-        "type": "Arugula",
+        "name": "Arugula",
         "subtype": "",
         "description": "Wild Arugula Pack",
         "vendor": "Satur Farms",
@@ -33,7 +33,7 @@
     },
     {
         "group": "vegetables",
-        "type": "Arugula",
+        "name": "Arugula",
         "subtype": "",
         "description": "",
         "vendor": "FreshDirect",
@@ -65,7 +65,7 @@
     },
     {
         "group": "vegetables",
-        "type": "Asparagus",
+        "name": "Asparagus",
         "subtype": "",
         "description": "",
         "vendor": "FreshDirect",
@@ -97,7 +97,7 @@
     },
     {
         "group": "vegetables",
-        "type": "Beans",
+        "name": "Beans",
         "subtype": "Baked, Canned",
         "description": "Best Baked Beans",
         "vendor": "Bush's",
@@ -129,7 +129,7 @@
     },
     {
         "group": "vegetables",
-        "type": "Beans",
+        "name": "Beans",
         "subtype": "Black, Canned",
         "description": "Low Sodium",
         "vendor": "Goya",
@@ -161,7 +161,7 @@
     },
     {
         "group": "vegetables",
-        "type": "Beans",
+        "name": "Beans",
         "subtype": "Cannelini, Canned",
         "description": "Organic, Low Sodium",
         "vendor": "Goya",
@@ -193,7 +193,7 @@
     },
     {
         "group": "vegetables",
-        "type": "Beans",
+        "name": "Beans",
         "subtype": "Cannellini, Dry",
         "description": "",
         "vendor": "Goya",
@@ -225,7 +225,7 @@
     },
     {
         "group": "vegetables",
-        "type": "Beans",
+        "name": "Beans",
         "subtype": "Pinto, Canned",
         "description": "Organic, Low Sodium",
         "vendor": "Goya",
@@ -257,7 +257,7 @@
     },
     {
         "group": "vegetables",
-        "type": "Beans",
+        "name": "Beans",
         "subtype": "Pinto, Dry",
         "description": "",
         "vendor": "Goya",
@@ -289,7 +289,7 @@
     },
     {
         "group": "vegetables",
-        "type": "Beets",
+        "name": "Beets",
         "subtype": "Bunched",
         "description": "",
         "vendor": "Deer Run Farms",
@@ -321,7 +321,7 @@
     },
     {
         "group": "vegetables",
-        "type": "Bell Pepper",
+        "name": "Bell Pepper",
         "subtype": "Red",
         "description": "Greenhouse",
         "vendor": "FreshDirect",
@@ -353,7 +353,7 @@
     },
     {
         "group": "vegetables",
-        "type": "Bell Pepper",
+        "name": "Bell Pepper",
         "subtype": "Green",
         "description": "",
         "vendor": "FreshDirect",
@@ -385,7 +385,7 @@
     },
     {
         "group": "vegetables",
-        "type": "Bok Choy",
+        "name": "Bok Choy",
         "subtype": "Baby",
         "description": "Shanghai Green",
         "vendor": "FreshDirect",
@@ -417,7 +417,7 @@
     },
     {
         "group": "vegetables",
-        "type": "Broccoli",
+        "name": "Broccoli",
         "subtype": "Full Stalks",
         "description": "",
         "vendor": "Ocean Mist Farms",
@@ -449,7 +449,7 @@
     },
     {
         "group": "vegetables",
-        "type": "Broccoli",
+        "name": "Broccoli",
         "subtype": "Crowns",
         "description": "",
         "vendor": "FreshDirect",
@@ -481,7 +481,7 @@
     },
     {
         "group": "vegetables",
-        "type": "Broccoli",
+        "name": "Broccoli",
         "subtype": "Florets",
         "description": "more expensive per floret than buying stalks",
         "vendor": "FreshDirect",
@@ -513,7 +513,7 @@
     },
     {
         "group": "vegetables",
-        "type": "Brussels Sprouts",
+        "name": "Brussels Sprouts",
         "subtype": "",
         "description": "",
         "vendor": "Ocean Mist Farms",
@@ -545,7 +545,7 @@
     },
     {
         "group": "vegetables",
-        "type": "Butternut Squash",
+        "name": "Butternut Squash",
         "subtype": "Whole",
         "description": "Local",
         "vendor": "Wells Homestead Acres",
@@ -577,7 +577,7 @@
     },
     {
         "group": "vegetables",
-        "type": "Cabbage",
+        "name": "Cabbage",
         "subtype": "Green, Whole",
         "description": "Organic",
         "vendor": "FreshDirect",
@@ -609,7 +609,7 @@
     },
     {
         "group": "vegetables",
-        "type": "Cabbage",
+        "name": "Cabbage",
         "subtype": "Red, Whole",
         "description": "Organic",
         "vendor": "FreshDirect",
@@ -641,7 +641,7 @@
     },
     {
         "group": "vegetables",
-        "type": "Carrots",
+        "name": "Carrots",
         "subtype": "",
         "description": "Organic",
         "vendor": "Cal-Organic",
@@ -673,7 +673,7 @@
     },  
     {
         "group": "vegetables",
-        "type": "Carrots",
+        "name": "Carrots",
         "subtype": "Jumbo",
         "description": "Organic",
         "vendor": "Cal-Organic",
@@ -705,7 +705,7 @@
     },
     {
         "group": "vegetables",
-        "type": "Carrots",
+        "name": "Carrots",
         "subtype": "",
         "description": "Local Organic",
         "vendor": "Lancaster Farm Fresh Cooperative",
@@ -737,7 +737,7 @@
     },
     {
         "group": "vegetables",
-        "type": "Cauliflower",
+        "name": "Cauliflower",
         "subtype": "White",
         "description": "",
         "vendor": "Ocean Mist Farms",
@@ -769,7 +769,7 @@
     },
     {
         "group": "vegetables",
-        "type": "Cauliflower",
+        "name": "Cauliflower",
         "subtype": "White, Florets",
         "description": "",
         "vendor": "FreshDirect",
@@ -801,7 +801,7 @@
     },
     {
         "group": "vegetables",
-        "type": "Celery",
+        "name": "Celery",
         "subtype": "",
         "description": "",
         "vendor": "Ocean Mist Farms",
@@ -833,7 +833,7 @@
     },
     {
         "group": "vegetables",
-        "type": "Corn",
+        "name": "Corn",
         "subtype": "Canned",
         "description": "No Salt Added, Whole Kernel",
         "vendor": "Del Monte",
@@ -865,7 +865,7 @@
     },
     {
         "group": "vegetables",
-        "type": "Corn",
+        "name": "Corn",
         "subtype": "Canned, Creamed",
         "description": "",
         "vendor": "Del Monte",
@@ -897,7 +897,7 @@
     },    
     {
         "group": "vegetables",
-        "type": "Corn",
+        "name": "Corn",
         "subtype": "Frozen",
         "description": "Steamfresh Super Sweet",
         "vendor": "Bird's Eye",
@@ -929,7 +929,7 @@
     },
     {
         "group": "vegetables",
-        "type": "Corn",
+        "name": "Corn",
         "subtype": "On Cob",
         "description": "Bicolor",
         "vendor": "FreshDirect",
@@ -961,7 +961,7 @@
     },
     {
         "group": "vegetables",
-        "type": "Cucumber",
+        "name": "Cucumber",
         "subtype": "Green (English)",
         "description": "",
         "vendor": "FreshDirect",
@@ -993,7 +993,7 @@
     },    
     {
         "group": "vegetables",
-        "type": "Cucumber",
+        "name": "Cucumber",
         "subtype": "Green (English)",
         "description": "Greenhouse",
         "vendor": "FreshDirect",
@@ -1025,7 +1025,7 @@
     },
     {
         "group": "vegetables",
-        "type": "Cucumber",
+        "name": "Cucumber",
         "subtype": "Mini Seedless (Persian)",
         "description": "",
         "vendor": "FreshDirect",
@@ -1057,7 +1057,7 @@
     },
     {
         "group": "vegetables",
-        "type": "Green Beans",
+        "name": "Green Beans",
         "subtype": "",
         "description": "1 cup trimmed & cut to 1\" segments is about 4.5 oz (128 g)",
         "vendor": "FreshDirect",
@@ -1089,7 +1089,7 @@
     },
     {
         "group": "vegetables",
-        "type": "Green Beans",
+        "name": "Green Beans",
         "subtype": "In Microwavable Bag, Snipped",
         "description": "",
         "vendor": "Pero Family Farms",
@@ -1121,7 +1121,7 @@
     },
     {
         "group": "vegetables",
-        "type": "Green Beans",
+        "name": "Green Beans",
         "subtype": "In Microwavable Bag",
         "description": "",
         "vendor": "FreshDirect",
@@ -1153,7 +1153,7 @@
     },
     {
         "group": "vegetables",
-        "type": "Kimchi",
+        "name": "Kimchi",
         "subtype": "",
         "description": "",
         "vendor": "Kim Chee Pride",
@@ -1185,7 +1185,7 @@
     },    
     {
         "group": "vegetables",
-        "type": "Kimchi",
+        "name": "Kimchi",
         "subtype": "",
         "description": "House Napa Cabbage",
         "vendor": "Mother In Law's",
@@ -1217,7 +1217,7 @@
     },
     {
         "group": "vegetables",
-        "type": "Lemongrass",
+        "name": "Lemongrass",
         "subtype": "",
         "description": "",
         "vendor": "FreshDirect",
@@ -1249,7 +1249,7 @@
     },
     {
         "group": "vegetables",
-        "type": "Lettuce",
+        "name": "Lettuce",
         "subtype": "Romaine Hearts",
         "description": "",
         "vendor": "Ocean Mist Farms",
@@ -1281,7 +1281,7 @@
     },
     {
         "group": "vegetables",
-        "type": "Lettuce",
+        "name": "Lettuce",
         "subtype": "Romaine",
         "description": "Local",
         "vendor": "Gotham Greens",
@@ -1313,7 +1313,7 @@
     },
     {
         "group": "vegetables",
-        "type": "Mushrooms",
+        "name": "Mushrooms",
         "subtype": "Baby Bella (Cremini), Packaged",
         "description": "",
         "vendor": "FreshDirect",
@@ -1345,7 +1345,7 @@
     },
     {
         "group": "vegetables",
-        "type": "Nori",
+        "name": "Nori",
         "subtype": "",
         "description": "Toasted Seaweed Sheets",
         "vendor": "Suchi Chef",
@@ -1377,7 +1377,7 @@
     },
     {
         "group": "vegetables",
-        "type": "Okra",
+        "name": "Okra",
         "subtype": "Packaged",
         "description": "",
         "vendor": "FreshDirect",
@@ -1409,7 +1409,7 @@
     },
     {
         "group": "vegetables",
-        "type": "Olives",
+        "name": "Olives",
         "subtype": "Black, Sliced",
         "description": "Ripe Spanish, *from supermarket",
         "vendor": "Goya",
@@ -1441,7 +1441,7 @@
     },
     {
         "group": "vegetables",
-        "type": "Olives",
+        "name": "Olives",
         "subtype": "Black, Whole",
         "description": "Extra Large Pitted California Ripe",
         "vendor": "Cento",
@@ -1473,7 +1473,7 @@
     },
     {
         "group": "vegetables",
-        "type": "Olives",
+        "name": "Olives",
         "subtype": "Black, Whole",
         "description": "Pitted Calamata",
         "vendor": "Just FreshDirect",
@@ -1505,7 +1505,7 @@
     },
     {
         "group": "vegetables",
-        "type": "Onion",
+        "name": "Onion",
         "subtype": "Red",
         "description": "Large",
         "vendor": "FreshDirect",
@@ -1537,7 +1537,7 @@
     },
     {
         "group": "vegetables",
-        "type": "Onion",
+        "name": "Onion",
         "subtype": "Yellow",
         "description": "",
         "vendor": "FreshDirect",
@@ -1569,7 +1569,7 @@
     },
     {
         "group": "vegetables",
-        "type": "Onion",
+        "name": "Onion",
         "subtype": "Yellow",
         "description": "Jumbo",
         "vendor": "FreshDirect",
@@ -1601,7 +1601,7 @@
     },
     {
         "group": "vegetables",
-        "type": "Parsnips",
+        "name": "Parsnips",
         "subtype": "",
         "description": "",
         "vendor": "FreshDirect",
@@ -1633,7 +1633,7 @@
     },
     {
         "group": "vegetables",
-        "type": "Peas, Canned",
+        "name": "Peas, Canned",
         "subtype": "Green",
         "description": "Fresh Cut Sweet Peas, No Salt Added",
         "vendor": "Del Monte",
@@ -1665,7 +1665,7 @@
     },
     {
         "group": "vegetables",
-        "type": "Peas, Frozen",
+        "name": "Peas, Frozen",
         "subtype": "Green",
         "description": "Steamfresh Sweet Peas",
         "vendor": "Birds Eye",
@@ -1697,7 +1697,7 @@
     },
     {
         "group": "vegetables",
-        "type": "Peas",
+        "name": "Peas",
         "subtype": "Snow",
         "description": "Washed",
         "vendor": "FreshDirect",
@@ -1729,7 +1729,7 @@
     },
     {
         "group": "vegetables",
-        "type": "Peas",
+        "name": "Peas",
         "subtype": "Sugar Snap",
         "description": "",
         "vendor": "FreshDirect",
@@ -1761,7 +1761,7 @@
     },
     {
         "group": "vegetables",
-        "type": "Peppers, Canned",
+        "name": "Peppers, Canned",
         "subtype": "Chipotle",
         "description": "In Adobo Sauce",
         "vendor": "Goya",
@@ -1793,7 +1793,7 @@
     },
     {
         "group": "vegetables",
-        "type": "Peppers, Fresh",
+        "name": "Peppers, Fresh",
         "subtype": "Jalapeno, Fresh",
         "description": "2,500-8,000 SHU",
         "vendor": "FreshDirect",
@@ -1825,7 +1825,7 @@
     },
     {
         "group": "vegetables",
-        "type": "Peppers, Fresh",
+        "name": "Peppers, Fresh",
         "subtype": "Serrano",
         "description": "10,000-25,000 SHU",
         "vendor": "FreshDirect",
@@ -1857,7 +1857,7 @@
     },
     {
         "group": "vegetables",
-        "type": "Peppers, Pickled",
+        "name": "Peppers, Pickled",
         "subtype": "Jalapeno",
         "description": "Sliced; 2,500-8,000 SHU",
         "vendor": "Cento",
@@ -1889,7 +1889,7 @@
     },
     {
         "group": "vegetables",
-        "type": "Peppers, Dried",
+        "name": "Peppers, Dried",
         "subtype": "Ancho",
         "description": "*mail order; 1,000-2,000 SHU",
         "vendor": "Rico Rico",
@@ -1921,7 +1921,7 @@
     },
     {
         "group": "vegetables",
-        "type": "Peppers, Dried",
+        "name": "Peppers, Dried",
         "subtype": "Arbol",
         "description": "*mail order; 15,000-30,000 SHU",
         "vendor": "Rico Rico",
@@ -1953,7 +1953,7 @@
     },
     {
         "group": "vegetables",
-        "type": "Peppers, Dried",
+        "name": "Peppers, Dried",
         "subtype": "Guajillo",
         "description": "*mail order; 2,500-5,000 SHU",
         "vendor": "Rico Rico",
@@ -1985,7 +1985,7 @@
     },
     {
         "group": "vegetables",
-        "type": "Peppers, Dried",
+        "name": "Peppers, Dried",
         "subtype": "Pasilla",
         "description": "*mail order; 1,000-4,000 SHU",
         "vendor": "Rico Rico",
@@ -2017,7 +2017,7 @@
     },
     {
         "group": "vegetables",
-        "type": "Peppers, Dried",
+        "name": "Peppers, Dried",
         "subtype": "Tien Tsin",
         "description": "*mail order, aka Tianjin peppers, aka Szechuan peppers; 50,000-70,000 SHU",
         "vendor": "The Spice House",
@@ -2049,7 +2049,7 @@
     },
     {
         "group": "vegetables",
-        "type": "Peppers, Dried",
+        "name": "Peppers, Dried",
         "subtype": "Bird's Eye",
         "description": "*mail order, aka Thai Chili peppers; 50,000-100,000 SHU",
         "vendor": "The Amazing Chiles & Spices Store",
@@ -2081,7 +2081,7 @@
     },
     {
         "group": "vegetables",
-        "type": "Pesto Sauce",
+        "name": "Pesto Sauce",
         "subtype": "",
         "description": "Sundried Tomatoes",
         "vendor": "Rao's Homemade",
@@ -2113,7 +2113,7 @@
     },
     {
         "group": "vegetables",
-        "type": "Pickles",
+        "name": "Pickles",
         "subtype": "Chips",
         "description": "Bread & Butter Slices",
         "vendor": "McClure's",
@@ -2145,7 +2145,7 @@
     },
     {
         "group": "vegetables",
-        "type": "Potatoes",
+        "name": "Potatoes",
         "subtype": "Russet",
         "description": "aka Idaho potatoes",
         "vendor": "FreshDirect",
@@ -2177,7 +2177,7 @@
     },
     {
         "group": "vegetables",
-        "type": "Potatoes",
+        "name": "Potatoes",
         "subtype": "Red",
         "description": "",
         "vendor": "FreshDirect",
@@ -2209,7 +2209,7 @@
     },
     {
         "group": "vegetables",
-        "type": "Potatoes",
+        "name": "Potatoes",
         "subtype": "Small Red",
         "description": "Little Reds, aka Creamer Potatoes; 1 cup diced ~ 6.8 oz (193 g)",
         "vendor": "The Little Potato Company",
@@ -2241,7 +2241,7 @@
     },    
     {
         "group": "vegetables",
-        "type": "Scallions",
+        "name": "Scallions",
         "subtype": "",
         "description": "",
         "vendor": "FreshDirect",
@@ -2273,7 +2273,7 @@
     },
     {
         "group": "vegetables",
-        "type": "Shallots",
+        "name": "Shallots",
         "subtype": "",
         "description": "",
         "vendor": "FreshDirect",
@@ -2305,7 +2305,7 @@
     },
     {
         "group": "vegetables",
-        "type": "Spinach, Fresh",
+        "name": "Spinach, Fresh",
         "subtype": "",
         "description": "Baby Spinach Pack",
         "vendor": "Satur Farms",
@@ -2337,7 +2337,7 @@
     },
     {
         "group": "vegetables",
-        "type": "Spinach, Frozen",
+        "name": "Spinach, Frozen",
         "subtype": "",
         "description": "Organic Cut Spinach",
         "vendor": "Cascadian Farm",
@@ -2369,7 +2369,7 @@
     },
     {
         "group": "vegetables",
-        "type": "Spinach, Frozen",
+        "name": "Spinach, Frozen",
         "subtype": "",
         "description": "Organic Cut Leaf Spinach",
         "vendor": "Just FreshDirect",
@@ -2401,7 +2401,7 @@
     },
     {
         "group": "vegetables",
-        "type": "Sprouts",
+        "name": "Sprouts",
         "subtype": "Alfalfa",
         "description": "",
         "vendor": "Jonathan's Sprouts",
@@ -2433,7 +2433,7 @@
     },
     {
         "group": "vegetables",
-        "type": "Sprouts",
+        "name": "Sprouts",
         "subtype": "Mung Bean",
         "description": "",
         "vendor": "Jonathan's Sprouts",
@@ -2465,7 +2465,7 @@
     },
     {
         "group": "vegetables",
-        "type": "Sweet Potato, Covington",
+        "name": "Sweet Potato, Covington",
         "subtype": "",
         "description": "Organic",
         "vendor": "FreshDirect",
@@ -2497,7 +2497,7 @@
     },
     {
         "group": "vegetables",
-        "type": "Sweet Potato, Garnet",
+        "name": "Sweet Potato, Garnet",
         "subtype": "",
         "description": "Organic",
         "vendor": "FreshDirect",
@@ -2529,7 +2529,7 @@
     },
     {
         "group": "vegetables",
-        "type": "Tomatoes, Crushed",
+        "name": "Tomatoes, Crushed",
         "subtype": "",
         "description": "",
         "vendor": "Cento",
@@ -2561,7 +2561,7 @@
     },
     {
         "group": "vegetables",
-        "type": "Tomatoes, Crushed",
+        "name": "Tomatoes, Crushed",
         "subtype": "",
         "description": "No Salt Added",
         "vendor": "Colavita",
@@ -2593,7 +2593,7 @@
     },
     {
         "group": "vegetables",
-        "type": "Tomatoes, Diced",
+        "name": "Tomatoes, Diced",
         "subtype": "",
         "description": "",
         "vendor": "Just FreshDirect",
@@ -2625,7 +2625,7 @@
     },
     {
         "group": "vegetables",
-        "type": "Tomatoes, Diced",
+        "name": "Tomatoes, Diced",
         "subtype": "",
         "description": "Organic, No Salt Added",
         "vendor": "Muir Glen",
@@ -2657,7 +2657,7 @@
     },
     {
         "group": "vegetables",
-        "type": "Tomatoes, Fresh",
+        "name": "Tomatoes, Fresh",
         "subtype": "Beefsteak",
         "description": "",
         "vendor": "FreshDirect",
@@ -2689,7 +2689,7 @@
     },
     {
         "group": "vegetables",
-        "type": "Tomatoes, Fresh",
+        "name": "Tomatoes, Fresh",
         "subtype": "Cherry",
         "description": "On the Vine",
         "vendor": "FreshDirect",
@@ -2721,7 +2721,7 @@
     },
     {
         "group": "vegetables",
-        "type": "Tomatoes, Fresh",
+        "name": "Tomatoes, Fresh",
         "subtype": "Globe (the \"standard\" kind)",
         "description": "On the Vine",
         "vendor": "FreshDirect",
@@ -2753,7 +2753,7 @@
     },    
     {
         "group": "vegetables",
-        "type": "Tomatoes, Fresh",
+        "name": "Tomatoes, Fresh",
         "subtype": "Grape",
         "description": "",
         "vendor": "FreshDirect",
@@ -2785,7 +2785,7 @@
     },
     {
         "group": "vegetables",
-        "type": "Tomatoes, Fresh",
+        "name": "Tomatoes, Fresh",
         "subtype": "Plum (aka Roma)",
         "description": "",
         "vendor": "FreshDirect",
@@ -2817,7 +2817,7 @@
     },
     {
         "group": "vegetables",
-        "type": "Tomato Paste, Canned",
+        "name": "Tomato Paste, Canned",
         "subtype": "",
         "description": "Organic, No Salt Added",
         "vendor": "Bionaturae",
@@ -2849,7 +2849,7 @@
     },
     {
         "group": "vegetables",
-        "type": "Tomato Paste, Canned",
+        "name": "Tomato Paste, Canned",
         "subtype": "",
         "description": "",
         "vendor": "Cento",
@@ -2881,7 +2881,7 @@
     },
     {
         "group": "vegetables",
-        "type": "Tomato Paste, Tube",
+        "name": "Tomato Paste, Tube",
         "subtype": "",
         "description": "Double Contentrated, Organic",
         "vendor": "Cento",
@@ -2913,7 +2913,7 @@
     },
     {
         "group": "vegetables",
-        "type": "Tomato Sauce (aka Pasta Sauce)",
+        "name": "Tomato Sauce (aka Pasta Sauce)",
         "subtype": "",
         "description": "Marinara",
         "vendor": "Just FreshDirect",
@@ -2945,7 +2945,7 @@
     },
     {
         "group": "vegetables",
-        "type": "Tomato Sauce (aka Pasta Sauce)",
+        "name": "Tomato Sauce (aka Pasta Sauce)",
         "subtype": "",
         "description": "Organic, Tomato Basil",
         "vendor": "Muir Glen",
@@ -2977,7 +2977,7 @@
     },
     {
         "group": "vegetables",
-        "type": "Tomato, Sundried",
+        "name": "Tomato, Sundried",
         "subtype": "",
         "description": "Chef's Cut",
         "vendor": "Cento",
@@ -3009,7 +3009,7 @@
     },
     {
         "group": "vegetables",
-        "type": "Turnips",
+        "name": "Turnips",
         "subtype": "",
         "description": "",
         "vendor": "FreshDirect",
@@ -3041,7 +3041,7 @@
     },   
     {
         "group": "vegetables",
-        "type": "Zucchini",
+        "name": "Zucchini",
         "subtype": "",
         "description": "",
         "vendor": "FreshDirect",

@@ -1,7 +1,7 @@
-{ "ingredients": [
+{ "foods": [
     {
         "group": "dairy",
-        "type": "Butter",
+        "name": "Butter",
         "subtype": "Unsalted",
         "description": "1 stick = 1/2 cup; 1 pat = 1 tsp",
         "vendor": "Land O'Lakes",
@@ -33,7 +33,7 @@
     },
     {
         "group": "dairy",
-        "type": "Cheese",
+        "name": "Cheese",
         "subtype": "American",
         "description": "Singles",
         "vendor": "Kraft",
@@ -65,7 +65,7 @@
     },
     {
         "group": "dairy",
-        "type": "Cheese",
+        "name": "Cheese",
         "subtype": "Cheddar",
         "description": "Extra Sharp, Block",
         "vendor": "Cabot",
@@ -97,7 +97,7 @@
     },
     {
         "group": "dairy",
-        "type": "Cheese",
+        "name": "Cheese",
         "subtype": "Cheddar",
         "description": "Sharp, Shredded",
         "vendor": "Organic Valley",
@@ -129,7 +129,7 @@
     },
     {
         "group": "dairy",
-        "type": "Cheese",
+        "name": "Cheese",
         "subtype": "Cottage",
         "description": "Low-Fat",
         "vendor": "Good Culture",
@@ -161,7 +161,7 @@
     },
     {
         "group": "dairy",
-        "type": "Cheese",
+        "name": "Cheese",
         "subtype": "Mozzarella",
         "description": "Local Fresh, Block",
         "vendor": "Just FreshDirect",
@@ -193,7 +193,7 @@
     },
     {
         "group": "dairy",
-        "type": "Cheese",
+        "name": "Cheese",
         "subtype": "Mozzarella",
         "description": "Local Fresh Smoked, Block",
         "vendor": "Just FreshDirect",
@@ -225,7 +225,7 @@
     },
     {
         "group": "dairy",
-        "type": "Cheese",
+        "name": "Cheese",
         "subtype": "Mozzarella",
         "description": "Part-Skim Shredded, Block",
         "vendor": "Kraft",
@@ -257,7 +257,7 @@
     },
     {
         "group": "dairy",
-        "type": "Cheese",
+        "name": "Cheese",
         "subtype": "Mozzarella",
         "description": "Local Fresh Unsalted, Block",
         "vendor": "Just FreshDirect",
@@ -289,7 +289,7 @@
     },
     {
         "group": "dairy",
-        "type": "Cheese",
+        "name": "Cheese",
         "subtype": "Mozzarella",
         "description": "Sliced",
         "vendor": "Just FreshDirect",
@@ -321,7 +321,7 @@
     },
     {
         "group": "dairy",
-        "type": "Cheese",
+        "name": "Cheese",
         "subtype": "Parmesan",
         "description": "Domestic, Block",
         "vendor": "FreshDirect",
@@ -353,7 +353,7 @@
     },
     {
         "group": "dairy",
-        "type": "Cheese",
+        "name": "Cheese",
         "subtype": "Parmesan",
         "description": "Grated",
         "vendor": "Kraft",
@@ -385,7 +385,7 @@
     },
     {
         "group": "dairy",
-        "type": "Cheese",
+        "name": "Cheese",
         "subtype": "Swiss",
         "description": "Low Sodium Imported Lacey, Sliced",
         "vendor": "Finlandia",
@@ -417,7 +417,7 @@
     },
     {
         "group": "dairy",
-        "type": "Condensed Milk",
+        "name": "Condensed Milk",
         "subtype": "Sweetned",
         "description": "Eagle Brand",
         "vendor": "Borden",
@@ -449,7 +449,7 @@
     },    
     {
         "group": "dairy",
-        "type": "Crème Fraiche",
+        "name": "Crème Fraiche",
         "subtype": "",
         "description": "",
         "vendor": "Vermont Creamery",
@@ -481,7 +481,7 @@
     },
     {
         "group": "dairy",
-        "type": "Heavy Cream",
+        "name": "Heavy Cream",
         "subtype": "",
         "description": "",
         "vendor": "Tuscan Dairy Farms",
@@ -513,7 +513,7 @@
     },
     {
         "group": "dairy",
-        "type": "Ice Cream",
+        "name": "Ice Cream",
         "subtype": "Chocolate",
         "description": "",
         "vendor": "Breyers",
@@ -545,7 +545,7 @@
     },
     {
         "group": "dairy",
-        "type": "Ice Cream",
+        "name": "Ice Cream",
         "subtype": "Natural Vanilla",
         "description": "",
         "vendor": "Breyers",
@@ -577,7 +577,7 @@
     },
     {
         "group": "dairy",
-        "type": "Milk",
+        "name": "Milk",
         "subtype": "Almond",
         "description": "Unsweetened Almond Breeze",
         "vendor": "Blue Diamond",
@@ -609,7 +609,7 @@
     },
     {
         "group": "dairy",
-        "type": "Milk",
+        "name": "Milk",
         "subtype": "Cashew",
         "description": "Unsweetened",
         "vendor": "Elmhurst",
@@ -641,7 +641,7 @@
     },
     {
         "group": "dairy",
-        "type": "Milk",
+        "name": "Milk",
         "subtype": "Coconut",
         "description": "Unsweetened",
         "vendor": "Taste of Thai",
@@ -673,7 +673,7 @@
     },
     {
         "group": "dairy",
-        "type": "Milk",
+        "name": "Milk",
         "subtype": "Coconut",
         "description": "Lite",
         "vendor": "Taste of Thai",
@@ -705,7 +705,7 @@
     },
     {
         "group": "dairy",
-        "type": "Milk",
+        "name": "Milk",
         "subtype": "Dairy",
         "description": "Fat Free",
         "vendor": "Just FreshDirect",
@@ -737,7 +737,7 @@
     },
     {
         "group": "dairy",
-        "type": "Milk",
+        "name": "Milk",
         "subtype": "Dairy",
         "description": "Fat Free",
         "vendor": "Tuscan Dairy Farms",
@@ -769,7 +769,7 @@
     },
     {
         "group": "dairy",
-        "type": "Milk",
+        "name": "Milk",
         "subtype": "Dairy",
         "description": "1% Low Fat",
         "vendor": "Just FreshDirect",
@@ -801,7 +801,7 @@
     },
     {
         "group": "dairy",
-        "type": "Milk",
+        "name": "Milk",
         "subtype": "Dairy",
         "description": "2% Reduced Fat",
         "vendor": "Just FreshDirect",
@@ -833,7 +833,7 @@
     },
     {
         "group": "dairy",
-        "type": "Milk",
+        "name": "Milk",
         "subtype": "Dairy",
         "description": "Whole",
         "vendor": "Just FreshDirect",
@@ -865,7 +865,7 @@
     },
     {
         "group": "dairy",
-        "type": "Milk",
+        "name": "Milk",
         "subtype": "Dairy",
         "description": "1% Low Fat, Lactose Free, Chocolate",
         "vendor": "Organic Valley",
@@ -897,7 +897,7 @@
     },
     {
         "group": "dairy",
-        "type": "Milk",
+        "name": "Milk",
         "subtype": "Oat",
         "description": "Original",
         "vendor": "Oatly",
@@ -929,7 +929,7 @@
     },
     {
         "group": "dairy",
-        "type": "Milk",
+        "name": "Milk",
         "subtype": "Oat",
         "description": "Chocolate",
         "vendor": "Oatly",
@@ -961,7 +961,7 @@
     },
     {
         "group": "dairy",
-        "type": "Milk",
+        "name": "Milk",
         "subtype": "Soy",
         "description": "Organic Unsweetened",
         "vendor": "Silk",
@@ -993,7 +993,7 @@
     },
     {
         "group": "dairy",
-        "type": "Sour Cream",
+        "name": "Sour Cream",
         "subtype": "",
         "description": "",
         "vendor": "Breakstone",
@@ -1025,7 +1025,7 @@
     },
     {
         "group": "dairy",
-        "type": "Whipped Cream",
+        "name": "Whipped Cream",
         "subtype": "",
         "description": "",
         "vendor": "Reddi-Wip",
@@ -1057,7 +1057,7 @@
     },
     {
         "group": "dairy",
-        "type": "Yogurt",
+        "name": "Yogurt",
         "subtype": "Non-Fat Greek",
         "description": "Plain",
         "vendor": "Chobani",
@@ -1090,7 +1090,7 @@
     },
     {
         "group": "dairy",
-        "type": "Yogurt",
+        "name": "Yogurt",
         "subtype": "Non-Fat Greek",
         "description": "Any flavor (with slight variations)",
         "vendor": "Chobani",
@@ -1123,7 +1123,7 @@
     },
     {
         "group": "dairy",
-        "type": "Yogurt",
+        "name": "Yogurt",
         "subtype": "Low-Fat Greek",
         "description": "Any flavor (with slight variations)",
         "vendor": "Chobani",
@@ -1155,7 +1155,7 @@
     },
     {
         "group": "dairy",
-        "type": "Yogurt",
+        "name": "Yogurt",
         "subtype": "Non-Fat Greek",
         "description": "Plain",
         "vendor": "Fage",
@@ -1187,7 +1187,7 @@
     },
     {
         "group": "dairy",
-        "type": "Yogurt",
+        "name": "Yogurt",
         "subtype": "Non-Fat Greek",
         "description": "Plain",
         "vendor": "Fage",
@@ -1219,7 +1219,7 @@
     },
     {
         "group": "dairy",
-        "type": "Yogurt",
+        "name": "Yogurt",
         "subtype": "5% Greek",
         "description": "Plain",
         "vendor": "Fage",

@@ -1,7 +1,7 @@
-{ "ingredients": [
+{ "foods": [
     {
-        "group": "herbs_and_spices",
-        "type": "Allspice",
+        "group": "herbsAndSpices",
+        "name": "Allspice",
         "subtype": "Ground",
         "description": "aka Jamaican pepper; big in Carribean cuisine",
         "vendor": "FreshDirect",
@@ -32,8 +32,8 @@
         "shelf_life": "4 years in pantry"
     },
     {
-        "group": "herbs_and_spices",
-        "type": "Ancho Chile Powder",
+        "group": "herbsAndSpices",
+        "name": "Ancho Chile Powder",
         "subtype": "Dried, Ground",
         "description": "big in Mexican cuisine",
         "vendor": "Simply Organic via iHerb",
@@ -64,8 +64,8 @@
         "shelf_life": "1 year in pantry"
     },
     {
-        "group": "herbs_and_spices",
-        "type": "Basil",
+        "group": "herbsAndSpices",
+        "name": "Basil",
         "subtype": "Dried, Ground",
         "description": "big in Italian cuisine",
         "vendor": "Just FreshDirect",
@@ -96,8 +96,8 @@
         "shelf_life": "2-3 years in pantry"
     },
     {
-        "group": "herbs_and_spices",
-        "type": "Basil",
+        "group": "herbsAndSpices",
+        "name": "Basil",
         "subtype": "Fresh",
         "description": "big in Indian, Thai, and Italian cuisine",
         "vendor": "FreshDirect",
@@ -128,8 +128,8 @@
         "shelf_life": "2-3 days in fridge, 1-2 weeks in 1\" water (like cut flowers)"
     },
     {
-        "group": "herbs_and_spices",
-        "type": "Bay Leaves",
+        "group": "herbsAndSpices",
+        "name": "Bay Leaves",
         "subtype": "Dried",
         "description": "big in Indian, Mediterranean, and American cuisine",
         "vendor": "Just FreshDirect",
@@ -160,8 +160,8 @@
         "shelf_life": "1-3 years in pantry"
     },
     {
-        "group": "herbs_and_spices",
-        "type": "Black Pepper",
+        "group": "herbsAndSpices",
+        "name": "Black Pepper",
         "subtype": "Ground",
         "description": "Organic; big in all cuisines",
         "vendor": "Just FreshDirect",
@@ -192,8 +192,8 @@
         "shelf_life": "3-4 years in pantry"
     },
     {
-        "group": "herbs_and_spices",
-        "type": "Cardamom",
+        "group": "herbsAndSpices",
+        "name": "Cardamom",
         "subtype": "Ground",
         "description": "big in Indian, Middle Eastern, and Scandinavian cuisine, and in desserts",
         "vendor": "Just FreshDirect",
@@ -224,8 +224,8 @@
         "shelf_life": "3-4 years in pantry"
     },
     {
-        "group": "herbs_and_spices",
-        "type": "Cayenne Pepper",
+        "group": "herbsAndSpices",
+        "name": "Cayenne Pepper",
         "subtype": "Dried, Ground",
         "description": "big in Mexican, Indian, and Thai cuisine",
         "vendor": "Just FreshDirect",
@@ -256,8 +256,8 @@
         "shelf_life": "3-4 years in pantry"
     },
     {
-        "group": "herbs_and_spices",
-        "type": "Chili Powder",
+        "group": "herbsAndSpices",
+        "name": "Chili Powder",
         "subtype": "Dried, Ground",
         "description": "mix of ancho chile, onion, paprika, tomato, and black pepper; big in Mexican, Indian, and Thai cuisine",
         "vendor": "Just FreshDirect",
@@ -288,8 +288,8 @@
         "shelf_life": "1-2 years in pantry"
     },
     {
-        "group": "herbs_and_spices",
-        "type": "Chives",
+        "group": "herbsAndSpices",
+        "name": "Chives",
         "subtype": "Fresh",
         "description": "big in French, American, and European cuisine",
         "vendor": "FreshDirect",
@@ -320,8 +320,8 @@
         "shelf_life": "1-2 weeks in fridge"
     },
     {
-        "group": "herbs_and_spices",
-        "type": "Cinnamon",
+        "group": "herbsAndSpices",
+        "name": "Cinnamon",
         "subtype": "Ground",
         "description": "big in Indian, Middle Eastern, and American cuisine, and in desserts",
         "vendor": "FreshDirect",
@@ -352,8 +352,8 @@
         "shelf_life": "1-2 years in pantry"
     },
     {
-        "group": "herbs_and_spices",
-        "type": "Cilantro",
+        "group": "herbsAndSpices",
+        "name": "Cilantro",
         "subtype": "Fresh, Organic",
         "description": "aka coriander; big in Mexican, Indian, and Thai cuisine",
         "vendor": "Goodness Gardens",
@@ -384,8 +384,8 @@
         "shelf_life": "4-7 days in fridge"
     },
     {
-        "group": "herbs_and_spices",
-        "type": "Cilantro",
+        "group": "herbsAndSpices",
+        "name": "Cilantro",
         "subtype": "Fresh",
         "description": "aka coriander; big in Mexican, Indian, and Thai cuisine",
         "vendor": "FreshDirect",
@@ -416,8 +416,8 @@
         "shelf_life": "4-7 days in fridge, 1-2 weeks in 1\" water (like cut flowers)"
     },
     {
-        "group": "herbs_and_spices",
-        "type": "Cloves",
+        "group": "herbsAndSpices",
+        "name": "Cloves",
         "subtype": "Ground",
         "description": "big in Asian, Indian, Mexican, and French cuisines, and in baked goods",
         "vendor": "Just FreshDirect",
@@ -448,8 +448,8 @@
         "shelf_life": "2-3 years in pantry"
     },
     {
-        "group": "herbs_and_spices",
-        "type": "Coriander",
+        "group": "herbsAndSpices",
+        "name": "Coriander",
         "subtype": "Ground",
         "description": "aka cilantro seeds; big in Middle Eastern, Mediterranean, and African cuisine",
         "vendor": "Just FreshDirect",
@@ -480,8 +480,8 @@
         "shelf_life": "3-4 years in pantry"
     },
     {
-        "group": "herbs_and_spices",
-        "type": "Cumin",
+        "group": "herbsAndSpices",
+        "name": "Cumin",
         "subtype": "Ground",
         "description": "big in Indian, Middle Eastern, Mediterranean, and Mexican cuisine",
         "vendor": "Just FreshDirect",
@@ -512,8 +512,8 @@
         "shelf_life": "3-4 years in pantry"
     },
     {
-        "group": "herbs_and_spices",
-        "type": "Dill",
+        "group": "herbsAndSpices",
+        "name": "Dill",
         "subtype": "Fresh",
         "description": "big in European, Middle Eastern, and American cuisine, and in pickled foods",
         "vendor": "FreshDirect",
@@ -544,8 +544,8 @@
         "shelf_life": "2-3 weeks in fridge"
     },
     {
-        "group": "herbs_and_spices",
-        "type": "Dill Weed",
+        "group": "herbsAndSpices",
+        "name": "Dill Weed",
         "subtype": "Dried",
         "description": "big in Scandanavian, Eastern European and Russian cuisine",
         "vendor": "Just FreshDirect",
@@ -576,8 +576,8 @@
         "shelf_life": "2-3 years in pantry"
     },    
     {
-        "group": "herbs_and_spices",
-        "type": "Fennel Seeds",
+        "group": "herbsAndSpices",
+        "name": "Fennel Seeds",
         "subtype": "Dried",
         "description": "big in Indian, Middle Eastern, and Italian cuisine",
         "vendor": "Just FreshDirect",
@@ -608,8 +608,8 @@
         "shelf_life": "2 years in pantry"
     },
     {
-        "group": "herbs_and_spices",
-        "type": "Garlic",
+        "group": "herbsAndSpices",
+        "name": "Garlic",
         "subtype": "Fresh",
         "description": "big in Italian, French, and African cuisine",
         "vendor": "FreshDirect",
@@ -640,8 +640,8 @@
         "shelf_life": "unpeeled head: 6 months in pantry; unpeeled clove: 3 weeks in pantry; peeled cloves: 1 week in fridge; 6-12 months in freezer"
     },
     {
-        "group": "herbs_and_spices",
-        "type": "Garlic Powder",
+        "group": "herbsAndSpices",
+        "name": "Garlic Powder",
         "subtype": "Dried, Ground",
         "description": "big in Italian, French, and African cuisine",
         "vendor": "Just FreshDirect",
@@ -672,8 +672,8 @@
         "shelf_life": "3-4 years in pantry"
     },
     {
-        "group": "herbs_and_spices",
-        "type": "Garlic Salt",
+        "group": "herbsAndSpices",
+        "name": "Garlic Salt",
         "subtype": "Dried, Ground",
         "description": "big in Italian, Mexican, American, and Asian cuisine",
         "vendor": "Just FreshDirect",
@@ -704,8 +704,8 @@
         "shelf_life": "3-4 years in pantry"
     },
     {
-        "group": "herbs_and_spices",
-        "type": "Ginger",
+        "group": "herbsAndSpices",
+        "name": "Ginger",
         "subtype": "Fresh",
         "description": "Organic root; big in Indian, Chinese, Thai, Korean and Vietnamese cuisine",
         "vendor": "FreshDirect",
@@ -736,8 +736,8 @@
         "shelf_life": "unpeeled: 1 month in fridge"
     },
     {
-        "group": "herbs_and_spices",
-        "type": "Ginger",
+        "group": "herbsAndSpices",
+        "name": "Ginger",
         "subtype": "Dried, Ground",
         "description": "big in Indian, Chinese, Thai, Korean and Vietnamese cuisine",
         "vendor": "Just FreshDirect",
@@ -768,8 +768,8 @@
         "shelf_life": "3-4 years in pantry"
     },
     {
-        "group": "herbs_and_spices",
-        "type": "Ginger",
+        "group": "herbsAndSpices",
+        "name": "Ginger",
         "subtype": "Pickled",
         "description": "organic sushi; big in Japanese cuisine",
         "vendor": "The Ginger People (Amazon)",
@@ -800,8 +800,8 @@
         "shelf_life": "3-4 years in fridge"
     },
     {
-        "group": "herbs_and_spices",
-        "type": "Italian Seasoning",
+        "group": "herbsAndSpices",
+        "name": "Italian Seasoning",
         "subtype": "Dried",
         "description": "blend of oregano, garlic, basil, onion, pepper, majoram, and rosemary; big in Italian cuisine",
         "vendor": "Just FreshDirect",
@@ -832,8 +832,8 @@
         "shelf_life": "1-2 years in pantry"
     },
     {
-        "group": "herbs_and_spices",
-        "type": "Marjoram",
+        "group": "herbsAndSpices",
+        "name": "Marjoram",
         "subtype": "Fresh",
         "description": "Organic; big in Mediterranean, Middle Eastern, and American cuisine",
         "vendor": "Goodness Gardens",
@@ -864,8 +864,8 @@
         "shelf_life": "5 days in fridge"
     },
     {
-        "group": "herbs_and_spices",
-        "type": "Mint",
+        "group": "herbsAndSpices",
+        "name": "Mint",
         "subtype": "Fresh",
         "description": "big in Middle Eastern, Greek, Italian, and Indian cuisine",
         "vendor": "FreshDirect",
@@ -896,8 +896,8 @@
         "shelf_life": "2-3 weeks in 1\" water in fridge (like cut flowers)"
     },
     {
-        "group": "herbs_and_spices",
-        "type": "Mustard",
+        "group": "herbsAndSpices",
+        "name": "Mustard",
         "subtype": "Dried, Ground",
         "description": "big in French, English, and Indian cuisine",
         "vendor": "Just FreshDirect",
@@ -928,8 +928,8 @@
         "shelf_life": "1-2 years in pantry"
     },
     {
-        "group": "herbs_and_spices",
-        "type": "Nutmeg",
+        "group": "herbsAndSpices",
+        "name": "Nutmeg",
         "subtype": "Ground",
         "description": "big in Indian, Indonesian, Middle Eastern, Italian, American, and Carribean cuisine",
         "vendor": "Just FreshDirect",
@@ -960,8 +960,8 @@
         "shelf_life": "3-4 years in pantry"
     },
     {
-        "group": "herbs_and_spices",
-        "type": "Onion Powder",
+        "group": "herbsAndSpices",
+        "name": "Onion Powder",
         "subtype": "Ground",
         "description": "California Onion Powder; big in American, Indian, Mexican, and Mediterranean cuisine",
         "vendor": "Just FreshDirect",
@@ -992,8 +992,8 @@
         "shelf_life": "3-4 years in pantry"
     },
     {
-        "group": "herbs_and_spices",
-        "type": "Oregano",
+        "group": "herbsAndSpices",
+        "name": "Oregano",
         "subtype": "Dried",
         "description": "big in Italian, Greek, Turkish, Mexican, and Middle Eastern cuisine",
         "vendor": "Just FreshDirect",
@@ -1024,8 +1024,8 @@
         "shelf_life": "1-3 years in pantry"
     },
     {
-        "group": "herbs_and_spices",
-        "type": "Paprika",
+        "group": "herbsAndSpices",
+        "name": "Paprika",
         "subtype": "Dried",
         "description": "Smoked Spanish Paprika; big in Spanish, Mexican, Mediterranean, and Middle Eastern cuisine",
         "vendor": "Just FreshDirect",
@@ -1056,8 +1056,8 @@
         "shelf_life": "1-2 years in pantry"
     },
     {
-        "group": "herbs_and_spices",
-        "type": "Parsley",
+        "group": "herbsAndSpices",
+        "name": "Parsley",
         "subtype": "Fresh",
         "description": "Italian Parsley; big in Middle Eastern, Mediterranean, Brazillian, and American cuisine",
         "vendor": "FreshDirect",
@@ -1088,8 +1088,8 @@
         "shelf_life": "7-10 days in 1\" water in fridge (like cut flowers)"
     },
     {
-        "group": "herbs_and_spices",
-        "type": "Parsley",
+        "group": "herbsAndSpices",
+        "name": "Parsley",
         "subtype": "Fresh",
         "description": "Italian Parsley; big in Middle Eastern, Mediterranean, Brazillian, and American cuisine",
         "vendor": "Goodness Gardens",
@@ -1120,8 +1120,8 @@
         "shelf_life": "7-10 days in fridge"
     },
     {
-        "group": "herbs_and_spices",
-        "type": "Peppercorns",
+        "group": "herbsAndSpices",
+        "name": "Peppercorns",
         "subtype": "Whole",
         "description": "Tellicherry Peppercorns; refill for grinders; big in all cuisines",
         "vendor": "Just FreshDirect",
@@ -1152,8 +1152,8 @@
         "shelf_life": "7-10 days in fridge"
     },
     {
-        "group": "herbs_and_spices",
-        "type": "Red Pepper",
+        "group": "herbsAndSpices",
+        "name": "Red Pepper",
         "subtype": "Crushed",
         "description": "big in Italian, Mexican, Asian, Mediterranean, and American cuisine",
         "vendor": "Just FreshDirect",
@@ -1184,8 +1184,8 @@
         "shelf_life": "2-3 years in pantry"
     },
     {
-        "group": "herbs_and_spices",
-        "type": "Salt",
+        "group": "herbsAndSpices",
+        "name": "Salt",
         "subtype": "Iodized",
         "description": "1 pinch is 1/16 tsp (1/4 serving); big in all cuisines",
         "vendor": "Morton",
@@ -1216,8 +1216,8 @@
         "shelf_life": "forever in pantry"
     },
     {
-        "group": "herbs_and_spices",
-        "type": "MySalt",
+        "group": "herbsAndSpices",
+        "name": "MySalt",
         "subtype": "Potassium-based Salt Substitute",
         "description": "1 pinch is 1/16 tsp (1/4 serving); big in all cuisines",
         "vendor": "My Salt (Amazon)",
@@ -1248,8 +1248,8 @@
         "shelf_life": "forever in pantry"
     },
     {
-        "group": "herbs_and_spices",
-        "type": "Sesame Seeds",
+        "group": "herbsAndSpices",
+        "name": "Sesame Seeds",
         "subtype": "Black",
         "description": "big in Asian cuisine",
         "vendor": "Just FreshDirect",
@@ -1280,8 +1280,8 @@
         "shelf_life": "3-4 years in pantry"
     },
     {
-        "group": "herbs_and_spices",
-        "type": "Sesame Seeds",
+        "group": "herbsAndSpices",
+        "name": "Sesame Seeds",
         "subtype": "White",
         "description": "big in Middle Eastern, Indian, Mexican, European, and Carribean cuisine",
         "vendor": "Just FreshDirect",
@@ -1312,8 +1312,8 @@
         "shelf_life": "3-4 years in pantry"
     },
     {
-        "group": "herbs_and_spices",
-        "type": "Turmeric",
+        "group": "herbsAndSpices",
+        "name": "Turmeric",
         "subtype": "Ground",
         "description": "big in Indian, SE Asian, Middle Eastern, and Latin American cuisine",
         "vendor": "Just FreshDirect",

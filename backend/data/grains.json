@@ -1,7 +1,7 @@
-{ "ingredients": [
+{ "foods": [
     {
         "group": "grains",
-        "type": "Bagel",
+        "name": "Bagel",
         "subtype": "Mixed Frozen",
         "description": "",
         "vendor": "Utopia Bagels of NY",
@@ -33,7 +33,7 @@
     },
     {
         "group": "grains",
-        "type": "Bread",
+        "name": "Bread",
         "subtype": "Whole Wheat",
         "description": "",
         "vendor": "Arnold",
@@ -65,7 +65,7 @@
     },
     {
         "group": "grains",
-        "type": "Bread",
+        "name": "Bread",
         "subtype": "Whole Wheat",
         "description": "",
         "vendor": "Nature's Own",
@@ -97,7 +97,7 @@
     },
     {
         "group": "grains",
-        "type": "Buns",
+        "name": "Buns",
         "subtype": "Brioche",
         "description": "Artisan",
         "vendor": "Brooklyn Mills",
@@ -129,7 +129,7 @@
     },
     {
         "group": "grains",
-        "type": "Buns",
+        "name": "Buns",
         "subtype": "Challah",
         "description": "",
         "vendor": "Just FreshDirect",
@@ -161,7 +161,7 @@
     },
     {
         "group": "grains",
-        "type": "Buns",
+        "name": "Buns",
         "subtype": "Long Potato Rolls",
         "description": "Hot dog buns",
         "vendor": "Martin's",
@@ -193,7 +193,7 @@
     },
     {
         "group": "grains",
-        "type": "Buns",
+        "name": "Buns",
         "subtype": "Sandwich Potato Rolls",
         "description": "Hamburger buns",
         "vendor": "Martin's",
@@ -225,7 +225,7 @@
     },
     {
         "group": "grains",
-        "type": "Buns",
+        "name": "Buns",
         "subtype": "Pretzel Rolls",
         "description": "",
         "vendor": "Northside Bakery",
@@ -257,7 +257,7 @@
     },
     {
         "group": "grains",
-        "type": "Buns",
+        "name": "Buns",
         "subtype": "Whole Wheat",
         "description": "Select Sandwich Thins",
         "vendor": "Arnold",
@@ -289,7 +289,7 @@
     },
     {
         "group": "grains",
-        "type": "Puff Pastry Sheets",
+        "name": "Puff Pastry Sheets",
         "subtype": "",
         "description": "",
         "vendor": "Pepperidge Farm",
@@ -321,7 +321,7 @@
     },
     {
         "group": "grains",
-        "type": "Taco Shell",
+        "name": "Taco Shell",
         "subtype": "Hard",
         "description": "Crunchy",
         "vendor": "Old El Paso",
@@ -353,7 +353,7 @@
     },
     {
         "group": "grains",
-        "type": "Tortilla",
+        "name": "Tortilla",
         "subtype": "Flour",
         "description": "7\"",
         "vendor": "Vista Hermosa",
@@ -385,7 +385,7 @@
     },
     {
         "group": "grains",
-        "type": "Cereal",
+        "name": "Cereal",
         "subtype": "",
         "description": "Honey Nut Cheerios",
         "vendor": "General Mills",
@@ -417,7 +417,7 @@
     },
     {
         "group": "grains",
-        "type": "Cereal",
+        "name": "Cereal",
         "subtype": "",
         "description": "Go Crunch",
         "vendor": "Kashi",
@@ -449,7 +449,7 @@
     },
     {
         "group": "grains",
-        "type": "Cereal",
+        "name": "Cereal",
         "subtype": "",
         "description": "Raisin Bran",
         "vendor": "Kellogg's",
@@ -481,7 +481,7 @@
     },
     {
         "group": "grains",
-        "type": "Corn Starch",
+        "name": "Corn Starch",
         "subtype": "",
         "description": "",
         "vendor": "Argo",
@@ -513,7 +513,7 @@
     },
     {
         "group": "grains",
-        "type": "Couscous",
+        "name": "Couscous",
         "subtype": "Traditional Pearl",
         "description": "",
         "vendor": "Bob's Red Mill",
@@ -545,7 +545,7 @@
     },
     {
         "group": "grains",
-        "type": "Dumpling Wrappers",
+        "name": "Dumpling Wrappers",
         "subtype": "Shanghai Style",
         "description": "",
         "vendor": "Twin Maquis",
@@ -577,7 +577,7 @@
     },
     {
         "group": "grains",
-        "type": "Flaxseed",
+        "name": "Flaxseed",
         "subtype": "Ground",
         "description": "Organic Premium",
         "vendor": "Spectrum",
@@ -609,7 +609,7 @@
     },
     {
         "group": "grains",
-        "type": "Flour",
+        "name": "Flour",
         "subtype": "All-Purpose Unbleached",
         "description": "",
         "vendor": "Just FreshDirect",
@@ -641,7 +641,7 @@
     },
     {
         "group": "grains",
-        "type": "Flour",
+        "name": "Flour",
         "subtype": "All-Purpose Enriched Bleached Pre-Sifted",
         "description": "",
         "vendor": "Gold Medal",
@@ -673,7 +673,7 @@
     },
     {
         "group": "grains",
-        "type": "Flour",
+        "name": "Flour",
         "subtype": "Dark Rye",
         "description": "Organic Stone GRound",
         "vendor": "Bob's Red Mill",
@@ -705,7 +705,7 @@
     },
     {
         "group": "grains",
-        "type": "Flour",
+        "name": "Flour",
         "subtype": "Tipo \"00\"",
         "description": "Organic",
         "vendor": "Anna",
@@ -737,7 +737,7 @@
     },
     {
         "group": "grains",
-        "type": "Oats",
+        "name": "Oats",
         "subtype": "Steel Cut",
         "description": "Organic Whole Grain",
         "vendor": "Bob's Red Mill",
@@ -769,7 +769,7 @@
     },
     {
         "group": "grains",
-        "type": "Panko",
+        "name": "Panko",
         "subtype": "",
         "description": "Gluten Free, Plain Panko, Crispy Coating Crumbs",
         "vendor": "Jason",
@@ -801,7 +801,7 @@
     },    
     {
         "group": "grains",
-        "type": "Pasta",
+        "name": "Pasta",
         "subtype": "Lasagna",
         "description": "Wavy",
         "vendor": "Barilla",
@@ -833,7 +833,7 @@
     },
     {
         "group": "grains",
-        "type": "Pasta",
+        "name": "Pasta",
         "subtype": "Linguine",
         "description": "Organic",
         "vendor": "Just FreshDirect",
@@ -865,7 +865,7 @@
     },
     {
         "group": "grains",
-        "type": "Pasta",
+        "name": "Pasta",
         "subtype": "Spaghetti",
         "description": "",
         "vendor": "Barilla",
@@ -897,7 +897,7 @@
     },
     {
         "group": "grains",
-        "type": "Pasta",
+        "name": "Pasta",
         "subtype": "Rice Noodles",
         "description": "Straight Cut Thin",
         "vendor": "Taste of Thai",
@@ -929,7 +929,7 @@
     },
     {
         "group": "grains",
-        "type": "Pasta",
+        "name": "Pasta",
         "subtype": "Rice Noodles",
         "description": "Wide",
         "vendor": "Taste of Thai",
@@ -961,7 +961,7 @@
     },
     {
         "group": "grains",
-        "type": "Pasta",
+        "name": "Pasta",
         "subtype": "Linguine",
         "description": "Fresh Egg",
         "vendor": "Ravello",
@@ -993,7 +993,7 @@
     },
     {
         "group": "grains",
-        "type": "Pasta",
+        "name": "Pasta",
         "subtype": "Lo Mein Noodles",
         "description": "",
         "vendor": "Twin Maquis",
@@ -1025,7 +1025,7 @@
     },
     {
         "group": "grains",
-        "type": "Rice",
+        "name": "Rice",
         "subtype": "Basmati",
         "description": "California White (Indian rice)",
         "vendor": "Lundberg",
@@ -1057,7 +1057,7 @@
     },
     {
         "group": "grains",
-        "type": "Rice",
+        "name": "Rice",
         "subtype": "Brown",
         "description": "Organic Long Grain",
         "vendor": "Lundberg",
@@ -1089,7 +1089,7 @@
     },
     {
         "group": "grains",
-        "type": "Rice",
+        "name": "Rice",
         "subtype": "Brown",
         "description": "Organic Short Grain",
         "vendor": "Lundberg",
@@ -1121,7 +1121,7 @@
     },
     {
         "group": "grains",
-        "type": "Rice",
+        "name": "Rice",
         "subtype": "Jasmine",
         "description": "California White",
         "vendor": "Lundberg",
@@ -1153,7 +1153,7 @@
     },
     {
         "group": "grains",
-        "type": "Rice",
+        "name": "Rice",
         "subtype": "Jasmine",
         "description": "Organic California White",
         "vendor": "Lundberg",
@@ -1185,7 +1185,7 @@
     },
     {
         "group": "grains",
-        "type": "Rice",
+        "name": "Rice",
         "subtype": "Sushi",
         "description": "Organic Caliornia",
         "vendor": "Lundberg",
@@ -1217,7 +1217,7 @@
     },
     {
         "group": "grains",
-        "type": "Rice",
+        "name": "Rice",
         "subtype": "White",
         "description": "Organic Long Grain",
         "vendor": "Lundberg",
@@ -1249,7 +1249,7 @@
     },
     {
         "group": "grains",
-        "type": "Spring Roll Wrappers",
+        "name": "Spring Roll Wrappers",
         "subtype": "",
         "description": "",
         "vendor": "Blue Dragon",

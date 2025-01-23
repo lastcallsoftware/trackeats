@@ -1,7 +1,7 @@
-{ "ingredients": [
+{ "foods": [
     {
         "group": "condiments",
-        "type": "Bolognese Sauce, Fresh",
+        "name": "Bolognese Sauce, Fresh",
         "subtype": "Beef",
         "description": "",
         "vendor": "Just FreshDirect",
@@ -33,7 +33,7 @@
     },
     {
         "group": "condiments",
-        "type": "Bolognese Sauce",
+        "name": "Bolognese Sauce",
         "subtype": "Beef/Pork",
         "description": "",
         "vendor": "Rao's",
@@ -65,7 +65,7 @@
     },
     {
         "group": "condiments",
-        "type": "Bouillon, Cubes",
+        "name": "Bouillon, Cubes",
         "subtype": "Chicken",
         "description": "Extra Large",
         "vendor": "Knoss",
@@ -97,7 +97,7 @@
     },
     {
         "group": "condiments",
-        "type": "Bouillon, Granulated",
+        "name": "Bouillon, Granulated",
         "subtype": "Beef",
         "description": "Sodium Free",
         "vendor": "Herb Ox via Amazon",
@@ -129,7 +129,7 @@
     },
     {
         "group": "condiments",
-        "type": "Bouillon, Granulated",
+        "name": "Bouillon, Granulated",
         "subtype": "Chicken",
         "description": "Sodium Free",
         "vendor": "Herb Ox via Amazon",
@@ -161,7 +161,7 @@
     },
     {
         "group": "condiments",
-        "type": "Broth",
+        "name": "Broth",
         "subtype": "Chicken",
         "description": "Organic Free-Range Low-Sodium",
         "vendor": "Pacific",
@@ -193,7 +193,7 @@
     },
     {
         "group": "condiments",
-        "type": "Broth",
+        "name": "Broth",
         "subtype": "Vegetable",
         "description": "Organic Low-Sodium",
         "vendor": "Pacific",
@@ -225,7 +225,7 @@
     },    
     {
         "group": "condiments",
-        "type": "Chili Sauce",
+        "name": "Chili Sauce",
         "subtype": "Sweet Red",
         "description": "made mainly from pickled red chilis and garlic",
         "vendor": "Taste of Thai",
@@ -257,7 +257,7 @@
     },
     {
         "group": "condiments",
-        "type": "Chili Oil",
+        "name": "Chili Oil",
         "subtype": "Szechuan",
         "description": "made mainly from crushed chilis, szechuan peppercorns, and sesame oil",
         "vendor": "Blank Slate Kitchen",
@@ -289,7 +289,7 @@
     },
     {
         "group": "condiments",
-        "type": "Chili Oil",
+        "name": "Chili Oil",
         "subtype": "",
         "description": "Chili Crunch; made mainly from crushed chilis and grapeseed oil",
         "vendor": "Momofuku",
@@ -321,7 +321,7 @@
     },
     {
         "group": "condiments",
-        "type": "Coconut Aminos",
+        "name": "Coconut Aminos",
         "subtype": "",
         "description": "lower sodium substitute for soy sauce; made from coconut sap",
         "vendor": "Coconut Secret",
@@ -353,7 +353,7 @@
     },
     {
         "group": "condiments",
-        "type": "Fish Sauce",
+        "name": "Fish Sauce",
         "subtype": "",
         "description": "made from fermented anchovies; used in Thai and Vietnamese cooking",
         "vendor": "Red Boat",
@@ -385,7 +385,7 @@
     },
     {
         "group": "condiments",
-        "type": "Gochujang",
+        "name": "Gochujang",
         "subtype": "",
         "description": "Fermented Chile Paste Concentrate; simiilar to chili sauce but thicker and spicier",
         "vendor": "Mother In Law's",
@@ -417,7 +417,7 @@
     },
     {
         "group": "condiments",
-        "type": "Harissa",
+        "name": "Harissa",
         "subtype": "",
         "description": "Spicy Moroccan Red Pepper Sauce",
         "vendor": "Mina",
@@ -449,7 +449,7 @@
     },
     {
         "group": "condiments",
-        "type": "Hoisin Sauce",
+        "name": "Hoisin Sauce",
         "subtype": "",
         "description": "made from soy, rice, and sesame oil; used in Chinese cooking including stir fries and as a dipping sauce",
         "vendor": "Dynasty",
@@ -481,7 +481,7 @@
     },
     {
         "group": "condiments",
-        "type": "Hot Sauce",
+        "name": "Hot Sauce",
         "subtype": "",
         "description": "made from chili peppers; hotter than sriacha, which is a specific type of hot sauce",
         "vendor": "Cholula",
@@ -513,7 +513,7 @@
     },
     {
         "group": "condiments",
-        "type": "Ketchup, Squeezable",
+        "name": "Ketchup, Squeezable",
         "subtype": "",
         "description": "",
         "vendor": "Heinz",
@@ -545,7 +545,7 @@
     },
     {
         "group": "condiments",
-        "type": "Ketchup, Squeezable",
+        "name": "Ketchup, Squeezable",
         "subtype": "No Salt Added",
         "description": "",
         "vendor": "Heinz via Amazon",
@@ -577,7 +577,7 @@
     },
     {
         "group": "condiments",
-        "type": "Lemon Juice, Bottled",
+        "name": "Lemon Juice, Bottled",
         "subtype": "",
         "description": "",
         "vendor": "Sicilia",
@@ -609,7 +609,7 @@
     },
     {
         "group": "condiments",
-        "type": "Lemon Juice, Fresh Squeezed",
+        "name": "Lemon Juice, Fresh Squeezed",
         "subtype": "",
         "description": "from 1 fresh medium lemon",
         "vendor": "FreshDirect",
@@ -641,7 +641,7 @@
     },
     {
         "group": "condiments",
-        "type": "Lime Juice, Fresh Squeezed",
+        "name": "Lime Juice, Fresh Squeezed",
         "subtype": "",
         "description": "from 1 fresh medium lime",
         "vendor": "FreshDirect",
@@ -673,7 +673,7 @@
     },
     {
         "group": "condiments",
-        "type": "Marinara Sauce",
+        "name": "Marinara Sauce",
         "subtype": "",
         "description": "Rao's Homemade",
         "vendor": "Rao's",
@@ -705,7 +705,7 @@
     },
     {
         "group": "condiments",
-        "type": "Mayonnaise, Squeeze",
+        "name": "Mayonnaise, Squeeze",
         "subtype": "",
         "description": "",
         "vendor": "Helmann's",
@@ -737,7 +737,7 @@
     },
     {
         "group": "condiments",
-        "type": "Mayonnaise, Squeeze",
+        "name": "Mayonnaise, Squeeze",
         "subtype": "Light",
         "description": "",
         "vendor": "Helmann's",
@@ -769,7 +769,7 @@
     },
     {
         "group": "condiments",
-        "type": "Mustard, Brown Spicy",
+        "name": "Mustard, Brown Spicy",
         "subtype": "",
         "description": "",
         "vendor": "Gulden's",
@@ -801,7 +801,7 @@
     },
     {
         "group": "condiments",
-        "type": "Mustard, Dijon",
+        "name": "Mustard, Dijon",
         "subtype": "",
         "description": "",
         "vendor": "Grey Poupon",
@@ -833,7 +833,7 @@
     },
     {
         "group": "condiments",
-        "type": "Mustard, Yellow",
+        "name": "Mustard, Yellow",
         "subtype": "",
         "description": "Classic Yellow Mustard",
         "vendor": "French's",
@@ -865,7 +865,7 @@
     },
     {
         "group": "condiments",
-        "type": "Oyster Sauce",
+        "name": "Oyster Sauce",
         "subtype": "",
         "description": "Premium Oyster Flavored Sauce; made from oyster extractives",
         "vendor": "Lee Kum Kee",
@@ -897,7 +897,7 @@
     },
     {
         "group": "condiments",
-        "type": "Pizza Sauce",
+        "name": "Pizza Sauce",
         "subtype": "",
         "description": "Rao's Homemade",
         "vendor": "Rao's",
@@ -929,7 +929,7 @@
     },
     {
         "group": "condiments",
-        "type": "Sherry",
+        "name": "Sherry",
         "subtype": "",
         "description": "Cooking Wine",
         "vendor": "Holland House",
@@ -961,7 +961,7 @@
     },
     {
         "group": "condiments",
-        "type": "Soy Sauce",
+        "name": "Soy Sauce",
         "subtype": "",
         "description": "",
         "vendor": "Kikkoman",
@@ -993,7 +993,7 @@
     },
     {
         "group": "condiments",
-        "type": "Soy Sauce",
+        "name": "Soy Sauce",
         "subtype": "Less Sodium",
         "description": "",
         "vendor": "Kikkoman",
@@ -1025,7 +1025,7 @@
     },
     {
         "group": "condiments",
-        "type": "Sriracha Sauce",
+        "name": "Sriracha Sauce",
         "subtype": "",
         "description": "",
         "vendor": "Huy Fong via Amazon",
@@ -1057,7 +1057,7 @@
     },
     {
         "group": "condiments",
-        "type": "Sriracha Sauce",
+        "name": "Sriracha Sauce",
         "subtype": "",
         "description": "",
         "vendor": "Roland",
@@ -1089,7 +1089,7 @@
     },
     {
         "group": "condiments",
-        "type": "Teriyaki Sauce",
+        "name": "Teriyaki Sauce",
         "subtype": "",
         "description": "",
         "vendor": "Kikkoman",
@@ -1121,7 +1121,7 @@
     },
     {
         "group": "condiments",
-        "type": "Teriyaki Sauce",
+        "name": "Teriyaki Sauce",
         "subtype": "",
         "description": "Organic No-Soy; based on coconut aminos rather than soy sauce",
         "vendor": "Primal Kitchen",
@@ -1153,7 +1153,7 @@
     },
     {
         "group": "condiments",
-        "type": "Teriyaki Sauce",
+        "name": "Teriyaki Sauce",
         "subtype": "",
         "description": "Less Sodium Veri Veri Teriyaki",
         "vendor": "Soy Vay",
@@ -1185,7 +1185,7 @@
     },
     {
         "group": "condiments",
-        "type": "Tahini",
+        "name": "Tahini",
         "subtype": "",
         "description": "Premium Sesame Tahini; made entirely from sesame seeds",
         "vendor": "Soom",
@@ -1217,7 +1217,7 @@
     },
     {
         "group": "condiments",
-        "type": "Tamarind Mix",
+        "name": "Tamarind Mix",
         "subtype": "",
         "description": "VERY high sodium content",
         "vendor": "Knorr via Amazon",
@@ -1249,7 +1249,7 @@
     },
     {
         "group": "condiments",
-        "type": "Vanilla Extract",
+        "name": "Vanilla Extract",
         "subtype": "",
         "description": "All Natural Pure Extract",
         "vendor": "McCormick",
@@ -1281,7 +1281,7 @@
     },
     {
         "group": "condiments",
-        "type": "Vinegar",
+        "name": "Vinegar",
         "subtype": "Apple Cider",
         "description": "",
         "vendor": "Heinz",
@@ -1313,7 +1313,7 @@
     },
     {
         "group": "condiments",
-        "type": "Vinegar",
+        "name": "Vinegar",
         "subtype": "Balmamic",
         "description": "Balsalmic Vinegar of Modena, Density 1.12",
         "vendor": "Just FreshDirect",
@@ -1345,7 +1345,7 @@
     },
     {
         "group": "condiments",
-        "type": "Vinegar",
+        "name": "Vinegar",
         "subtype": "Rice, Seasoned",
         "description": "",
         "vendor": "Marukan",
@@ -1377,7 +1377,7 @@
     },
     {
         "group": "condiments",
-        "type": "Vinegar",
+        "name": "Vinegar",
         "subtype": "Rice, Unseasoned",
         "description": "",
         "vendor": "Marukan",
@@ -1409,7 +1409,7 @@
     },
     {
         "group": "condiments",
-        "type": "Vinegar",
+        "name": "Vinegar",
         "subtype": "White",
         "description": "",
         "vendor": "Heinz",
@@ -1441,7 +1441,7 @@
     },
     {
         "group": "condiments",
-        "type": "Vinegar",
+        "name": "Vinegar",
         "subtype": "White Wine",
         "description": "",
         "vendor": "Just FreshDirect",
@@ -1473,7 +1473,7 @@
     },
     {
         "group": "condiments",
-        "type": "Wasabi",
+        "name": "Wasabi",
         "subtype": "",
         "description": "made from horseradish",
         "vendor": "S & B",
@@ -1505,7 +1505,7 @@
     },
     {
         "group": "condiments",
-        "type": "Worstershire Sauce",
+        "name": "Worstershire Sauce",
         "subtype": "",
         "description": "made from vinegar, molasses, sugar, salt, anchovies, tamarind extract, onions, garlic, and other spices",
         "vendor": "Lea & Perrins",
