@@ -1,16 +1,18 @@
 #!/bin/bash
-# Make sure to call:
+# Before using this script, make sure to export an auth token using:
 #   export ACCESS_TOKEN="tokendata"
-# ...before using this test.  The token can be obtained using the test-login.sh script.
+# A token can be obtained and exported automatically using:
+#   source ./bin/test-login.sh
+
 curl \
 -X PUT \
 -H "Authorization: Bearer $ACCESS_TOKEN" \
 -H "Content-Type: application/json" \
 -d '{"id": 1,
 "group": "grains",
-"type": "Bagel",
+"name": "Bagel",
 "subtype": "Mixed Frozen",
-"description": "",
+"description": "made from the finest snusk",
 "vendor": "Utopia Bagels of NY",
 "size_description": "5 bagels (5 oz)",
 "size_g": 680,
@@ -38,6 +40,5 @@ curl \
 "price": 8.49,
 "price_date": "2024-11-09",
 "shelf_life": "7 days in fridge"}' \
-https://trackeats.lastcallsw.com:54443/ingredient
-
-#http://localhost:5000/ingredient
+http://localhost:5000/food
+#https://trackeats.lastcallsw.com:54443/food

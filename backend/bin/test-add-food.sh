@@ -1,12 +1,13 @@
 #!/bin/bash
-# Make sure to call:
+# Before using this script, make sure to export an auth token using:
 #   export ACCESS_TOKEN="tokendata"
-# ...before using this test.  The token can be obtained using the test-login.sh script.
+# A token can be obtained and exported automatically using:
+#   source ./bin/test-login.sh
 curl \
 -H "Authorization: Bearer $ACCESS_TOKEN" \
 -H "Content-Type: application/json" \
 -d '{"group": "dairy",
-"type": "Milk",
+"name": "Milk",
 "subtype": "Almond",
 "description": "Unsweetened Almond Breeze",
 "vendor": "Blue Diamond",
@@ -33,6 +34,5 @@ curl \
 "price": 3.19,
 "price_date": "2024-11-12",
 "shelf_life": "7-14 days in fridge"}' \
-https://trackeats.lastcallsw.com:54443/ingredient
-
-#http://localhost:5000/ingredient
+http://localhost:5000/food
+#https://trackeats.lastcallsw.com:54443/food
