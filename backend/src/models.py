@@ -25,6 +25,7 @@ import logging
 #
 # But I'm mot going to get into those details here.  Here I just want to talk 
 # about how SQLAlchemy 2.x's relationship() method works.
+#   https://docs.sqlalchemy.org/en/20/orm/relationship_api.html
 #
 # To create a relationship between tables, you first you have to set up foriegn
 # key(s) between them.  This is done by defining a "ForiegnKey" field in one or
@@ -37,28 +38,31 @@ import logging
 # STORE the child records, it's just a way to access them.  The relationship() 
 # exists only at the ORM level, not at the database level.
 #
-# This is why you can't add a child record to a parent record just by adding
-# it to the parent record's relationship() field (which is just a list of the 
-# related records).  You have to add the child record to the child table 
-# yourself.  SQLAlchemy will create any required association record for you --
-# except in the (very common) case where the association record has additional 
-# fields besides the foreign keys of the two associated tables, in which case 
-# you have to create the association record yourself as well.  This is what we 
-# do in the Recipe.add_food_ingredient() method below.
+# It follows that adding the child record to a parent record's relationship() 
+# field doesn't actually create a child record in the database -- it creates
+# the association record between them.  The child record must already exist.
+# An exception is the (very common) case where the association record has 
+# additional fields besides the foreign keys of the two associated tables.
+# For example, the a Recipe's Ingredients links a Recipe record with a
+# Food or Recipe, so it has foreign keys on those tables, but it also has
+# a "servings" field to indicate the quantity of the ingredient.  In this
+# case you must create the association record manually.
 #
 # Furthermore, the relationship() method also allows you to define *in the 
 # parent record* a field in the child record for accessing the parent record.
 # Yes, it's confusing as it sounds.  This is called a "back reference".
 # The legacy way of doing this was to use the "backref" attribute, which 
 # automatically created a field in the child record that pointed back to the
-# parent record.  It basically defines a new field in the child record that 
-# uses the "relationship()" method to point back to the parent record.  This 
-# was convenient, but as you can surely tell, EXTREMELY confusing.
-# The new, preferred way of doing this is to just explicitly create a 
-# relationship() field in the child record that points back to the parent, 
+# parent record.  It basically creates a new field in the child record that 
+# is defined using the "relationship()" method, which then points back to 
+# the parent record.  This is convenient, but as you can surely tell, 
+# EXTREMELY confusing.
+#
+# Therefor the new, preferred way of doing this is to just explicitly create
+# a relationship() field in the child record that points back to the parent, 
 # and to reference it in the parent using the "back_populates" attribute.
 # For more information, see:
-#   https://docs.sqlalchemy.org/en/20/orm/backref.html#relationships-backref
+#   https://docs.sqlalchemy.org/en/20/orm/backref.html
 # 
 # Note that you don't HAVE TO define a back reference at all.  It's just a
 # convenience for accessing the parent record from the child record.  I started
@@ -66,23 +70,19 @@ import logging
 # because all the examples I saw for how to define a relationship() used them,
 # but I've since decided that they're not necessary, and not worth the extra 
 # code and confusion.
-# For example, we don't really need a way to access the Recipe record from the
-# Food records that are its ingredients.  Maybe one day we'll have a feature
-# where you can say, "tell me all the Recipes that use this Food", but for now
-# that's not really necessary.
 #
-# Honestly after going through this torture, I'm not sure an ORM layer like
-# SQLAlchemy is even worth the effort.  It's a lot of extra work and complexity 
-# for not much benefit.  It often seems like it would be easier to just write the
-# SQL queries yourself.
-# Whatever!  The train has left the station on this one.
+# In fact I've mostly ditched using relationship() at all.  It's very limited
+# in what it can do, and FAR more complicated than just handling the 
+# relationships manually.
 ##############################
 
 # Instantiate the Flask-SQLAlchemny database connector.
 db = SQLAlchemy()
 
+
+##############################
 # USER
-# ----
+##############################
 # A user of this app.  This record contains their password hash and other
 # authentication data.  Any personal data (such as email address) is encrypted.
 # Each user owns their own app data.
@@ -128,12 +128,8 @@ class User(db.Model):
         return user.id
 
     # Add a new User to the database.
-    # Returns a list of error messages, or an empty list on success.
     # This function validates the data before adding it.
-    def add(username: str, password: str, email_addr: str, status=UserStatus.pending, confirmation_token: str=None) -> list[str]:
-    # Add a catch-all try-except block, because who knows what could fail in
-    # the ORM and JWT libraries we use here?  If there is a failure, we want
-    # to return our own error message instad of an exception stack!
+    def add(username: str, password: str, email_addr: str, status=UserStatus.pending, confirmation_token: str=None) -> None:
         errors = []
         try:
             if not username:
@@ -202,13 +198,13 @@ class User(db.Model):
                     db.session.add(new_user)
                     db.session.commit()
         except Exception as e:
-            errors.append(f"User {username} could not be added: " + repr(e))
-
-        return errors
+            errors.append(repr(e))
+        if (len(errors) > 0):
+            msg = "\n".join(errors)
+            raise ValueError(f"User {username} could not be added: " + msg)
 
     # Verify that the given user credentials are valid.
-    # Return a list of error messages, or an empty list on success.
-    def verify(username: str, password: str) -> list[str]:
+    def verify(username: str, password: str) -> None:
         errors = []
         try:
             if not username:
@@ -242,9 +238,10 @@ class User(db.Model):
                         if (not check_password(password_bytes, password_hash_bytes)):
                             errors.append(f"Invalid password for username {username}.")
         except Exception as e:
-            errors.append("User record could not be validated: " + repr(e))
-
-        return errors
+            errors.append(repr(e))
+        if (len(errors) > 0):
+            msg = "\n".join(errors)
+            raise ValueError(f"User record could not be validated: " + msg)
 
 
 ##############################
@@ -366,6 +363,25 @@ class Nutrition(db.Model):
         self.potassium_mg += nutrition2.potassium_mg * servings
         return self
 
+    # Subtract one Nutrition record from another.
+    def subtract(self, nutrition2: "Nutrition", servings: float) -> dict:
+        self.calories -= nutrition2.calories * servings
+        self.total_fat_g -= nutrition2.total_fat_g * servings
+        self.saturated_fat_g -= nutrition2.saturated_fat_g * servings
+        self.trans_fat_g -= nutrition2.trans_fat_g * servings
+        self.cholesterol_mg -= nutrition2.cholesterol_mg * servings
+        self.sodium_mg -= nutrition2.sodium_mg * servings
+        self.total_carbs_g -= nutrition2.total_carbs_g * servings
+        self.fiber_g -= nutrition2.fiber_g * servings
+        self.total_sugar_g -= nutrition2.total_sugar_g * servings
+        self.added_sugar_g -= nutrition2.added_sugar_g * servings
+        self.protein_g -= nutrition2.protein_g * servings
+        self.vitamin_d_mcg -= nutrition2.vitamin_d_mcg * servings
+        self.calcium_mg -= nutrition2.calcium_mg * servings
+        self.iron_mg -= nutrition2.iron_mg * servings
+        self.potassium_mg -= nutrition2.potassium_mg * servings
+        return self
+
 
 ##############################
 # FOOD
@@ -454,8 +470,7 @@ class Food(db.Model):
             "shelf_life": self.shelf_life
             }
 
-    # Add a new food to the database.
-    # Returns a list of error messages, or an empty list on success.
+    # Add a new Food record to the database.
     # food is expected to be a JSON-like dictionary object with the same 
     #   fields as the Food record itself (including its child Nutrition 
     #   object), with the exception of the user_id field, which gets assigned here.
@@ -463,8 +478,7 @@ class Food(db.Model):
     #   the database.  Set it to false when you want to add a bunch of records
     #   at once (calling this function multiple times), in which case the caller
     #   is required to commit the records afterwards (via db.session.commit()).
-    def add(user_id: int, food: dict[str, str|int|float], commit: bool) -> list[str]:
-        errors = []
+    def add(user_id: int, food: dict[str, str|int|float], commit: bool) -> None:
         try: 
             # Add the user_id field.
             food["user_id"] = user_id
@@ -482,22 +496,10 @@ class Food(db.Model):
             if commit:
                 db.session.commit()
         except Exception as e:
-            errors.append("Food record could not be added: " + repr(e))
+            raise ValueError("Food record could not be added: " + repr(e)) from e
 
-        return errors
-    
-    # Update an existing record.
-    # This method passes the values to be updated to the update() method via a 
-    # dictionary.  Therefore the caller must pass in a dictionary with the
-    # same keys as the Food record itself (including its child Nutrition object).
-    # I'm not crazy about this method, but it's quick and dirty.
-    # The alternative would be to manually, explicitly copy each field into a 
-    # new dictionary whose keys we definitively know.  Obviously, that's a lot 
-    # more work.
-    # The user_id field is not passed in the dictionary, but is passed as a
-    # separate argument.
-    def update(user_id: int, food: dict[str, str|int|float]) -> list[str]:
-        errors = []
+    # Update an existing Food record.
+    def update(user_id: int, food: dict[str, str|int|float]) -> None:
         try:
             # Add the user_id field.
             food["user_id"] = user_id
@@ -517,55 +519,79 @@ class Food(db.Model):
             # Update the Nutrition and Food records.
             num_updates = Nutrition.query.filter_by(id=nutrition_id).update(nutrition)
             if (num_updates != 1):
-                errors.append(f"Expected to update 1 Nutrition record but attempted to update {num_updates}.")
+                raise ValueError(f"Expected to update 1 Nutrition record but found {num_updates}.")
+
             num_updates = Food.query.filter_by(user_id=user_id, id=food_id).update(food)
             if (num_updates != 1):
-                errors.append(f"Expected to update 1 Food record but attempted to update {num_updates}.")
+                raise ValueError(f"Expected to update 1 Food record but found {num_updates}.")
 
-            if (len(errors) == 0):
-                db.session.commit()
+            db.session.commit()
         except Exception as e:
-            errors.append("Food record could not be updated: " + repr(e))
-
-        return errors
+            raise ValueError("Food record could not be updated: " + repr(e)) from e
 
 
 ##############################
-# RECIPE_FOODS
+# INGREDIENT
 ##############################
-# This is a many-to-many relationship table that links Recipes to their
+# This is a many-to-many association table that links Recipes to their
+# constituent Food and Recipe items.  It also stores the number of servings of 
+# each ingredient used in the Recipe.
+##############################
+class Ingredient(db.Model):
+    __tablename__ = "ingredient"
+
+    id = db.Column(db.Integer, primary_key=True)
+    recipe_id = db.Column(db.Integer, db.ForeignKey("recipe.id"))
+    food_ingredient_id = db.Column(db.Integer, db.ForeignKey("food.id"), nullable=True)
+    recipe_ingredient_id = db.Column(db.Integer, db.ForeignKey("recipe.id"), nullable=True)
+    servings = db.Column(db.Float, nullable=False, default=0)
+
+##############################
+# RECIPE_FOOD
+##############################
+# This is a many-to-many association table that links Recipes to their
 # constituent Food items.  It also stores the number of servings of each 
 # Food item in the Recipe.
 ##############################
-class RecipeFoods(db.Model):
-    __tablename__ = "recipe_foods"
+# class RecipeFood(db.Model):
+#     __tablename__ = "recipe_food"
 
-    recipe_id = db.Column(db.Integer, db.ForeignKey("recipe.id"), primary_key=True)
-    ingredient_id = db.Column(db.Integer, db.ForeignKey("food.id"), primary_key=True)
-    servings = db.Column(db.Float, default=0, nullable=False)
+#     recipe_id = db.Column(db.Integer, db.ForeignKey("recipe.id"), primary_key=True)
+#     ingredient_id = db.Column(db.Integer, db.ForeignKey("food.id"), primary_key=True)
+#     servings = db.Column(db.Float, default=0, nullable=False)
+
+    # SQLAlchemy generates a default parameterized constructor with arguments
+    # corresponding to the mapped columns, so this isn't strictly necessary
+    # unless there's some custom initialization we want to do.
+    #def __init__(self, recipe_id, ingredient_id, servings):
+    #    self.recipe_id = recipe_id
+    #    self.ingredient_id = ingredient_id
+    #    self.servings = servings
 
 
 ##############################
-# RECIPE_RECIPES
+# RECIPE_RECIPE
 ##############################
-# This is a many-to-many relationship table that links Recipes to itself.
+# This is a many-to-many association table that links Recipes to itself.
 # It also stores the number of servings of each Recips item in the Recipe.
 # This is used when a Recipe includes other Recipes as ingredients.
 # For example, a Recipe for a pizza might include a Recipe for pizza dough.
 ##############################
-class RecipeRecipes(db.Model):
-    __tablename__ = "recipe_recipes"
+# class RecipeRecipe(db.Model):
+#     __tablename__ = "recipe_recipe"
 
-    recipe_id = db.Column(db.Integer, db.ForeignKey("recipe.id"), primary_key=True)
-    ingredient_id = db.Column(db.Integer, db.ForeignKey("recipe.id"), primary_key=True)
-    servings = db.Column(db.Float, default=0, nullable=False)
+#     recipe_id = db.Column(db.Integer, db.ForeignKey("recipe.id"), primary_key=True)
+#     ingredient_id = db.Column(db.Integer, db.ForeignKey("recipe.id"), primary_key=True)
+#     servings = db.Column(db.Float, default=0, nullable=False)
 
 
 ##############################
 # RECIPE
 ##############################
-# This represents a collection of Food items that are combined to make a meal.
+# This represents a collection of Food and Recipe items that are combined to 
+# make a meal.
 # It includes a denormalized copy of the Nutrition data for the Recipe.
+# ("Denormalized" because it could be calculated from its ingredients.)
 # This is the app"s second-level building-block record.
 ##############################
 # This allows us to specify Recipe as a class and then use it as a type hint
@@ -580,68 +606,56 @@ class Recipe(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
     name = db.Column(db.String(50), nullable=False)
     total_yield = db.Column(db.String(50), nullable=False)
+    serving_description = db.Column(db.String(100), nullable = False)
     servings = db.Column(db.Float, nullable=False)
-    food_ingredients = db.relationship(
-        "Food",
-        secondary="recipe_foods")
-        #backref="recipes")
-        #back_populates="recipes")
-    # We need the primaryjoin and secondaryjoin parameters because we're using
-    # the same table for both the parent and child records -- a self-join.
-    recipe_ingredients = db.relationship(
-        "Recipe",
-        secondary="recipe_recipes",
-        primaryjoin=id == RecipeRecipes.recipe_id,
-        secondaryjoin=id == RecipeRecipes.ingredient_id)
-        #backref="recipes")
     nutrition_id = db.Column(db.Integer, db.ForeignKey("nutrition.id"))
     nutrition = db.relationship(
         Nutrition, 
         single_parent=True, 
         cascade="all, delete-orphan") 
-        #backref=db.backref("recipe", cascade="all, delete-orphan", uselist=False))
 
     def __str__(self):
         return str(vars(self))
-    def json(self):
+
+    # Return a JSON representation of this Recipe object
+    # This returns the ENTIRE Food/Recipe record for each ingredient in the Recipe.
+    # I'm not sure if that's what we want.  Maybe just the Food ID?  Or a few key 
+    # fields?  We'll start with this and whittle it down if it's too much data.
+    # Parameters:
+    #   full: a boolean that determines whether the JSON representation of the
+    #       Recipe also includes the Food/Recipe records for eachof its 
+    #       ingredients.  We don't want to include them when we're listing the 
+    #       Recipes included in a Recipe, because that could create an infinite 
+    #       loop of Recipe records.
+    def json(self, full: bool = True):
         return {
             "id": self.id,
             "name": self.name,
+            "total_yield": self.total_yield,
+            "serving_description": self.serving_description,
+            "servings": self.servings,
             "nutrition_id": self.nutrition_id,
             "nutrition": self.nutrition.json(),
             }
 
-    # Create new Recipe record and add it to the database.
-    # Returns the new Recipe on success or a list of error messages on failure.
-    # Parameters:
-    #   user_id is the ID of the user who owns the Recipe.
-    #   name is the name of the Recipe.
-    #   total_yield is the total number of servings the Recipe makes.
-    #   serving_description is a description of the serving size.
-    #   servings is the number of servings the Recipe makes.
-    #   food_ingredients is a list of tuples, each containing a Food record and
-    #     the number of servings of that Food item in the Recipe.
-    #   recipe_ingrediwnts is a list of tuples, each containing a Recipe record 
-    #     and the number of servings of that Recipe in the Recipe.
+    # Create a new Recipe record and add it to the database.
     def add(user_id: int, 
             name: str,
             total_yield: str, 
             serving_description: str, 
             servings: int, 
             food_ingredients_and_servings: list[tuple[dict,float]],
-            recipe_ingredients_and_servings: list[tuple[dict,float]], 
-            commit: bool) -> Recipe|list[str]:
-        errors = []
-        recipe = None
+            recipe_ingredients_and_servings: list[tuple[dict,float]]) -> None:
         try:
             recipe = Recipe()
             recipe.user_id = user_id
             recipe.name = name
             recipe.total_yield = total_yield
+            recipe.serving_description = serving_description
             recipe.servings = servings
             recipe.nutrition = Nutrition({"serving_size_description": serving_description})
 
-            # Add the Recipe record to the database. 
+            # Add the Recipe record to the database WITH NO INGREDIENTS YET.
             db.session.add(recipe)
             db.session.commit()
 
@@ -649,88 +663,214 @@ class Recipe(db.Model):
             # their Nutrition data as we go.
             if food_ingredients_and_servings is not None:
                 for food_ingredient_and_serving in food_ingredients_and_servings:
-                    recipe.add_food_ingredient(food_ingredient_and_serving[0], food_ingredient_and_serving[1])
+                    recipe.add_food_ingredient(food_ingredient_and_serving[0].id, food_ingredient_and_serving[1])
             if recipe_ingredients_and_servings is not None:
                 for recipe_ingredient_and_serving in recipe_ingredients_and_servings:
-                    recipe.add_recipe_ingredient(recipe_ingredient_and_serving[0], recipe_ingredient_and_serving[1])
-
+                    recipe.add_recipe_ingredient(recipe_ingredient_and_serving[0].id, recipe_ingredient_and_serving[1])
         except Exception as e:
-            errors.append("Recipe record could not be added: " + repr(e))
-
-        if len(errors) == 0:
-            return recipe
-        else:
-            return errors
-
-    # Add a Food item to the Recipe as an ingredient.
-    def add_food_ingredient(self, food, servings: float):
-        print("Adding Food ingredient: ", food.name)
-        self.nutrition.sum(food.nutrition, servings)
-
-        # Add the Food ingredient record to the Recipe.
-        # This doesn't actually add the contents of the Food record as a child
-        # record, instead it automatically creates the RecipeFoods association 
-        # record.
-        self.food_ingredients.append(food)
-        
-        # Now query the newly-created RecipeFoods record so we can set the 
-        # servings.
-        recipe_food = RecipeFoods.query.filter_by(recipe_id=self.id, ingredient_id=food.id).first()
-
-        # Now set the servings field and commit the record.
-        recipe_food.servings = servings
-        db.session.commit()
-        
-        print("Food ingredient added")
-
-    # Add a Recipe item to the Recipe as an ingredient.
-    def add_recipe_ingredient(self, recipe: Recipe, servings: float) -> list[str]:
-        print("Adding Recipe ingredient: ", recipe.name)
-        self.nutrition.sum(recipe.nutrition, servings)
-
-        # Add the Recipe ingredient record to the Recipe.
-        # This doesn't actually add the contents of the Recipe record as a child
-        # record, instead it automatically creates the RecipeRecipes association
-        # record.
-        self.food_ingredients.append(recipe)
-        
-        # Now query the newly-created RecipeRecipes record so we can set the 
-        # servings.
-        recipe_recipe = RecipeRecipes.query.filter_by(recipe_id=self.id, ingredient_id=recipe.id).first()
-
-        # Now set the servings field and commit the record.
-        recipe_recipe.servings = servings
-        db.session.commit()
-        
-        print("Recipe ingredient added")
+            raise ValueError("Recipe record could not be added: " + repr(e)) from e
 
     # Update an existing Recipe record.
-    # Similar to the add method, this copies all the values from the JSON 
-    # dictionary passed in the request into an Recipe ORM record, and
-    # likewise for the child Nutrition record.  I'm unsure if this is a
-    # recommended method.  Probably not.  Probably the safer thing would 
-    # be to manually, explicitly copy each field.  But I ain't got time for 
-    # that!
-    def update(user_id: int, recipe: dict[str, str|int|float]) -> list[str]:
-        errors = []
-        try: 
-            # 
-            nutrition = recipe["nutrition"]
-            del recipe["nutrition"]
-            recipe_id = recipe["id"]
-            nutrition_id = recipe["nutrition_id"]
+    # For now, I'm going with the rule that Nutrition data for a Recipe is 
+    # updated ONLY by adding/updating/removing its ingredients.
+    # In turn, a Recipe's ingredients are ONLY added/updated/removed via 
+    # their own separate API calls.
+    # Therefore this API call only affects the Recipe record's own data
+    # fields, not those of its child records.
+    def update(user_id: int,
+               recipe_id: int,
+               name: str,
+               total_yield: str, 
+               serving_description: str, 
+               servings: int) -> None:
+        # Update the record
+        num_updates = Recipe.query.filter_by(user_id=user_id, id=recipe_id).update({
+            "name": name,
+            "total_yield": total_yield,
+            "serving_description": serving_description,
+            "servings": servings
+        })
+        if num_updates != 1:
+            raise ValueError(f"Tried to update 1 Recipe record but {num_updates} were found")
 
-            num_updates = Nutrition.query.filter_by(id=nutrition_id).update(nutrition)
-            if (num_updates != 1):
-                errors.append(f"Expected to update 1 Nutrition record but attempted to update {num_updates}.")
-            num_updates = Food.query.filter_by(user_id=user_id, id=recipe_id).update(recipe)
-            if (num_updates != 1):
-                errors.append(f"Expected to update 1 Recipe record but attempted to update {num_updates}.")
+        db.session.commit()
 
-            if (len(errors) == 0):
-                db.session.commit()
-        except Exception as e:
-            errors.append("Recipe record could not be updated: " + repr(e))
+    # Add a Food Ingredient record for this Recipe
+    def add_food_ingredient(self, food_id, servings: float) -> None:
+        logging.info(f"Adding Food Ingredient {self.id}/{food_id}")
 
-        return errors
+        # Check whether the Ingredient record already exists
+        ingredient = Ingredient.query.filter_by(recipe_id=self.id, food_ingredient_id=food_id, servings=servings).first()
+        if ingredient is not None:
+            raise ValueError(f"Food Ingredient record {self.id}/{food_id} already exists")
 
+        # Create a new Ingredient record and add it to the database.
+        ingredient:Ingredient = Ingredient(recipe_id=self.id, food_ingredient_id=food_id, servings=servings)
+        db.session.add(ingredient)
+
+        # Get the Food record so we can sum its Nutrition data into the Recipe.
+        food = Food.query.filter_by(id=food_id).first()
+        if food is None:
+            raise ValueError(f"Food {food_id} not found")
+
+        # Sum the Nutrition data from the new Ingredient into the Recipe.
+        self.nutrition.sum(food.nutrition, servings)
+
+        db.session.commit()
+
+        logging.info(f"Food Ingredient {self.id}/{food_id} added")
+
+    # Add a Recipe Ingredient record for this Recipe.
+    def add_recipe_ingredient(self, recipe_id: int, servings: float) -> None:
+        logging.info(f"Adding Recipe Ingredient {self.id}/{recipe_id}")
+
+        # Check whether the Ingredient record already exists
+        ingredient = Ingredient.query.filter_by(recipe_id=self.id, recipe_ingredient_id=recipe_id, servings=servings).first()
+        if ingredient is not None:
+            raise ValueError(f"Recipe Ingredient record {self.id}/{recipe_id} already exists")
+
+        # Create a new Ingredient record and add it to the database.
+        ingredient:Ingredient = Ingredient(recipe_id=self.id, recipe_ingredient_id=recipe_id, servings=servings)
+        db.session.add(ingredient)
+
+        # Get the Recipe record so we can sum its Nutrition data into the Recipe.
+        recipe = Recipe.query.filter_by(id=recipe_id).first()
+        if recipe is None:
+            raise ValueError(f"Recipe {recipe_id} not found")
+
+        # Sum the Nutrition data from the new Ingredient into the Recipe.
+        self.nutrition.sum(recipe.nutrition, servings)
+
+        db.session.commit()
+
+        logging.info(f"Recipe Ingredient {self.id}/{recipe_id} added")
+
+    # Update a Food Ingredient.
+    def update_food_ingredient(self, food_id: int, servings: int) -> None:
+        logging.info(f"Updating Food Ingredient {self.id}/{food_id}")
+
+        # Find the Ingredient record that links the Recipe to the Food.
+        ingredient:Ingredient = Ingredient.query.filter_by(recipe_id=self.id, food_ingredient_id=food_id).first()
+        if ingredient is None:
+            raise ValueError(f"Food Ingredient {self.id}/{food_id} not found")
+        
+        # Update the record
+        old_servings = ingredient.servings
+        ingredient.servings = servings
+
+        # Get the Food corresponding record
+        food = Food.query.filter_by(id=food_id).first()
+        if food is None:
+            # We'll treat this as non-fatal for now
+            logging.warning(f"Food {food_id} not found")
+        else:
+            # Subtract the Ingredient's old Nutrition data from the Recipe.
+            self.nutrition.subtract(food.nutrition, old_servings)
+            # Add the Ingredient's new Nutrition data to the Recipe.
+            self.nutrition.sum(food.nutrition, ingredient.servings)
+
+        # Commit the changes.
+        db.session.commit()
+
+        logging.info(f"Food Ingredient {self.id}/{food_id} updated")
+
+    # Update a Recipe Ingredient.
+    def update_recipe_ingredient(self, recipe_id: int, servings: int) -> None:
+        logging.info(f"Updating Recipe Ingredient {self.id}/{recipe_id}")
+
+        # Find the Ingredient record that links the Recipe to the Recipe.
+        ingredient:Ingredient = Ingredient.query.filter_by(recipe_id=self.id, recipe_ingredient_id=recipe_id).first()
+        if ingredient is None:
+            raise ValueError(f"Recipe Ingredient {self.id}/{recipe_id} not found")
+        
+        # Update the record
+        old_servings = ingredient.servings
+        ingredient.servings = servings
+
+        # Get the corresponding Recipe record
+        recipe = Recipe.query.filter_by(id=recipe_id).first()
+        if recipe is None:
+            # We'll treat this as non-fatal for now
+            logging.warning(f"Recipe {recipe_id} not found")
+        else:
+            # Subtract the Ingredient's old Nutrition data from the Recipe.
+            self.nutrition.subtract(recipe.nutrition, old_servings)
+            # Add the Ingredient's new Nutrition data to the Recipe.
+            self.nutrition.sum(recipe.nutrition, ingredient.servings)
+
+        # Commit the changes.
+        db.session.commit()
+
+        logging.info(f"Recipe Ingredient {self.id}/{recipe_id} updated")
+        
+    # Remove a Food Ingredient from the Recipe.
+    def remove_food_ingredient(self, food_id: int) -> None:
+        logging.info(f"Removing Food Ingredient {self.id}/{food_id}")
+
+        # Find the Ingredient record that links the Recipe to the Food.
+        #recipe_food = RecipeFood.query.filter_by(recipe_id=self.id, ingredient_id=food_id).first()
+        ingredient = Ingredient.query.filter_by(recipe_id=self.id, food_ingredient_id=food_id).first()
+        if ingredient is None:
+            raise ValueError(f"Food Ingredient {self.id}/{food_id} not found")
+
+        # Delete the Ingredient record.
+        db.session.delete(ingredient)
+
+        # Get the Food corresponding record
+        food = Food.query.filter_by(id=food_id).first()
+        if food is None:
+            # We'll treat this as non-fatal for now
+            logging.warning(f"Recipe {food_id} not found")
+        else:
+            # Subtract the Food's Nutrition data from the Recipe.
+            self.nutrition.subtract(food.nutrition, ingredient.servings)
+
+        # Commit the changes.
+        db.session.commit()
+
+        logging.info(f"Food Ingredient {self.id}/{food_id} removed")
+
+    # Remove a Recipe Ingredient from the Recipe.
+    def remove_recipe_ingredient(self, recipe_id: int) -> None:
+        logging.info(f"Removing Recipe Ingredient {self.id}/{recipe_id}")
+
+        # Find the Ingredient record that links the Recipe to the Food.
+        ingredient = Ingredient.query.filter_by(recipe_id=self.id, recipe_ingredient_id=recipe_id).first()
+        if ingredient is None:
+            raise ValueError(f"Recipe Ingredient {self.id}/{recipe_id} not found")
+
+        # Delete the Ingredient record.
+        db.session.delete(ingredient)
+
+        # Get the Food corresponding record
+        recipe = Recipe.query.filter_by(id=recipe_id).first()
+        if recipe is None:
+            # We'll treat this as non-fatal for now
+            logging.warning(f"Recipe {recipe_id} not found")
+        else:
+            # Subtract the Food's Nutrition data from the Recipe.
+            self.nutrition.subtract(recipe.nutrition, ingredient.servings)
+
+        # Commit the changes.
+        db.session.commit()
+
+        logging.info(f"Recipe Ingredient {self.id}/{recipe_id} removed")
+
+    # Reset the Nutrition data for the Recipe.
+    # It's simpler to just delete the old record and create a new one.
+    def reset_nutrition(self) -> None:
+        db.session.delete(self.nutrition)
+        self.nutrition = Nutrition()
+
+    # Recalculate the Nutrition data for the Recipe.
+    # This is a failsafe.  Typically the Nutrition data is adjusted whenever
+    # an ingredient is added or removed from the Recipe, but maybe we want
+    # a way to recalculate it from scratch.
+    # def recalculate_nutrition(self):
+    #     self.reset_nutrition()
+    #     if self.food_ingredients is not None:
+    #         for food_ingredient in self.food_ingredients:
+    #             self.nutrition.sum(food_ingredient.nutrition, food_ingredient.servings)
+    #     if self.recipe_ingredients is not None:
+    #         for recipe_ingredient in self.recipe_ingredients:
+    #             self.nutrition.sum(recipe_ingredient.nutrition, recipe_ingredient.servings)

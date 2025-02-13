@@ -48,7 +48,7 @@ VERIFY_EMAIL_TEMPLATE_HTML = (
 
 
 # Send an email to a user to verify their email address.
-def send_confirmation_email(username: str, token:str, email_address: str):
+def send_confirmation_email(username: str, token:str, email_address: str) -> None:
     # Create the link they'll use to confirm.
     base_url = os.environ.get("BACKEND_BASE_URL")
     link = f"{base_url}/confirm?username={username}&token={token}"
@@ -58,14 +58,12 @@ def send_confirmation_email(username: str, token:str, email_address: str):
     #logging.info("email_body_text: " + email_body_text)
     #logging.info("email_body_html: " + email_body_html)
     
-    err_msg = sendmail_smtp(email_address, VERIFY_EMAIL_SUBJECT, email_body_text, email_body_html)
-
-    return err_msg
+    sendmail_smtp(email_address, VERIFY_EMAIL_SUBJECT, email_body_text, email_body_html)
 
 
 # Send an email using the standard Python SMTP library.
 # We use an Amazon SMTP server and credentials obtained from the AWS website.
-def sendmail_smtp(email_address: str, email_subject: str, email_body_text, email_body_html):
+def sendmail_smtp(email_address: str, email_subject: str, email_body_text, email_body_html) -> None:
     smtp_hostname = os.environ.get(SMTP_HOSTNAME_KEY)
     smtp_username = os.environ.get(SMTP_USERNAME_KEY)
     smtp_password = os.environ.get(SMTP_PASSWORD_KEY)
@@ -89,7 +87,6 @@ def sendmail_smtp(email_address: str, email_subject: str, email_body_text, email
     email_msg.attach(part2)
 
     # Try to send the message.
-    msg = None
     try:
         # There are apparently two ways to call an SMTP server using the SSL/TLS
         # protocol (which you absolutely do want/need to do).  One is to use the
@@ -104,15 +101,13 @@ def sendmail_smtp(email_address: str, email_subject: str, email_body_text, email
             response = smtp.sendmail(EMAIL_SENDER_ADDRESS, email_address, email_msg.as_string())
             if (len(response) > 0):
                 err_code, err_msg = next(iter(response.values()))
-                msg = f"Unable to send email to one or more particular recipients: {err_code} {err_msg}"
+                raise SMTPException(f"Unable to send email to one or more particular recipients: {err_code} {err_msg}")
 
     except SMTPException as e:
-        msg = f"An error occurred on the SMTP server: {repr(e)}"
+        raise RuntimeError(f"An error occurred on the SMTP server: {repr(e)}")
 
     except Exception as e:
-        msg = f"Unexpected server error: {repr(e)}"
-
-    return msg
+        raise RuntimeError(f"Unexpected server error: {repr(e)}")
 
 
 # -------------------------------------------
