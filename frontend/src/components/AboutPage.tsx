@@ -11,7 +11,7 @@ function AboutPage() {
                 <p>But the app's functionality is secondary.  Its REAL purpose is to 
                     excerise and demonstrate a working knowledge of all the products and technologies
                     necessary to design, construct, and deploy a full-stack web app.</p>
-                <br/>
+                <br/>s
                 <p>At the time of this writing, that tech stack includes:</p>
                 <ul>
                     <li>Amazon EC2 - for provisioning the server that hosts everything</li>
@@ -21,7 +21,7 @@ function AboutPage() {
                     <li>TanStack Table - for the front end tables</li>
                     <li>Axios - for communications between the front end and back end</li>
                     <li>Flask + Python - for building the back end</li>
-                    <li>Flask-SQL Alchemy - for communications between the back end and the database (i.e., the ORM layer)</li>
+                    <li>SQL Alchemy - for communications between the back end and the database (i.e., the ORM layer)</li>
                     <li>MySQL - the database</li>
                     <li>Nginx - the web server/reverse proxy that serves up the front end</li>
                     <li>Waitress - the app server that serves up the back end</li>
@@ -48,9 +48,8 @@ function AboutPage() {
                     <li>Jenkins or GitHub Actions - for CI/CD</li>
                 </ul>
                 <br/>
-                <p>As a longtime back end Java developer, I was familiar with only a few of these technologies 
-                    when I started working on the app in earnest about 10 weeks ago.  The rest I picked up along
-                    the way, mostly from scratch.  Frankly I was a little intimidated at first by the bewildering
+                <p>As a longtime back end Java developer, I was unfamiliar with many of these technologies when
+                    I started working on the app.  Frankly I was a little intimidated at first by the bewildering
                     number and variety of technologies and products that are required to get even a simple web app
                     working when you take ownership of the whole thing from end to end, and there's still a lot 
                     left to do before I'll be satisfied with the end result.  Yet I'm pleased with how much 
@@ -59,8 +58,8 @@ function AboutPage() {
                 <br/>
                 <p>You might notice that nowhere in that tech stack do you see my primary specialty: Java!
                     That was a deliberate choice, as I wanted to broaden my skill set.  (And boy did I ever!)
-                    But don't worry, one of the items on my to-do list is to implement a pluggable alternate 
-                    back end using Java/Spring Boot/Hibernate.
+                    But Java will get some love eventually: one of the items on my to-do list is to implement 
+                    a pluggable alternate back end using Java/Spring Boot/Hibernate.
                 </p>
                 <br/>
                 <p>Paul Holmes</p>
