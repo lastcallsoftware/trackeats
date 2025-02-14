@@ -1,6 +1,7 @@
 import { useContext, useState } from "react"
 import { useLocation, useNavigate } from "react-router-dom";
 import { IFood, DataContext } from "./DataProvider";
+import { foodGroups } from "./FoodGroups";
 
 function FoodForm() {
     const location = useLocation();
@@ -21,21 +22,6 @@ function FoodForm() {
     const defaultFormData = location.state?.food || emptyFormData;
     const [formData, setFormData] = useState<IFood>(defaultFormData);
 
-    const foodGroups = [
-        { value: "", label: "-- select one --" },
-        { value: "beverages", label: "Beverages" },
-        { value: "condiments", label: "Condiments" },
-        { value: "dairy", label: "Dairy" },
-        { value: "fatsAndSugars ", label: "Fats and Sugars" },
-        { value: "fruits", label: "Fruits" },
-        { value: "grains", label: "Grains" },
-        { value: "herbsAndSpices", label: "Herbs and Spices" },
-        { value: "nutsAndSeeds", label: "Nuts and Seeds" },
-        { value: "preparedFoods", label: "Prepared and Packaged Foods" },
-        { value: "proteins", label: "Proteins" },
-        { value: "vegetables", label: "Vegetables" },
-        { value: "other", label: "Other" }
-    ];
     const saveIsDisabled = false;
     const context = useContext(DataContext)
     if (!context)
