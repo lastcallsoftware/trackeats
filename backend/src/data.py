@@ -84,8 +84,8 @@ def load_db():
         user_id,
         "Salty Chicken",
         "2 breasts",
-        "1 breast",
         2,
+        "1 breast",
         [(ingredient1, 2), (ingredient2, 1)], 
         None)
 
