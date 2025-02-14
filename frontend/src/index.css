@@ -135,13 +135,27 @@ button:active {
   border-collapse: separate;
   border-spacing: 0;
 }
+
+.recipeTableContainer {
+  margin: 0 2rem;
+  overflow: scroll scroll;
+  max-height: 570px;
+  border: 1px solid;
+}
+.recipeTable {
+  table-layout: fixed;
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
 /* The thead's style attribute, with the specified position, top, and zindex parameters
     you see here, combine to make the header row "sticky", so it's always visible.  I searched 
-    far and wide for how to do this for AGES without success, and then some guy a video just
+    far and wide for how to do this for AGES without success, and then some guy in a video just
     casually mentioned it like it's common knowledge.  It isn't common knowledge, people!!! lol */
-/* The stickiness doesn't include the headers borders if we use border-collapse, though, so we 
-    have to get a little tricky to make the borders look right.  I still haven't quite gotten
-    this right, but there are other fish to fry at the moment. */
+/* The stickiness doesn't include the header's borders if we use border-collapse, though, so we 
+    have to get a little tricky to make the borders look right.  Instead of border-collapse,
+    I specify only right and bottom borders in some places.*/
 thead {
   position: sticky;
   top: 0;
