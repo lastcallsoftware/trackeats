@@ -3,6 +3,7 @@ import React, { useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { IFood, DataContext } from "./DataProvider";
 import { Filter } from "./Widgets"
+import { getFoodGroupLabel } from './FoodGroups';
 
 
 // Define the table's columns
@@ -15,8 +16,15 @@ const columns = [
     }),
     columnHelper.accessor("group", {
         header: "Group",
-        cell: info => String(info.getValue()).charAt(0).toUpperCase() + String(info.getValue()).slice(1),
-        size: 75,
+        //cell: info => String(info.getValue()).charAt(0).toUpperCase() + String(info.getValue()).slice(1),
+        cell: info => getFoodGroupLabel(info.getValue()),
+        size: 85,
+        meta: { filterVariant: "text" }
+    }),
+    columnHelper.accessor("vendor", {
+        header: "Vendor",
+        cell: info => info.getValue(),
+        size: 100,
         meta: { filterVariant: "text" }
     }),
     columnHelper.accessor("name", {
@@ -35,12 +43,6 @@ const columns = [
         header: "Description",
         cell: info => info.getValue(),
         size: 150,
-        meta: { filterVariant: "text" }
-    }),
-    columnHelper.accessor("vendor", {
-        header: "Vendor",
-        cell: info => info.getValue(),
-        size: 100,
         meta: { filterVariant: "text" }
     }),
     columnHelper.accessor("size_description", {
