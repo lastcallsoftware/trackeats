@@ -503,8 +503,8 @@ def add_recipe():
             user_id, 
             recipe["name"], 
             recipe["total_yield"],
-            recipe["serving_description"],
             recipe["servings"],
+            recipe["serving_description"],
             None,
             None)
     except Exception as e:
@@ -586,7 +586,10 @@ def get_food_ingredients(recipe_id:int):
         user_id = User.get_id(username)
 
         # Get all the Food Ingredient records with that recipe_id
-        ingredients = Ingredient.query.filter_by(recipe_id=recipe_id).filter_by(Ingredient.food_ingredient_id.isnot(None)).all()
+        ingredients:list[Ingredient] = Ingredient.query.filter_by(recipe_id=recipe_id).filter(Ingredient.food_ingredient_id.isnot(None)).all()
+        data = []
+        for ingredient in ingredients:
+            data.append(ingredient.json())
     except Exception as e:
         msg = f"Food Ingredient records could not be retrieved: {repr(e)}"
         logging.error(msg)
@@ -594,7 +597,7 @@ def get_food_ingredients(recipe_id:int):
     else:
         msg = "Food Ingredient records retrieved"
         logging.info(msg)
-        return jsonify(ingredients), 200
+        return jsonify(data), 200
 
 # Get all Recipe Ingredients for a Recipe
 @bp.route("/recipe/<int:recipe_id>/recipe_ingredient", methods = ["GET"])
@@ -607,7 +610,10 @@ def get_recipe_ingredients(recipe_id:int):
         user_id = User.get_id(username)
 
         # Get all the Recipe Ingredient records for the recipe_id
-        ingredients = Ingredient.query.filter_by(recipe_id=recipe_id).filter_by(Ingredient.recipe_ingredient_id.isnot(None)).all()
+        ingredients:list[Ingredient] = Ingredient.query.filter_by(recipe_id=recipe_id).filter(Ingredient.recipe_ingredient_id.isnot(None)).all()
+        data = []
+        for ingredient in ingredients:
+            data.append(ingredient.json())
     except Exception as e:
         msg = f"Recipe Ingredient records could not be retrieved: {repr(e)}"
         logging.error(msg)
@@ -615,7 +621,7 @@ def get_recipe_ingredients(recipe_id:int):
     else:
         msg = "Recipe Ingredient records retrieved"
         logging.info(msg)
-        return jsonify(ingredients), 200
+        return jsonify(data), 200
     
 # Get a particular Food Ingredient for a Recipe
 @bp.route("/recipe/<int:recipe_id>/food_ingredient/<int:food_ingredient_id>", methods = ["GET"])
@@ -628,7 +634,7 @@ def get_food_ingredient(recipe_id: int, food_ingredient_id: int):
         user_id = User.get_id(username)
 
         # Get the Food Ingredient record
-        ingredient = Ingredient.query.filter_by(recipe_id=recipe_id, food_ingredient_id=food_ingredient_id).first()
+        ingredient:Ingredient = Ingredient.query.filter_by(recipe_id=recipe_id, food_ingredient_id=food_ingredient_id).first()
         if ingredient is None:
             raise ValueError(f"Food Ingredient {recipe_id}/{food_ingredient_id} not found")
     except Exception as e:
@@ -638,7 +644,7 @@ def get_food_ingredient(recipe_id: int, food_ingredient_id: int):
     else:
         msg = f"Food Ingredient record {recipe_id}/{food_ingredient_id} retrieved"
         logging.info(msg)
-        return jsonify(ingredient), 200
+        return jsonify(ingredient.json()), 200
 
 # Get a particular Recipe Ingredient for a Recipe
 @bp.route("/recipe/<int:recipe_id>/recipe_ingredient/<int:recipe_ingredient_id>", methods = ["GET"])
@@ -651,7 +657,7 @@ def get_recipe_ingredient(recipe_id: int, recipe_ingredient_id: int):
         user_id = User.get_id(username)
 
         # Get the Recipe Ingredient record
-        ingredient = Ingredient.query.filter_by(recipe_id=recipe_id, recipe_ingredient_id=recipe_ingredient_id).first()
+        ingredient:Ingredient = Ingredient.query.filter_by(recipe_id=recipe_id, recipe_ingredient_id=recipe_ingredient_id).first()
         if ingredient is None:
             raise ValueError(f"Recipe Ingredient {recipe_id}/{recipe_ingredient_id} not found")
     except Exception as e:
@@ -661,7 +667,7 @@ def get_recipe_ingredient(recipe_id: int, recipe_ingredient_id: int):
     else:
         msg = f"Recipe Ingredient record {recipe_id}/{recipe_ingredient_id} retrieved"
         logging.info(msg)
-        return jsonify(ingredient), 200
+        return jsonify(ingredient.json()), 200
     
 # Add a Food Ingredient to a Recipe
 @bp.route("/recipe/<int:recipe_id>/food_ingredient/<int:food_id>/<float:servings>", methods = ["POST"])
