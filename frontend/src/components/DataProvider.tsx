@@ -34,10 +34,10 @@ export type INutrition = {
 export type IFood = {
     id?: number
     group: string
+    vendor: string
     name: string
     subtype: string
     description: string
-    vendor: string
     size_description: string
     size_g: number
     servings: number
@@ -56,6 +56,7 @@ export type IIngredient = {
 
 export type IRecipe = {
     id?: number
+    cuisine: string
     name: string
     total_yield: number
     servings: number
