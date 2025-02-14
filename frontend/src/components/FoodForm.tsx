@@ -17,8 +17,18 @@ function FoodForm() {
         },
         price: 0, price_date: "", shelf_life: ""
     }
+    // location.state is non-null only if it has been set manually, and that's 
+    // the case only when the user clicked the Edit button on the FoodPage.
+    // Otherwise they clicked the New button.
     const isEdit = (location.state != null);
 
+    // Again, the location.state is set when the user clicked the Edit button.
+    // The syntax below is quite clever: if location.state IS NOT null, the
+    // OR condition short-circuits and the part after the || is never evaluated.
+    // If location.state IS null, the ? makes the first half of the condition
+    // evaluate to null, so the second half of the condition is evaluated.
+    // The net effect is that if we come in on an Edit, the defaultFormData
+    // is the data we're editing; otherwise it's the emptyFormData.
     const defaultFormData = location.state?.food || emptyFormData;
     const [formData, setFormData] = useState<IFood>(defaultFormData);
 
