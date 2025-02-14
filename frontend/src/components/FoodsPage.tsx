@@ -47,9 +47,9 @@ const FoodsPage = () => {
             </section>
 
             <section className="buttonBar">
-                <button className="editButton" onClick={addRecord}>
+                <button className="addButton" onClick={addRecord}>
                     <IconContext.Provider value={{ size: "30px", color: "green"}}>
-                        <p className="editButtonText">Add</p><MdAddCircleOutline/>
+                        <p className="addButtonText">Add</p><MdAddCircleOutline/>
                     </IconContext.Provider>
                 </button>
                 <button className="editButton" onClick={editRecord}>
@@ -57,9 +57,9 @@ const FoodsPage = () => {
                         <p className="editButtonText">Edit</p><MdEdit/>
                     </IconContext.Provider>
                 </button>
-                <button className="editButton" onClick={deleteRecord}>
+                <button className="deleteButton" onClick={deleteRecord}>
                     <IconContext.Provider value={{ size: "30px", color: "red"}}>
-                        <p className="editButtonText">Delete</p><MdRemoveCircleOutline/>
+                        <p className="deleteButtonText">Delete</p><MdRemoveCircleOutline/>
                     </IconContext.Provider>
                 </button>
             </section>
