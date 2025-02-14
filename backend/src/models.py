@@ -7,6 +7,7 @@ import enum
 import datetime
 import re
 import logging
+import json
 
 # We're using a library (flask-sqlalchemy) that handles database interactions
 # for us.  This file contains the classes that represent the various records in 
@@ -570,6 +571,15 @@ class Ingredient(db.Model):
     recipe_ingredient_id = db.Column(db.Integer, db.ForeignKey("recipe.id"), nullable=True)
     servings = db.Column(db.Float, nullable=False, default=0)
 
+    def json(self):
+        return {
+            "id": self.id,
+            "recipe_id": self.recipe_id,
+            "food_ingredient_id": self.food_ingredient_id,
+            "recipe_ingredient_id": self.recipe_ingredient_id,
+            "servings": self.servings
+        }
+
 
 ##############################
 # RECIPE
@@ -592,7 +602,6 @@ class Recipe(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
     name = db.Column(db.String(50), nullable=False)
     total_yield = db.Column(db.String(50), nullable=False)
-    serving_description = db.Column(db.String(100), nullable = False)
     servings = db.Column(db.Float, nullable=False)
     nutrition_id = db.Column(db.Integer, db.ForeignKey("nutrition.id"))
     nutrition = db.relationship(
