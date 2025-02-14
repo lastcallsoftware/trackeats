@@ -18,6 +18,98 @@ const columns = [
         size: 150,
         meta: { filterVariant: "text" }
     }),
+    columnHelper.accessor("total_yield", {
+        header: "Yield",
+        cell: info => info.getValue(),
+        size: 150,
+        meta: { filterVariant: "text" }
+    }),
+    columnHelper.accessor("servings", {
+        header: "Servings",
+        cell: info => info.getValue(),
+        size: 150,
+        meta: { filterVariant: "text" }
+    }),
+    columnHelper.accessor("nutrition.serving_size_description", {
+        header: "Serving Size Description",
+        cell: info => info.getValue(),
+        size: 100
+    }),
+    columnHelper.accessor("nutrition.serving_size_g", {
+        header: "Serving Size (g or ml)",
+        cell: info => info.getValue(),
+        size: 65
+    }),
+    columnHelper.accessor("nutrition.calories", {
+        header: "Calories",
+        cell: info => info.getValue(),
+        size: 65
+    }),
+    columnHelper.accessor("nutrition.total_fat_g", {
+        header: "Total Fat (g)",
+        cell: info => info.getValue(),
+        size: 65
+    }),
+    columnHelper.accessor("nutrition.saturated_fat_g", {
+        header: "Satu- rated Fat (g)",
+        cell: info => info.getValue(),
+        size: 65
+    }),
+    columnHelper.accessor("nutrition.trans_fat_g", {
+        header: "Trans Fat (g)",
+        cell: info => info.getValue(),
+        size: 65
+    }),
+    columnHelper.accessor("nutrition.cholesterol_mg", {
+        header: "Choles- terol (mg)",
+        cell: info => info.getValue(),
+        size: 65
+    }),
+    columnHelper.accessor("nutrition.sodium_mg", {
+        header: "Sodium (mg)",
+        cell: info => info.getValue(),
+        size: 65
+    }),
+    columnHelper.accessor("nutrition.total_carbs_g", {
+        header: "Total Carbs (g)",
+        cell: info => info.getValue(),
+        size: 65
+    }),
+    columnHelper.accessor("nutrition.total_sugar_g", {
+        header: "Total Sugar (g)",
+        cell: info => info.getValue(),
+        size: 65
+    }),
+    columnHelper.accessor("nutrition.added_sugar_g", {
+        header: "Added Sugar (g)",
+        cell: info => info.getValue(),
+        size: 65
+    }),
+    columnHelper.accessor("nutrition.protein_g", {
+        header: "Protein (g)",
+        cell: info => info.getValue(),
+        size: 65
+    }),
+    columnHelper.accessor("nutrition.vitamin_d_mcg", {
+        header: "Vitamin D (mcg)",
+        cell: info => info.getValue(),
+        size: 65
+    }),
+    columnHelper.accessor("nutrition.calcium_mg", {
+        header: "Calcium (mg)",
+        cell: info => info.getValue(),
+        size: 65
+    }),
+    columnHelper.accessor("nutrition.iron_mg", {
+        header: "Iron (mg)",
+        cell: info => info.getValue(),
+        size: 65
+    }),
+    columnHelper.accessor("nutrition.potassium_mg", {
+        header: "Potas- sium (mg)",
+        cell: info => info.getValue(),
+        size: 65
+    }),
 ]
 
 // Now declare the Foods table itself
