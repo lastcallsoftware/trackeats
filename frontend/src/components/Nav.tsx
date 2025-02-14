@@ -12,6 +12,7 @@ import Footer from './Footer';
 import axios from "axios";
 import ConfirmUser from './ConfirmUser';
 import FoodForm from './FoodForm';
+import RecipeForm from './RecipeForm';
 
 // An unused function actually causes the build to FAIL!  Bizarre.
 // So -- for now! -- comment this out.
@@ -69,6 +70,7 @@ function Nav() {
                 <Route path="/register" element={<RegisterPage />} />
                 <Route path="/confirm" element={<ConfirmUser/>} />
                 <Route path="/foodForm" element={<FoodForm />} />
+                <Route path="/recipeForm" element={<RecipeForm />} />
             </Routes>
             <Footer />
         </>
