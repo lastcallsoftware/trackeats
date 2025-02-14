@@ -106,11 +106,13 @@ class User(db.Model):
 
     def __str__(self):
         return f"<User {self.id} {self.username}, status: {self.status}, created_at: {self.created_at}, confirmation_sent_at: {self.confirmation_sent_at}>"
+
     def __repr__(self):
         email = ""
         if self.email and len(self.email) > 0:
             email = decrypt(self.email)
         return f"User({self.id}, \'{self.username}\', {self.status}, \'{email}\', {self.created_at}, \'{self.password_hash}\', {self.confirmation_sent_at}, \'{self.confirmation_token}\')"
+
     def json(self):
         return {
             "id": self.id,
@@ -320,6 +322,7 @@ class Nutrition(db.Model):
 
     def __str__(self):
         return str(vars(self))
+
     def json(self):
         return {
             "id": self.id,
@@ -343,8 +346,6 @@ class Nutrition(db.Model):
         }
     
     # Add one Nutrition record to another.
-    # Actually this would probably happen on the front end so I don't know why
-    # I bothered to write this method.
     def sum(self, nutrition2: "Nutrition", servings: float) -> dict:
         self.calories += nutrition2.calories * servings
         self.total_fat_g += nutrition2.total_fat_g * servings
@@ -382,6 +383,24 @@ class Nutrition(db.Model):
         self.potassium_mg -= nutrition2.potassium_mg * servings
         return self
 
+    # Reset the Nutrition totals to zero (leave the ID and serving info intact).
+    def reset(self, nutrition2: "Nutrition", servings: float) -> dict:
+        self.calories = 0
+        self.total_fat_g = 0
+        self.saturated_fat_g = 0
+        self.trans_fat_g = 0
+        self.cholesterol_mg = 0
+        self.sodium_mg = 0
+        self.total_carbs_g = 0
+        self.fiber_g = 0
+        self.total_sugar_g = 0
+        self.added_sugar_g = 0
+        self.protein_g = 0
+        self.vitamin_d_mcg = 0
+        self.calcium_mg = 0
+        self.iron_mg = 0
+        self.potassium_mg = 0
+        return self
 
 ##############################
 # FOOD
@@ -535,7 +554,12 @@ class Food(db.Model):
 ##############################
 # This is a many-to-many association table that links Recipes to their
 # constituent Food and Recipe items.  It also stores the number of servings of 
-# each ingredient used in the Recipe.
+# each Ingredient used in the Recipe.
+# Note that SQLAlchemy relationships CANNOT be used with this table since
+# SQLAlchemy relationships are by definition between two tables, and this table
+# associates THREE tables (though only two tables in any given record),
+# That is, either the food_ingredient_id or the recipe_ingredient_id is set
+# in any given record, but never both.
 ##############################
 class Ingredient(db.Model):
     __tablename__ = "ingredient"
@@ -545,44 +569,6 @@ class Ingredient(db.Model):
     food_ingredient_id = db.Column(db.Integer, db.ForeignKey("food.id"), nullable=True)
     recipe_ingredient_id = db.Column(db.Integer, db.ForeignKey("recipe.id"), nullable=True)
     servings = db.Column(db.Float, nullable=False, default=0)
-
-##############################
-# RECIPE_FOOD
-##############################
-# This is a many-to-many association table that links Recipes to their
-# constituent Food items.  It also stores the number of servings of each 
-# Food item in the Recipe.
-##############################
-# class RecipeFood(db.Model):
-#     __tablename__ = "recipe_food"
-
-#     recipe_id = db.Column(db.Integer, db.ForeignKey("recipe.id"), primary_key=True)
-#     ingredient_id = db.Column(db.Integer, db.ForeignKey("food.id"), primary_key=True)
-#     servings = db.Column(db.Float, default=0, nullable=False)
-
-    # SQLAlchemy generates a default parameterized constructor with arguments
-    # corresponding to the mapped columns, so this isn't strictly necessary
-    # unless there's some custom initialization we want to do.
-    #def __init__(self, recipe_id, ingredient_id, servings):
-    #    self.recipe_id = recipe_id
-    #    self.ingredient_id = ingredient_id
-    #    self.servings = servings
-
-
-##############################
-# RECIPE_RECIPE
-##############################
-# This is a many-to-many association table that links Recipes to itself.
-# It also stores the number of servings of each Recips item in the Recipe.
-# This is used when a Recipe includes other Recipes as ingredients.
-# For example, a Recipe for a pizza might include a Recipe for pizza dough.
-##############################
-# class RecipeRecipe(db.Model):
-#     __tablename__ = "recipe_recipe"
-
-#     recipe_id = db.Column(db.Integer, db.ForeignKey("recipe.id"), primary_key=True)
-#     ingredient_id = db.Column(db.Integer, db.ForeignKey("recipe.id"), primary_key=True)
-#     servings = db.Column(db.Float, default=0, nullable=False)
 
 
 ##############################
@@ -594,8 +580,8 @@ class Ingredient(db.Model):
 # ("Denormalized" because it could be calculated from its ingredients.)
 # This is the app"s second-level building-block record.
 ##############################
-# This allows us to specify Recipe as a class and then use it as a type hint
-# in the add() method below
+# This allows us to define Recipe as a class in advance, so we can use it 
+# as a type hint in the actual Recipe definition below
 class Recipe:
     pass
 
@@ -618,21 +604,11 @@ class Recipe(db.Model):
         return str(vars(self))
 
     # Return a JSON representation of this Recipe object
-    # This returns the ENTIRE Food/Recipe record for each ingredient in the Recipe.
-    # I'm not sure if that's what we want.  Maybe just the Food ID?  Or a few key 
-    # fields?  We'll start with this and whittle it down if it's too much data.
-    # Parameters:
-    #   full: a boolean that determines whether the JSON representation of the
-    #       Recipe also includes the Food/Recipe records for eachof its 
-    #       ingredients.  We don't want to include them when we're listing the 
-    #       Recipes included in a Recipe, because that could create an infinite 
-    #       loop of Recipe records.
-    def json(self, full: bool = True):
+    def json(self):
         return {
             "id": self.id,
             "name": self.name,
             "total_yield": self.total_yield,
-            "serving_description": self.serving_description,
             "servings": self.servings,
             "nutrition_id": self.nutrition_id,
             "nutrition": self.nutrition.json(),
@@ -642,8 +618,8 @@ class Recipe(db.Model):
     def add(user_id: int, 
             name: str,
             total_yield: str, 
-            serving_description: str, 
             servings: int, 
+            serving_description: str, 
             food_ingredients_and_servings: list[tuple[dict,float]],
             recipe_ingredients_and_servings: list[tuple[dict,float]]) -> None:
         try:
@@ -651,8 +627,8 @@ class Recipe(db.Model):
             recipe.user_id = user_id
             recipe.name = name
             recipe.total_yield = total_yield
-            recipe.serving_description = serving_description
             recipe.servings = servings
+            # Set the serving size description in the Nutrition child object
             recipe.nutrition = Nutrition({"serving_size_description": serving_description})
 
             # Add the Recipe record to the database WITH NO INGREDIENTS YET.
