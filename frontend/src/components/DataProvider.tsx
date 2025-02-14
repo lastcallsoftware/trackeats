@@ -10,6 +10,7 @@ import FoodsTable from './FoodsTable';
 // to get the data, or by calling the back end to add, update, or delete data.
 // The data is shared with the children via the context.
 
+
 export type INutrition = {
     serving_size_description: string
     serving_size_g: number
@@ -48,7 +49,7 @@ export type IFood = {
 }
 
 export type IIngredient = {
-    id?: number,
+    id: number,
     name: string,
     servings: number
 }
@@ -56,6 +57,11 @@ export type IIngredient = {
 export type IRecipe = {
     id?: number
     name: string
+    total_yield: number
+    servings: number
+    food_ingredients: IIngredient[]
+    recipe_ingredients: IIngredient[]
+    nutrition_id?: number
     nutrition: INutrition
 }
 
@@ -66,6 +72,15 @@ export type DataContextType = {
     addFood: (food: IFood) => void;
     updateFood: (food: IFood) => void;
     deleteFood: (id: number) => void;
+    addRecipe: (recipe: IRecipe) => void;
+    updateRecipe: (recipe: IRecipe) => void;
+    deleteRecipe: (id: number) => void;
+    addFoodIngredient: (recipe_id: number, ingredient_id: number, name: string, servings: number) => void;
+    addRecipeIngredient: (recipe_id: number, ingredient_id: number, name: string, servings: number) => void;
+    updateFoodIngredient: (recipe_id: number, ingredient_id: number, name: string, servings: number) => void;
+    updateRecipeIngredient: (recipe_id: number, ingredient_id: number, name: string, servings: number) => void;
+    removeFoodIngredient: (recipe_id: number, ingredient_id: number) => void;
+    removeRecipeIngredient: (recipe_id: number, ingredient_id: number) => void;
 }
 
 export const DataContext = createContext<DataContextType|null>(null);
@@ -174,8 +189,196 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
             })
     }
 
+    // Call the back end's "add recipe" API
+    const addRecipe = (recipe: IRecipe) => {
+        axios.post("/recipe", FoodsTable, {headers: { "Authorization": "Bearer " + access_token}})
+            .then (() => {
+                setErrorMessage("");
+                // Now add it to our local copy of the recipes list
+                setRecipes([...recipes, recipe])
+            })
+            .catch ((error) => {
+                handleError(error)
+            })
+    }
+
+    // Call the back end's "update recipe" API
+    const updateRecipe  = (recipe: IRecipe) => {
+        axios.put("/recipe", recipe, {headers: { "Authorization": "Bearer " + access_token}})
+            .then (() => {
+                setErrorMessage("");
+                // Now update our local copy of the recipe in our local recipes list
+                setRecipes(prevItems => prevItems.map(item => {
+                    if (item.id === recipe.id) {
+                      return recipe;
+                    } else {
+                      return item;
+                    }
+                }))
+            })
+            .catch ((error) => {
+                handleError(error)
+            })
+    }
+
+    // Call the back end's "delete recipe" API
+    const deleteRecipe = (id: number) => {
+        axios.delete("/recipe/" + id, {headers: { "Authorization": "Bearer " + access_token}})
+            .then(() => {
+                setErrorMessage("");
+                // Now remove it from our local recipes list
+                setRecipes(prevItems => prevItems.filter(_item => _item.id != id));
+            })
+            .catch((error) => {
+                handleError(error)
+            })
+    }
+
+    // Call the back end's "add food ingredient" API
+    const addFoodIngredient = (recipe_id: number, ingredient_id: number, name: string, servings: number) => {
+        axios.post("/recipe/" + recipe_id + "/foodingredient/" + ingredient_id + "/" + servings, {headers: { "Authorization": "Bearer " + access_token}})
+        .then(() => {
+            setErrorMessage("");
+            // Now add it to our local recipe
+            setRecipes(prevItems => prevItems.map(item => {
+                if (item.id === recipe_id) {
+                    item.food_ingredients.push({id: ingredient_id, name: name, servings: servings})
+                    return item;
+                } else {
+                    return item;
+                }
+            }))            
+        })
+        .catch((error) => {
+            handleError(error)
+        })
+    }
+
+    // Call the back end's "add recipe ingredient" API
+    const addRecipeIngredient = (recipe_id: number, ingredient_id: number, name: string, servings: number) => {
+        axios.post("/recipe/" + recipe_id + "/recipeingredient/" + ingredient_id + "/" + servings, {headers: { "Authorization": "Bearer " + access_token}})
+        .then(() => {
+            setErrorMessage("");
+            // Now add it to our local recipe
+            setRecipes(prevItems => prevItems.map(item => {
+                if (item.id === recipe_id) {
+                    item.recipe_ingredients.push({id: ingredient_id, name: name, servings: servings})
+                    return item;
+                } else {
+                    return item;
+                }
+            }))            
+        })
+        .catch((error) => {
+            handleError(error)
+        })
+    }
+
+    // Call the back end's "update food ingredient" API
+    const updateFoodIngredient = (recipe_id: number, ingredient_id: number, name: string, servings: number) => {
+        axios.put("/recipe/" + recipe_id + "/foodingredient/" + ingredient_id + "/" + servings, {headers: { "Authorization": "Bearer " + access_token}})
+        .then(() => {
+            setErrorMessage("");
+            // Now update it in our local recipe
+            setRecipes(prevItems => prevItems.map(item => {
+                if (item.id === recipe_id) {
+                    const ingredient = item.recipe_ingredients.find(element => element.id = ingredient_id)
+                    if (ingredient != null) {
+                        ingredient.name = name
+                        ingredient.servings = servings
+                    }
+                    return item;
+                } else {
+                    return item;
+                }
+            }))            
+        })
+        .catch((error) => {
+            handleError(error)
+        })
+    }
+
+    // Call the back end's "update recipe ingredient" API
+    const updateRecipeIngredient = (recipe_id: number, ingredient_id: number, name: string, servings: number) => {
+        axios.put("/recipe/" + recipe_id + "/recipeingredient/" + ingredient_id + "/" + servings, {headers: { "Authorization": "Bearer " + access_token}})
+        .then(() => {
+            setErrorMessage("");
+            // Now update it in our local recipe
+            setRecipes(prevItems => prevItems.map(item => {
+                if (item.id === recipe_id) {
+                    const ingredient = item.food_ingredients.find(element => element.id = ingredient_id)
+                    if (ingredient != null) {
+                        ingredient.name = name
+                        ingredient.servings = servings
+                    }
+                    return item;
+                } else {
+                    return item;
+                }
+            }))            
+        })
+        .catch((error) => {
+            handleError(error)
+        })
+    }
+
+    // Call the back end's "remove food ingredient" API
+    const removeFoodIngredient = (recipe_id: number, ingredient_id: number) => {
+        axios.delete("/recipe/" + recipe_id + "/foodingredient/" + ingredient_id, {headers: { "Authorization": "Bearer " + access_token}})
+        .then(() => {
+            setErrorMessage("");
+            // Now remove it from our local recipe
+            setRecipes(prevItems => prevItems.map(item => {
+                if (item.id === recipe_id) {
+                    item.food_ingredients = item.food_ingredients.filter(element => element.id != ingredient_id)
+                    return item;
+                } else {
+                    return item;
+                }
+            }))            
+        })
+        .catch((error) => {
+            handleError(error)
+        })
+    }
+
+    // Call the back end's "remove recipe ingredient" API
+    const removeRecipeIngredient = (recipe_id: number, ingredient_id: number) => {
+        axios.delete("/recipe/" + recipe_id + "/recipeingredient/" + ingredient_id, {headers: { "Authorization": "Bearer " + access_token}})
+        .then(() => {
+            setErrorMessage("");
+            // Now remove it from our local recipe
+            setRecipes(prevItems => prevItems.map(item => {
+                if (item.id === recipe_id) {
+                    item.recipe_ingredients = item.recipe_ingredients.filter(element => element.id != ingredient_id)
+                    return item;
+                } else {
+                    return item;
+                }
+            }))            
+        })
+        .catch((error) => {
+            handleError(error)
+        })
+    }
+
     return (
-        <DataContext.Provider value={{ foods, recipes, errorMessage, addFood, updateFood, deleteFood }}>
+        <DataContext.Provider value={{ 
+            foods, 
+            recipes, 
+            errorMessage, 
+            addFood, 
+            updateFood, 
+            deleteFood, 
+            addRecipe, 
+            updateRecipe, 
+            deleteRecipe,
+            addFoodIngredient,
+            addRecipeIngredient,
+            updateFoodIngredient,
+            updateRecipeIngredient,
+            removeFoodIngredient,
+            removeRecipeIngredient }}> 
             {children}
         </DataContext.Provider>
     );
