@@ -3,7 +3,7 @@
 #   export ACCESS_TOKEN="tokendata"
 # A token can be obtained and exported automatically using:
 #   source ./bin/test-login.sh
-curl -s 
+curl -s \
 -X GET \
 -H "Authorization: Bearer $ACCESS_TOKEN" \
 http://localhost:5000/recipe | jq
