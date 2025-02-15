@@ -2,7 +2,7 @@ import { ColumnFiltersState, createColumnHelper, flexRender, getCoreRowModel, ge
 import React, { useContext } from 'react';
 import { IRecipe, DataContext } from "./DataProvider";
 import { Filter } from "./Widgets"
-
+import { getCuisineLabel } from './Cuisines';
 
 // Define the table's columns
 const columnHelper = createColumnHelper<IRecipe>()
@@ -11,6 +11,12 @@ const columns = [
         header: "ID",
         cell: info => info.getValue(),
         size: 55
+    }),
+    columnHelper.accessor("cuisine", {
+        header: "Cuisine",
+        cell: info => getCuisineLabel(info.getValue()),
+        size: 150,
+        meta: { filterVariant: "text" }
     }),
     columnHelper.accessor("name", {
         header: "Name",
