@@ -468,6 +468,7 @@ class Food(db.Model):
 
     def __str__(self):
         return str(vars(self))
+    
     def json(self):
         price_date = ""
         if (self.price_date):
@@ -600,6 +601,7 @@ class Recipe(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
+    cuisine = db.Column(db.String(20))
     name = db.Column(db.String(50), nullable=False)
     total_yield = db.Column(db.String(50), nullable=False)
     servings = db.Column(db.Float, nullable=False)
@@ -617,6 +619,7 @@ class Recipe(db.Model):
         return {
             "id": self.id,
             "name": self.name,
+            "cuisine": self.cuisine,
             "total_yield": self.total_yield,
             "servings": self.servings,
             "nutrition_id": self.nutrition_id,
@@ -625,6 +628,7 @@ class Recipe(db.Model):
 
     # Create a new Recipe record and add it to the database.
     def add(user_id: int, 
+            cuisine: str,
             name: str,
             total_yield: str, 
             servings: int, 
@@ -634,10 +638,12 @@ class Recipe(db.Model):
         try:
             recipe = Recipe()
             recipe.user_id = user_id
+            recipe.cuisine = cuisine
             recipe.name = name
             recipe.total_yield = total_yield
             recipe.servings = servings
-            # Set the serving size description in the Nutrition child object
+
+            # The serving size description goes in the Nutrition child object
             recipe.nutrition = Nutrition({"serving_size_description": serving_description})
 
             # Add the Recipe record to the database WITH NO INGREDIENTS YET.
@@ -662,21 +668,27 @@ class Recipe(db.Model):
     # their own separate API calls.
     # Therefore this API call only affects the Recipe record's own data
     # fields, not those of its child records.
-    def update(user_id: int,
-               recipe_id: int,
-               name: str,
-               total_yield: str, 
-               serving_description: str, 
-               servings: int) -> None:
-        # Update the record
-        num_updates = Recipe.query.filter_by(user_id=user_id, id=recipe_id).update({
-            "name": name,
-            "total_yield": total_yield,
-            "serving_description": serving_description,
-            "servings": servings
-        })
-        if num_updates != 1:
-            raise ValueError(f"Tried to update 1 Recipe record but {num_updates} were found")
+    def update(user_id: int, recipe: dict) -> None:
+        # Add the user_id field.
+        recipe["user_id"] = user_id
+
+        # Remove the Nutrition object from the dictionary.
+        nutrition = recipe["nutrition"]
+        del recipe["nutrition"]
+
+        # Get the ID fields so we can update the proper records.
+        recipe_id = recipe["id"]
+        nutrition_id = recipe["nutrition_id"]
+
+        # For the Nutrition record, we only want to update the serving_size_description field.
+        num_updates = Nutrition.query.filter_by(id=nutrition_id).update({Nutrition.serving_size_description: nutrition["serving_size_description"]})
+        if (num_updates != 1):
+            raise ValueError(f"Expected to update 1 Nutrition record but found {num_updates}.")
+
+        # Update the Recipe record.
+        num_updates = Recipe.query.filter_by(user_id=user_id, id=recipe_id).update(recipe)
+        if (num_updates != 1):
+            raise ValueError(f"Expected to update 1 Recipe record but found {num_updates}.")
 
         db.session.commit()
 

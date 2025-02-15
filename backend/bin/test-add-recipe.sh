@@ -6,9 +6,12 @@
 curl \
 -H "Authorization: Bearer $ACCESS_TOKEN" \
 -H "Content-Type: application/json" \
--d '{"name": "Cup of Rice",
+-d '{
+"cuisine": "chinese",
+"name": "Cup of Rice",
 "total_yield": "4 cups",
 "servings": 4,
-"serving_description": "1 cup"}' \
+"serving_description": "1 cup"
+}' \
 http://localhost:5000/recipe
 #https://trackeats.lastcallsw.com:54443/recipe

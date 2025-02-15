@@ -501,6 +501,7 @@ def add_recipe():
         recipe = request.json
         Recipe.add(
             user_id, 
+            recipe["cuisine"],
             recipe["name"], 
             recipe["total_yield"],
             recipe["servings"],
@@ -528,13 +529,7 @@ def update_recipe():
 
         # Update the database's record with the data in the request
         recipe = request.json
-        Recipe.update(
-            user_id,
-            recipe["id"],
-            recipe["name"],
-            recipe["total_yield"],
-            recipe["serving_description"],
-            recipe["servings"])
+        Recipe.update(user_id, recipe)
     except Exception as e:
         msg = f"Recipe record could not be updated: {repr(e)}"
         logging.error(msg)
