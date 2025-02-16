@@ -1,7 +1,6 @@
 import React, { createContext, useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import FoodsTable from './FoodsTable';
 
 // The purpose of this component is to provide a context that can be used to share
 // data between components.  It wraps the children in a context provider that
@@ -58,7 +57,7 @@ export type IRecipe = {
     id?: number
     cuisine: string
     name: string
-    total_yield: number
+    total_yield: string
     servings: number
     food_ingredients: IIngredient[]
     recipe_ingredients: IIngredient[]
@@ -147,7 +146,7 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
 
     // Call the back end's "add food" API
     const addFood = (food: IFood) => {
-        axios.post("/food", FoodsTable, {headers: { "Authorization": "Bearer " + access_token}})
+        axios.post("/food", food, {headers: { "Authorization": "Bearer " + access_token}})
             .then (() => {
                 setErrorMessage("");
                 // Now add it to our local copy of the foods list
@@ -192,7 +191,7 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
 
     // Call the back end's "add recipe" API
     const addRecipe = (recipe: IRecipe) => {
-        axios.post("/recipe", FoodsTable, {headers: { "Authorization": "Bearer " + access_token}})
+        axios.post("/recipe", recipe, {headers: { "Authorization": "Bearer " + access_token}})
             .then (() => {
                 setErrorMessage("");
                 // Now add it to our local copy of the recipes list

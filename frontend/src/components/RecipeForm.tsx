@@ -10,7 +10,7 @@ function RecipeForm() {
     const emptyFormData: IRecipe = {
         cuisine: "", 
         name: "",
-        total_yield: 0,
+        total_yield: "",
         servings: 0,
         food_ingredients: [],
         recipe_ingredients: [],
@@ -33,7 +33,7 @@ function RecipeForm() {
     // evaluate to null, so the second half of the condition is evaluated.
     // The net effect is that if we come in on an Edit, the defaultFormData
     // is the data we're editing; otherwise it's the emptyFormData.
-    const defaultFormData = location.state?.food || emptyFormData;
+    const defaultFormData = location.state?.recipe || emptyFormData;
     const [formData, setFormData] = useState<IRecipe>(defaultFormData);
 
     const saveIsDisabled = false;
@@ -53,7 +53,7 @@ function RecipeForm() {
             updateRecipe(formData);
         else
             addRecipe(formData);
-        
+
         // Return to the Recipes page
         navigate("/recipes")
     }
@@ -74,7 +74,7 @@ function RecipeForm() {
                     <section className="inputLine">
                         <label htmlFor="group">Cuisine:</label>
                         <select id="group" value={formData.cuisine}
-                            onChange={(e) => setFormData(prevState => ({...prevState, group: e.target.value}))}>
+                            onChange={(e) => setFormData(prevState => ({...prevState, cuisine: e.target.value}))}>
                             {cuisines.map((option) => (
                                 <option key={option.value} value={option.value}>{option.label}</option>
                             ))}
@@ -92,7 +92,7 @@ function RecipeForm() {
                     <section className="inputLine">
                         <label htmlFor="totalyield">Total Yield:</label>
                         <input id="totalyield" type="text" value={formData.total_yield} maxLength={100}
-                            onChange={(e) => setFormData(prevState => ({...prevState, subtype: e.target.value}))} />
+                            onChange={(e) => setFormData(prevState => ({...prevState, total_yield: e.target.value}))} />
                     </section>
 
                     {/* Servings */}
