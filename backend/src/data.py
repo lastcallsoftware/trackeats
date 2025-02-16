@@ -82,7 +82,7 @@ def load_db():
                             .first()
     Recipe.add(
         user_id,
-        "American",
+        "american",
         "Salty Chicken",
         "2 breasts",
         2,
