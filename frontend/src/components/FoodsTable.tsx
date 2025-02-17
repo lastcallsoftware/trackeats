@@ -8,7 +8,7 @@ import { getFoodGroupLabel } from './FoodGroups';
 
 // Define the table's columns
 const columnHelper = createColumnHelper<IFood>()
-const columns = [
+const foodColumns = [
     columnHelper.accessor("id", {
         header: "ID",
         cell: info => info.getValue(),
@@ -176,7 +176,7 @@ const FoodsTable = (props: any) => {
     // Define the table's properties.
     const tableOptions: TableOptions<IFood> = {
         data: foods,
-        columns,
+        columns: foodColumns,
         getCoreRowModel: getCoreRowModel(),
         getSortedRowModel: getSortedRowModel(),
         getFilteredRowModel: getFilteredRowModel(),
