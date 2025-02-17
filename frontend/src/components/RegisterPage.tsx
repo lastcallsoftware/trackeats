@@ -127,7 +127,7 @@ function RegisterPage() {
     return (
         <section className="registerPage">
             <form className="inputForm" onSubmit={handleSubmit}>
-                <section className="inputBoundingBox">
+                <section className="inputBoundingBox registerBoundingBox">
 
                     {/* Username */}
                     <section className="inputLine">
