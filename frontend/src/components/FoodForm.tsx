@@ -64,7 +64,7 @@ function FoodForm() {
     return (
         <section className="registerPage">
             <form className="inputForm" onSubmit={handleSubmit}>
-                <section className="inputBoundingBox">
+                <section className="inputBoundingBox foodFormBoundingBox">
 
                     {/* Food Group */}
                     <section className="inputLine">

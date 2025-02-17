@@ -36,7 +36,7 @@ function LoginPage(props: any) {
     return (
         <section className="loginPage">
             <form className="inputForm" onSubmit={handleSubmit}>
-                <section className="inputBoundingBox">
+                <section className="inputBoundingBox loginBoundingBox">
                     <section className="inputLine">
                         <label htmlFor="username">Username:</label>
                         <input id="username" type="text" placeholder="Username" value={formData.username}
