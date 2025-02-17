@@ -3,6 +3,7 @@ import React, { useContext } from 'react';
 import { IRecipe, DataContext } from "./DataProvider";
 import { Filter } from "./Widgets"
 import { getCuisineLabel } from './Cuisines';
+import { useNavigate } from 'react-router-dom';
 
 // Define the table's columns
 const columnHelper = createColumnHelper<IRecipe>()
@@ -121,6 +122,7 @@ const columns = [
 // Now declare the Foods table itself
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const RecipesTable = (props: any) => {
+    const navigate = useNavigate()
     const [sorting, setSorting] = React.useState<SortingState>([])
     const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
     const context = useContext(DataContext)
@@ -131,7 +133,7 @@ const RecipesTable = (props: any) => {
     // Define the table's properties.
     const tableOptions: TableOptions<IRecipe> = {
         data: recipes,
-        columns,
+        columns: columns,
         getCoreRowModel: getCoreRowModel(),
         getSortedRowModel: getSortedRowModel(),
         getFilteredRowModel: getFilteredRowModel(),
@@ -156,6 +158,15 @@ const RecipesTable = (props: any) => {
             props.setSelectedRowId(row.getValue("id"))
     }
 
+    const handleDoubleClick = (row: Row<IRecipe>) => {
+        if (!row.getIsSelected())
+            row.toggleSelected()
+        // Retrieve the selected record from the context and send it to the edit form.
+        const record_id:number = row.getValue("id")
+        const recipe = recipes.find((item:IRecipe) => item.id == record_id);
+        navigate("/recipeForm", { state: { recipe } });
+    }
+    
     return (
         <table className="foodTable table-bordered">
             {/* The thead, tbody, and tfooter elements are the functional components of the Tanstack Table. 
@@ -211,7 +222,8 @@ const RecipesTable = (props: any) => {
                 {table.getRowModel().rows.map((row) => (
                     <tr key={row.id} 
                         className={row.getIsSelected() ? "selected" : undefined} 
-                        onClick={() => handleClick(row)}>
+                        onClick={() => handleClick(row)}
+                        onDoubleClick={() => handleDoubleClick(row)}>
                         {row.getVisibleCells().map((cell) => (
                             <td key={cell.id}>
                                 {flexRender(
