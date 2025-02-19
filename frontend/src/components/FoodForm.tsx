@@ -8,9 +8,9 @@ function FoodForm() {
     const navigate = useNavigate()
     const emptyFormData: IFood = {
         group: "", name: "", subtype: "", description: "", vendor: "",
-        size_description: "", size_g: 0, servings: 0,
+        size_description: "", size_oz: 0, size_g: 0, servings: 0,
         nutrition: {
-            serving_size_description: "", serving_size_g: 0,
+            serving_size_description: "", serving_size_oz: 0, serving_size_g: 0,
             calories: 0, total_fat_g: 0, saturated_fat_g: 0, trans_fat_g: 0,
             cholesterol_mg: 0, sodium_mg: 0, total_carbs_g: 0, fiber_g: 0, total_sugar_g: 0, added_sugar_g: 0,
             protein_g: 0, vitamin_d_mcg: 0, calcium_mg: 0, iron_mg: 0, potassium_mg: 0
@@ -110,6 +110,13 @@ function FoodForm() {
                         <label htmlFor="size_description">Size:</label>
                         <input id="size_description" type="text" value={formData.size_description} maxLength={100}
                             onChange={(e) => setFormData(prevState => ({...prevState, size_description: e.target.value}))} />
+                    </section>
+
+                    {/* Size (oz) */}
+                    <section className="inputLine">
+                        <label htmlFor="size_oz">Size (g):</label>
+                        <input id="size_oz" type="number"value={formData.size_g}  min={0}
+                            onChange={(e) => setFormData(prevState => ({...prevState, size_g: Number(e.target.value)}))} />
                     </section>
 
                     {/* Size (g) */}

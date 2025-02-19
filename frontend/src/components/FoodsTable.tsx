@@ -50,6 +50,11 @@ const foodColumns = [
         cell: info => info.getValue(),
         size: 150
     }),
+    columnHelper.accessor("size_oz", {
+        header: "Size (oz or fl oz)",
+        cell: info => info.getValue(),
+        size: 55
+    }),
     columnHelper.accessor("size_g", {
         header: "Size (g or ml)",
         cell: info => info.getValue(),
@@ -64,6 +69,11 @@ const foodColumns = [
         header: "Serving Size",
         cell: info => info.getValue(),
         size: 150
+    }),
+    columnHelper.accessor("nutrition.serving_size_oz", {
+        header: "Serving Size (oz or fl oz)",
+        cell: info => info.getValue(),
+        size: 65
     }),
     columnHelper.accessor("nutrition.serving_size_g", {
         header: "Serving Size (g or ml)",
