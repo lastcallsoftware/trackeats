@@ -11,7 +11,7 @@ function AboutPage() {
                 <p>But the app's functionality is secondary.  Its REAL purpose is to 
                     excerise and demonstrate a working knowledge of all the products and technologies
                     necessary to design, construct, and deploy a full-stack web app.</p>
-                <br/>s
+                <br/>
                 <p>At the time of this writing, that tech stack includes:</p>
                 <ul>
                     <li>Amazon EC2 - for provisioning the server that hosts everything</li>
@@ -59,8 +59,7 @@ function AboutPage() {
                 <p>You might notice that nowhere in that tech stack do you see my primary specialty: Java!
                     That was a deliberate choice, as I wanted to broaden my skill set.  (And boy did I ever!)
                     But Java will get some love eventually: one of the items on my to-do list is to implement 
-                    a pluggable alternate back end using Java/Spring Boot/Hibernate.
-                </p>
+                    a pluggable alternate back end using Java/Spring Boot/Hibernate.</p>
                 <br/>
                 <p>Paul Holmes</p>
                 <p>04 Nov 2024</p>
