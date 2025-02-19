@@ -1294,9 +1294,9 @@
     {
         "group": "herbsAndSpices",
         "name": "MySalt",
-        "subtype": "Potassium-based Salt Substitute",
-        "description": "1 pinch is 1/16 tsp (1/4 serving); big in all cuisines",
-        "vendor": "My Salt (Amazon)",
+        "subtype": "",
+        "description": "purchased online; 1 pinch is 1/16 tsp (1/4 serving)",
+        "vendor": "My Salt Solutiuons",
         "size_description": "1 container",
         "size_oz": 3,
         "size_g": 85,
