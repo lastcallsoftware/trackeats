@@ -42,7 +42,7 @@ const FoodsPage = () => {
 
     return (
         <section className="foodPage">
-            <section className="foodTableContainer">
+            <section className="foodTableBox">
                 <FoodsTable setSelectedRowId={setSelectedRowId} />
             </section>
 
