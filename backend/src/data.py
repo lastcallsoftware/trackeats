@@ -1,6 +1,7 @@
 from models import db, User, UserStatus, Food, Recipe, Ingredient, Nutrition
 #from sqlalchemy import select
 import json
+import logging
 
 # Add some seed data to the database: user records for the admin and the 
 def load_db():
@@ -28,38 +29,51 @@ def load_db():
         data = json.load(f)
         for food in data['foods']:
             Food.add(user_id, food, False)
+    db.session.commit()
+    logging.info("Added condiments")
 
     with open("./data/dairy.json") as f:
         data = json.load(f)
         for food in data['foods']:
             Food.add(user_id, food, False)
+    db.session.commit()
+    logging.info("Added dairy")
 
     with open("./data/fats_and_sugars.json") as f:
         data = json.load(f)
         for food in data['foods']:
             Food.add(user_id, food, False)
+    db.session.commit()
+    logging.info("Added fats_and_sugars")
 
     with open("./data/grains.json") as f:
         data = json.load(f)
         for food in data['foods']:
             Food.add(user_id, food, False)
+    db.session.commit()
+    logging.info("Added grains")
 
     with open("./data/herbs_and_spices.json") as f:
         data = json.load(f)
         for food in data['foods']:
             Food.add(user_id, food, False)
+    db.session.commit()
+    logging.info("Added herbs_and_spices")
 
     with open("./data/proteins.json") as f:
         data = json.load(f)
         for food in data['foods']:
             Food.add(user_id, food, False)
+    db.session.commit()
+    logging.info("Added proteins")
 
     with open("./data/vegetables.json") as f:
         data = json.load(f)
         for food in data['foods']:
             Food.add(user_id, food, False)
-
     db.session.commit()
+    logging.info("Added vegetables")
+
 
     # ADD RECIPE RECORDS
     # Read in the JSON recipe data and add it to the database
