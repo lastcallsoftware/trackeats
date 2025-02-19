@@ -79,10 +79,13 @@ button:active {
 .inputBoundingBox {
   display: block;
   margin: auto;
-  width: 35rem;
   padding: 1rem;
   border: 1px solid black;
 }
+.registerBoundingBox, .loginBoundingBox, .foodFormBoundingBox {
+  width: 35rem;
+}
+
 .inputLine {
   display: flex;
   margin: 5px;
@@ -91,8 +94,7 @@ button:active {
   width: 30%;
   text-align: right;
 }
-.inputLine input{
-  width: 70%;
+.inputLine input, select {
   margin-left: 5px;
 }
 .inputSpacer {
@@ -123,10 +125,11 @@ button:active {
   text-align: left;
 }
 
-.foodTableContainer {
+/* Food List Page */
+.foodTableBox {
   margin: 0 2rem;
-  overflow: scroll scroll;
-  max-height: 570px;
+  overflow: scroll auto;
+  max-height: 600px;
   border: 1px solid;
 }
 .foodTable {
@@ -136,10 +139,11 @@ button:active {
   border-spacing: 0;
 }
 
-.recipeTableContainer {
+/* Recipe List Page */
+.recipeTableBox {
   margin: 0 2rem;
-  overflow: scroll scroll;
-  max-height: 570px;
+  overflow: scroll auto;
+  max-height: 600px;
   border: 1px solid;
 }
 .recipeTable {
@@ -149,13 +153,66 @@ button:active {
   border-spacing: 0;
 }
 
+/* Recipe Form Page */
+.recipeFormBox {
+  width: 95%;
+  padding: 5px;
+  margin: auto;
+}
+.recipeInputBox {
+  width: fit-content;
+  margin: auto;
+}
+.recipeNutritionBox {
+  border: 1px solid black;
+  background-color: lightblue;
+  display: flex;
+  width: 100%;
+  margin: 1rem 0 0 0;
+  padding: 5px 0;
+}
+.recipeNutritionColumn {
+  width: 33%;
+}
+.readonly {
+  background-color: lightgray;
+}
+.recipeListsBox {
+  margin-top: 1rem;
+  display: flex;
+}
+.ingredientsListBox {
+  border: 1px solid black;
+  width: calc((100% - 250px)/2);
+  height: 620px;
+  overflow: scroll auto;
+}
+.ingredientsButtonsBox {
+  width: 250px;
+}
+.ingredientButton {
+  width: 7rem;
+}
+#ingredientServingsInput {
+  width: 50px;
+}
+.foodsOrRecipesListBox {
+  border: 1px solid black;
+  width: calc((100% - 250px)/2);
+  height: 620px;
+  overflow: scroll auto;
+}
+.recipeFormButtonBox {
+  margin-top: 5px;
+}
+
 /* The thead's style attribute, with the specified position, top, and zindex parameters
     you see here, combine to make the header row "sticky", so it's always visible.  I searched 
     far and wide for how to do this for AGES without success, and then some guy in a video just
     casually mentioned it like it's common knowledge.  It isn't common knowledge, people!!! lol */
 /* The stickiness doesn't include the header's borders if we use border-collapse, though, so we 
-    have to get a little tricky to make the borders look right.  Instead of border-collapse,
-    I specify only right and bottom borders in some places.*/
+    have to get a little tricky to make the borders look right.  Specifically, we specify only 
+    right and bottom borders in some places.*/
 thead {
   position: sticky;
   top: 0;
@@ -180,8 +237,8 @@ td {
   border-right: 1px solid black;
   border-bottom: 1px solid black;
   font-size: 14px;
-  padding: 2px 3px;
-  height: 35px;
+  padding: 2px;
+  height: 2rem;
 }
 .selected {
   background-color: lightblue;
