@@ -12,6 +12,7 @@ import { useNavigate } from 'react-router-dom';
 
 export type INutrition = {
     serving_size_description: string
+    serving_size_oz: number
     serving_size_g: number
     calories: number
     total_fat_g: number
@@ -38,6 +39,7 @@ export type IFood = {
     subtype: string
     description: string
     size_description: string
+    size_oz: number
     size_g: number
     servings: number
     nutrition_id?: number
