@@ -2,11 +2,16 @@ import { useContext, useState } from "react"
 import { useLocation, useNavigate } from "react-router-dom";
 import { IRecipe, DataContext } from "./DataProvider";
 import { cuisines } from "./Cuisines";
+import { IconContext } from "react-icons";
+import { MdKeyboardDoubleArrowLeft, MdKeyboardDoubleArrowRight } from "react-icons/md";
+import FoodsTable from "./FoodsTable";
+import RecipesTable from "./RecipesTable";
 
 function RecipeForm() {
     const location = useLocation();
     const navigate = useNavigate()
 
+    // Set the (default) form data.
     const emptyFormData: IRecipe = {
         cuisine: "", 
         name: "",
@@ -15,7 +20,7 @@ function RecipeForm() {
         food_ingredients: [],
         recipe_ingredients: [],
         nutrition: {
-            serving_size_description: "", serving_size_g: 0,
+            serving_size_description: "", serving_size_oz: 0, serving_size_g: 0,
             calories: 0, total_fat_g: 0, saturated_fat_g: 0, trans_fat_g: 0,
             cholesterol_mg: 0, sodium_mg: 0, total_carbs_g: 0, fiber_g: 0, total_sugar_g: 0, added_sugar_g: 0,
             protein_g: 0, vitamin_d_mcg: 0, calcium_mg: 0, iron_mg: 0, potassium_mg: 0
@@ -25,7 +30,6 @@ function RecipeForm() {
     // the case only when the user clicked the Edit button on the FoodPage.
     // Otherwise they clicked the New button.
     const isEdit = (location.state != null);
-
     // Again, the location.state is set when the user clicked the Edit button.
     // The syntax below is quite clever: if location.state IS NOT null, the
     // OR condition short-circuits and the part after the || is never evaluated.
@@ -36,13 +40,25 @@ function RecipeForm() {
     const defaultFormData = location.state?.recipe || emptyFormData;
     const [formData, setFormData] = useState<IRecipe>(defaultFormData);
 
-    const saveIsDisabled = false;
+    // Get the DataContext, which we need to access the data and call the APIs
+    // we need to call to update the back end.
     const context = useContext(DataContext)
     if (!context)
         throw Error("useDataContext can only be used inside a DataProvider")
     const errorMessage = context.errorMessage;
-    const addRecipe = context.addRecipe;
-    const updateRecipe = context.updateRecipe;
+
+    // State for the ingredient servings, which tells us how many servings of
+    // the selected Ingredient to add to the Recipe when the user clicks Add.
+    const [ingredientServings, setIngredientServings] = useState<number>(0)
+
+    // State for which type of Ingredient list is selected: Foods or Recipes
+    const ingredientLists = ["foodIngredients", "recipeIngedients"]
+    const [selectedIngredientList, setSelectedIngredientList] = useState(ingredientLists[0])
+
+    // State for the selected row in whichever Ingredients list is currently shown
+    const [selectedRowId, setSelectedRowId] = useState(null)
+
+    const saveIsDisabled = false;
 
     const handleSubmit = (e: { preventDefault: () => void; }) => {
         // Prevent default behavior for form submission (namely, sending the form to the server)
@@ -50,9 +66,9 @@ function RecipeForm() {
 
         // Save the new Food
         if (isEdit)
-            updateRecipe(formData);
+            context.updateRecipe(formData);
         else
-            addRecipe(formData);
+            context.addRecipe(formData);
 
         // Return to the Recipes page
         navigate("/recipes")
@@ -65,49 +81,252 @@ function RecipeForm() {
         navigate("/recipes", { state: { } })
     }
 
+    const addIngredient = (e: { preventDefault: () => void; }) => {
+        if (selectedIngredientList === ingredientLists[0]) {
+            if (selectedRowId)
+                confirm(selectedRowId)
+            else
+                confirm("No row selected")
+            //const food = foods.find((item:IFood) => item.id == selectedRowId);
+            
+            //context.addFoodIngredient()
+        } else {
+            if (selectedRowId)
+                confirm(selectedRowId)
+            else
+                confirm("No row selected")
+        }
+
+        e.preventDefault();
+    }
+
+    const removeIngredient = (e: { preventDefault: () => void; }) => {
+        e.preventDefault();
+    }
+
    return (
-        <section className="registerPage">
+        <section className="recipeForm">
             <form className="inputForm" onSubmit={handleSubmit}>
-                <section className="inputBoundingBox">
+                <section className="inputBoundingBox recipeFormBox">
+                    <section className="recipeInputBox">
+                        {/* Cuisine */}
+                        <section className="inputLine">
+                            <label htmlFor="group">Cuisine:</label>
+                            <select id="group" value={formData.cuisine}
+                                onChange={(e) => setFormData(prevState => ({...prevState, cuisine: e.target.value}))}>
+                                {cuisines.map((option) => (
+                                    <option key={option.value} value={option.value}>{option.label}</option>
+                                ))}
+                            </select>
+                        </section>
 
-                    {/* Cuisine */}
-                    <section className="inputLine">
-                        <label htmlFor="group">Cuisine:</label>
-                        <select id="group" value={formData.cuisine}
-                            onChange={(e) => setFormData(prevState => ({...prevState, cuisine: e.target.value}))}>
-                            {cuisines.map((option) => (
-                                <option key={option.value} value={option.value}>{option.label}</option>
-                            ))}
-                        </select>
+                        {/* Name */}
+                        <section className="inputLine">
+                            <label htmlFor="name">Name:</label>
+                            <input id="name" type="text" value={formData.name} maxLength={100}
+                                onChange={(e) => setFormData(prevState => ({...prevState, name: e.target.value}))} />
+                        </section>
+
+                        {/* Total Yield */}
+                        <section className="inputLine">
+                            <label htmlFor="totalyield">Total Yield:</label>
+                            <input id="totalyield" type="text" value={formData.total_yield} maxLength={100}
+                                onChange={(e) => setFormData(prevState => ({...prevState, total_yield: e.target.value}))} />
+                        </section>
+
+                        {/* Servings */}
+                        <section className="inputLine">
+                            <label htmlFor="size_g">Servings:</label>
+                            <input id="ingredientServings" type="number" value={formData.servings} min={0}
+                                onChange={(e) => setFormData(prevState => ({...prevState, servings: Number(e.target.value)}))} />
+                        </section>
                     </section>
 
-                    {/* Name */}
-                    <section className="inputLine">
-                        <label htmlFor="name">Name:</label>
-                        <input id="name" type="text" value={formData.name} maxLength={100}
-                            onChange={(e) => setFormData(prevState => ({...prevState, name: e.target.value}))} />
+                    {/* NUTRITION */}
+                    <section className="recipeNutritionBox">
+                        <section className="recipeNutritionColumn">
+                            {/* Serving Size Description */}
+                            <section className="inputLine">
+                                <label htmlFor="serving_size_description">Serving Size:</label>
+                                <input id="serving_size_description" type="text" value={formData.nutrition.serving_size_description} maxLength={100}
+                                    onChange={(e) => setFormData(prevState => ({...prevState, nutrition: {...prevState.nutrition, serving_size_description: e.target.value}}))} />
+                            </section>
+
+                            {/* Serving Size (oz) */}
+                            <section className="inputLine">
+                                <label htmlFor="serving_size_oz">Serving Size (g):</label>
+                                <input id="serving_size_oz" type="number" value={formData.nutrition.serving_size_oz} min={0} readOnly={true} tabIndex={-1} style={{backgroundColor:"lightgray"}}
+                                    onChange={(e) => setFormData(prevState => ({...prevState, nutrition: {...prevState.nutrition, serving_size_oz: Number(e.target.value)}}))} />
+                            </section>
+
+                            {/* Serving Size (g) */}
+                            <section className="inputLine">
+                                <label htmlFor="serving_size_g">Serving Size (g):</label>
+                                <input id="serving_size_g" type="number" value={formData.nutrition.serving_size_g} min={0} readOnly={true} tabIndex={-1} style={{backgroundColor:"lightgray"}}
+                                    onChange={(e) => setFormData(prevState => ({...prevState, nutrition: {...prevState.nutrition, serving_size_g: Number(e.target.value)}}))} />
+                            </section>
+
+                            {/* Calories */}
+                            <section className="inputLine">
+                                <label htmlFor="calories">Calories:</label>
+                                <input id="calories" type="number" value={formData.nutrition.calories} min={0} readOnly={true} tabIndex={-1} style={{backgroundColor:"lightgray"}}
+                                    onChange={(e) => setFormData(prevState => ({...prevState, nutrition: {...prevState.nutrition, calories: Number(e.target.value)}}))} />
+                            </section>
+
+                            {/* Total Fat (g) */}
+                            <section className="inputLine">
+                                <label htmlFor="total_fat_g">Total Fat (g):</label>
+                                <input id="total_fat_g" type="number" value={formData.nutrition.total_fat_g} min={0} step="0.1" readOnly={true} tabIndex={-1} style={{backgroundColor:"lightgray"}}
+                                    onChange={(e) => setFormData(prevState => ({...prevState, nutrition: {...prevState.nutrition, total_fat_g: Number(e.target.value)}}))} />
+                            </section>
+
+                            {/* Saturated Fat (g) */}
+                            <section className="inputLine">
+                                <label htmlFor="saturated_fat_g">Saturated Fat (g):</label>
+                                <input id="saturated_fat_g" type="number" value={formData.nutrition.saturated_fat_g} min={0} step="0.1" readOnly={true} tabIndex={-1} style={{backgroundColor:"lightgray"}}
+                                    onChange={(e) => setFormData(prevState => ({...prevState, nutrition: {...prevState.nutrition, saturated_fat_g: Number(e.target.value)}}))} />
+                            </section>
+
+                            {/* Trans Fat (g) */}
+                            <section className="inputLine">
+                                <label htmlFor="trans_fat_g">Trans Fat (g):</label>
+                                <input id="trans_fat_g" type="number" value={formData.nutrition.trans_fat_g} min={0} step="0.1" readOnly={true} tabIndex={-1} style={{backgroundColor:"lightgray"}}
+                                    onChange={(e) => setFormData(prevState => ({...prevState, nutrition: {...prevState.nutrition, trans_fat_g: Number(e.target.value)}}))} />
+                            </section>
+                        </section>
+
+                        <section className="recipeNutritionColumn">
+                            {/* Cholesterol (mg) */}
+                            <section className="inputLine">
+                                <label htmlFor="cholesterol_mg">Cholesterol (mg):</label>
+                                <input id="cholesterol_mg" type="number" value={formData.nutrition.cholesterol_mg} min={0} readOnly={true} tabIndex={-1} style={{backgroundColor:"lightgray"}}
+                                    onChange={(e) => setFormData(prevState => ({...prevState, nutrition: {...prevState.nutrition, cholesterol_mg: Number(e.target.value)}}))} />
+                            </section>
+
+                            {/* Sodium (mg) */}
+                            <section className="inputLine">
+                                <label htmlFor="sodium_mg">Sodium (mg):</label>
+                                <input id="sodium_mg" type="number" value={formData.nutrition.sodium_mg} min={0} readOnly={true} tabIndex={-1} style={{backgroundColor:"lightgray"}}
+                                    onChange={(e) => setFormData(prevState => ({...prevState, nutrition: {...prevState.nutrition, sodium_mg: Number(e.target.value)}}))} />
+                            </section>
+
+                            {/* Total Carbs (g) */}
+                            <section className="inputLine">
+                                <label htmlFor="total_carbs_g">Total Carbs (g):</label>
+                                <input id="total_carbs_g" type="number" value={formData.nutrition.total_carbs_g} min={0} readOnly={true} tabIndex={-1} style={{backgroundColor:"lightgray"}}
+                                    onChange={(e) => setFormData(prevState => ({...prevState, nutrition: {...prevState.nutrition, total_carbs_g: Number(e.target.value)}}))} />
+                            </section>
+
+                            {/* Fiber (g) */}
+                            <section className="inputLine">
+                                <label htmlFor="fiber_g">Fiber (g):</label>
+                                <input id="fiber_g" type="number" value={formData.nutrition.fiber_g} min={0} readOnly={true} tabIndex={-1} style={{backgroundColor:"lightgray"}}
+                                    onChange={(e) => setFormData(prevState => ({...prevState, nutrition: {...prevState.nutrition, fiber_g: Number(e.target.value)}}))} />
+                            </section>
+
+                            {/* Total Sugar (g) */}
+                            <section className="inputLine">
+                                <label htmlFor="total_sugar_g">Total Sugar (g):</label>
+                                <input id="total_sugar_g" type="number" value={formData.nutrition.total_sugar_g} min={0} readOnly={true} tabIndex={-1} style={{backgroundColor:"lightgray"}}
+                                    onChange={(e) => setFormData(prevState => ({...prevState, nutrition: {...prevState.nutrition, total_sugar_g: Number(e.target.value)}}))} />
+                            </section>
+
+                            {/* Added Sugar (g) */}
+                            <section className="inputLine">
+                                <label htmlFor="added_sugar_g">Added Sugar (g):</label>
+                                <input id="added_sugar_g" type="number" value={formData.nutrition.added_sugar_g} min={0} readOnly={true} tabIndex={-1} style={{backgroundColor:"lightgray"}}
+                                    onChange={(e) => setFormData(prevState => ({...prevState, nutrition: {...prevState.nutrition, added_sugar_g: Number(e.target.value)}}))} />
+                            </section>
+                        </section>
+
+                        <section className="recipeNutritionColumn">
+                            {/* Protein (g) */}
+                            <section className="inputLine">
+                                <label htmlFor="protein_g">Protein (g):</label>
+                                <input id="protein_g" type="number" value={formData.nutrition.protein_g} min={0} readOnly={true} tabIndex={-1} style={{backgroundColor:"lightgray"}}
+                                    onChange={(e) => setFormData(prevState => ({...prevState, nutrition: {...prevState.nutrition, protein_g: Number(e.target.value)}}))} />
+                            </section>
+
+                            {/* Vitamin D (mcg) */}
+                            <section className="inputLine">
+                                <label htmlFor="vitamin_d_mcg">Vitamin D (mcg):</label>
+                                <input id="vitamin_d_mcg" type="number" value={formData.nutrition.vitamin_d_mcg} min={0} readOnly={true} tabIndex={-1} style={{backgroundColor:"lightgray"}}
+                                    onChange={(e) => setFormData(prevState => ({...prevState, nutrition: {...prevState.nutrition, vitamin_d_mcg: Number(e.target.value)}}))} />
+                            </section>
+
+                            {/* Calcium (mg) */}
+                            <section className="inputLine">
+                                <label htmlFor="calcium_mg">Calcium (mg):</label>
+                                <input id="calcium_mg" type="number" value={formData.nutrition.calcium_mg} min={0} readOnly={true} tabIndex={-1} style={{backgroundColor:"lightgray"}}
+                                    onChange={(e) => setFormData(prevState => ({...prevState, nutrition: {...prevState.nutrition, calcium_mg: Number(e.target.value)}}))} />
+                            </section>
+
+                            {/* Iron (mg) */}
+                            <section className="inputLine">
+                                <label htmlFor="iron_mg">Iron (mg):</label>
+                                <input id="iron_mg" type="number" value={formData.nutrition.iron_mg} min={0} step="0.1" readOnly={true} tabIndex={-1} style={{backgroundColor:"lightgray"}}
+                                    onChange={(e) => setFormData(prevState => ({...prevState, nutrition: {...prevState.nutrition, iron_mg: Number(e.target.value)}}))} />
+                            </section>
+
+                            {/* Potassium (mg) */}
+                            <section className="inputLine">
+                                <label htmlFor="potassium_mg">Potassium (mg):</label>
+                                <input id="potassium_mg" type="number" value={formData.nutrition.potassium_mg} min={0} readOnly={true} tabIndex={-1} style={{backgroundColor:"lightgray"}}
+                                    onChange={(e) => setFormData(prevState => ({...prevState, nutrition: {...prevState.nutrition, potassium_mg: Number(e.target.value)}}))} />
+                            </section>
+                        </section>
                     </section>
 
-                    {/* Total Yield */}
-                    <section className="inputLine">
-                        <label htmlFor="totalyield">Total Yield:</label>
-                        <input id="totalyield" type="text" value={formData.total_yield} maxLength={100}
-                            onChange={(e) => setFormData(prevState => ({...prevState, total_yield: e.target.value}))} />
+                    <section className="recipeListsBox">
+                        <section className="ingredientsListBox">
+                            <p>Ingredients List</p>
+                        </section>
+
+                        <section className="ingredientsButtonsBox">
+                            <section className="ingredientsRadioButtonsBox">
+                                <input type="radio" id="selectFoodIngredients" value={ingredientLists[0]}
+                                    checked={selectedIngredientList===ingredientLists[0]} onChange={() => setSelectedIngredientList(ingredientLists[0])} />
+                                <label htmlFor="selectFoodIngredients">Food Ingredients</label><br></br>
+                                <input type="radio" id="selectRecipeIngredients" value={ingredientLists[1]} 
+                                    checked={selectedIngredientList===ingredientLists[1]} onChange={() => setSelectedIngredientList(ingredientLists[1])} />
+                                <label htmlFor="selectRecipeIngredients">Recipe Ingredients</label>
+                            </section>
+
+                            <button className="button ingredientButton" onClick={addIngredient}>
+                                <IconContext.Provider value={{ size: "30px", color: "green"}}>
+                                    <MdKeyboardDoubleArrowLeft/><p>Add</p>
+                                </IconContext.Provider>
+                            </button>
+                            <br/>
+
+                            <input id="ingredientServingsInput" type="number" value={ingredientServings} min={0}
+                                onChange={(e) => setIngredientServings(Number(e.target.value))} />
+                            <label htmlFor="ingredientServingsInput">Servings</label>
+                            <br/>
+
+                            <button className="button ingredientButton" onClick={removeIngredient}>
+                                <IconContext.Provider value={{ size: "30px", color: "red"}}>
+                                    <p>Remove</p><MdKeyboardDoubleArrowRight/>
+                                </IconContext.Provider>
+                            </button>
+                        </section>
+
+                        <section className="foodsOrRecipesListBox">
+                            {(selectedIngredientList === ingredientLists[0]) ? 
+                                <FoodsTable setSelectedRowId={setSelectedRowId}/> : 
+                                <RecipesTable setSelectedRowId={setSelectedRowId}/>}
+                        </section>
                     </section>
 
-                    {/* Servings */}
-                    <section className="inputLine">
-                        <label htmlFor="size_g">Servings:</label>
-                        <input id="servings" type="number" value={formData.servings} min={0}
-                            onChange={(e) => setFormData(prevState => ({...prevState, servings: Number(e.target.value)}))} />
+                    <section className="recipeFormButtonBox">
+                        <button className="button" type="submit" disabled={saveIsDisabled}>Save</button>
+                        <button className="button" onClick={handleCancel}>Cancel</button>
                     </section>
-
-                    <button className="button" type="submit" disabled={saveIsDisabled}>Save</button>
-                    <button className="button" onClick={handleCancel}>Cancel</button>
 
                     <p>{errorMessage}</p>
                 </section>
             </form>
+
         </section>
     );
 }
