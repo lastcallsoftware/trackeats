@@ -23,6 +23,7 @@ export const cuisines = [
     { value: "philippine", label: "Philippine" },
     { value: "russian", label: "Russian" },
     { value: "southamerican", label: "South American" },
+    { value: "spanish", label: "Spanish" },
     { value: "thai", label: "Thai" },
     { value: "turkish", label: "Turkish" },
     { value: "ukranian", label: "Ukranian" },
