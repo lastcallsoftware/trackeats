@@ -285,6 +285,7 @@ class Nutrition(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     serving_size_description = db.Column(db.String(64), nullable=False)
     serving_size_g = db.Column(db.Integer)
+    serving_size_oz = db.Column(db.Float)
     calories =  db.Column(db.Integer, nullable=False)
     total_fat_g = db.Column(db.Float)
     saturated_fat_g = db.Column(db.Float)
@@ -304,6 +305,7 @@ class Nutrition(db.Model):
     def __init__(self, data: dict = None):
         if data is not None:
             self.serving_size_description = data.get("serving_size_description", "")
+            self.serving_size_oz = data.get("serving_size_oz", 0)
             self.serving_size_g = data.get("serving_size_g", 0)
             self.calories = data.get("calories", 0)
             self.total_fat_g = data.get("total_fat_g", 0)
@@ -328,6 +330,7 @@ class Nutrition(db.Model):
         return {
             "id": self.id,
             "serving_size_description": self.serving_size_description,
+            "serving_size_oz": self.serving_size_oz,
             "serving_size_g": self.serving_size_g,
             "calories": self.calories,
             "total_fat_g": self.total_fat_g,
@@ -432,9 +435,10 @@ class Food(db.Model):
     group = db.Column(db.Enum(FoodGroup), nullable=False)
     name = db.Column(db.String(64), nullable=False)
     subtype = db.Column(db.String(64), nullable=True)
-    description = db.Column(db.String(128), nullable=True)
+    description = db.Column(db.String(100), nullable=True)
     vendor = db.Column(db.String(64), nullable=False)
     size_description = db.Column(db.String(64))
+    size_oz = db.Column(db.Float)
     size_g = db.Column(db.Integer)
     servings = db.Column(db.Float, nullable=False)
     nutrition_id = db.Column(db.Integer, db.ForeignKey('nutrition.id'))
@@ -456,6 +460,7 @@ class Food(db.Model):
             self.description = data.get("description")
             self.vendor = data.get("vendor")
             self.size_description = data.get("size_description")
+            self.size_oz = data.get("size_oz")
             self.size_g = data.get("size_g")
             self.servings = data.get("servings")
             self.nutrition = Nutrition(data.get("nutrition"))
@@ -482,6 +487,7 @@ class Food(db.Model):
             "description": self.description,
             "vendor": self.vendor,
             "size_description": self.size_description,
+            "size_oz": self.size_oz,
             "size_g": self.size_g,
             "servings": self.servings,
             "nutrition_id": self.nutrition_id,
@@ -571,6 +577,7 @@ class Ingredient(db.Model):
     food_ingredient_id = db.Column(db.Integer, db.ForeignKey("food.id"), nullable=True)
     recipe_ingredient_id = db.Column(db.Integer, db.ForeignKey("recipe.id"), nullable=True)
     servings = db.Column(db.Float, nullable=False, default=0)
+    summary = db.Column(db.String(100))
 
     def json(self):
         return {
@@ -578,7 +585,8 @@ class Ingredient(db.Model):
             "recipe_id": self.recipe_id,
             "food_ingredient_id": self.food_ingredient_id,
             "recipe_ingredient_id": self.recipe_ingredient_id,
-            "servings": self.servings
+            "servings": self.servings,
+            "summary": self.summary
         }
 
 
@@ -692,23 +700,38 @@ class Recipe(db.Model):
 
         db.session.commit()
 
+    def generate_summary(self, ingredient: Food | Recipe, servings: float) -> str:
+        ss_oz:float = round(ingredient.nutrition.serving_size_oz * servings, 1)
+        ss_g:int = round(ingredient.nutrition.serving_size_g * servings)
+        if type(ingredient) == Food:
+            food:Food = ingredient
+            subtype = f",{food.subtype}" if (food.subtype is None or food.subtype == "") else "" 
+            return f"{servings} x {food.nutrition.serving_size_description} {food.vendor} {food.name}{subtype} ({ss_oz} oz/{ss_g} g)"
+        else:
+            recipe:Recipe = ingredient
+            return f"{servings} x {recipe.name} ({ss_oz} oz/{ss_g} g)"
+
     # Add a Food Ingredient record for this Recipe
-    def add_food_ingredient(self, food_id, servings: float) -> None:
+    def add_food_ingredient(self, food_id: int, servings: float, summary: str = None) -> None:
         logging.info(f"Adding Food Ingredient {self.id}/{food_id}")
 
         # Check whether the Ingredient record already exists
-        ingredient = Ingredient.query.filter_by(recipe_id=self.id, food_ingredient_id=food_id, servings=servings).first()
+        ingredient:Ingredient = Ingredient.query.filter_by(recipe_id=self.id, food_ingredient_id=food_id, servings=servings).first()
         if ingredient is not None:
             raise ValueError(f"Food Ingredient record {self.id}/{food_id} already exists")
 
-        # Create a new Ingredient record and add it to the database.
-        ingredient:Ingredient = Ingredient(recipe_id=self.id, food_ingredient_id=food_id, servings=servings)
-        db.session.add(ingredient)
-
-        # Get the Food record so we can sum its Nutrition data into the Recipe.
-        food = Food.query.filter_by(id=food_id).first()
+        # Get the associated Food record
+        food:Food = Food.query.filter_by(id=food_id).first()
         if food is None:
             raise ValueError(f"Food {food_id} not found")
+
+        # Generate a pithy summary, if necessary
+        if summary is None or summary == "":
+            summary = self.generate_summary(food, servings)
+
+        # Create a new Ingredient record and add it to the database.
+        ingredient:Ingredient = Ingredient(recipe_id=self.id, food_ingredient_id=food_id, servings=servings, summary=summary)
+        db.session.add(ingredient)
 
         # Sum the Nutrition data from the new Ingredient into the Recipe.
         self.nutrition.sum(food.nutrition, servings)
@@ -718,22 +741,26 @@ class Recipe(db.Model):
         logging.info(f"Food Ingredient {self.id}/{food_id} added")
 
     # Add a Recipe Ingredient record for this Recipe.
-    def add_recipe_ingredient(self, recipe_id: int, servings: float) -> None:
+    def add_recipe_ingredient(self, recipe_id: int, servings: float, summary: str = None) -> None:
         logging.info(f"Adding Recipe Ingredient {self.id}/{recipe_id}")
 
         # Check whether the Ingredient record already exists
-        ingredient = Ingredient.query.filter_by(recipe_id=self.id, recipe_ingredient_id=recipe_id, servings=servings).first()
+        ingredient:Ingredient = Ingredient.query.filter_by(recipe_id=self.id, recipe_ingredient_id=recipe_id, servings=servings).first()
         if ingredient is not None:
             raise ValueError(f"Recipe Ingredient record {self.id}/{recipe_id} already exists")
+
+        # Get the Recipe record so we can sum its Nutrition data into the Recipe.
+        recipe:Recipe = Recipe.query.filter_by(id=recipe_id).first()
+        if recipe is None:
+            raise ValueError(f"Recipe {recipe_id} not found")
+
+        # Generate a pithy summary, if necessary
+        if summary is None or summary == "":
+            summary = self.generate_summary(food, servings)
 
         # Create a new Ingredient record and add it to the database.
         ingredient:Ingredient = Ingredient(recipe_id=self.id, recipe_ingredient_id=recipe_id, servings=servings)
         db.session.add(ingredient)
-
-        # Get the Recipe record so we can sum its Nutrition data into the Recipe.
-        recipe = Recipe.query.filter_by(id=recipe_id).first()
-        if recipe is None:
-            raise ValueError(f"Recipe {recipe_id} not found")
 
         # Sum the Nutrition data from the new Ingredient into the Recipe.
         self.nutrition.sum(recipe.nutrition, servings)
@@ -758,13 +785,15 @@ class Recipe(db.Model):
         # Get the Food corresponding record
         food = Food.query.filter_by(id=food_id).first()
         if food is None:
-            # We'll treat this as non-fatal for now
-            logging.warning(f"Food {food_id} not found")
-        else:
-            # Subtract the Ingredient's old Nutrition data from the Recipe.
-            self.nutrition.subtract(food.nutrition, old_servings)
-            # Add the Ingredient's new Nutrition data to the Recipe.
-            self.nutrition.sum(food.nutrition, ingredient.servings)
+            raise ValueError(f"Food {food_id} not found")
+
+        # Subtract the Ingredient's old Nutrition data from the Recipe.
+        self.nutrition.subtract(food.nutrition, old_servings)
+        # Add the Ingredient's new Nutrition data to the Recipe.
+        self.nutrition.sum(food.nutrition, ingredient.servings)
+
+        # Update the summary
+        ingredient.summary = self.generate_summary(food, servings)
 
         # Commit the changes.
         db.session.commit()
@@ -787,13 +816,15 @@ class Recipe(db.Model):
         # Get the corresponding Recipe record
         recipe = Recipe.query.filter_by(id=recipe_id).first()
         if recipe is None:
-            # We'll treat this as non-fatal for now
-            logging.warning(f"Recipe {recipe_id} not found")
-        else:
-            # Subtract the Ingredient's old Nutrition data from the Recipe.
-            self.nutrition.subtract(recipe.nutrition, old_servings)
-            # Add the Ingredient's new Nutrition data to the Recipe.
-            self.nutrition.sum(recipe.nutrition, ingredient.servings)
+            raise ValueError(f"Recipe {recipe_id} not found")
+
+        # Subtract the Ingredient's old Nutrition data from the Recipe.
+        self.nutrition.subtract(recipe.nutrition, old_servings)
+        # Add the Ingredient's new Nutrition data to the Recipe.
+        self.nutrition.sum(recipe.nutrition, ingredient.servings)
+
+        # Update the summary
+        ingredient.summary = self.generate_summary(recipe, servings)
 
         # Commit the changes.
         db.session.commit()
