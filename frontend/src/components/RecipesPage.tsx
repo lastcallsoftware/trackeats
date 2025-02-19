@@ -42,7 +42,7 @@ function MealsPage() {
 
     return (
         <section className="recipePage">
-            <section className="recipeTableContainer">
+            <section className="recipeTableBox">
                 <RecipesTable setSelectedRowId={setSelectedRowId} />
             </section>
 
