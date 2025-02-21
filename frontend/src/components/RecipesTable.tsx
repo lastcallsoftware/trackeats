@@ -120,9 +120,12 @@ const columns = [
     }),
 ]
 
+interface IRecipesTableProps {
+    setSelectedRowId: React.Dispatch<React.SetStateAction<number | null>>
+}
+
 // Now declare the Foods table itself
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const RecipesTable = (props: any) => {
+const RecipesTable: React.FC<IRecipesTableProps> = ({setSelectedRowId}) => {
     const navigate = useNavigate()
     const [sorting, setSorting] = React.useState<SortingState>([])
     const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
@@ -156,9 +159,9 @@ const RecipesTable = (props: any) => {
         // this function executes, so getIsSelected() actually returns the opposite of what you'd expect.
         // So we invert the logic too.
         if (row.getIsSelected())
-            props.setSelectedRowId(null)
+            setSelectedRowId(null)
         else
-            props.setSelectedRowId(row.getValue("id"))
+            setSelectedRowId(row.getValue("id"))
     }
 
     const handleDoubleClick = (row: Row<IRecipe>) => {
