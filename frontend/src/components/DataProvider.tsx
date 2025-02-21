@@ -50,9 +50,12 @@ export type IFood = {
 }
 
 export type IIngredient = {
-    id: number,
-    name: string,
+    id?: number,
+    recipe_id?: number,
+    food_ingredient_id?: number,
+    recipe_ingredient_id?: number,
     servings: number
+    summary?: string,
 }
 
 export type IRecipe = {
@@ -77,10 +80,11 @@ export type DataContextType = {
     addRecipe: (recipe: IRecipe) => void;
     updateRecipe: (recipe: IRecipe) => void;
     deleteRecipe: (id: number) => void;
-    addFoodIngredient: (recipe_id: number, ingredient_id: number, name: string, servings: number) => void;
-    addRecipeIngredient: (recipe_id: number, ingredient_id: number, name: string, servings: number) => void;
-    updateFoodIngredient: (recipe_id: number, ingredient_id: number, name: string, servings: number) => void;
-    updateRecipeIngredient: (recipe_id: number, ingredient_id: number, name: string, servings: number) => void;
+    getIngredients: (recipe_id: number) => IIngredient[];
+    addFoodIngredient: (recipe_id: number, ingredient_id: number, servings: number) => void;
+    addRecipeIngredient: (recipe_id: number, ingredient_id: number, servings: number) => void;
+    updateFoodIngredient: (recipe_id: number, ingredient_id: number, servings: number) => void;
+    updateRecipeIngredient: (recipe_id: number, ingredient_id: number, nameservings: number) => void;
     removeFoodIngredient: (recipe_id: number, ingredient_id: number) => void;
     removeRecipeIngredient: (recipe_id: number, ingredient_id: number) => void;
 }
@@ -90,6 +94,7 @@ export const DataContext = createContext<DataContextType|null>(null);
 export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) => {
     const [foods, setFoods] = useState<IFood[]>([])
     const [recipes, setRecipes] = useState<IRecipe[]>([])
+    const [ingredients, setIngredients] = useState<IIngredient[]>([])
     const [errorMessage, setErrorMessage] = useState<string|null>(null)
     const navigate = useNavigate()
 
@@ -236,15 +241,33 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
             })
     }
 
+    const getIngredients = (recipe_id: number): IIngredient[] => {
+        axios.get("/recipe/" + recipe_id + "/ingredient", {headers: { "Authorization": "Bearer " + access_token}})
+        .then((response) => {
+            setErrorMessage("");
+            setIngredients(response.data);
+        })
+        .catch((error) => {
+             handleError(error)
+        })
+        
+        return ingredients;
+        //const response = await axios.get("/recipe/" + recipe_id + "/ingredient", {headers: { "Authorization": "Bearer " + access_token}})
+        //const data = response.data
+
+        //console.log("getIngredients: " + data.length)
+        //return data;
+    }
+
     // Call the back end's "add food ingredient" API
-    const addFoodIngredient = (recipe_id: number, ingredient_id: number, name: string, servings: number) => {
+    const addFoodIngredient = (recipe_id: number, ingredient_id: number, servings: number) => {
         axios.post("/recipe/" + recipe_id + "/foodingredient/" + ingredient_id + "/" + servings, {headers: { "Authorization": "Bearer " + access_token}})
         .then(() => {
             setErrorMessage("");
             // Now add it to our local recipe
             setRecipes(prevItems => prevItems.map(item => {
                 if (item.id === recipe_id) {
-                    item.food_ingredients.push({id: ingredient_id, name: name, servings: servings})
+                    item.food_ingredients.push({food_ingredient_id: ingredient_id, servings: servings})
                     return item;
                 } else {
                     return item;
@@ -257,14 +280,14 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
     }
 
     // Call the back end's "add recipe ingredient" API
-    const addRecipeIngredient = (recipe_id: number, ingredient_id: number, name: string, servings: number) => {
+    const addRecipeIngredient = (recipe_id: number, ingredient_id: number, servings: number) => {
         axios.post("/recipe/" + recipe_id + "/recipeingredient/" + ingredient_id + "/" + servings, {headers: { "Authorization": "Bearer " + access_token}})
         .then(() => {
             setErrorMessage("");
             // Now add it to our local recipe
             setRecipes(prevItems => prevItems.map(item => {
                 if (item.id === recipe_id) {
-                    item.recipe_ingredients.push({id: ingredient_id, name: name, servings: servings})
+                    item.recipe_ingredients.push({recipe_ingredient_id: ingredient_id, servings: servings})
                     return item;
                 } else {
                     return item;
@@ -277,7 +300,7 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
     }
 
     // Call the back end's "update food ingredient" API
-    const updateFoodIngredient = (recipe_id: number, ingredient_id: number, name: string, servings: number) => {
+    const updateFoodIngredient = (recipe_id: number, ingredient_id: number, servings: number) => {
         axios.put("/recipe/" + recipe_id + "/foodingredient/" + ingredient_id + "/" + servings, {headers: { "Authorization": "Bearer " + access_token}})
         .then(() => {
             setErrorMessage("");
@@ -286,7 +309,6 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
                 if (item.id === recipe_id) {
                     const ingredient = item.recipe_ingredients.find(element => element.id = ingredient_id)
                     if (ingredient != null) {
-                        ingredient.name = name
                         ingredient.servings = servings
                     }
                     return item;
@@ -301,7 +323,7 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
     }
 
     // Call the back end's "update recipe ingredient" API
-    const updateRecipeIngredient = (recipe_id: number, ingredient_id: number, name: string, servings: number) => {
+    const updateRecipeIngredient = (recipe_id: number, ingredient_id: number, servings: number) => {
         axios.put("/recipe/" + recipe_id + "/recipeingredient/" + ingredient_id + "/" + servings, {headers: { "Authorization": "Bearer " + access_token}})
         .then(() => {
             setErrorMessage("");
@@ -310,7 +332,6 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
                 if (item.id === recipe_id) {
                     const ingredient = item.food_ingredients.find(element => element.id = ingredient_id)
                     if (ingredient != null) {
-                        ingredient.name = name
                         ingredient.servings = servings
                     }
                     return item;
@@ -375,6 +396,7 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
             addRecipe, 
             updateRecipe, 
             deleteRecipe,
+            getIngredients,
             addFoodIngredient,
             addRecipeIngredient,
             updateFoodIngredient,
