@@ -7,7 +7,7 @@ import { useNavigate } from "react-router-dom";
 
 function MealsPage() {
     const navigate = useNavigate();
-    const [selectedRowId, setSelectedRowId] = useState(null)
+    const [selectedRowId, setSelectedRowId] = useState<number|null>(null)
     const context = useContext(DataContext)
     if (!context)
         throw Error("useDataContext can only be used inside a DataProvider")
