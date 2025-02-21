@@ -172,9 +172,13 @@ const foodColumns = [
     }),
 ]
 
+interface FoodsTableProps {
+    setSelectedRowId: React.Dispatch<React.SetStateAction<number | null>>,
+    isRecipesForm?: boolean
+}
+
 // Now declare the foods table itself
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const FoodsTable = (props: any) => {
+const FoodsTable: React.FC<FoodsTableProps> = ({setSelectedRowId, isRecipesForm = false}) => {
     const navigate = useNavigate()
     const [sorting, setSorting] = React.useState<SortingState>([])
     const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
@@ -213,9 +217,9 @@ const FoodsTable = (props: any) => {
         // this function executes, so getIsSelected() actually returns the opposite of what you'd expect.
         // So we invert the logic too.
         if (row.getIsSelected())
-            props.setSelectedRowId(null)
+            setSelectedRowId(null)
         else
-            props.setSelectedRowId(row.getValue("id"))
+            setSelectedRowId(row.getValue("id"))
     }
 
     const handleDoubleClick = (row: Row<IFood>) => {
@@ -284,7 +288,7 @@ const FoodsTable = (props: any) => {
                         <tr key={row.id} 
                             className={row.getIsSelected() ? "selected" : undefined} 
                             onClick={() => handleClick(row)}
-                            onDoubleClick={() => handleDoubleClick(row)}>
+                            onDoubleClick={isRecipesForm ? undefined : () => handleDoubleClick(row)}>
                             {row.getVisibleCells().map((cell) => (
                                 <td key={cell.id}>
                                     {flexRender(
