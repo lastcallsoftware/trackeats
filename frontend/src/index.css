@@ -132,7 +132,7 @@ button:active {
   max-height: 600px;
   border: 1px solid;
 }
-.foodTable {
+.foodTable, .recipeTable, .ingredientTable, .foodOrRecipeTable {
   table-layout: fixed;
   width: 100%;
   border-collapse: separate;
@@ -145,12 +145,6 @@ button:active {
   overflow: scroll auto;
   max-height: 600px;
   border: 1px solid;
-}
-.recipeTable {
-  table-layout: fixed;
-  width: 100%;
-  border-collapse: separate;
-  border-spacing: 0;
 }
 
 /* Recipe Form Page */
@@ -184,7 +178,7 @@ button:active {
 .ingredientsListBox {
   border: 1px solid black;
   width: calc((100% - 250px)/2);
-  height: 620px;
+  height: 630px;
   overflow: scroll auto;
 }
 .ingredientsButtonsBox {
@@ -199,7 +193,7 @@ button:active {
 .foodsOrRecipesListBox {
   border: 1px solid black;
   width: calc((100% - 250px)/2);
-  height: 620px;
+  height: 630px;
   overflow: scroll auto;
 }
 .recipeFormButtonBox {
@@ -230,7 +224,7 @@ th {
   flex-direction: column;
 }
 th p {
-  padding: 10px 5px;
+  padding: 5px 5px;
   margin: auto;
 }
 td {
