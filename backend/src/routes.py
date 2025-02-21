@@ -570,6 +570,30 @@ def delete_recipe(recipe_id: int):
 ##############################
 # INGREDIENT
 ##############################
+# Get all Ingredients for a Recipe
+@bp.route("/recipe/<int:recipe_id>/ingredient", methods = ["GET"])
+@jwt_required()
+def get_ingredients(recipe_id:int):
+    logging.info(f"/recipe/{recipe_id}/ingredient GET")
+    try:
+        # Get the user_id for the user identified by the token
+        username = get_jwt_identity()
+        user_id = User.get_id(username)
+
+        # Get all the Food Ingredient records with that recipe_id
+        ingredients:list[Ingredient] = Ingredient.query.filter_by(recipe_id=recipe_id).all()
+        data = []
+        for ingredient in ingredients:
+            data.append(ingredient.json())
+    except Exception as e:
+        msg = f"Ingredient records could not be retrieved: {repr(e)}"
+        logging.error(msg)
+        return jsonify({"msg": msg}), 400
+    else:
+        msg = f"{len(data)} Ingredient records retrieved"
+        logging.info(msg)
+        return jsonify(data), 200
+
 # Get all Food Ingredients for a Recipe
 @bp.route("/recipe/<int:recipe_id>/food_ingredient", methods = ["GET"])
 @jwt_required()
