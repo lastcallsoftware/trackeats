@@ -1,11 +1,13 @@
-import { useContext, useState } from "react"
+import { useContext, useState, useEffect } from "react"
 import { useLocation, useNavigate } from "react-router-dom";
-import { IRecipe, DataContext } from "./DataProvider";
+import { IFood, IRecipe, DataContext, IIngredient } from "./DataProvider";
 import { cuisines } from "./Cuisines";
 import { IconContext } from "react-icons";
 import { MdKeyboardDoubleArrowLeft, MdKeyboardDoubleArrowRight } from "react-icons/md";
 import FoodsTable from "./FoodsTable";
 import RecipesTable from "./RecipesTable";
+import IngredientsTable from "./IngredientsTable";
+import axios from 'axios';
 
 function RecipeForm() {
     const location = useLocation();
@@ -47,16 +49,19 @@ function RecipeForm() {
         throw Error("useDataContext can only be used inside a DataProvider")
     const errorMessage = context.errorMessage;
 
+    // State for the selected row in the Ingredients list
+    const [selectedIngredientRowId, setSelectedIngredientRowId] = useState<number|null>(null)
+    
     // State for the ingredient servings, which tells us how many servings of
     // the selected Ingredient to add to the Recipe when the user clicks Add.
     const [ingredientServings, setIngredientServings] = useState<number>(0)
 
     // State for which type of Ingredient list is selected: Foods or Recipes
-    const ingredientLists = ["foodIngredients", "recipeIngedients"]
-    const [selectedIngredientList, setSelectedIngredientList] = useState(ingredientLists[0])
+    const IngredientTypes = {FOOD_INGREDIENTS: "foodIngredients", RECIPE_INGREDENTS: "recipeIngedients"}
+    const [selectedIngredientList, setSelectedIngredientList] = useState(IngredientTypes.FOOD_INGREDIENTS)
 
-    // State for the selected row in whichever Ingredients list is currently shown
-    const [selectedRowId, setSelectedRowId] = useState(null)
+    // State for the selected row in whichever Food or Recipe Ingredients list is currently shown
+    const [selectedFoodOrRecipeRowId, setSelectedFoodOrRecipeRowId] = useState<number|null>(null)
 
     const saveIsDisabled = false;
 
@@ -64,11 +69,14 @@ function RecipeForm() {
         // Prevent default behavior for form submission (namely, sending the form to the server)
         e.preventDefault();
 
-        // Save the new Food
+        // Save the Recipe
         if (isEdit)
             context.updateRecipe(formData);
         else
             context.addRecipe(formData);
+
+        // Update the Recipe's list of Ingredients
+        // TODO
 
         // Return to the Recipes page
         navigate("/recipes")
@@ -81,30 +89,58 @@ function RecipeForm() {
         navigate("/recipes", { state: { } })
     }
 
-    const addIngredient = (e: { preventDefault: () => void; }) => {
-        if (selectedIngredientList === ingredientLists[0]) {
-            if (selectedRowId)
-                confirm(selectedRowId)
-            else
-                confirm("No row selected")
-            //const food = foods.find((item:IFood) => item.id == selectedRowId);
-            
-            //context.addFoodIngredient()
-        } else {
-            if (selectedRowId)
-                confirm(selectedRowId)
-            else
-                confirm("No row selected")
-        }
+    // State for the current list of Ingredients for this Recipe
+    const [ingredients, setIngredients] = useState<IIngredient[]>([])
 
+    const addIngredient = (e: { preventDefault: () => void; }) => {
         e.preventDefault();
+        if (selectedFoodOrRecipeRowId) {
+            if (selectedIngredientList === IngredientTypes.FOOD_INGREDIENTS) {
+                // Find the Food record with the specified ID (this should always succeed)
+                const food:IFood|undefined = context.foods.find((item:IFood) => item.id == selectedFoodOrRecipeRowId);
+                if (food) {
+                    // Add the Food Ingredient to the Recipe's ingredients list
+                    // TODO
+                }
+
+            } else {
+                // Find the Recipe record with the specified ID (this should always succeed)
+                const recipe:IRecipe|undefined = context.recipes.find((item:IRecipe) => item.id == selectedFoodOrRecipeRowId);
+                if (recipe) {
+                    // Add the Recipe Ingredient to the Recipe's ingredients list
+                    // TODO
+                }
+            }
+        }
     }
 
     const removeIngredient = (e: { preventDefault: () => void; }) => {
         e.preventDefault();
+        if (selectedIngredientRowId) {
+                // Find the Food record with the specified ID (this should always succeed)
+                const ingredient:IIngredient|undefined = ingredients.find((item:IIngredient) => item.id == selectedFoodOrRecipeRowId);
+                if (ingredient) {
+                    // Remove the selected Ingredient from the Recipe's ingredients list
+                }
+        }
     }
 
-   return (
+    // Token management
+	const tok = sessionStorage.getItem("access_token")
+	const access_token = tok ? JSON.parse(tok) : ""
+
+    // Get the Ingredients for this Recipe
+    useEffect(() => {
+        if (formData.id) {
+            // Get the Recipe's ingredients
+            axios.get("/recipe/" + formData.id + "/ingredient", {headers: { "Authorization": "Bearer " + access_token}})
+            .then((response) => {
+                setIngredients(response.data);
+            })
+            }
+    }, [context, formData.id, access_token]);
+
+    return (
         <section className="recipeForm">
             <form className="inputForm" onSubmit={handleSubmit}>
                 <section className="inputBoundingBox recipeFormBox">
@@ -152,20 +188,6 @@ function RecipeForm() {
                                     onChange={(e) => setFormData(prevState => ({...prevState, nutrition: {...prevState.nutrition, serving_size_description: e.target.value}}))} />
                             </section>
 
-                            {/* Serving Size (oz) */}
-                            <section className="inputLine">
-                                <label htmlFor="serving_size_oz">Serving Size (g):</label>
-                                <input id="serving_size_oz" type="number" value={formData.nutrition.serving_size_oz} min={0} readOnly={true} tabIndex={-1} style={{backgroundColor:"lightgray"}}
-                                    onChange={(e) => setFormData(prevState => ({...prevState, nutrition: {...prevState.nutrition, serving_size_oz: Number(e.target.value)}}))} />
-                            </section>
-
-                            {/* Serving Size (g) */}
-                            <section className="inputLine">
-                                <label htmlFor="serving_size_g">Serving Size (g):</label>
-                                <input id="serving_size_g" type="number" value={formData.nutrition.serving_size_g} min={0} readOnly={true} tabIndex={-1} style={{backgroundColor:"lightgray"}}
-                                    onChange={(e) => setFormData(prevState => ({...prevState, nutrition: {...prevState.nutrition, serving_size_g: Number(e.target.value)}}))} />
-                            </section>
-
                             {/* Calories */}
                             <section className="inputLine">
                                 <label htmlFor="calories">Calories:</label>
@@ -193,16 +215,16 @@ function RecipeForm() {
                                 <input id="trans_fat_g" type="number" value={formData.nutrition.trans_fat_g} min={0} step="0.1" readOnly={true} tabIndex={-1} style={{backgroundColor:"lightgray"}}
                                     onChange={(e) => setFormData(prevState => ({...prevState, nutrition: {...prevState.nutrition, trans_fat_g: Number(e.target.value)}}))} />
                             </section>
-                        </section>
 
-                        <section className="recipeNutritionColumn">
                             {/* Cholesterol (mg) */}
                             <section className="inputLine">
                                 <label htmlFor="cholesterol_mg">Cholesterol (mg):</label>
                                 <input id="cholesterol_mg" type="number" value={formData.nutrition.cholesterol_mg} min={0} readOnly={true} tabIndex={-1} style={{backgroundColor:"lightgray"}}
                                     onChange={(e) => setFormData(prevState => ({...prevState, nutrition: {...prevState.nutrition, cholesterol_mg: Number(e.target.value)}}))} />
                             </section>
+                        </section>
 
+                        <section className="recipeNutritionColumn">
                             {/* Sodium (mg) */}
                             <section className="inputLine">
                                 <label htmlFor="sodium_mg">Sodium (mg):</label>
@@ -237,16 +259,16 @@ function RecipeForm() {
                                 <input id="added_sugar_g" type="number" value={formData.nutrition.added_sugar_g} min={0} readOnly={true} tabIndex={-1} style={{backgroundColor:"lightgray"}}
                                     onChange={(e) => setFormData(prevState => ({...prevState, nutrition: {...prevState.nutrition, added_sugar_g: Number(e.target.value)}}))} />
                             </section>
-                        </section>
 
-                        <section className="recipeNutritionColumn">
                             {/* Protein (g) */}
                             <section className="inputLine">
                                 <label htmlFor="protein_g">Protein (g):</label>
                                 <input id="protein_g" type="number" value={formData.nutrition.protein_g} min={0} readOnly={true} tabIndex={-1} style={{backgroundColor:"lightgray"}}
                                     onChange={(e) => setFormData(prevState => ({...prevState, nutrition: {...prevState.nutrition, protein_g: Number(e.target.value)}}))} />
                             </section>
+                        </section>
 
+                        <section className="recipeNutritionColumn">
                             {/* Vitamin D (mcg) */}
                             <section className="inputLine">
                                 <label htmlFor="vitamin_d_mcg">Vitamin D (mcg):</label>
@@ -279,21 +301,23 @@ function RecipeForm() {
 
                     <section className="recipeListsBox">
                         <section className="ingredientsListBox">
-                            <p>Ingredients List</p>
+                            <IngredientsTable ingredients={ingredients} setSelectedRowId={setSelectedIngredientRowId}/>
                         </section>
 
                         <section className="ingredientsButtonsBox">
                             <section className="ingredientsRadioButtonsBox">
-                                <input type="radio" id="selectFoodIngredients" value={ingredientLists[0]}
-                                    checked={selectedIngredientList===ingredientLists[0]} onChange={() => setSelectedIngredientList(ingredientLists[0])} />
+                                <input type="radio" id="selectFoodIngredients" value={IngredientTypes.FOOD_INGREDIENTS}
+                                    checked={selectedIngredientList === IngredientTypes.FOOD_INGREDIENTS}
+                                    onChange={() => setSelectedIngredientList(IngredientTypes.FOOD_INGREDIENTS)} />
                                 <label htmlFor="selectFoodIngredients">Food Ingredients</label><br></br>
-                                <input type="radio" id="selectRecipeIngredients" value={ingredientLists[1]} 
-                                    checked={selectedIngredientList===ingredientLists[1]} onChange={() => setSelectedIngredientList(ingredientLists[1])} />
+                                <input type="radio" id="selectRecipeIngredients" value={IngredientTypes.RECIPE_INGREDENTS} 
+                                    checked={selectedIngredientList === IngredientTypes.RECIPE_INGREDENTS}
+                                    onChange={() => setSelectedIngredientList(IngredientTypes.RECIPE_INGREDENTS)} />
                                 <label htmlFor="selectRecipeIngredients">Recipe Ingredients</label>
                             </section>
 
-                            <button className="button ingredientButton" onClick={addIngredient}>
-                                <IconContext.Provider value={{ size: "30px", color: "green"}}>
+                            <button className="button ingredientButton" onClick={addIngredient} disabled={selectedFoodOrRecipeRowId === null || ingredientServings === 0}>
+                                <IconContext.Provider value={selectedFoodOrRecipeRowId === null || ingredientServings === 0 ? {size: "30px"} : { size: "30px", color: "green"}}>
                                     <MdKeyboardDoubleArrowLeft/><p>Add</p>
                                 </IconContext.Provider>
                             </button>
@@ -304,17 +328,17 @@ function RecipeForm() {
                             <label htmlFor="ingredientServingsInput">Servings</label>
                             <br/>
 
-                            <button className="button ingredientButton" onClick={removeIngredient}>
-                                <IconContext.Provider value={{ size: "30px", color: "red"}}>
+                            <button className="button ingredientButton" onClick={removeIngredient} disabled={selectedIngredientRowId === null}>
+                                <IconContext.Provider value={selectedIngredientRowId === null ? {size: "30px"}: { size: "30px", color: "red"}}>
                                     <p>Remove</p><MdKeyboardDoubleArrowRight/>
                                 </IconContext.Provider>
                             </button>
                         </section>
 
                         <section className="foodsOrRecipesListBox">
-                            {(selectedIngredientList === ingredientLists[0]) ? 
-                                <FoodsTable setSelectedRowId={setSelectedRowId}/> : 
-                                <RecipesTable setSelectedRowId={setSelectedRowId}/>}
+                            {(selectedIngredientList === IngredientTypes.FOOD_INGREDIENTS) ? 
+                                <FoodsTable setSelectedRowId={setSelectedFoodOrRecipeRowId} isRecipesForm={true}/> : 
+                                <RecipesTable setSelectedRowId={setSelectedFoodOrRecipeRowId}/>}
                         </section>
                     </section>
 
