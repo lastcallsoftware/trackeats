@@ -4,11 +4,9 @@ import { useNavigate } from 'react-router-dom';
 
 // The purpose of this component is to provide a context that can be used to share
 // data between components.  It wraps the children in a context provider that
-// provides the data and functions that can be used to manipulate the data.
-// The data is stored in state variables, which are updated by calling the back end
-// to get the data, or by calling the back end to add, update, or delete data.
-// The data is shared with the children via the context.
-
+// provides data, and functions that can be used to manipulate the data.
+// The data is stored in state variables.  Member functions update both the
+// back end and the state variables.
 
 export type INutrition = {
     serving_size_description: string
@@ -64,8 +62,6 @@ export type IRecipe = {
     name: string
     total_yield: string
     servings: number
-    food_ingredients: IIngredient[]
-    recipe_ingredients: IIngredient[]
     nutrition_id?: number
     nutrition: INutrition
 }
@@ -75,21 +71,15 @@ export type DataContextType = {
     recipes: IRecipe[];
     ingredients: IIngredient[];
     errorMessage: string | null;
-    addFood: (food: IFood) => void;
-    updateFood: (food: IFood) => void;
-    deleteFood: (food_id: number) => void;
-    addRecipe: (recipe: IRecipe) => void;
-    updateRecipe: (recipe: IRecipe) => void;
-    deleteRecipe: (recipe_id: number) => void;
-    getIngredients: (recipe_id: number) => IIngredient[];
-    addIngredients: (recipe_id: number, ingredients: IIngredient[]) => void;
-    addFoodIngredient: (recipe_id: number, ingredient_id: number, servings: number) => void;
-    addRecipeIngredient: (recipe_id: number, ingredient_id: number, servings: number) => void;
-    updateFoodIngredient: (recipe_id: number, ingredient_id: number, servings: number) => void;
-    updateRecipeIngredient: (recipe_id: number, ingredient_id: number, nameservings: number) => void;
-    removeIngredients: (recipe_id: number) => void;
-    removeFoodIngredient: (recipe_id: number, ingredient_id: number) => void;
-    removeRecipeIngredient: (recipe_id: number, ingredient_id: number) => void;
+    addFood: (food: IFood) => Promise<void>;
+    updateFood: (food: IFood) => Promise<void>;
+    deleteFood: (food_id: number) => Promise<void>;
+    addRecipe: (recipe: IRecipe) => Promise<number|undefined>;
+    updateRecipe: (recipe: IRecipe) => Promise<void>;
+    deleteRecipe: (recipe_id: number) => Promise<void>;
+    getIngredients: (recipe_id: number) => Promise<void>;
+    addIngredients: (recipe_id: number, ingredients: IIngredient[]) => Promise<void>;
+    removeIngredients: (recipe_id: number) => Promise<void>;
 }
 
 export const DataContext = createContext<DataContextType|null>(null);
@@ -125,64 +115,72 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
         else
             setErrorMessage(error.message)
 
-        // NOTE: I AM DISABLING THE WARNING FOR OMTTING NAVIGATE FROM THE DEPENDENCY LIST!
-        // This is technically incorrect.  However, adding navigate causes a re-render of
+        // NOTE: CONSIDER OMTTING NAVIGATE FROM THE DEPENDENCY LIST!
+        // This is technically incorrect.  However, keeping it in the list causes a re-render of
         // the component -- and a subsequent refresh of the entire dataset -- EVERY TIME
-        // you move to a different page -- a colossal waste of bandwidth and time.
+        // you navigate() to a different page, a colossal waste of bandwidth and time.
         // Plus, from what I understand, navigate's dependncies change only in certain very
         // specific circumstances, which I don't THINK apply here.
         // UPDATE: Seems the page doesn't update when the user adds a record if you omit the
-        // dependency, so... I guess I'll put it back in.
+        // dependency, so I guess it stays in... for now. :/  Further research required.
         }, [navigate]);
 
     useEffect(() => {
         // Get Foods
-        const getFoods = async () => {
-            axios.get("/food", {headers: { "Authorization": "Bearer " + access_token}})
-            .then((response) => {
-                setErrorMessage("");
+        const getFoods = async (): Promise<void> => {
+            setErrorMessage("");
+            try {
+                // Get the Food record from the back end.
+                const response = await axios.get("/food", {headers: { "Authorization": "Bearer " + access_token}})
+
+                // Add the response data to the Foods list state variable.
                 setFoods(response.data);
-            })
-            .catch((error) => {
+            } catch(error) {
                 handleError(error)
-            })
+            }
         };
 
         // Get Recipes
-        const getRecipes = async () => {
-            axios.get("/recipe", {headers: { "Authorization": "Bearer " + access_token}})
-            .then((response) => {
-                setErrorMessage("");
+        const getRecipes = async (): Promise<void> => {
+            setErrorMessage("");
+            try {
+                // Get the Recipe record from the back end.
+                const response = await axios.get("/recipe", {headers: { "Authorization": "Bearer " + access_token}})
+
+                // Add the response data to the Recipes list state variable.
                 setRecipes(response.data);
-            })
-            .catch((error) => {
+            } catch(error) {
                 handleError(error)
-            })
+            }
         };
 
+        // The functions are defined above, but we still have to call them.
         getFoods();
         getRecipes();
     }, [access_token, handleError]);
 
     // Add Food
-    const addFood = (food: IFood) => {
-        axios.post("/food", food, {headers: { "Authorization": "Bearer " + access_token}})
-        .then (() => {
-            setErrorMessage("");
-            // Now add it to our local copy of the foods list
+    const addFood = async (food: IFood): Promise<void> => {
+        setErrorMessage("");
+        try {
+            // Add the Food record to the back end.
+            await axios.post("/food", food, {headers: { "Authorization": "Bearer " + access_token}})
+
+            // Add it to the Foods list state variable.
             setFoods([...foods, food])
-        })
-        .catch ((error) => {
+        } catch (error) {
             handleError(error)
-        })
+        }
     }
 
     // Update Food
-    const updateFood = (food: IFood) => {
-        axios.put("/food", food, {headers: { "Authorization": "Bearer " + access_token}})
-        .then (() => {
-            setErrorMessage("");
-            // Now update our local copy of the food in our local foods list
+    const updateFood = async (food: IFood): Promise<void> => {
+        setErrorMessage("");
+        try {
+            // Update the Food record on the back end.
+            await axios.put("/food", food, {headers: { "Authorization": "Bearer " + access_token}})
+
+            // Update it in the Foods list state variable.
             setFoods(prevItems => prevItems.map(item => {
                 if (item.id === food.id) {
                     return food;
@@ -190,60 +188,54 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
                     return item;
                 }
             }))
-        })
-        .catch ((error) => {
+        } catch (error) {
             handleError(error)
-        })
+        }
     }
 
     // Delete Food
-    const deleteFood = (id: number) => {
-        axios.delete("/food/" + id, {headers: { "Authorization": "Bearer " + access_token}})
-        .then(() => {
-            setErrorMessage("");
-            confirm()
-            // Now remove it from our local foods list
+    const deleteFood = async (id: number): Promise<void> => {
+        setErrorMessage("");
+        try {
+            // Delete the Food record from the back end.
+            await axios.delete("/food/" + id, {headers: { "Authorization": "Bearer " + access_token}})
+
+            // Remove it from the Foods list state variable.
             setFoods(prevItems => prevItems.filter(_item => _item.id != id));
-        })
-        .catch((error) => {
+        } catch(error) {
             handleError(error)
-        })
+        }
     }
 
     // Add Recipe
     const addRecipe = async (recipe: IRecipe): Promise<number|undefined> => {
         let recipe_id = undefined
-        axios.post("/recipe", recipe, {headers: { "Authorization": "Bearer " + access_token}})
-        .then ((response) => {
-            setErrorMessage("");
+        setErrorMessage("");
+        try {
+            // Save the new recipe to the back end.
+            const response1 = await axios.post("/recipe", recipe, {headers: { "Authorization": "Bearer " + access_token}})
 
             // Retrieve the newly created Recipe using the URL provided in 
-            // the Location header in the response
-            axios.get(response.headers["location"], {headers: { "Authorization": "Bearer " + access_token}})
-            .then((response) => {
-                setErrorMessage("");
+            // the Location header in the response to the previous call.
+            const response2 = await axios.get(response1.headers["location"], {headers: { "Authorization": "Bearer " + access_token}})
+            recipe_id = response2.data.id
 
-                recipe_id = response.data.id
-
-                // Add the new Recipe to our local recipes list
-                setRecipes([...recipes, response.data])
-            })
-            .catch ((error) => {
-                handleError(error)
-            })
-        })
-        .catch ((error) => {
+            // Add the new Recipe to the recipes list state varaible.
+            setRecipes([...recipes, response2.data])
+        } catch (error) {
             handleError(error)
-        })
+        }
         return recipe_id
     }
 
     // Update Recipe
-    const updateRecipe  = (recipe: IRecipe) => {
-        axios.put("/recipe", recipe, {headers: { "Authorization": "Bearer " + access_token}})
-        .then (() => {
-            setErrorMessage("");
-            // Now update our local copy of the recipe in our local recipes list
+    const updateRecipe = async (recipe: IRecipe): Promise<void> => {
+        setErrorMessage("");
+        try {
+            // Update the Recipe on the back end.
+            await axios.put("/recipe", recipe, {headers: { "Authorization": "Bearer " + access_token}})
+
+            // Update it in the Recipes list state variable.
             setRecipes(prevItems => prevItems.map(item => {
                 if (item.id === recipe.id) {
                     return recipe;
@@ -251,186 +243,66 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
                     return item;
                 }
             }))
-        })
-        .catch ((error) => {
+        } catch (error) {
             handleError(error)
-        })
+        }
     }
 
     // Delete Recipe
-    const deleteRecipe = (id: number) => {
-        axios.delete("/recipe/" + id, {headers: { "Authorization": "Bearer " + access_token}})
-        .then(() => {
-            setErrorMessage("");
-            // Now remove it from our local recipes list
+    const deleteRecipe = async (id: number): Promise<void> => {
+        setErrorMessage("");
+        try {
+            // Delete the Recipe from the back end.
+            await axios.delete("/recipe/" + id, {headers: { "Authorization": "Bearer " + access_token}})
+
+            // Remove it from the Recipes list state variable.
             setRecipes(prevItems => prevItems.filter(_item => _item.id != id));
-        })
-        .catch((error) => {
+        } catch(error) {
             handleError(error)
-        })
+        }
     }
 
     // Get Ingredients
-    const getIngredients = (recipe_id: number): IIngredient[] => {
-        axios.get("/recipe/" + recipe_id + "/ingredient", {headers: { "Authorization": "Bearer " + access_token}})
-        .then((response) => {
-            setErrorMessage("");
+    const getIngredients = async (recipe_id: number): Promise<void> => {
+        setErrorMessage("");
+        try {
+            // Get the Ingredient records from the back end
+            const response = await axios.get("/recipe/" + recipe_id + "/ingredient", {headers: { "Authorization": "Bearer " + access_token}})
+
+            // Put the return value the Ingredients list state variable
             setIngredients(response.data);
-        })
-        .catch((error) => {
+        } catch (error) {
              handleError(error)
-        })
-        
-        return ingredients;
+        }
     }
 
-    // Add Ingredients
-    const addIngredients = (recipe_id: number, ingredients: IIngredient[]) => {
-        axios.post("/recipe/" + recipe_id + "/ingredient", ingredients, {headers: { "Authorization": "Bearer " + access_token}})
-        .then(() => {
-            setErrorMessage("");
-        })
-        .catch((error) => {
+    // Add Ingredient(s)
+    const addIngredients = async (recipe_id: number, ingredients: IIngredient[]): Promise<void> => {
+        setErrorMessage("");
+        try {
+            // Add Ingredient records to the back end.
+            await axios.post("/recipe/" + recipe_id + "/ingredient", ingredients, {headers: { "Authorization": "Bearer " + access_token}})
+
+            // Add them to the Ingredients list state variable.
+            // NOTE: It's assumed that the state variable is where we got the data we just sent,
+            // so this step isn't necessary in this one case.
+        } catch(error) {
             handleError(error)
-        })
+        }
     }
 
-    // Add Food Ingredient
-    const addFoodIngredient = (recipe_id: number, ingredient_id: number, servings: number) => {
-        axios.post("/recipe/" + recipe_id + "/foodingredient/" + ingredient_id + "/" + servings, {headers: { "Authorization": "Bearer " + access_token}})
-        .then(() => {
-            setErrorMessage("");
-            // Now add it to our local recipe
-            setRecipes(prevItems => prevItems.map(item => {
-                if (item.id === recipe_id) {
-                    item.food_ingredients.push({food_ingredient_id: ingredient_id, servings: servings})
-                    return item;
-                } else {
-                    return item;
-                }
-            }))            
-        })
-        .catch((error) => {
-            handleError(error)
-        })
-    }
+    // Remove all Ingredients from a Recipe
+    const removeIngredients = async (recipe_id: number): Promise<void> => {
+        setErrorMessage("");
+        try {
+            // Delete the Inggredients from the back end.
+            await axios.delete("/recipe/" + recipe_id + "/ingredient", {headers:  { "Authorization": "Bearer " + access_token}})
 
-    // Add Recipe Ingredient
-    const addRecipeIngredient = (recipe_id: number, ingredient_id: number, servings: number) => {
-        axios.post("/recipe/" + recipe_id + "/recipeingredient/" + ingredient_id + "/" + servings, {headers: { "Authorization": "Bearer " + access_token}})
-        .then(() => {
-            setErrorMessage("");
-            // Now add it to our local recipe
-            setRecipes(prevItems => prevItems.map(item => {
-                if (item.id === recipe_id) {
-                    item.recipe_ingredients.push({recipe_ingredient_id: ingredient_id, servings: servings})
-                    return item;
-                } else {
-                    return item;
-                }
-            }))            
-        })
-        .catch((error) => {
-            handleError(error)
-        })
-    }
-
-    // Update Food Ingredient
-    const updateFoodIngredient = (recipe_id: number, ingredient_id: number, servings: number) => {
-        axios.put("/recipe/" + recipe_id + "/foodingredient/" + ingredient_id + "/" + servings, {headers: { "Authorization": "Bearer " + access_token}})
-        .then(() => {
-            setErrorMessage("");
-            // Now update it in our local recipe
-            setRecipes(prevItems => prevItems.map(item => {
-                if (item.id === recipe_id) {
-                    const ingredient = item.recipe_ingredients.find(element => element.id = ingredient_id)
-                    if (ingredient != null) {
-                        ingredient.servings = servings
-                    }
-                    return item;
-                } else {
-                    return item;
-                }
-            }))            
-        })
-        .catch((error) => {
-            handleError(error)
-        })
-    }
-
-    // Update Recipe Ingredient
-    const updateRecipeIngredient = (recipe_id: number, ingredient_id: number, servings: number) => {
-        axios.put("/recipe/" + recipe_id + "/recipeingredient/" + ingredient_id + "/" + servings, {headers: { "Authorization": "Bearer " + access_token}})
-        .then(() => {
-            setErrorMessage("");
-            // Now update it in our local recipe
-            setRecipes(prevItems => prevItems.map(item => {
-                if (item.id === recipe_id) {
-                    const ingredient = item.food_ingredients.find(element => element.id = ingredient_id)
-                    if (ingredient != null) {
-                        ingredient.servings = servings
-                    }
-                    return item;
-                } else {
-                    return item;
-                }
-            }))            
-        })
-        .catch((error) => {
-            handleError(error)
-        })
-    }
-
-    // Remove all Ingredients for a recipe
-    const removeIngredients = (recipe_id: number) => {
-        axios.delete("/recipe/" + recipe_id + "/ingredient", {headers:  { "Authorization": "Bearer " + access_token}})
-        .then(() => {
-            setErrorMessage("");
+            // Delete them from the Ingredients state variable.
             setIngredients([])
-        })
-        .catch((error) => {
+        } catch(error) {
             handleError(error)
-        })
-    }
-
-    // Remove Food Ingredient
-    const removeFoodIngredient = (recipe_id: number, ingredient_id: number) => {
-        axios.delete("/recipe/" + recipe_id + "/foodingredient/" + ingredient_id, {headers: { "Authorization": "Bearer " + access_token}})
-        .then(() => {
-            setErrorMessage("");
-            // Now remove it from our local recipe
-            setRecipes(prevItems => prevItems.map(item => {
-                if (item.id === recipe_id) {
-                    item.food_ingredients = item.food_ingredients.filter(element => element.id != ingredient_id)
-                    return item;
-                } else {
-                    return item;
-                }
-            }))            
-        })
-        .catch((error) => {
-            handleError(error)
-        })
-    }
-
-    // Remove Recipe Ingredient
-    const removeRecipeIngredient = (recipe_id: number, ingredient_id: number) => {
-        axios.delete("/recipe/" + recipe_id + "/recipeingredient/" + ingredient_id, {headers: { "Authorization": "Bearer " + access_token}})
-        .then(() => {
-            setErrorMessage("");
-            // Now remove it from our local recipe
-            setRecipes(prevItems => prevItems.map(item => {
-                if (item.id === recipe_id) {
-                    item.recipe_ingredients = item.recipe_ingredients.filter(element => element.id != ingredient_id)
-                    return item;
-                } else {
-                    return item;
-                }
-            }))            
-        })
-        .catch((error) => {
-            handleError(error)
-        })
+        }
     }
 
     return (
@@ -447,13 +319,8 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
             deleteRecipe,
             getIngredients,
             addIngredients,            
-            addFoodIngredient,
-            addRecipeIngredient,
-            updateFoodIngredient,
-            updateRecipeIngredient,
-            removeIngredients,
-            removeFoodIngredient,
-            removeRecipeIngredient }}> 
+            removeIngredients
+            }}> 
             {children}
         </DataContext.Provider>
     );

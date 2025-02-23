@@ -19,8 +19,6 @@ function RecipeForm() {
         name: "",
         total_yield: "",
         servings: 0,
-        food_ingredients: [],
-        recipe_ingredients: [],
         nutrition: {
             serving_size_description: "", serving_size_oz: 0, serving_size_g: 0,
             calories: 0, total_fat_g: 0, saturated_fat_g: 0, trans_fat_g: 0,
@@ -75,7 +73,7 @@ function RecipeForm() {
         // Save the Recipe to the database
         let recipe_id: number|undefined|void = -1;
         if (isEdit) {
-            context.updateRecipe(formData);
+            await context.updateRecipe(formData);
             recipe_id = formData.id;
         } else {
             recipe_id = await context.addRecipe(formData);
@@ -84,10 +82,10 @@ function RecipeForm() {
         // We should ALWAYS have a recipe_id at this point
         if (recipe_id) {
             // Remove all previous ingredients for this Recipe
-            context.removeIngredients(recipe_id);
+            await context.removeIngredients(recipe_id);
 
             // Add the new Ingredients
-            context.addIngredients(recipe_id, ingredients);
+            await context.addIngredients(recipe_id, ingredients);
         } else {
             errorMessage = "Error saving Recipe: recipe_id is undefined";
         }
