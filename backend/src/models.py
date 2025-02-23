@@ -867,20 +867,6 @@ class Recipe(db.Model):
 
         logging.info(f"Recipe Ingredient {self.id}/{recipe_id} updated")
         
-    # Remove all Ingredients from the Recipe.
-    def remove_ingredients(recipe_id: int) -> None:
-        logging.info(f"Removing all Ingredients from Recipe {recipe_id}")
-
-        # Get the list of Ingredients
-        ingredients = Ingredient.query.filter_by(recipe_id=recipe_id).all()
-
-        # Remove each Ingredient
-        for ingredient in ingredients:
-            db.session.delete(ingredient)
-
-        # Commit the changes
-        db.session.commit()
-
     # Remove a Food Ingredient from the Recipe.
     def remove_food_ingredient(self, food_id: int) -> None:
         logging.info(f"Removing Food Ingredient {self.id}/{food_id}")
