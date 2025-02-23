@@ -564,6 +564,10 @@ def delete_recipe(recipe_id: int):
         if recipe is None:
             raise ValueError(f"Recipe {recipe_id} not found")
 
+        # Delete any Ingredient records for this Recipe
+        # Get Ingredients
+        Ingredient.query.filter_by(recipe_id=recipe_id).delete()
+
         # Delete the Recipe
         db.session.delete(recipe)
         db.session.commit()
@@ -750,60 +754,60 @@ def add_ingredients(recipe_id:int):
         return jsonify({"msg": msg}), 200
 
 # Add a Food Ingredient to a Recipe
-@bp.route("/recipe/<int:recipe_id>/food_ingredient/<int:food_id>/<float:servings>", methods = ["POST"])
-@jwt_required()
-def add_food_ingredient(recipe_id:int, food_id:int, servings:float):
-    logging.info(f"/recipe/{recipe_id}/food_ingredient/{food_id}/{servings} POST")
-    try:
-        # Get the user_id for the user identified by the token
-        username = get_jwt_identity()
-        user_id = User.get_id(username)
+# @bp.route("/recipe/<int:recipe_id>/food_ingredient/<int:food_id>/<float:servings>", methods = ["POST"])
+# @jwt_required()
+# def add_food_ingredient(recipe_id:int, food_id:int, servings:float):
+#     logging.info(f"/recipe/{recipe_id}/food_ingredient/{food_id}/{servings} POST")
+#     try:
+#         # Get the user_id for the user identified by the token
+#         username = get_jwt_identity()
+#         user_id = User.get_id(username)
 
-        # Get the Recipe record
-        recipe:Recipe = Recipe.query.filter_by(user_id=user_id, id=recipe_id).first()
-        if recipe is None:
-            raise ValueError(f"Recipe record {recipe_id} not found")
+#         # Get the Recipe record
+#         recipe:Recipe = Recipe.query.filter_by(user_id=user_id, id=recipe_id).first()
+#         if recipe is None:
+#             raise ValueError(f"Recipe record {recipe_id} not found")
         
-        # Add the new record
-        recipe.add_food_ingredient(food_id=food_id, servings=servings)
-    except Exception as e:
-        msg = f"Food Ingredient record  {recipe_id}/{food_id} could not be added: {repr(e)}"
-        logging.error(msg)
-        return jsonify({"msg": msg}), 400
-    else:
-        msg = f"Food Ingredient record {recipe_id}/{food_id} added"
-        logging.info(msg)
-        return jsonify({"msg": msg}), 200
+#         # Add the new record
+#         recipe.add_food_ingredient(food_id=food_id, servings=servings)
+#     except Exception as e:
+#         msg = f"Food Ingredient record  {recipe_id}/{food_id} could not be added: {repr(e)}"
+#         logging.error(msg)
+#         return jsonify({"msg": msg}), 400
+#     else:
+#         msg = f"Food Ingredient record {recipe_id}/{food_id} added"
+#         logging.info(msg)
+#         return jsonify({"msg": msg}), 200
 
-# Add a Recipe Ingredient to a Recipe
-@bp.route("/recipe/<int:recipe_id>/recipe_ingredient/<int:recipe_ingredient_id>/<float:servings>", methods = ["POST"])
-@jwt_required()
-def add_recipe_ingredient(recipe_id:int, recipe_ingredient_id:int, servings:float):
-    logging.info(f"/recipe/{recipe_id}/recipe_ingredient/{recipe_ingredient_id}/{servings} POST")
-    try:
-        # Get the user_id for the user identified by the token
-        username = get_jwt_identity()
-        user_id = User.get_id(username)
+# # Add a Recipe Ingredient to a Recipe
+# @bp.route("/recipe/<int:recipe_id>/recipe_ingredient/<int:recipe_ingredient_id>/<float:servings>", methods = ["POST"])
+# @jwt_required()
+# def add_recipe_ingredient(recipe_id:int, recipe_ingredient_id:int, servings:float):
+#     logging.info(f"/recipe/{recipe_id}/recipe_ingredient/{recipe_ingredient_id}/{servings} POST")
+#     try:
+#         # Get the user_id for the user identified by the token
+#         username = get_jwt_identity()
+#         user_id = User.get_id(username)
 
-        # Check for infinite loops
-        if recipe_id == recipe_ingredient_id:
-            raise ValueError("Cannot add a Recipe to itself")
+#         # Check for infinite loops
+#         if recipe_id == recipe_ingredient_id:
+#             raise ValueError("Cannot add a Recipe to itself")
 
-        # Get the Recipe record
-        recipe:Recipe = Recipe.query.filter_by(user_id=user_id, id=recipe_id).first()
-        if recipe is None:
-            raise ValueError(f"Recipe record {recipe_id} not found")
+#         # Get the Recipe record
+#         recipe:Recipe = Recipe.query.filter_by(user_id=user_id, id=recipe_id).first()
+#         if recipe is None:
+#             raise ValueError(f"Recipe record {recipe_id} not found")
 
-        # Add the new record
-        recipe.add_recipe_ingredient(recipe_id=recipe_ingredient_id, servings=servings)        
-    except Exception as e:
-        msg = f"Recipe Ingredient record {recipe_id}/{recipe_ingredient_id} could not be added: {repr(e)}"
-        logging.error(msg)
-        return jsonify({"msg": msg}), 400
-    else:
-        msg = f"Recipe Ingredient record {recipe_id}/{recipe_ingredient_id} added"
-        logging.info(msg)
-        return jsonify({"msg": msg}), 200
+#         # Add the new record
+#         recipe.add_recipe_ingredient(recipe_id=recipe_ingredient_id, servings=servings)        
+#     except Exception as e:
+#         msg = f"Recipe Ingredient record {recipe_id}/{recipe_ingredient_id} could not be added: {repr(e)}"
+#         logging.error(msg)
+#         return jsonify({"msg": msg}), 400
+#     else:
+#         msg = f"Recipe Ingredient record {recipe_id}/{recipe_ingredient_id} added"
+#         logging.info(msg)
+#         return jsonify({"msg": msg}), 200
 
 # Update a Food Ingredient for a Recipe
 @bp.route("/recipe/<int:recipe_id>/food_ingredient/<int:food_id>/<float:servings>", methods = ["PUT"])
@@ -865,11 +869,16 @@ def remove_ingredients(recipe_id:int):
         username = get_jwt_identity()
         user_id = User.get_id(username)
 
+        # Get the Recipe record so we can get its Nutrition child record
+        recipe:Recipe = Recipe.query.filter_by(user_id=user_id, id=recipe_id).first()
+        if (recipe is None):
+            raise ValueError(f"Recipe {recipe_id} not found")
+
         # Remove all the Ingredients from the Recipe
-        Recipe.remove_ingredients(recipe_id)
+        Ingredient.query.filter_by(recipe_id=recipe_id).delete()
 
         # Reset the Nutrition data for the Recipe
-        nutrition = Nutrition.query.filter_by(recipe_id=recipe_id).first()
+        nutrition = Nutrition.query.filter_by(id=recipe.nutrition_id).first()
         nutrition.reset()
         db.session.commit()
     except Exception as e:
