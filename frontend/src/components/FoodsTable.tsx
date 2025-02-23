@@ -10,153 +10,153 @@ import Pagination from './Pagination';
 const columnHelper = createColumnHelper<IFood>()
 const foodColumns = [
     columnHelper.accessor("id", {
-        header: "ID",
+        header: () => <span className="headerText">ID</span>,
         cell: info => info.getValue(),
         size: 55
     }),
     columnHelper.accessor("group", {
-        header: "Group",
+        header: () => <span className="headerText">Group</span>,
         //cell: info => String(info.getValue()).charAt(0).toUpperCase() + String(info.getValue()).slice(1),
         cell: info => getFoodGroupLabel(info.getValue()),
         size: 85,
         meta: { filterVariant: "text" }
     }),
     columnHelper.accessor("vendor", {
-        header: "Vendor",
+        header: () => <span className="headerText">Vendor</span>,
         cell: info => info.getValue(),
         size: 150,
         meta: { filterVariant: "text" }
     }),
     columnHelper.accessor("name", {
-        header: "Name",
+        header: () => <span className="headerText">Name</span>,
         cell: info => info.getValue(),
         size: 150,
         meta: { filterVariant: "text" }
     }),
     columnHelper.accessor("subtype", {
-        header: "Subtype",
+        header: () => <span className="headerText">Subtype</span>,
         cell: info => info.getValue(),
         size: 150,
         meta: { filterVariant: "text" }
     }),
     columnHelper.accessor("description", {
-        header: "Description",
+        header: () => <span className="headerText">Description</span>,
         cell: info => info.getValue(),
         size: 340,
         meta: { filterVariant: "text" }
     }),
     columnHelper.accessor("size_description", {
-        header: "Size",
+        header: () => <span className="headerText">Size</span>,
         cell: info => info.getValue(),
         size: 150
     }),
     columnHelper.accessor("size_oz", {
-        header: "Size (oz or fl oz)",
+        header: () => <span className="headerText">Size (oz or fl oz)</span>,
         cell: info => info.getValue(),
         size: 55
     }),
     columnHelper.accessor("size_g", {
-        header: "Size (g or ml)",
+        header: () => <span className="headerText">Size (g or ml)</span>,
         cell: info => info.getValue(),
         size: 55
     }),
     columnHelper.accessor("servings", {
-        header: "Servings",
+        header: () => <span className="headerText">Servings</span>,
         cell: info => info.getValue(),
         size: 65
     }),
     columnHelper.accessor("nutrition.serving_size_description", {
-        header: "Serving Size",
+        header: () => <span className="headerText">Serving Size</span>,
         cell: info => info.getValue(),
         size: 150
     }),
     columnHelper.accessor("nutrition.serving_size_oz", {
-        header: "Serving Size (oz or fl oz)",
+        header: () => <span className="headerText">Serving Size (oz or fl oz)</span>,
         cell: info => info.getValue(),
         size: 65
     }),
     columnHelper.accessor("nutrition.serving_size_g", {
-        header: "Serving Size (g or ml)",
+        header: () => <span className="headerText">Serving Size (g or ml)</span>,
         cell: info => info.getValue(),
         size: 65
     }),
     columnHelper.accessor("nutrition.calories", {
-        header: "Calories",
+        header: () => <span className="headerText">Calories</span>,
         cell: info => info.getValue(),
         size: 65
     }),
     columnHelper.accessor("nutrition.total_fat_g", {
-        header: "Total Fat (g)",
+        header: () => <span className="headerText">Total Fat (g)</span>,
         cell: info => info.getValue(),
         size: 65
     }),
     columnHelper.accessor("nutrition.saturated_fat_g", {
-        header: "Satu- rated Fat (g)",
+        header: () => <span className="headerText">Satu- rated Fat (g)</span>,
         cell: info => info.getValue(),
         size: 65
     }),
     columnHelper.accessor("nutrition.trans_fat_g", {
-        header: "Trans Fat (g)",
+        header: () => <span className="headerText">Trans Fat (g)</span>,
         cell: info => info.getValue(),
         size: 65
     }),
     columnHelper.accessor("nutrition.cholesterol_mg", {
-        header: "Choles- terol (mg)",
+        header: () => <span className="headerText">Choles- terol (mg)</span>,
         cell: info => info.getValue(),
         size: 65
     }),
     columnHelper.accessor("nutrition.sodium_mg", {
-        header: "Sodium (mg)",
+        header: () => <span className="headerText">Sodium (mg)</span>,
         cell: info => info.getValue(),
         size: 65
     }),
     columnHelper.accessor("nutrition.total_carbs_g", {
-        header: "Total Carbs (g)",
+        header: () => <span className="headerText">Total Carbs (g)</span>,
         cell: info => info.getValue(),
         size: 65
     }),
     columnHelper.accessor("nutrition.total_sugar_g", {
-        header: "Total Sugar (g)",
+        header: () => <span className="headerText">Total Sugar (g)</span>,
         cell: info => info.getValue(),
         size: 65
     }),
     columnHelper.accessor("nutrition.added_sugar_g", {
-        header: "Added Sugar (g)",
+        header: () => <span className="headerText">Added Sugar (g)</span>,
         cell: info => info.getValue(),
         size: 65
     }),
     columnHelper.accessor("nutrition.protein_g", {
-        header: "Protein (g)",
+        header: () => <span className="headerText">Protein (g)</span>,
         cell: info => info.getValue(),
         size: 65
     }),
     columnHelper.accessor("nutrition.vitamin_d_mcg", {
-        header: "Vitamin D (mcg)",
+        header: () => <span className="headerText">Vitamin D (mcg)</span>,
         cell: info => info.getValue(),
         size: 65
     }),
     columnHelper.accessor("nutrition.calcium_mg", {
-        header: "Calcium (mg)",
+        header: () => <span className="headerText">Calcium (mg)</span>,
         cell: info => info.getValue(),
         size: 65
     }),
     columnHelper.accessor("nutrition.iron_mg", {
-        header: "Iron (mg)",
+        header: () => <span className="headerText">Iron (mg)</span>,
         cell: info => info.getValue(),
         size: 65
     }),
     columnHelper.accessor("nutrition.potassium_mg", {
-        header: "Potas- sium (mg)",
+        header: () => <span className="headerText">Potas- sium (mg)</span>,
         cell: info => info.getValue(),
         size: 65
     }),
     columnHelper.accessor("price", {
-        header: "Price",
+        header: () => <span className="headerText">Price</span>,
         cell: info => info.getValue(),
         size: 65
     }),
     columnHelper.accessor("price_date", {
-        header: "Price Date",
+        header: () => <span className="headerText">Price Date</span>,
         cell: info => {
             if (info.getValue().trim().length > 0)
                 return new Date(info.getValue().replace(/-/g, '/').replace(/T.+/, '')).toLocaleDateString('en-US', {year: 'numeric', month: 'short', day: 'numeric'})
@@ -166,7 +166,7 @@ const foodColumns = [
         size: 100
     }),
     columnHelper.accessor("shelf_life", {
-        header: "Shelf Life",
+        header: () => <span className="headerText">Shelf Life</span>,
         cell: info => info.getValue(),
         size: 400
     }),
@@ -254,7 +254,6 @@ const FoodsTable: React.FC<FoodsTableProps> = ({setSelectedRowId, isRecipesForm 
                                     onClick={header.column.getToggleSortingHandler()}>
                                     {header.isPlaceholder ? null : (
                                         <section className='header_cell'>
-                                            {/* Add */}
                                             <p {...{ className: header.column.getCanSort() ? 'cursor-pointer select-none' : '' }}>
                                                 {/* Add the appropriate header text */}
                                                 { flexRender(

@@ -249,3 +249,6 @@ td {
 .footerContainer p {
   margin-left: 20px;
 }
+.headerText {
+  font-size: 14px;
+}
