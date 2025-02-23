@@ -48,7 +48,12 @@ function RecipeForm() {
     let errorMessage = context.errorMessage;
 
     // State for the selected row in the Ingredients list
-    const [selectedIngredientRowId, setSelectedIngredientRowId] = useState<number|null>(null)
+    // For this table, rather than the row ID, we use a tuple of the record's 
+    // food_ingredient_id and recipe_ingredient_id, which are guaranteed to
+    // be unique for a given Recipe.  This is because new Ingredients do not
+    // have any row ID until the record is saved, so it can't be used to
+    // search for a record.
+    const [selectedIngredientRowId, setSelectedIngredientRowId] = useState<number[]|null>(null)
     
     // State for the ingredient servings, which tells us how many servings of
     // the selected Ingredient to add to the Recipe when the user clicks Add.
@@ -152,7 +157,7 @@ function RecipeForm() {
         e.preventDefault();
         if (selectedIngredientRowId) {
             // Find the Food record with the specified ID (this should always succeed)
-            const ingredient:IIngredient|undefined = ingredients.find((item:IIngredient) => item.id === selectedIngredientRowId);
+            const ingredient:IIngredient|undefined = ingredients.find((item:IIngredient) => item.food_ingredient_id === selectedIngredientRowId[0] && item.recipe_ingredient_id === selectedIngredientRowId[1]);
             if (ingredient) {
                 // Get the nutrition information for the selected Ingredient
                 let nutrition: INutrition|null = null;

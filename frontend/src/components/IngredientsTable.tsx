@@ -9,6 +9,21 @@ const columns = [
         cell: info => info.getValue(),
         size: 10
     }),
+    columnHelper.accessor("food_ingredient_id", {
+        header: "Food Ingredient ID",
+        cell: info => info.getValue(),
+        size: 10
+    }),
+    columnHelper.accessor("recipe_ingredient_id", {
+        header: "Recipe Ingredient ID",
+        cell: info => info.getValue(),
+        size: 10
+    }),
+    columnHelper.accessor("servings", {
+        header: "Servings",
+        cell: info => info.getValue(),
+        //size: 150,
+    }),
     columnHelper.accessor("summary", {
         header: "Recipe Ingredients",
         cell: info => info.getValue(),
@@ -17,7 +32,7 @@ const columns = [
 ]
 
 interface IRecipesTableProps {
-    setSelectedRowId: React.Dispatch<React.SetStateAction<number | null>>,
+    setSelectedRowId: React.Dispatch<React.SetStateAction<number[] | null>>,
     ingredients: IIngredient[]
 }
 
@@ -29,6 +44,14 @@ const IngredientsTable: React.FC<IRecipesTableProps> = ({setSelectedRowId, ingre
         columns: columns,
         getCoreRowModel: getCoreRowModel(),
         enableMultiRowSelection: false,
+        initialState: {
+            columnVisibility: {
+                id: false,
+                servings: false,
+                food_ingredient_id: false,
+                recipe_ingredient_id: false
+            }
+        }
     }
     const table = useReactTable(tableOptions)
 
@@ -41,8 +64,10 @@ const IngredientsTable: React.FC<IRecipesTableProps> = ({setSelectedRowId, ingre
         // So we invert the logic too.
         if (row.getIsSelected())
             setSelectedRowId(null)
-        else
-            setSelectedRowId(row.getValue("id"))
+        else {
+            const tuple: number[] = [row.getValue("food_ingredient_id"), row.getValue("recipe_ingredient_id")]
+            setSelectedRowId(tuple)
+        }
     }
 
     return (
