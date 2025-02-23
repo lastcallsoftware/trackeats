@@ -51,7 +51,7 @@ import json
 #
 # Furthermore, the relationship() method also allows you to define *in the 
 # parent record* a field in the child record for accessing the parent record.
-# Yes, it's confusing as it sounds.  This is called a "back reference".
+# Yes, it's as confusing as it sounds.  This is called a "back reference".
 # The legacy way of doing this was to use the "backref" attribute, which 
 # automatically created a field in the child record that pointed back to the
 # parent record.  It basically creates a new field in the child record that 
@@ -59,7 +59,7 @@ import json
 # the parent record.  This is convenient, but as you can surely tell, 
 # EXTREMELY confusing.
 #
-# Therefor the new, preferred way of doing this is to just explicitly create
+# Therefore the new, preferred way of doing this is to just explicitly create
 # a relationship() field in the child record that points back to the parent, 
 # and to reference it in the parent using the "back_populates" attribute.
 # For more information, see:
@@ -74,7 +74,9 @@ import json
 #
 # In fact I've mostly ditched using relationship() at all.  It's very limited
 # in what it can do, and FAR more complicated than just handling the 
-# relationships manually.
+# relationships manually.  The only place I used it is between the Nutrition
+# table and the Food/Recipe/DailyLog tables.  See the comments for the Nutrition
+# record for more about that.
 ##############################
 
 # Instantiate the Flask-SQLAlchemny database connector.
@@ -263,21 +265,25 @@ class User(db.Model):
 # The Nutrition data is technically denormalized for the Recipe and DailyLog
 # tables.  That is, we store it even though it's calculated from other records
 # that are already stored in the database.  We do this for efficiency.
-# It's more efficient to store it rather than load all the ingredient child 
-# records and recalculate the totals every time a Recipe or DailyLog record is 
-# loaded.  We just have to remember to recalculate and re-store the Nutrition 
+# It's more efficient to store it rather than load all the ingredient child
+# records and recalculate the totals every time a Recipe or DailyLog record is
+# viewed.  We just have to remember to recalculate and re-store the Nutrition
 # data when necessary, such as when a Recipe's ingredients change.
 # 
-# Each of those tables has a 1-to-1 relationship with the Nutrition table.
-# Note that the Nutrition record is the parent record in this relationship.
-# This is because the Nutrition record is the one that is reused in multiple
-# places.
-# As such, if you delete of of these records, we CANNOT configure the ORM layer
-# to automatically cascade delete its corresponding Nutrition record -- we'd 
-# have to do it the other way around, which doesn't really make sense from a 
-# usage standpoint.
-# So when we want to delete a Food, Recipe, or DailyLog, we have to code the 
-# delete of the corresponding Nutrition record manually.
+# The Food, Recipe and DailyLog tables each have a 1-to-1 relationship with the
+# Nutrition table.  Note that technically, the Nutrition record is the parent
+# record in these relationships.  That is, instead of the Nutrition record having
+# the ID of an associated Food, Recipe, or DailyLog record, those records have the
+# ID of an associated Nutrition record.  This is because the Nutrition record is 
+# reused -- it can't have foreign key relationships on all three of those tables,
+# so we do it the other way around.
+#
+# This has one convenient side effect, which is that we can configure SQLAlchemy
+# for "cascade deletes".  So when we delete a Food, Recipe or DailyLog record,
+# the ORM layer also automatically deletes the associated Nutrition record
+# without any coding on our part.  It can do this because the "child" record in
+# these relationships (Food/Recipe/DailyLog) has the ID of the "parent"
+# Nutrition record.
 ##############################
 class Nutrition(db.Model):
     __tablename__ = "nutrition"
@@ -446,7 +452,6 @@ class Food(db.Model):
         "Nutrition", 
         single_parent=True, 
         cascade="all, delete-orphan")
-        #backref=db.backref("food", cascade="all, delete-orphan", uselist=False))
     price = db.Column(db.Float)
     price_date = db.Column(db.Date, nullable=True)
     shelf_life = db.Column(db.String(150))
@@ -605,27 +610,41 @@ class Ingredient(db.Model):
             recipe:Recipe = ingredient
             return f"{servings} x {recipe.name} ({ss_oz} oz/{ss_g} g)"
 
-    def add(recipe_id: int, food_ingredient_id: int, recipe_ingredient_id:int, servings: float, summary: str, commit: bool = False) -> None:
+    def add(recipe_id: int, food_ingredient_id: int, recipe_ingredient_id:int, servings: float, summary: str, commit: bool = True) -> None:
         try:
+            # Check whether a matching Ingredient record already exists
+            ingredient:Ingredient = Ingredient.query.filter_by(recipe_id=recipe_id, food_ingredient_id=food_ingredient_id, recipe_ingredient_id=recipe_ingredient_id).first()
+            if ingredient is not None:
+                raise ValueError(f"Food Ingredient record {recipe_id}/{food_ingredient_id}/{recipe_ingredient_id} already exists")
+
+            # Get the Recipe record.  We need to update its Nutrition record.
+            recipe:Recipe = Recipe.query.filter_by(id=recipe_id).first()
+            if recipe is None:
+                raise ValueError(f"Recipe {recipe_id} not found")
+
             # Generate a summay for this Ingredient if one wasn't provided.
-            if summary is None or summary == "":
-                if food_ingredient_id is not None:
-                    food:Food = Food.query.filter_by(id=food_ingredient_id).first()
-                    summary = Ingredient.generate_summary(food, servings)
-                elif recipe_ingredient_id is not None:
-                    recipe:Recipe = Recipe.query.filter_by(id=recipe_ingredient_id).first()
-                    summary = Ingredient.generate_summary(recipe, servings)
-                else:
-                    raise ValueError("Either food_ingredient_id or recipe_ingredient_id must be provided.")
+            # Also, sum the Nutrition data from the new Ingredient into the Recipe.
+            if food_ingredient_id is not None:
+                food_ingredient:Food = Food.query.filter_by(id=food_ingredient_id).first()
+                if summary is None or summary == "":
+                    summary = Ingredient.generate_summary(food_ingredient, servings)
+                recipe.nutrition.sum(food_ingredient.nutrition, servings)
+            elif recipe_ingredient_id is not None:
+                recipe_ingredient:Recipe = Recipe.query.filter_by(id=recipe_ingredient_id).first()
+                if summary is None or summary == "":
+                    summary = Ingredient.generate_summary(recipe_ingredient, servings)
+                recipe.nutrition.sum(recipe_ingredient.nutrition, servings)
+            else:
+                raise ValueError("Either food_ingredient_id or recipe_ingredient_id must be provided.")
 
             # Create a new Ingredient record and add it to the database.
-            ingredient = Ingredient(recipe_id=recipe_id, food_ingredient_id=food_ingredient_id, servings=servings, summary=summary)
+            ingredient:Ingredient = Ingredient(recipe_id=recipe_id, food_ingredient_id=food_ingredient_id, servings=servings, summary=summary)
             db.session.add(ingredient)
 
             if commit:
                 db.session.commit()
         except Exception as e:
-            raise ValueError("Ingredient record could not be added: " + repr(e)) from e
+            raise ValueError(f"Ingredient record {recipe_id}/{food_ingredient_id}/{recipe_ingredient_id} could not be added: " + repr(e)) from e
 
 
 ##############################
@@ -697,10 +716,13 @@ class Recipe(db.Model):
             # their Nutrition data as we go.
             if food_ingredients_and_servings is not None:
                 for food_ingredient_and_serving in food_ingredients_and_servings:
-                    recipe.add_food_ingredient(food_ingredient_and_serving[0].id, food_ingredient_and_serving[1])
+                    Ingredient.add(recipe.id, food_ingredient_and_serving[0].id, None, food_ingredient_and_serving[1], None, False)
+                    #recipe.add_food_ingredient(food_ingredient_and_serving[0].id, food_ingredient_and_serving[1])
             if recipe_ingredients_and_servings is not None:
                 for recipe_ingredient_and_serving in recipe_ingredients_and_servings:
-                    recipe.add_recipe_ingredient(recipe_ingredient_and_serving[0].id, recipe_ingredient_and_serving[1])
+                    Ingredient.add(recipe.id, None, recipe_ingredient_and_serving[0].id, food_ingredient_and_serving[1], None, False)
+                    #recipe.add_recipe_ingredient(recipe_ingredient_and_serving[0].id, recipe_ingredient_and_serving[1])
+            db.session.commit()
 
             # Return the ID of the new Recipe record.
             return recipe.id
@@ -737,73 +759,6 @@ class Recipe(db.Model):
             raise ValueError(f"Expected to update 1 Recipe record but found {num_updates}.")
 
         db.session.commit()
-
-    # Add a Food Ingredient record for this Recipe
-    def add_food_ingredient(self, food_id: int, servings: float, summary: str = None) -> None:
-        logging.info(f"Adding Food Ingredient {self.id}/{food_id}")
-
-        # Check whether the Ingredient record already exists
-        ingredient:Ingredient = Ingredient.query.filter_by(recipe_id=self.id, food_ingredient_id=food_id).first()
-        if ingredient is not None:
-            raise ValueError(f"Food Ingredient record {self.id}/{food_id} already exists")
-
-        # Get the associated Food record
-        food:Food = Food.query.filter_by(id=food_id).first()
-        if food is None:
-            raise ValueError(f"Food {food_id} not found")
-
-        # Generate a pithy summary, if necessary
-        if summary is None or summary == "":
-            summary = Ingredient.generate_summary(food, servings)
-
-        # Create a new Ingredient record and add it to the database.
-        ingredient:Ingredient = Ingredient(recipe_id=self.id, food_ingredient_id=food_id, servings=servings, summary=summary)
-        db.session.add(ingredient)
-
-        # Sum the Nutrition data from the new Ingredient into the Recipe.
-        self.nutrition.sum(food.nutrition, servings)
-
-        db.session.commit()
-
-        logging.info(f"Food Ingredient {self.id}/{food_id} added")
-
-    # Add a Recipe Ingredient record for this Recipe.
-    def add_recipe_ingredient(self, recipe_id: int, servings: float, summary: str = None) -> None:
-        logging.info(f"Adding Recipe Ingredient {self.id}/{recipe_id}")
-
-        # Check whether the Ingredient record already exists
-        ingredient:Ingredient = Ingredient.query.filter_by(recipe_id=self.id, recipe_ingredient_id=recipe_id).first()
-        if ingredient is not None:
-            raise ValueError(f"Recipe Ingredient record {self.id}/{recipe_id} already exists")
-
-        # Get the Recipe record so we can sum its Nutrition data into the Recipe.
-        recipe:Recipe = Recipe.query.filter_by(id=recipe_id).first()
-        if recipe is None:
-            raise ValueError(f"Recipe {recipe_id} not found")
-
-        # Generate a pithy summary, if necessary
-        if summary is None or summary == "":
-            summary = Ingredient.generate_summary(food, servings)
-
-        # Create a new Ingredient record and add it to the database.
-        ingredient:Ingredient = Ingredient(recipe_id=self.id, recipe_ingredient_id=recipe_id, servings=servings)
-        db.session.add(ingredient)
-
-        # Sum the Nutrition data from the new Ingredient into the Recipe.
-        self.nutrition.sum(recipe.nutrition, servings)
-
-        db.session.commit()
-
-        logging.info(f"Recipe Ingredient {self.id}/{recipe_id} added")
-
-    # Add an Ingredient (either Food or Recipe) to the Recipe.
-    def add_ingredient(self, ingredient: Ingredient) -> None:
-        if ingredient.food_ingredient_id is not None:
-            self.add_food_ingredient(ingredient.food_ingredient_id, ingredient.servings)
-        elif ingredient.recipe_ingredient_id is not None:
-            self.add_recipe_ingredient(ingredient.recipe_ingredient_id, ingredient.servings)
-        else:
-            raise ValueError("Ingredient record must have either a food_ingredient_id or a recipe_ingredient_id")
 
     # Update a Food Ingredient.
     def update_food_ingredient(self, food_id: int, servings: int) -> None:
@@ -925,16 +880,3 @@ class Recipe(db.Model):
     def reset_nutrition(self) -> None:
         db.session.delete(self.nutrition)
         self.nutrition = Nutrition()
-
-    # Recalculate the Nutrition data for the Recipe.
-    # This is a failsafe.  Typically the Nutrition data is adjusted whenever
-    # an ingredient is added or removed from the Recipe, but maybe we want
-    # a way to recalculate it from scratch.
-    # def recalculate_nutrition(self):
-    #     self.reset_nutrition()
-    #     if self.food_ingredients is not None:
-    #         for food_ingredient in self.food_ingredients:
-    #             self.nutrition.sum(food_ingredient.nutrition, food_ingredient.servings)
-    #     if self.recipe_ingredients is not None:
-    #         for recipe_ingredient in self.recipe_ingredients:
-    #             self.nutrition.sum(recipe_ingredient.nutrition, recipe_ingredient.servings)
