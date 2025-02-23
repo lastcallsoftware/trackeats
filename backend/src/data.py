@@ -103,5 +103,7 @@ def load_db():
         "1 breast",
         [(ingredient1, 2), (ingredient2, 1)], 
         None)
+    
+    logging.info("Added Recipes")
 
     db.session.commit()
