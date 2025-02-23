@@ -11,7 +11,7 @@ curl \
 "name": "Cup of Rice",
 "total_yield": "4 cups",
 "servings": 4,
-"serving_description": "1 cup"
+"nutrition": {"serving_size_description": "1 cup"}
 }' \
 http://localhost:5000/recipe
 #https://trackeats.lastcallsw.com:54443/recipe
