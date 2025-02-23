@@ -388,7 +388,7 @@ class Nutrition(db.Model):
         return self
 
     # Reset the Nutrition totals to zero (leave the ID and serving info intact).
-    def reset(self, nutrition2: "Nutrition", servings: float) -> dict:
+    def reset(self) -> dict:
         self.calories = 0
         self.total_fat_g = 0
         self.saturated_fat_g = 0
@@ -569,6 +569,10 @@ class Food(db.Model):
 # That is, either the food_ingredient_id or the recipe_ingredient_id is set
 # in any given record, but never both.
 ##############################
+# This allows us to reference Recipe before we actually define it.
+class Recipe:
+    pass
+
 class Ingredient(db.Model):
     __tablename__ = "ingredient"
 
@@ -588,6 +592,40 @@ class Ingredient(db.Model):
             "servings": self.servings,
             "summary": self.summary
         }
+    
+    # Generate a short summary of an Ingredient.
+    def generate_summary(ingredient: Food | Recipe, servings: float) -> str:
+        ss_oz:float = round(ingredient.nutrition.serving_size_oz * servings, 1)
+        ss_g:int = round(ingredient.nutrition.serving_size_g * servings)
+        if type(ingredient) == Food:
+            food:Food = ingredient
+            subtype = f",{food.subtype}" if (food.subtype is None or food.subtype == "") else "" 
+            return f"{servings} x {food.nutrition.serving_size_description} {food.vendor} {food.name}{subtype} ({ss_oz} oz/{ss_g} g)"
+        else:
+            recipe:Recipe = ingredient
+            return f"{servings} x {recipe.name} ({ss_oz} oz/{ss_g} g)"
+
+    def add(recipe_id: int, food_ingredient_id: int, recipe_ingredient_id:int, servings: float, summary: str, commit: bool = False) -> None:
+        try:
+            # Generate a summay for this Ingredient if one wasn't provided.
+            if summary is None or summary == "":
+                if food_ingredient_id is not None:
+                    food:Food = Food.query.filter_by(id=food_ingredient_id).first()
+                    summary = Ingredient.generate_summary(food, servings)
+                elif recipe_ingredient_id is not None:
+                    recipe:Recipe = Recipe.query.filter_by(id=recipe_ingredient_id).first()
+                    summary = Ingredient.generate_summary(recipe, servings)
+                else:
+                    raise ValueError("Either food_ingredient_id or recipe_ingredient_id must be provided.")
+
+            # Create a new Ingredient record and add it to the database.
+            ingredient = Ingredient(recipe_id=recipe_id, food_ingredient_id=food_ingredient_id, servings=servings, summary=summary)
+            db.session.add(ingredient)
+
+            if commit:
+                db.session.commit()
+        except Exception as e:
+            raise ValueError("Ingredient record could not be added: " + repr(e)) from e
 
 
 ##############################
@@ -599,11 +637,6 @@ class Ingredient(db.Model):
 # ("Denormalized" because it could be calculated from its ingredients.)
 # This is the app"s second-level building-block record.
 ##############################
-# This allows us to define Recipe as a class in advance, so we can use it 
-# as a type hint in the actual Recipe definition below
-class Recipe:
-    pass
-
 class Recipe(db.Model):
     __tablename__ = "recipe"
 
@@ -635,14 +668,15 @@ class Recipe(db.Model):
             }
 
     # Create a new Recipe record and add it to the database.
+    # Returns the ID of the new Recipe record.
     def add(user_id: int, 
             cuisine: str,
             name: str,
             total_yield: str, 
             servings: int, 
-            serving_description: str, 
+            serving_size_description: str, 
             food_ingredients_and_servings: list[tuple[dict,float]],
-            recipe_ingredients_and_servings: list[tuple[dict,float]]) -> None:
+            recipe_ingredients_and_servings: list[tuple[dict,float]]) -> int:
         try:
             recipe = Recipe()
             recipe.user_id = user_id
@@ -651,8 +685,9 @@ class Recipe(db.Model):
             recipe.total_yield = total_yield
             recipe.servings = servings
 
-            # The serving size description goes in the Nutrition child object
-            recipe.nutrition = Nutrition({"serving_size_description": serving_description})
+            # Create a new Nurition child record for the Recipe.  At the start the only field
+            # with a value is the serving_size_description.
+            recipe.nutrition = Nutrition({"serving_size_description": serving_size_description})
 
             # Add the Recipe record to the database WITH NO INGREDIENTS YET.
             db.session.add(recipe)
@@ -666,6 +701,9 @@ class Recipe(db.Model):
             if recipe_ingredients_and_servings is not None:
                 for recipe_ingredient_and_serving in recipe_ingredients_and_servings:
                     recipe.add_recipe_ingredient(recipe_ingredient_and_serving[0].id, recipe_ingredient_and_serving[1])
+
+            # Return the ID of the new Recipe record.
+            return recipe.id
         except Exception as e:
             raise ValueError("Recipe record could not be added: " + repr(e)) from e
 
@@ -700,23 +738,12 @@ class Recipe(db.Model):
 
         db.session.commit()
 
-    def generate_summary(self, ingredient: Food | Recipe, servings: float) -> str:
-        ss_oz:float = round(ingredient.nutrition.serving_size_oz * servings, 1)
-        ss_g:int = round(ingredient.nutrition.serving_size_g * servings)
-        if type(ingredient) == Food:
-            food:Food = ingredient
-            subtype = f",{food.subtype}" if (food.subtype is None or food.subtype == "") else "" 
-            return f"{servings} x {food.nutrition.serving_size_description} {food.vendor} {food.name}{subtype} ({ss_oz} oz/{ss_g} g)"
-        else:
-            recipe:Recipe = ingredient
-            return f"{servings} x {recipe.name} ({ss_oz} oz/{ss_g} g)"
-
     # Add a Food Ingredient record for this Recipe
     def add_food_ingredient(self, food_id: int, servings: float, summary: str = None) -> None:
         logging.info(f"Adding Food Ingredient {self.id}/{food_id}")
 
         # Check whether the Ingredient record already exists
-        ingredient:Ingredient = Ingredient.query.filter_by(recipe_id=self.id, food_ingredient_id=food_id, servings=servings).first()
+        ingredient:Ingredient = Ingredient.query.filter_by(recipe_id=self.id, food_ingredient_id=food_id).first()
         if ingredient is not None:
             raise ValueError(f"Food Ingredient record {self.id}/{food_id} already exists")
 
@@ -727,7 +754,7 @@ class Recipe(db.Model):
 
         # Generate a pithy summary, if necessary
         if summary is None or summary == "":
-            summary = self.generate_summary(food, servings)
+            summary = Ingredient.generate_summary(food, servings)
 
         # Create a new Ingredient record and add it to the database.
         ingredient:Ingredient = Ingredient(recipe_id=self.id, food_ingredient_id=food_id, servings=servings, summary=summary)
@@ -745,7 +772,7 @@ class Recipe(db.Model):
         logging.info(f"Adding Recipe Ingredient {self.id}/{recipe_id}")
 
         # Check whether the Ingredient record already exists
-        ingredient:Ingredient = Ingredient.query.filter_by(recipe_id=self.id, recipe_ingredient_id=recipe_id, servings=servings).first()
+        ingredient:Ingredient = Ingredient.query.filter_by(recipe_id=self.id, recipe_ingredient_id=recipe_id).first()
         if ingredient is not None:
             raise ValueError(f"Recipe Ingredient record {self.id}/{recipe_id} already exists")
 
@@ -756,7 +783,7 @@ class Recipe(db.Model):
 
         # Generate a pithy summary, if necessary
         if summary is None or summary == "":
-            summary = self.generate_summary(food, servings)
+            summary = Ingredient.generate_summary(food, servings)
 
         # Create a new Ingredient record and add it to the database.
         ingredient:Ingredient = Ingredient(recipe_id=self.id, recipe_ingredient_id=recipe_id, servings=servings)
@@ -769,6 +796,15 @@ class Recipe(db.Model):
 
         logging.info(f"Recipe Ingredient {self.id}/{recipe_id} added")
 
+    # Add an Ingredient (either Food or Recipe) to the Recipe.
+    def add_ingredient(self, ingredient: Ingredient) -> None:
+        if ingredient.food_ingredient_id is not None:
+            self.add_food_ingredient(ingredient.food_ingredient_id, ingredient.servings)
+        elif ingredient.recipe_ingredient_id is not None:
+            self.add_recipe_ingredient(ingredient.recipe_ingredient_id, ingredient.servings)
+        else:
+            raise ValueError("Ingredient record must have either a food_ingredient_id or a recipe_ingredient_id")
+
     # Update a Food Ingredient.
     def update_food_ingredient(self, food_id: int, servings: int) -> None:
         logging.info(f"Updating Food Ingredient {self.id}/{food_id}")
@@ -777,7 +813,7 @@ class Recipe(db.Model):
         ingredient:Ingredient = Ingredient.query.filter_by(recipe_id=self.id, food_ingredient_id=food_id).first()
         if ingredient is None:
             raise ValueError(f"Food Ingredient {self.id}/{food_id} not found")
-        
+
         # Update the record
         old_servings = ingredient.servings
         ingredient.servings = servings
@@ -793,7 +829,7 @@ class Recipe(db.Model):
         self.nutrition.sum(food.nutrition, ingredient.servings)
 
         # Update the summary
-        ingredient.summary = self.generate_summary(food, servings)
+        ingredient.summary = Ingredient.generate_summary(food, servings)
 
         # Commit the changes.
         db.session.commit()
@@ -824,13 +860,27 @@ class Recipe(db.Model):
         self.nutrition.sum(recipe.nutrition, ingredient.servings)
 
         # Update the summary
-        ingredient.summary = self.generate_summary(recipe, servings)
+        ingredient.summary = Ingredient.generate_summary(recipe, servings)
 
         # Commit the changes.
         db.session.commit()
 
         logging.info(f"Recipe Ingredient {self.id}/{recipe_id} updated")
         
+    # Remove all Ingredients from the Recipe.
+    def remove_ingredients(recipe_id: int) -> None:
+        logging.info(f"Removing all Ingredients from Recipe {recipe_id}")
+
+        # Get the list of Ingredients
+        ingredients = Ingredient.query.filter_by(recipe_id=recipe_id).all()
+
+        # Remove each Ingredient
+        for ingredient in ingredients:
+            db.session.delete(ingredient)
+
+        # Commit the changes
+        db.session.commit()
+
     # Remove a Food Ingredient from the Recipe.
     def remove_food_ingredient(self, food_id: int) -> None:
         logging.info(f"Removing Food Ingredient {self.id}/{food_id}")
