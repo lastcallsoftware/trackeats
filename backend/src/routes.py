@@ -1,10 +1,10 @@
 import os
 import logging
 from datetime import datetime, timedelta
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, make_response, request
 from flask_jwt_extended import jwt_required, create_access_token, get_jwt_identity
 from sendmail import send_confirmation_email
-from models import db, User, UserStatus, Food, Recipe, Ingredient
+from models import db, User, UserStatus, Nutrition, Food, Recipe, Ingredient
 from crypto import generate_url_token
 from data import load_db
 from sqlalchemy.sql import text
@@ -318,7 +318,7 @@ def protected():
 ##############################
 # FOOD
 ##############################
-# Get the list of all foods for this user
+# Get all Foods
 @bp.route("/food", methods = ["GET"])
 @jwt_required()
 def get_foods():
@@ -342,7 +342,7 @@ def get_foods():
         logging.info(msg)
         return jsonify(data), 200
     
-# Get a single food for this user
+# Get Food
 @bp.route("/food/<int:food_id>", methods = ["GET"])
 @jwt_required()
 def get_food(food_id:int):
@@ -366,7 +366,7 @@ def get_food(food_id:int):
         logging.info(msg)
         return jsonify(data), 200
 
-# Add a new Food to the database for this user
+# Add Food
 @bp.route("/food", methods = ["POST"])
 @jwt_required()
 def add_food():
@@ -388,7 +388,7 @@ def add_food():
         logging.info(msg)
         return jsonify({"msg": msg}), 200
 
-# Update an existing food record for this user
+# Update Food
 @bp.route("/food", methods = ["PUT"])
 @jwt_required()
 def update_food():
@@ -410,7 +410,7 @@ def update_food():
         logging.info(msg)
         return jsonify({"msg": msg}), 200
 
-# Delete an Food record for this user
+# Delete Food
 @bp.route("/food/<int:food_id>", methods = ["DELETE"])
 @jwt_required()
 def delete_food(food_id:int):
@@ -441,7 +441,7 @@ def delete_food(food_id:int):
 ##############################
 # RECIPE
 ##############################
-# Get the list of all recipes for this user
+# Get all Recipes
 @bp.route("/recipe", methods = ["GET"])
 @jwt_required()
 def get_recipes():
@@ -465,7 +465,7 @@ def get_recipes():
         logging.info(msg)
         return jsonify(data), 200
     
-# Get a particular recipe for this user
+# Get Recipe
 @bp.route("/recipe/<int:recipe_id>", methods = ["GET"])
 @jwt_required()
 def get_recipe(recipe_id: int):
@@ -487,7 +487,7 @@ def get_recipe(recipe_id: int):
         logging.info(msg)
         return jsonify(data), 200
 
-# Add a new Recipe to the database for this user
+# Add Recipe
 @bp.route("/recipe", methods = ["POST"])
 @jwt_required()
 def add_recipe():
@@ -497,15 +497,22 @@ def add_recipe():
         username = get_jwt_identity()
         user_id = User.get_id(username)
 
-        # Add the recipe to the database
         recipe = request.json
-        Recipe.add(
+
+        # Pull the serving size description from the Nutrition child record and
+        # make it a separate parameter.  It will be added back to the Nutrition
+        # record when the Recipe is saved.  We just do it this way to make the
+        # .add() API call easier.
+        serving_size_description = recipe["nutrition"]["serving_size_description"]
+
+        # Add the recipe to the database
+        new_recipe_id = Recipe.add(
             user_id, 
             recipe["cuisine"],
             recipe["name"], 
             recipe["total_yield"],
             recipe["servings"],
-            recipe["serving_description"],
+            serving_size_description,
             None,
             None)
     except Exception as e:
@@ -513,11 +520,14 @@ def add_recipe():
         logging.error(msg)
         return jsonify({"msg": msg}), 400
     else:
-        msg = "Recipe added"
+        msg = f"Recipe record {new_recipe_id} added"
         logging.info(msg)
-        return jsonify({"msg": msg}), 200
+        resp = make_response(jsonify({"msg": msg}), 201)
+        #resp.headers["Access-Control-Expose-Headers"] = f"Location"
+        resp.headers["Location"] = f"/recipe/{new_recipe_id}"
+        return resp
 
-# Update an existing recipe record for this user
+# Update Recipe
 @bp.route("/recipe", methods = ["PUT"])
 @jwt_required()
 def update_recipe():
@@ -539,7 +549,7 @@ def update_recipe():
         logging.info(msg)
         return jsonify({"msg": msg}), 200
 
-# Delete an existing recipe record for this user
+# Delete Recipe
 @bp.route("/recipe/<int:recipe_id>", methods = ["DELETE"])
 @jwt_required()
 def delete_recipe(recipe_id: int):
@@ -641,7 +651,7 @@ def get_recipe_ingredients(recipe_id:int):
         msg = "Recipe Ingredient records retrieved"
         logging.info(msg)
         return jsonify(data), 200
-    
+
 # Get a particular Food Ingredient for a Recipe
 @bp.route("/recipe/<int:recipe_id>/food_ingredient/<int:food_ingredient_id>", methods = ["GET"])
 @jwt_required()
@@ -687,7 +697,58 @@ def get_recipe_ingredient(recipe_id: int, recipe_ingredient_id: int):
         msg = f"Recipe Ingredient record {recipe_id}/{recipe_ingredient_id} retrieved"
         logging.info(msg)
         return jsonify(ingredient.json()), 200
-    
+
+# Add an Ingredient (either Food or Recipe) to a Recipe
+# @bp.route("/recipe/<int:recipe_id>/ingredient", methods = ["POST"])
+# @jwt_required()
+# def add_ingredient(recipe_id:int):
+#     logging.info(f"/recipe/{recipe_id}/ingredient POST")
+#     logging.info(request.json)
+#     try:
+#         # Extract the fields from the request
+#         food_ingredient_id = request.json["food_ingredient_id"]
+#         recipe_ingredient_id = request.json["recipe_ingredient_id"]
+#         servings = request.json["servings"]
+#         summary = request.json["summary"]
+        
+#         # Add it to the database
+#         Ingredient.add(recipe_id, food_ingredient_id, recipe_ingredient_id, servings, summary, True)
+#     except Exception as e:
+#         msg = f"Ingredient record could not be added: {repr(e)}"
+#         logging.error(msg)
+#         return jsonify({"msg": msg}), 400
+#     else:
+#         msg = f"Ingredient record added"
+#         logging.info(msg)
+#         return jsonify({"msg": msg}), 200
+
+# Add multiple Ingredients (either Food or Recipe) to a Recipe
+@bp.route("/recipe/<int:recipe_id>/ingredient", methods = ["POST"])
+@jwt_required()
+def add_ingredients(recipe_id:int):
+    logging.info(f"/recipe/{recipe_id}/ingredient POST")
+    try:
+        # Get the user_id for the user identified by the token
+        username = get_jwt_identity()
+        user_id = User.get_id(username)
+
+        # Add the Ingredients to the database
+        ingredients: list[dict[str,any]] = request.json
+        for ingredient in ingredients:
+            food_ingredient_id = ingredient.get("food_ingredient_id")
+            recipe_ingredient_id = ingredient.get("recipe_ingredient_id")
+            servings = ingredient.get("servings")
+            summary = ingredient.get("summary")
+            Ingredient.add(recipe_id, food_ingredient_id, recipe_ingredient_id, servings, summary, True)
+    except Exception as e:
+        msg = f"Ingredient record(s) could not be added to Recipe {recipe_id}: {repr(e)}"
+        logging.error(msg)
+        return jsonify({"msg": msg}), 400
+    else:
+        msg = f"{len(ingredients)} Ingredient records added to Recipe {recipe_id}"
+        logging.info(msg)
+        return jsonify({"msg": msg}), 200
+
 # Add a Food Ingredient to a Recipe
 @bp.route("/recipe/<int:recipe_id>/food_ingredient/<int:food_id>/<float:servings>", methods = ["POST"])
 @jwt_required()
@@ -791,6 +852,32 @@ def update_recipe_ingredient(recipe_id:int, recipe_ingredient_id:int, servings:f
         return jsonify({"msg": msg}), 400
     else:
         msg = f"Recipe Ingredent record {recipe_id}/{recipe_ingredient_id} updated"
+        logging.info(msg)
+        return jsonify({"msg": msg}), 200
+
+# Remove all Ingredients for this Recipe
+@bp.route("/recipe/<int:recipe_id>/ingredient", methods = ["DELETE"])
+@jwt_required()
+def remove_ingredients(recipe_id:int):
+    logging.info(f"/recipe/{recipe_id}/ingredient DELETE")
+    try:
+        # Get the user_id for the user identified by the token
+        username = get_jwt_identity()
+        user_id = User.get_id(username)
+
+        # Remove all the Ingredients from the Recipe
+        Recipe.remove_ingredients(recipe_id)
+
+        # Reset the Nutrition data for the Recipe
+        nutrition = Nutrition.query.filter_by(recipe_id=recipe_id).first()
+        nutrition.reset()
+        db.session.commit()
+    except Exception as e:
+        msg = f"Ingredients for Recipe {recipe_id} could not be removed: {repr(e)}"
+        logging.error(msg)
+        return jsonify({"msg": msg}), 400
+    else:
+        msg = f"Ingredients for Recipe {recipe_id} removed"
         logging.info(msg)
         return jsonify({"msg": msg}), 200
 
