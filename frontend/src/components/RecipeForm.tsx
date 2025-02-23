@@ -114,17 +114,34 @@ function RecipeForm() {
                 // Find the Food record with the specified ID (this should always succeed)
                 const food:IFood|undefined = context.foods.find((item:IFood) => item.id == selectedFoodOrRecipeRowId);
                 if (food) {
-                    // Add the Food Ingredient to the Recipe's ingredients list
-                    ingredients.push({food_ingredient_id: food.id, servings: ingredientServings, summary: food.name});
                     nutrition = food.nutrition
+
+                    // Generate a summary for the Ingredient
+                    let summary = ingredientServings + " x " + nutrition?.serving_size_description + " "
+                    summary += food.vendor + " " + food.name + " "
+                    if (food.subtype) {
+                        summary += food.subtype + " "
+                    }
+                    summary += "(" + (nutrition.serving_size_oz * ingredientServings).toFixed(1) + "oz/" + 
+                                    (nutrition.serving_size_g * ingredientServings).toFixed(1) + "g)"
+
+                    // Add the Food Ingredient to the Recipe's ingredients list
+                    ingredients.push({food_ingredient_id: food.id, servings: ingredientServings, summary: summary});
                 }
             } else {
                 // Find the Recipe record with the specified ID (this should always succeed)
                 const recipe:IRecipe|undefined = context.recipes.find((item:IRecipe) => item.id == selectedFoodOrRecipeRowId);
                 if (recipe) {
-                    // Add the Recipe Ingredient to the Recipe's ingredients list
-                    ingredients.push({recipe_ingredient_id: recipe.id, servings: ingredientServings, summary: recipe.name});
                     nutrition = recipe.nutrition
+
+                    // Generate a summary for the Ingredient
+                    let summary = ingredientServings + " x " + nutrition.serving_size_description + " "
+                    summary += recipe.name + " "
+                    summary += "(" + (nutrition.serving_size_oz * ingredientServings).toFixed(1) + "oz/" + 
+                                    (nutrition.serving_size_g * ingredientServings).toFixed(1) + "g)"
+
+                    // Add the Recipe Ingredient to the Recipe's ingredients list
+                    ingredients.push({recipe_ingredient_id: recipe.id, servings: ingredientServings, summary: summary});
                 }
             }
             // Update the Recipe's nutrition information
