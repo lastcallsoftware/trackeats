@@ -222,20 +222,21 @@ function RecipeForm() {
         }
     }
 
-    // Token management
-	const tok = sessionStorage.getItem("access_token")
-	const access_token = tok ? JSON.parse(tok) : ""
-
     // Get the Ingredients for this Recipe
     useEffect(() => {
-        if (formData.id) {
-            // Get the Recipe's ingredients
-            axios.get("/recipe/" + formData.id + "/ingredient", {headers: { "Authorization": "Bearer " + access_token}})
-            .then((response) => {
+        // Token management
+        const tok = sessionStorage.getItem("access_token")
+        const access_token = tok ? JSON.parse(tok) : ""
+
+        const getIngredients = async () => {
+            if (formData.id) {
+                // Get the Recipe's ingredients
+                const response = await axios.get("/recipe/" + formData.id + "/ingredient", {headers: { "Authorization": "Bearer " + access_token}})
                 setIngredients(response.data);
-            })
+            }
         }
-    }, [context, formData.id, access_token]);
+        getIngredients();
+    }, [formData.id]);
 
     const calc = (value: number) => {
         if (formData.servings > 0) {
@@ -400,7 +401,9 @@ function RecipeForm() {
                                 <input id="potassium_mg" type="number" value={calc(formData.nutrition.potassium_mg)} min={0} readOnly={true} tabIndex={-1} style={{backgroundColor:"lightgray"}}
                                     onChange={(e) => setFormData(prevState => ({...prevState, nutrition: {...prevState.nutrition, potassium_mg: Number(e.target.value)}}))} />
                             </section>
-                        </section>
+                            <br></br>
+                            <p>Note: Nutrition data is per serving</p>
+                            </section>
                     </section>
 
                     <section className="recipeListsBox">
