@@ -79,7 +79,7 @@ function FoodForm() {
 
                     {/* Name */}
                     <section className="inputLine">
-                        <label htmlFor="name">Type:</label>
+                        <label htmlFor="name">Name:</label>
                         <input id="name" type="text" value={formData.name} maxLength={100}
                             onChange={(e) => setFormData(prevState => ({...prevState, name: e.target.value}))} />
                     </section>
@@ -114,9 +114,9 @@ function FoodForm() {
 
                     {/* Size (oz) */}
                     <section className="inputLine">
-                        <label htmlFor="size_oz">Size (g):</label>
-                        <input id="size_oz" type="number"value={formData.size_g}  min={0}
-                            onChange={(e) => setFormData(prevState => ({...prevState, size_g: Number(e.target.value)}))} />
+                        <label htmlFor="size_oz">Size (oz):</label>
+                        <input id="size_oz" type="number"value={formData.size_oz}  min={0}
+                            onChange={(e) => setFormData(prevState => ({...prevState, size_oz: Number(e.target.value)}))} />
                     </section>
 
                     {/* Size (g) */}
@@ -128,7 +128,7 @@ function FoodForm() {
 
                     {/* Servings */}
                     <section className="inputLine">
-                        <label htmlFor="size_g">Servings:</label>
+                        <label htmlFor="servings">Servings:</label>
                         <input id="servings" type="number" value={formData.servings} min={0}
                             onChange={(e) => setFormData(prevState => ({...prevState, servings: Number(e.target.value)}))} />
                     </section>
@@ -139,6 +139,13 @@ function FoodForm() {
                         <label htmlFor="serving_size_description">Serving Size:</label>
                         <input id="serving_size_description" type="text" value={formData.nutrition.serving_size_description} maxLength={100}
                             onChange={(e) => setFormData(prevState => ({...prevState, nutrition: {...prevState.nutrition, serving_size_description: e.target.value}}))} />
+                    </section>
+
+                    {/* Serving Size (oz) */}
+                    <section className="inputLine">
+                        <label htmlFor="serving_size_oz">Serving Size (oz):</label>
+                        <input id="serving_size_oz" type="number" value={formData.nutrition.serving_size_oz} min={0}
+                            onChange={(e) => setFormData(prevState => ({...prevState, nutrition: {...prevState.nutrition, serving_size_oz: Number(e.target.value)}}))} />
                     </section>
 
                     {/* Serving Size (g) */}
