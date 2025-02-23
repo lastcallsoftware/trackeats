@@ -7,5 +7,5 @@ curl \
 -X POST \
 -H "Authorization: Bearer $ACCESS_TOKEN" \
 -H "Content-Type: application/json" \
-http://localhost:5000/recipe/1/food_ingredient/25/2.0
-#https://trackeats.lastcallsw.com:54443/recipe/1/food_ingredient/25/2.0
+http://localhost:5000/recipe/2/food_ingredient/141/4.0
+#https://trackeats.lastcallsw.com:54443/recipe/2/food_ingredient/141/4.0
