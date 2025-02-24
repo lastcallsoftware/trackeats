@@ -6,7 +6,7 @@ from flask_jwt_extended import jwt_required, create_access_token, get_jwt_identi
 from sendmail import send_confirmation_email
 from models import db, User, UserStatus, Nutrition, Food, Recipe, Ingredient
 from crypto import generate_url_token
-from data import load_db
+from data import load_db, export_db
 from sqlalchemy.sql import text
 
 bp = Blueprint("auth", __name__)
@@ -71,6 +71,25 @@ def db_load():
         return {"msg": msg}, 500
     else:
         msg = "Data load complete"
+        logging.info(msg)
+        return {"msg": msg}, 200
+
+
+##############################
+# DB/EXPORT
+##############################
+# Export selected data to JSON files for long-term storage and reloading purposes.
+@bp.route("/db/export", methods=["GET"])
+def db_export():
+    logging.info("/db/export")
+    try:
+        export_db()
+    except Exception as e:
+        msg = "Data export failed: " + repr(e)
+        logging.error(msg)
+        return {"msg": msg}, 500
+    else:
+        msg = "Data export complete"
         logging.info(msg)
         return {"msg": msg}, 200
 

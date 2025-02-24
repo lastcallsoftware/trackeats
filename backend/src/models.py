@@ -7,7 +7,6 @@ import enum
 import datetime
 import re
 import logging
-import json
 
 # We're using a library (flask-sqlalchemy) that handles database interactions
 # for us.  This file contains the classes that represent the various records in 
@@ -685,8 +684,7 @@ class Recipe(db.Model):
             "nutrition_id": self.nutrition_id,
             "nutrition": self.nutrition.json(),
             }
-
-    # Create a new Recipe record and add it to the database.
+    
     # Returns the ID of the new Recipe record.
     def add(user_id: int, 
             cuisine: str,
@@ -694,10 +692,13 @@ class Recipe(db.Model):
             total_yield: str, 
             servings: int, 
             serving_size_description: str, 
-            food_ingredients_and_servings: list[tuple[dict,float]],
-            recipe_ingredients_and_servings: list[tuple[dict,float]]) -> int:
+            food_ingredients_and_servings: list[tuple[dict,float]] = None,
+            recipe_ingredients_and_servings: list[tuple[dict,float]] = None,
+            id: int = None) -> int:
         try:
             recipe = Recipe()
+            if id is not None:
+                recipe.id = id
             recipe.user_id = user_id
             recipe.cuisine = cuisine
             recipe.name = name

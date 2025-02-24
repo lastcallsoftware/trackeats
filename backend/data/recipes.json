@@ -1,0 +1,60 @@
+[
+    {
+        "id": 1,
+        "name": "Salty Chicken",
+        "cuisine": "american",
+        "total_yield": "2 breasts",
+        "servings": 4.0,
+        "nutrition_id": 366,
+        "nutrition": {
+            "id": 366,
+            "serving_size_description": "1 breast",
+            "serving_size_oz": 0.0,
+            "serving_size_g": 0,
+            "calories": 240,
+            "total_fat_g": 3.0,
+            "saturated_fat_g": 1.0,
+            "trans_fat_g": 0,
+            "cholesterol_mg": 130,
+            "sodium_mg": 150,
+            "total_carbs_g": 0,
+            "fiber_g": 0,
+            "total_sugar_g": 0,
+            "added_sugar_g": 0,
+            "protein_g": 52,
+            "vitamin_d_mcg": 0,
+            "calcium_mg": 40,
+            "iron_mg": 0.6,
+            "potassium_mg": 356
+        }
+    },
+    {
+        "id": 2,
+        "name": "Cup of Rice",
+        "cuisine": "american",
+        "total_yield": "3 cups cooked",
+        "servings": 4.0,
+        "nutrition_id": 368,
+        "nutrition": {
+            "id": 368,
+            "serving_size_description": "3/4 cup cooked",
+            "serving_size_oz": 0.0,
+            "serving_size_g": 0,
+            "calories": 640,
+            "total_fat_g": 0.0,
+            "saturated_fat_g": 0.0,
+            "trans_fat_g": 0,
+            "cholesterol_mg": 0,
+            "sodium_mg": 0,
+            "total_carbs_g": 144,
+            "fiber_g": 4,
+            "total_sugar_g": 0,
+            "added_sugar_g": 0,
+            "protein_g": 12,
+            "vitamin_d_mcg": 0,
+            "calcium_mg": 52,
+            "iron_mg": 0.0,
+            "potassium_mg": 0
+        }
+    }
+]

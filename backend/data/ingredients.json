@@ -1,0 +1,26 @@
+[
+    {
+        "id": 9,
+        "recipe_id": 1,
+        "food_ingredient_id": 206,
+        "recipe_ingredient_id": null,
+        "servings": 2.0,
+        "summary": "2 x 0.4 breasts Katie's Best Chicken (8.0 oz/226 g)"
+    },
+    {
+        "id": 10,
+        "recipe_id": 1,
+        "food_ingredient_id": 184,
+        "recipe_ingredient_id": null,
+        "servings": 1.0,
+        "summary": "1 x 1/4 tsp My Salt Solutiuons MySalt, (0.0 oz/1 g)"
+    },
+    {
+        "id": 12,
+        "recipe_id": 2,
+        "food_ingredient_id": 141,
+        "recipe_ingredient_id": null,
+        "servings": 4.0,
+        "summary": "4 x 1/4 cup dry -> 3/4 cups cooked Lundberg Rice Jasmine (6.4oz/180.0g)"
+    }
+]
