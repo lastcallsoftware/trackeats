@@ -110,6 +110,7 @@ function RecipeForm() {
         e.preventDefault();
         if (selectedFoodOrRecipeRowId) {
             let nutrition:INutrition|null = null;
+            let modifier:number = 1;
             if (selectedIngredientList === IngredientTypes.FOOD_INGREDIENTS) {
                 // Find the Food record with the specified ID (this should always succeed)
                 const food:IFood|undefined = context.foods.find((item:IFood) => item.id == selectedFoodOrRecipeRowId);
@@ -122,8 +123,8 @@ function RecipeForm() {
                     if (food.subtype) {
                         summary += food.subtype + " "
                     }
-                    summary += "(" + (nutrition.serving_size_oz * ingredientServings).toFixed(1) + "oz/" + 
-                                    (nutrition.serving_size_g * ingredientServings).toFixed(1) + "g)"
+                    summary += "(" + (nutrition.serving_size_oz * ingredientServings).toFixed(1) + " oz/" + 
+                                    (nutrition.serving_size_g * ingredientServings).toFixed(1) + " g)"
 
                     // Add the Food Ingredient to the Recipe's ingredients list
                     ingredients.push({food_ingredient_id: food.id, servings: ingredientServings, summary: summary});
@@ -137,8 +138,9 @@ function RecipeForm() {
                     // Generate a summary for the Ingredient
                     let summary = ingredientServings + " x " + nutrition.serving_size_description + " "
                     summary += recipe.name + " "
-                    summary += "(" + (nutrition.serving_size_oz * ingredientServings).toFixed(1) + "oz/" + 
-                                    (nutrition.serving_size_g * ingredientServings).toFixed(1) + "g)"
+                    summary += "(" + (nutrition.serving_size_oz * ingredientServings).toFixed(1) + " oz/" + 
+                                    (nutrition.serving_size_g * ingredientServings).toFixed(1) + " g)"
+                    modifier = 1/recipe.servings
 
                     // Add the Recipe Ingredient to the Recipe's ingredients list
                     ingredients.push({recipe_ingredient_id: recipe.id, servings: ingredientServings, summary: summary});
@@ -146,20 +148,21 @@ function RecipeForm() {
             }
             // Update the Recipe's nutrition information
             if (nutrition) {
-                formData.nutrition.calories         += nutrition.calories * ingredientServings;
-                formData.nutrition.saturated_fat_g  += nutrition.saturated_fat_g * ingredientServings;
-                formData.nutrition.trans_fat_g      += nutrition.trans_fat_g * ingredientServings;
-                formData.nutrition.cholesterol_mg   += nutrition.cholesterol_mg * ingredientServings;
-                formData.nutrition.sodium_mg        += nutrition.sodium_mg * ingredientServings;
-                formData.nutrition.total_carbs_g    += nutrition.total_carbs_g * ingredientServings;
-                formData.nutrition.fiber_g          += nutrition.fiber_g * ingredientServings;
-                formData.nutrition.total_sugar_g    += nutrition.total_sugar_g * ingredientServings;
-                formData.nutrition.added_sugar_g    += nutrition.added_sugar_g * ingredientServings;
-                formData.nutrition.protein_g        += nutrition.protein_g * ingredientServings;
-                formData.nutrition.vitamin_d_mcg    += nutrition.vitamin_d_mcg * ingredientServings;
-                formData.nutrition.calcium_mg       += nutrition.calcium_mg * ingredientServings;
-                formData.nutrition.iron_mg          += nutrition.iron_mg * ingredientServings;
-                formData.nutrition.potassium_mg     += nutrition.potassium_mg * ingredientServings;
+                formData.nutrition.calories         += nutrition.calories * ingredientServings * modifier;
+                formData.nutrition.total_fat_g      += nutrition.total_fat_g * ingredientServings * modifier;
+                formData.nutrition.saturated_fat_g  += nutrition.saturated_fat_g * ingredientServings * modifier;
+                formData.nutrition.trans_fat_g      += nutrition.trans_fat_g * ingredientServings * modifier;
+                formData.nutrition.cholesterol_mg   += nutrition.cholesterol_mg * ingredientServings * modifier;
+                formData.nutrition.sodium_mg        += nutrition.sodium_mg * ingredientServings * modifier;
+                formData.nutrition.total_carbs_g    += nutrition.total_carbs_g * ingredientServings * modifier;
+                formData.nutrition.fiber_g          += nutrition.fiber_g * ingredientServings * modifier;
+                formData.nutrition.total_sugar_g    += nutrition.total_sugar_g * ingredientServings * modifier;
+                formData.nutrition.added_sugar_g    += nutrition.added_sugar_g * ingredientServings * modifier;
+                formData.nutrition.protein_g        += nutrition.protein_g * ingredientServings * modifier;
+                formData.nutrition.vitamin_d_mcg    += nutrition.vitamin_d_mcg * ingredientServings * modifier;
+                formData.nutrition.calcium_mg       += nutrition.calcium_mg * ingredientServings * modifier;
+                formData.nutrition.iron_mg          += nutrition.iron_mg * ingredientServings * modifier;
+                formData.nutrition.potassium_mg     += nutrition.potassium_mg * ingredientServings * modifier;
                 }
 
             // Set the state variables to themselves.  This is necessary to 
@@ -174,6 +177,7 @@ function RecipeForm() {
         e.preventDefault();
         if (selectedIngredientRowId) {
             // Find the Food record with the specified ID (this should always succeed)
+            let modifier:number = 1;
             const ingredient:IIngredient|undefined = ingredients.find((item:IIngredient) => item.food_ingredient_id === selectedIngredientRowId[0] && item.recipe_ingredient_id === selectedIngredientRowId[1]);
             if (ingredient) {
                 // Get the nutrition information for the selected Ingredient
@@ -183,31 +187,39 @@ function RecipeForm() {
                     const food:IFood|undefined = context.foods.find((item:IFood) => item.id === ingredient.food_ingredient_id);
                     if (food) {
                         nutrition = food.nutrition
+                    } else {
+                        errorMessage = "Food " + ingredient.food_ingredient_id + " not found."
                     }
                 } else if (ingredient.recipe_ingredient_id) {
                     // Find the Recipe record with the specified ID (this should always succeed)
                     const recipe:IRecipe|undefined = context.recipes.find((item:IRecipe) => item.id === ingredient.recipe_ingredient_id);
                     if (recipe) {
                         nutrition = recipe.nutrition
+                        modifier = 1/recipe.servings
+                    } else {
+                        errorMessage = "Recipe " + ingredient.recipe_ingredient_id + " not found."
                     }
+                } else {
+                    errorMessage = "Ingredient has neither a food_ingredient_id nor a recipe_ingredient_id"
                 }
 
                 // Update the Recipe's nutrition information
                 if (nutrition) {
-                    formData.nutrition.calories         -= nutrition.calories * ingredientServings;
-                    formData.nutrition.saturated_fat_g  -= nutrition.saturated_fat_g * ingredientServings;
-                    formData.nutrition.trans_fat_g      -= nutrition.trans_fat_g * ingredientServings;
-                    formData.nutrition.cholesterol_mg   -= nutrition.cholesterol_mg * ingredientServings;
-                    formData.nutrition.sodium_mg        -= nutrition.sodium_mg * ingredientServings;
-                    formData.nutrition.total_carbs_g    -= nutrition.total_carbs_g * ingredientServings;
-                    formData.nutrition.fiber_g          -= nutrition.fiber_g * ingredientServings;
-                    formData.nutrition.total_sugar_g    -= nutrition.total_sugar_g * ingredientServings;
-                    formData.nutrition.added_sugar_g    -= nutrition.added_sugar_g * ingredientServings;
-                    formData.nutrition.protein_g        -= nutrition.protein_g * ingredientServings;
-                    formData.nutrition.vitamin_d_mcg    -= nutrition.vitamin_d_mcg * ingredientServings;
-                    formData.nutrition.calcium_mg       -= nutrition.calcium_mg * ingredientServings;
-                    formData.nutrition.iron_mg          -= nutrition.iron_mg * ingredientServings;
-                    formData.nutrition.potassium_mg     -= nutrition.potassium_mg * ingredientServings;
+                    formData.nutrition.calories         -= nutrition.calories * ingredient.servings * modifier;
+                    formData.nutrition.total_fat_g      -= nutrition.total_fat_g * ingredient.servings * modifier;
+                    formData.nutrition.saturated_fat_g  -= nutrition.saturated_fat_g * ingredient.servings * modifier;
+                    formData.nutrition.trans_fat_g      -= nutrition.trans_fat_g * ingredient.servings * modifier;
+                    formData.nutrition.cholesterol_mg   -= nutrition.cholesterol_mg * ingredient.servings * modifier;
+                    formData.nutrition.sodium_mg        -= nutrition.sodium_mg * ingredient.servings * modifier;
+                    formData.nutrition.total_carbs_g    -= nutrition.total_carbs_g * ingredient.servings * modifier;
+                    formData.nutrition.fiber_g          -= nutrition.fiber_g * ingredient.servings * modifier;
+                    formData.nutrition.total_sugar_g    -= nutrition.total_sugar_g * ingredient.servings * modifier;
+                    formData.nutrition.added_sugar_g    -= nutrition.added_sugar_g * ingredient.servings * modifier;
+                    formData.nutrition.protein_g        -= nutrition.protein_g * ingredient.servings * modifier;
+                    formData.nutrition.vitamin_d_mcg    -= nutrition.vitamin_d_mcg * ingredient.servings * modifier;
+                    formData.nutrition.calcium_mg       -= nutrition.calcium_mg * ingredient.servings * modifier;
+                    formData.nutrition.iron_mg          -= nutrition.iron_mg * ingredient.servings * modifier;
+                    formData.nutrition.potassium_mg     -= nutrition.potassium_mg * ingredient.servings * modifier;
                 }
 
                 // Remove the selected Ingredient from the Recipe's ingredients list
@@ -430,7 +442,7 @@ function RecipeForm() {
                             </button>
                             <br/>
 
-                            <input id="ingredientServingsInput" type="number" value={ingredientServings} min={0}
+                            <input id="ingredientServingsInput" type="number" value={ingredientServings} min={0} step={"0.01"}
                                 onChange={(e) => setIngredientServings(Number(e.target.value))} />
                             <label htmlFor="ingredientServingsInput">Servings</label>
                             <br/>

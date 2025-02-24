@@ -355,42 +355,27 @@ class Nutrition(db.Model):
         }
     
     # Add one Nutrition record to another.
-    def sum(self, nutrition2: "Nutrition", servings: float) -> dict:
-        self.calories += nutrition2.calories * servings
-        self.total_fat_g += nutrition2.total_fat_g * servings
-        self.saturated_fat_g += nutrition2.saturated_fat_g * servings
-        self.trans_fat_g += nutrition2.trans_fat_g * servings
-        self.cholesterol_mg += nutrition2.cholesterol_mg * servings
-        self.sodium_mg += nutrition2.sodium_mg * servings
-        self.total_carbs_g += nutrition2.total_carbs_g * servings
-        self.fiber_g += nutrition2.fiber_g * servings
-        self.total_sugar_g += nutrition2.total_sugar_g * servings
-        self.added_sugar_g += nutrition2.added_sugar_g * servings
-        self.protein_g += nutrition2.protein_g * servings
-        self.vitamin_d_mcg += nutrition2.vitamin_d_mcg * servings
-        self.calcium_mg += nutrition2.calcium_mg * servings
-        self.iron_mg += nutrition2.iron_mg * servings
-        self.potassium_mg += nutrition2.potassium_mg * servings
+    def sum(self, nutrition2: "Nutrition", servings: float, modifier: float = 1) -> dict:
+        self.calories += round(nutrition2.calories * servings * modifier)
+        self.total_fat_g += round(nutrition2.total_fat_g * servings * modifier, 1)
+        self.saturated_fat_g += round(nutrition2.saturated_fat_g * servings * modifier, 1)
+        self.trans_fat_g += round(nutrition2.trans_fat_g * servings * modifier, 1)
+        self.cholesterol_mg += round(nutrition2.cholesterol_mg * servings * modifier)
+        self.sodium_mg += round(nutrition2.sodium_mg * servings * modifier)
+        self.total_carbs_g += round(nutrition2.total_carbs_g * servings * modifier)
+        self.fiber_g += round(nutrition2.fiber_g * servings * modifier)
+        self.total_sugar_g += round(nutrition2.total_sugar_g * servings * modifier)
+        self.added_sugar_g += round(nutrition2.added_sugar_g * servings * modifier)
+        self.protein_g += round(nutrition2.protein_g * servings * modifier)
+        self.vitamin_d_mcg += round(nutrition2.vitamin_d_mcg * servings * modifier)
+        self.calcium_mg += round(nutrition2.calcium_mg * servings * modifier)
+        self.iron_mg += round(nutrition2.iron_mg * servings * modifier, 1)
+        self.potassium_mg += round(nutrition2.potassium_mg * servings * modifier)
         return self
 
     # Subtract one Nutrition record from another.
-    def subtract(self, nutrition2: "Nutrition", servings: float) -> dict:
-        self.calories -= nutrition2.calories * servings
-        self.total_fat_g -= nutrition2.total_fat_g * servings
-        self.saturated_fat_g -= nutrition2.saturated_fat_g * servings
-        self.trans_fat_g -= nutrition2.trans_fat_g * servings
-        self.cholesterol_mg -= nutrition2.cholesterol_mg * servings
-        self.sodium_mg -= nutrition2.sodium_mg * servings
-        self.total_carbs_g -= nutrition2.total_carbs_g * servings
-        self.fiber_g -= nutrition2.fiber_g * servings
-        self.total_sugar_g -= nutrition2.total_sugar_g * servings
-        self.added_sugar_g -= nutrition2.added_sugar_g * servings
-        self.protein_g -= nutrition2.protein_g * servings
-        self.vitamin_d_mcg -= nutrition2.vitamin_d_mcg * servings
-        self.calcium_mg -= nutrition2.calcium_mg * servings
-        self.iron_mg -= nutrition2.iron_mg * servings
-        self.potassium_mg -= nutrition2.potassium_mg * servings
-        return self
+    def subtract(self, nutrition2: "Nutrition", servings: float, modifier: float = 1) -> dict:
+        return self.add(nutrition2, servings, modifier * -1)
 
     # Reset the Nutrition totals to zero (leave the ID and serving info intact).
     def reset(self) -> dict:
@@ -632,12 +617,12 @@ class Ingredient(db.Model):
                 recipe_ingredient:Recipe = Recipe.query.filter_by(id=recipe_ingredient_id).first()
                 if summary is None or summary == "":
                     summary = Ingredient.generate_summary(recipe_ingredient, servings)
-                recipe.nutrition.sum(recipe_ingredient.nutrition, servings)
+                recipe.nutrition.sum(recipe_ingredient.nutrition, servings, 1/recipe_ingredient.servings)
             else:
                 raise ValueError("Either food_ingredient_id or recipe_ingredient_id must be provided.")
 
             # Create a new Ingredient record and add it to the database.
-            ingredient:Ingredient = Ingredient(recipe_id=recipe_id, food_ingredient_id=food_ingredient_id, servings=servings, summary=summary)
+            ingredient:Ingredient = Ingredient(recipe_id=recipe_id, food_ingredient_id=food_ingredient_id, recipe_ingredient_id=recipe_ingredient_id, servings=servings, summary=summary)
             db.session.add(ingredient)
 
             if commit:
@@ -718,11 +703,9 @@ class Recipe(db.Model):
             if food_ingredients_and_servings is not None:
                 for food_ingredient_and_serving in food_ingredients_and_servings:
                     Ingredient.add(recipe.id, food_ingredient_and_serving[0].id, None, food_ingredient_and_serving[1], None, False)
-                    #recipe.add_food_ingredient(food_ingredient_and_serving[0].id, food_ingredient_and_serving[1])
             if recipe_ingredients_and_servings is not None:
                 for recipe_ingredient_and_serving in recipe_ingredients_and_servings:
-                    Ingredient.add(recipe.id, None, recipe_ingredient_and_serving[0].id, food_ingredient_and_serving[1], None, False)
-                    #recipe.add_recipe_ingredient(recipe_ingredient_and_serving[0].id, recipe_ingredient_and_serving[1])
+                    Ingredient.add(recipe.id, None, recipe_ingredient_and_serving[0].id, recipe_ingredient_and_serving[1], None, False)
             db.session.commit()
 
             # Return the ID of the new Recipe record.
