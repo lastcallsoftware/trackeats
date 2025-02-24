@@ -53,7 +53,9 @@ function Nav() {
                                {/*<Link to="/" className="nav-item">Home</Link>*/}
                 { isAuthenticated ? <Link to="/foods" className="nav-item">Foods</Link> : ""}
                 { isAuthenticated ? <Link to="/recipes" className="nav-item">Recipes</Link> : ""}
+                {/*}
                 { isAuthenticated ? <Link to="/dailylog" className="nav-item">Daily Log</Link> : ""}
+                 */}
                 { isAuthenticated ? <Link to="/login" className="nav-item" onClick={removeToken}>Log Out</Link>
                                : <Link to="/login" className="nav-item">Log In</Link>}
                                  <Link to="/register" className="nav-item">Register</Link>
