@@ -84,6 +84,14 @@ def import_foods(user_id: int):
             Food.add(user_id, food, False)
     db.session.commit()
     logging.info("Imported vegetables")
+
+    with open("./data/other.json") as f:
+        data = json.load(f)
+        for food in data['foods']:
+            Food.add(user_id, food, False)
+    db.session.commit()
+    logging.info("Imported other")
+    
     logging.info("Food records imported")
 
 # Add Recipes
