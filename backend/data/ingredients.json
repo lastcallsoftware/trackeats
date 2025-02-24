@@ -1,26 +1,210 @@
 [
     {
-        "id": 9,
+        "id": 1,
         "recipe_id": 1,
-        "food_ingredient_id": 206,
+        "food_ingredient_id": 208,
+        "recipe_ingredient_id": null,
+        "servings": 7.5,
+        "summary": "7.5 x 0.4 breasts Katie's Best Chicken Breast, Boneless Skinless (30.0 oz/847.5 g)"
+    },
+    {
+        "id": 2,
+        "recipe_id": 1,
+        "food_ingredient_id": 138,
+        "recipe_ingredient_id": null,
+        "servings": 4.0,
+        "summary": "4 x 1/4 cup dry -> 3/4 cups cooked Lundberg Rice Basmati (6.4 oz/180.0 g)"
+    },
+    {
+        "id": 3,
+        "recipe_id": 1,
+        "food_ingredient_id": 320,
+        "recipe_ingredient_id": null,
+        "servings": 1.0,
+        "summary": "1 x 1 onion FreshDirect Onion Yellow (5.2 oz/148.0 g)"
+    },
+    {
+        "id": 4,
+        "recipe_id": 1,
+        "food_ingredient_id": 324,
+        "recipe_ingredient_id": null,
+        "servings": 1.0,
+        "summary": "1 x 2/3 cup Birds Eye Peas, Frozen Green (3.2 oz/90.0 g)"
+    },
+    {
+        "id": 5,
+        "recipe_id": 1,
+        "food_ingredient_id": 7,
         "recipe_ingredient_id": null,
         "servings": 2.0,
-        "summary": "2 x 0.4 breasts Katie's Best Chicken (8.0 oz/226 g)"
+        "summary": "2 x 1 cup Pacific Broth Vegetable (16.0 oz/480.0 g)"
+    },
+    {
+        "id": 6,
+        "recipe_id": 1,
+        "food_ingredient_id": 100,
+        "recipe_ingredient_id": null,
+        "servings": 2.0,
+        "summary": "2 x 1 tbsp Just FreshDirect Oil Olive (1.0 oz/30.0 g)"
+    },
+    {
+        "id": 7,
+        "recipe_id": 1,
+        "food_ingredient_id": 178,
+        "recipe_ingredient_id": null,
+        "servings": 2.0,
+        "summary": "2 x 1 tsp Just FreshDirect Paprika Dried (0.2 oz/6.0 g)"
+    },
+    {
+        "id": 8,
+        "recipe_id": 1,
+        "food_ingredient_id": 177,
+        "recipe_ingredient_id": null,
+        "servings": 1.0,
+        "summary": "1 x 1 tsp Just FreshDirect Oregano Dried (0.0 oz/1.0 g)"
+    },
+    {
+        "id": 9,
+        "recipe_id": 1,
+        "food_ingredient_id": 187,
+        "recipe_ingredient_id": null,
+        "servings": 1.0,
+        "summary": "1 x 1 tsp Just FreshDirect Thyme Dried (0.1 oz/1.0 g)"
     },
     {
         "id": 10,
         "recipe_id": 1,
-        "food_ingredient_id": 184,
+        "food_ingredient_id": 166,
         "recipe_ingredient_id": null,
-        "servings": 1.0,
-        "summary": "1 x 1/4 tsp My Salt Solutiuons MySalt, (0.0 oz/1 g)"
+        "servings": 0.5,
+        "summary": "0.5 x 1 tsp Just FreshDirect Garlic Powder Dried, Ground (0.1 oz/1.5 g)"
+    },
+    {
+        "id": 11,
+        "recipe_id": 1,
+        "food_ingredient_id": 176,
+        "recipe_ingredient_id": null,
+        "servings": 0.5,
+        "summary": "0.5 x 1 tsp Just FreshDirect Onion Powder Ground (0.0 oz/1.0 g)"
     },
     {
         "id": 12,
+        "recipe_id": 1,
+        "food_ingredient_id": 181,
+        "recipe_ingredient_id": null,
+        "servings": 0.25,
+        "summary": "0.25 x 1 tsp Just FreshDirect Peppercorns Whole (0.0 oz/0.5 g)"
+    },
+    {
+        "id": 13,
+        "recipe_id": 1,
+        "food_ingredient_id": 184,
+        "recipe_ingredient_id": null,
+        "servings": 1.0,
+        "summary": "1 x 1/4 tsp My Salt Solutiuons MySalt (0.0 oz/1.0 g)"
+    },
+    {
+        "id": 14,
         "recipe_id": 2,
-        "food_ingredient_id": 141,
+        "food_ingredient_id": 235,
+        "recipe_ingredient_id": null,
+        "servings": 1.0,
+        "summary": "1 x 1 can drained Bumble Bee Fish Tuna, Canned (4.0 oz/113.0 g)"
+    },
+    {
+        "id": 15,
+        "recipe_id": 2,
+        "food_ingredient_id": 108,
         "recipe_ingredient_id": null,
         "servings": 4.0,
-        "summary": "4 x 1/4 cup dry -> 3/4 cups cooked Lundberg Rice Jasmine (6.4oz/180.0g)"
+        "summary": "4 x 1 slice Nature's Own Bread Whole Wheat (4.0 oz/104.0 g)"
+    },
+    {
+        "id": 16,
+        "recipe_id": 2,
+        "food_ingredient_id": 24,
+        "recipe_ingredient_id": null,
+        "servings": 2.0,
+        "summary": "2 x 1 tbsp Helmann's Mayonnaise, Squeeze Light (1.0 oz/30.0 g)"
+    },
+    {
+        "id": 17,
+        "recipe_id": 2,
+        "food_ingredient_id": 312,
+        "recipe_ingredient_id": null,
+        "servings": 1.0,
+        "summary": "1 x 1.5 cups ~ 4 leaves Tanimura & Antle Lettuce Romaine (3.0 oz/85.0 g)"
+    },
+    {
+        "id": 18,
+        "recipe_id": 2,
+        "food_ingredient_id": 359,
+        "recipe_ingredient_id": null,
+        "servings": 1.0,
+        "summary": "1 x 1 tomato FreshDirect Tomatoes, Fresh Plum (aka Roma) (2.2 oz/62.0 g)"
+    },
+    {
+        "id": 19,
+        "recipe_id": 2,
+        "food_ingredient_id": 181,
+        "recipe_ingredient_id": null,
+        "servings": 0.25,
+        "summary": "0.25 x 1 tsp Just FreshDirect Peppercorns Whole (0.0 oz/0.5 g)"
+    },
+    {
+        "id": 20,
+        "recipe_id": 3,
+        "food_ingredient_id": 106,
+        "recipe_ingredient_id": null,
+        "servings": 1.0,
+        "summary": "1 x 1 bagel Utopia Bagels of NY Bagel Mixed Frozen (5.0 oz/136.0 g)"
+    },
+    {
+        "id": 21,
+        "recipe_id": 3,
+        "food_ingredient_id": 221,
+        "recipe_ingredient_id": null,
+        "servings": 2.0,
+        "summary": "2 x 1 large egg white Alderfer Egg White Large Brown (2.4 oz/66.0 g)"
+    },
+    {
+        "id": 22,
+        "recipe_id": 3,
+        "food_ingredient_id": 260,
+        "recipe_ingredient_id": null,
+        "servings": 1.0,
+        "summary": "1 x 1 patty Applegate Naturals Sausage Breakfast Patties (1.2 oz/33.0 g)"
+    },
+    {
+        "id": 23,
+        "recipe_id": 3,
+        "food_ingredient_id": 33,
+        "recipe_ingredient_id": null,
+        "servings": 2.0,
+        "summary": "2 x 1 tsp Huy Fong via Amazon Sriracha Sauce (0.4 oz/10.0 g)"
+    },
+    {
+        "id": 24,
+        "recipe_id": 3,
+        "food_ingredient_id": 59,
+        "recipe_ingredient_id": null,
+        "servings": 1.0,
+        "summary": "1 x 1/4 cup grated FreshDirect Cheese Parmesan (1.0 oz/28.0 g)"
+    },
+    {
+        "id": 25,
+        "recipe_id": 3,
+        "food_ingredient_id": 181,
+        "recipe_ingredient_id": null,
+        "servings": 0.25,
+        "summary": "0.25 x 1 tsp Just FreshDirect Peppercorns Whole (0.0 oz/0.5 g)"
+    },
+    {
+        "id": 26,
+        "recipe_id": 3,
+        "food_ingredient_id": 184,
+        "recipe_ingredient_id": null,
+        "servings": 1.0,
+        "summary": "1 x 1/4 tsp My Salt Solutiuons MySalt (0.0 oz/1.0 g)"
     }
 ]
