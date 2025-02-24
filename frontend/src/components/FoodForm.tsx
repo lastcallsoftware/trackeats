@@ -115,14 +115,14 @@ function FoodForm() {
                     {/* Size (oz) */}
                     <section className="inputLine">
                         <label htmlFor="size_oz">Size (oz):</label>
-                        <input id="size_oz" type="number"value={formData.size_oz}  min={0}
+                        <input id="size_oz" type="number"value={formData.size_oz} min={0} step={"0.01"}
                             onChange={(e) => setFormData(prevState => ({...prevState, size_oz: Number(e.target.value)}))} />
                     </section>
 
                     {/* Size (g) */}
                     <section className="inputLine">
                         <label htmlFor="size_g">Size (g):</label>
-                        <input id="size_g" type="number"value={formData.size_g}  min={0}
+                        <input id="size_g" type="number"value={formData.size_g} min={0}
                             onChange={(e) => setFormData(prevState => ({...prevState, size_g: Number(e.target.value)}))} />
                     </section>
 
@@ -144,7 +144,7 @@ function FoodForm() {
                     {/* Serving Size (oz) */}
                     <section className="inputLine">
                         <label htmlFor="serving_size_oz">Serving Size (oz):</label>
-                        <input id="serving_size_oz" type="number" value={formData.nutrition.serving_size_oz} min={0}
+                        <input id="serving_size_oz" type="number" value={formData.nutrition.serving_size_oz} min={0} step={"0.01"}
                             onChange={(e) => setFormData(prevState => ({...prevState, nutrition: {...prevState.nutrition, serving_size_oz: Number(e.target.value)}}))} />
                     </section>
 
