@@ -32,11 +32,12 @@ def health():
 
 
 ##############################
-# DB/INIT
+# DATABASE ACTIONS
 ##############################
-# Wipe the database and recreate all the tables using the ORM classes in 
+# INIT - Wipe the database and recreate all the tables using the ORM classes in 
 # models.py.  Note that the tables will be EMPTY!
 @bp.route("/db/init", methods=["GET"])
+@jwt_required()
 def db_init():
     logging.info("/db/init")
     try:
@@ -53,14 +54,10 @@ def db_init():
         logging.info(msg)
         return {"msg": msg}, 200
 
-
-##############################
-# DB/LOAD
-##############################
-# Populate the (presumably newly created) database with a little seed data
-# for testing.
+# LOAD - Populate the (presumably newly created) database with test data.
 # Be aware that this API first deletes the contents of tables it populates!
 @bp.route("/db/load", methods=["GET"])
+@jwt_required()
 def db_load():
     logging.info("/db/load")
     try:
@@ -75,11 +72,9 @@ def db_load():
         return {"msg": msg}, 200
 
 
-##############################
-# DB/EXPORT
-##############################
-# Export selected data to JSON files for long-term storage and reloading purposes.
+# EXPORT - Export selected data to JSON files for long-term storage and reloading purposes.
 @bp.route("/db/export", methods=["GET"])
+@jwt_required()
 def db_export():
     logging.info("/db/export")
     try:
@@ -140,9 +135,8 @@ def register():
 # SENDMAIL
 ##############################
 # Sends a verification email to the specified user.
-# TODO: This is currently an UNPROTECTED TEST API.
-# Make sure to remove or protect it before releasing to production!
 @bp.route("/sendmail", methods=["GET"])
+@jwt_required()
 def mymail():
     logging.info("/sendmail")
     try:
