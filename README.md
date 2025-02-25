@@ -52,7 +52,14 @@ include:
 
     1. FRONTEND and BACKEND: SSL .crt and .key files
         The SSL certificate and its associated private key file must be
-        present ON THE SERVER at runtime.
+        present ON THE SERVER at runtime.  I've purchased an SSL certificate
+        license (1 year) for the lastcallsw domain from SSL.com.  On the 
+        server, the .key and .crt files are located in /etc/ssl/certs, and
+        are referenced in the Nginx config file (/frontend/nginx.conf).
+        Nginx handles the HTTPS encryption for us and forwards the decrypted
+        requests as necessary.  For the front end, it services requests
+        for the web app itself, and for the back end it forwards REST
+        requests to the Waitress server that hosts the back end app.
 
     2. FRONTEND: .env and .env.production files
         The .env and .env.production files must be present in the /frontend 
