@@ -719,6 +719,10 @@ def remove_ingredients(recipe_id:int):
         # Reset the Nutrition data for the Recipe
         nutrition = Nutrition.query.filter_by(id=recipe.nutrition_id).first()
         nutrition.reset()
+
+        # Reset the price data for the Recipe
+        recipe.price = 0
+        
         db.session.commit()
     except Exception as e:
         msg = f"Ingredients for Recipe {recipe_id} could not be removed: {repr(e)}"

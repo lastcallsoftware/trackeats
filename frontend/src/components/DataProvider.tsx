@@ -64,6 +64,7 @@ export type IRecipe = {
     servings: number
     nutrition_id?: number
     nutrition: INutrition
+    price: number
 }
 
 export type DataContextType = {

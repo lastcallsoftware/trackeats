@@ -613,11 +613,13 @@ class Ingredient(db.Model):
                 if summary is None or summary == "":
                     summary = Ingredient.generate_summary(food_ingredient, servings)
                 recipe.nutrition.sum(food_ingredient.nutrition, servings)
+                recipe.price += round(food_ingredient.price * servings/food_ingredient.servings, 2)
             elif recipe_ingredient_id is not None:
                 recipe_ingredient:Recipe = Recipe.query.filter_by(id=recipe_ingredient_id).first()
                 if summary is None or summary == "":
                     summary = Ingredient.generate_summary(recipe_ingredient, servings)
                 recipe.nutrition.sum(recipe_ingredient.nutrition, servings, 1/recipe_ingredient.servings)
+                recipe.price += round(recipe_ingredient.price * servings/recipe_ingredient.servings, 2)
             else:
                 raise ValueError("Either food_ingredient_id or recipe_ingredient_id must be provided.")
 
@@ -654,6 +656,7 @@ class Recipe(db.Model):
         Nutrition, 
         single_parent=True, 
         cascade="all, delete-orphan") 
+    price = db.Column(db.Float, default=0)
 
     def __str__(self):
         return str(vars(self))
@@ -662,12 +665,13 @@ class Recipe(db.Model):
     def json(self):
         return {
             "id": self.id,
-            "name": self.name,
             "cuisine": self.cuisine,
+            "name": self.name,
             "total_yield": self.total_yield,
             "servings": self.servings,
             "nutrition_id": self.nutrition_id,
             "nutrition": self.nutrition.json(),
+            "price": self.price
             }
     
     # Returns the ID of the new Recipe record.
