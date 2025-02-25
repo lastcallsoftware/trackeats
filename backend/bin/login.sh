@@ -9,7 +9,8 @@
 OUTPUT=`curl --no-progress-meter \
 -H "Content-Type: application/json" \
 -d '{"username": "testuser", "password": "Test*123" }' \
-http://localhost:5000/login`
+https://trackeats.lastcallsw.com:5443/login`
+#http://localhost:5000/login`
 #https://trackeats.lastcallsw.com:5443/login`
 
 ACCESS_TOKEN=`echo $OUTPUT | grep -o '"access_token":"[^"]*' | grep -o '[^"]*$'`
