@@ -7,12 +7,12 @@ import logging
 def load_db():
     purge_data()
     add_users()
-    user_id = User.get_id("testuser")
-    add_foods(user_id)
-    #import_foods(user_id)
+    user_id = User.get_id("guest")
+    #add_foods(user_id)
+    import_foods(user_id)
     import_recipes(user_id)
     import_ingredients(user_id)
-
+    
 # Delete all previous data
 def purge_data():
     # Note the two different ways of doing the same thing
@@ -27,8 +27,11 @@ def purge_data():
 # Add User records
 def add_users():
     logging.info("Adding User records...")
+    #TODO: Find a way to do this that doesn't require me to put the credentials
+    # in this file!
     User.add("admin", "Test*123", "admin@lastcallsw.com", UserStatus.confirmed)
     User.add("testuser", "Test*123", "testuser@lastcallsw.com", UserStatus.confirmed)
+    User.add("guest", "Guest*123", "testuser@lastcallsw.com", UserStatus.confirmed)
     db.session.commit()
     logging.info("User records added")
 
