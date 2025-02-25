@@ -8,8 +8,8 @@ def load_db():
     purge_data()
     add_users()
     user_id = User.get_id("testuser")
-    import_foods(user_id)
-    #add_recipes(user_id)
+    add_foods(user_id)
+    #import_foods(user_id)
     import_recipes(user_id)
     import_ingredients(user_id)
 
@@ -32,8 +32,11 @@ def add_users():
     db.session.commit()
     logging.info("User records added")
 
-# Add Food records
-def import_foods(user_id: int):
+# Add Foods
+# This imports Food data from the various JSON files I manually typed in
+# rather than one created by the export code.  As such it's a more 
+# *reliable* baseline, but not really a permanent solution.
+def add_foods(user_id: int):
     logging.info("Importing Food records...")
     # Read in the JSON food data and add it to the database
     with open("./data/condiments.json") as f:
@@ -94,35 +97,35 @@ def import_foods(user_id: int):
     
     logging.info("Food records imported")
 
-# Add Recipes
-# This is how we did it (i.e., in code) before I wrote the import/export code 
-# for Recipes and Ingredients
-def add_recipes(user_id: int):
-    logging.info("Adding Recipe records...")
-    if user_id is None:
-        user_id = User.get_id("testuser")
-
-    ingredient1 = Food.query.filter(Food.user_id == user_id)\
-                            .filter(Food.name == "Chicken")\
-                            .filter(Food.subtype == "Breast, Boneless Skinless")\
-                            .filter(Food.vendor == "Katie's Best")\
-                            .first()
-    ingredient2 = Food.query.filter(Food.user_id == user_id)\
-                            .filter(Food.name == "MySalt")\
-                            .first()
-    Recipe.add(
-        user_id,
-        "american",
-        "Salty Chicken",
-        "2 breasts",
-        2,
-        "1 breast",
-        [(ingredient1, 2), (ingredient2, 1)], 
-        None)
+# Import Foods
+def import_foods(user_id: int = None):
+    logging.info("Importing Food records...")
+    with open("./data/foods.json") as f:
+        foods = json.load(f)
+        for food in foods:
+            Food.add(user_id,
+                     food,
+                     False)
     db.session.commit()
-    logging.info("Recipe records added")
+    logging.info("Food records imported")
 
-# Add Ingredients
+# Import Recipes
+def import_recipes(user_id: int):
+    with open("./data/recipes.json") as f:
+        recipes = json.load(f)
+        for recipe in recipes:
+            Recipe.add(user_id, 
+                       recipe["cuisine"],
+                       recipe["name"],
+                       recipe["total_yield"],
+                       recipe["servings"],
+                       recipe["nutrition"]["serving_size_description"],
+                       None,
+                       None,
+                       recipe["id"])                    
+    logging.info("Recipe records imported")
+
+# Import Ingredients
 def import_ingredients(user_id: int = None):
     logging.info("Importing Ingredient records...")
     with open("./data/ingredients.json") as f:
@@ -135,22 +138,6 @@ def import_ingredients(user_id: int = None):
                            ingredient["summary"],
                            True)
     logging.info("Ingredient records imported")
-
-# Import recipes from file
-# Note that this is done separately from the Ingredients, though of course 
-# Recipes are meaningless without correctly matching Ingredients, so
-# Recipes and Ingredients should ALWAYS be imported/exported together.
-def import_recipes(user_id: int):
-    with open("./data/recipes.json") as f:
-        recipes = json.load(f)
-        for recipe in recipes:
-            Recipe.add(user_id, 
-                       recipe["cuisine"],
-                       recipe["name"],
-                       recipe["total_yield"],
-                       recipe["servings"],
-                       recipe["nutrition"]["serving_size_description"])
-    logging.info("Recipe records imported")
 
 
 ###################
