@@ -2,14 +2,24 @@ function AboutPage() {
     return (
         <section className="aboutPage">
             <section className="aboutBoundingBox">
+                <p>[A NOTE FOR NEW GUESTS: To use the app you can Register your own new account, but it's a lot more
+                    interesting to log on with an account that already had a lot of data.
+                    To do that, log on using these credentials:</p>
+                    <p style={{textIndent: "30px"}}><code>Username: guest</code></p>
+                    <p style={{textIndent: "30px"}}><code>Password: Guest*123.</code></p>
+                    <p>Feel free to play around -- all the data (including user accounts) is reset to 
+                    a snapshot regularly.  Also note that Trackeats is more of a technology demo than 
+                    a real application, so flashy user interface design was not stressed.]</p>
+                <br/>
                 <p>The nominal purpose of this app is to track the nutritional content of one's
-                    diet.  And this is indeed a real objective!  In fact I chose this goal 
-                    because it's something I wanted myself.  None of the apps I found out there
-                    did quite what I wanted in a product of this type -- so I decided to make my
-                    own.</p>
+                    diet.  I chose this goal because it's something I wanted myself.  None of the 
+                    nutrition-tracking apps I found out there did quite what I wanted -- so I decided 
+                    to make my own!  One feature I particularly like is the per-serving price calculator
+                    on the Recipes page, so you can compare how much it costs to make something at home
+                    versus buying it in a restaurant.  You might be surprised at some of that data!</p>
                 <br/>
                 <p>But the app's functionality is secondary.  Its REAL purpose is to 
-                    excerise and demonstrate a working knowledge of all the products and technologies
+                    excerise and demonstrate a working knowledge of all the technologies
                     necessary to design, construct, and deploy a full-stack web app.</p>
                 <br/>
                 <p>At the time of this writing, that tech stack includes:</p>
@@ -17,7 +27,7 @@ function AboutPage() {
                     <li>Amazon EC2 - for provisioning the server that hosts everything</li>
                     <li>Ubuntu - the OS on which it all runs</li>
                     <li>Docker - for deploying the various pieces</li>
-                    <li>Vite + React + HTML + CSS + JavaScript/Typescript - for building the front end</li>
+                    <li>Vite + React + JavaScript/Typescript + HTML + CSS - for building the front end</li>
                     <li>TanStack Table - for the front end tables</li>
                     <li>Axios - for communications between the front end and back end</li>
                     <li>Flask + Python - for building the back end</li>
@@ -27,7 +37,7 @@ function AboutPage() {
                     <li>Waitress - the app server that serves up the back end</li>
                     <li>TLS certificates - for providing HTTPS encryption</li>
                     <li>SMTP - for the email-based authentication used during registration</li>
-                    <li>JWT tokens - for providing user authentication and authorization</li>
+                    <li>JWT tokens - for user authentication and authorization</li>
                 </ul>
                 <br/>
                 <p>Add to that the techs used on the development side of things:</p>
@@ -41,7 +51,7 @@ function AboutPage() {
                 </ul>
                 <br/>
                 <p>And there are a couple more techs I want to add in when I have time.  They're total overkill for a
-                    little project like this one, but of course, the idea is to get experience using them, so their
+                    little project like this one, but of course, the idea is to demonstrate their use, so their
                     fit for the project is secondary:</p>
                 <ul>
                     <li>Kubernetes - for smoother orchestration</li>
@@ -62,7 +72,7 @@ function AboutPage() {
                     a pluggable alternate back end using Java/Spring Boot/Hibernate.</p>
                 <br/>
                 <p>Paul Holmes</p>
-                <p>04 Nov 2024</p>
+                <p>Nov 2024</p>
             </section>
         </section>
     );
