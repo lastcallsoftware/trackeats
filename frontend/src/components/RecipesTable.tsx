@@ -111,6 +111,11 @@ const columns = [
         cell: info => (info.getValue()/info.row.original.servings).toFixed(0),
         size: 65
     }),
+    columnHelper.accessor("price", {
+        header: () => <span className="headerText">Price ($)</span>,
+        cell: info => (info.getValue()/info.row.original.servings).toFixed(2),
+        size: 65
+    }),
 ]
 
 interface IRecipesTableProps {

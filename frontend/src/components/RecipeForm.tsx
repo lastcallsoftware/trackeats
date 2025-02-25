@@ -23,8 +23,9 @@ function RecipeForm() {
             serving_size_description: "", serving_size_oz: 0, serving_size_g: 0,
             calories: 0, total_fat_g: 0, saturated_fat_g: 0, trans_fat_g: 0,
             cholesterol_mg: 0, sodium_mg: 0, total_carbs_g: 0, fiber_g: 0, total_sugar_g: 0, added_sugar_g: 0,
-            protein_g: 0, vitamin_d_mcg: 0, calcium_mg: 0, iron_mg: 0, potassium_mg: 0
+            protein_g: 0, vitamin_d_mcg: 0, calcium_mg: 0, iron_mg: 0, potassium_mg: 0,
         },
+        price: 0
     }
     // location.state is non-null only if it has been set manually, and that's 
     // the case only when the user clicked the Edit button on the FoodPage.
@@ -128,6 +129,7 @@ function RecipeForm() {
 
                     // Add the Food Ingredient to the Recipe's ingredients list
                     ingredients.push({food_ingredient_id: food.id, servings: ingredientServings, summary: summary});
+                    formData.price += food.price * ingredientServings/food.servings
                 }
             } else {
                 // Find the Recipe record with the specified ID (this should always succeed)
@@ -141,6 +143,7 @@ function RecipeForm() {
                     summary += "(" + (nutrition.serving_size_oz * ingredientServings).toFixed(1) + " oz/" + 
                                     (nutrition.serving_size_g * ingredientServings).toFixed(1) + " g)"
                     modifier = 1/recipe.servings
+                    formData.price += recipe.price * ingredientServings/recipe.servings
 
                     // Add the Recipe Ingredient to the Recipe's ingredients list
                     ingredients.push({recipe_ingredient_id: recipe.id, servings: ingredientServings, summary: summary});
@@ -250,9 +253,9 @@ function RecipeForm() {
         getIngredients();
     }, [formData.id]);
 
-    const calc = (value: number) => {
+    const calc = (value: number, precision: number = 0) => {
         if (formData.servings > 0) {
-            return Math.round(value/formData.servings)
+            return (value/formData.servings).toFixed(precision)
         }
         return 0
     }
@@ -308,36 +311,31 @@ function RecipeForm() {
                             {/* Calories */}
                             <section className="inputLine">
                                 <label htmlFor="calories">Calories:</label>
-                                <input id="calories" type="number" value={calc(formData.nutrition.calories)} min={0} readOnly={true} tabIndex={-1} style={{backgroundColor:"lightgray"}}
-                                    onChange={(e) => setFormData(prevState => ({...prevState, nutrition: {...prevState.nutrition, calories: Number(e.target.value)}}))} />
+                                <input id="calories" type="number" value={calc(formData.nutrition.calories)} min={0} readOnly={true} tabIndex={-1} style={{backgroundColor:"lightgray"}} />
                             </section>
 
                             {/* Total Fat (g) */}
                             <section className="inputLine">
                                 <label htmlFor="total_fat_g">Total Fat (g):</label>
-                                <input id="total_fat_g" type="number" value={calc(formData.nutrition.total_fat_g)} min={0} step="0.1" readOnly={true} tabIndex={-1} style={{backgroundColor:"lightgray"}}
-                                    onChange={(e) => setFormData(prevState => ({...prevState, nutrition: {...prevState.nutrition, total_fat_g: Number(e.target.value)}}))} />
+                                <input id="total_fat_g" type="number" value={calc(formData.nutrition.total_fat_g,1)} min={0} step="0.1" readOnly={true} tabIndex={-1} style={{backgroundColor:"lightgray"}} />
                             </section>
 
                             {/* Saturated Fat (g) */}
                             <section className="inputLine">
                                 <label htmlFor="saturated_fat_g">Saturated Fat (g):</label>
-                                <input id="saturated_fat_g" type="number" value={calc(formData.nutrition.saturated_fat_g)} min={0} step="0.1" readOnly={true} tabIndex={-1} style={{backgroundColor:"lightgray"}}
-                                    onChange={(e) => setFormData(prevState => ({...prevState, nutrition: {...prevState.nutrition, saturated_fat_g: Number(e.target.value)}}))} />
+                                <input id="saturated_fat_g" type="number" value={calc(formData.nutrition.saturated_fat_g,1)} min={0} step="0.1" readOnly={true} tabIndex={-1} style={{backgroundColor:"lightgray"}} />
                             </section>
 
                             {/* Trans Fat (g) */}
                             <section className="inputLine">
                                 <label htmlFor="trans_fat_g">Trans Fat (g):</label>
-                                <input id="trans_fat_g" type="number" value={calc(formData.nutrition.trans_fat_g)} min={0} step="0.1" readOnly={true} tabIndex={-1} style={{backgroundColor:"lightgray"}}
-                                    onChange={(e) => setFormData(prevState => ({...prevState, nutrition: {...prevState.nutrition, trans_fat_g: Number(e.target.value)}}))} />
+                                <input id="trans_fat_g" type="number" value={calc(formData.nutrition.trans_fat_g)} min={0} step="0.1" readOnly={true} tabIndex={-1} style={{backgroundColor:"lightgray"}} />
                             </section>
 
                             {/* Cholesterol (mg) */}
                             <section className="inputLine">
                                 <label htmlFor="cholesterol_mg">Cholesterol (mg):</label>
-                                <input id="cholesterol_mg" type="number" value={calc(formData.nutrition.cholesterol_mg)} min={0} readOnly={true} tabIndex={-1} style={{backgroundColor:"lightgray"}}
-                                    onChange={(e) => setFormData(prevState => ({...prevState, nutrition: {...prevState.nutrition, cholesterol_mg: Number(e.target.value)}}))} />
+                                <input id="cholesterol_mg" type="number" value={calc(formData.nutrition.cholesterol_mg)} min={0} readOnly={true} tabIndex={-1} style={{backgroundColor:"lightgray"}} />
                             </section>
                         </section>
 
@@ -345,43 +343,37 @@ function RecipeForm() {
                             {/* Sodium (mg) */}
                             <section className="inputLine">
                                 <label htmlFor="sodium_mg">Sodium (mg):</label>
-                                <input id="sodium_mg" type="number" value={calc(formData.nutrition.sodium_mg)} min={0} readOnly={true} tabIndex={-1} style={{backgroundColor:"lightgray"}}
-                                    onChange={(e) => setFormData(prevState => ({...prevState, nutrition: {...prevState.nutrition, sodium_mg: Number(e.target.value)}}))} />
+                                <input id="sodium_mg" type="number" value={calc(formData.nutrition.sodium_mg)} min={0} readOnly={true} tabIndex={-1} style={{backgroundColor:"lightgray"}} />
                             </section>
 
                             {/* Total Carbs (g) */}
                             <section className="inputLine">
                                 <label htmlFor="total_carbs_g">Total Carbs (g):</label>
-                                <input id="total_carbs_g" type="number" value={calc(formData.nutrition.total_carbs_g)} min={0} readOnly={true} tabIndex={-1} style={{backgroundColor:"lightgray"}}
-                                    onChange={(e) => setFormData(prevState => ({...prevState, nutrition: {...prevState.nutrition, total_carbs_g: Number(e.target.value)}}))} />
+                                <input id="total_carbs_g" type="number" value={calc(formData.nutrition.total_carbs_g)} min={0} readOnly={true} tabIndex={-1} style={{backgroundColor:"lightgray"}} />
                             </section>
 
                             {/* Fiber (g) */}
                             <section className="inputLine">
                                 <label htmlFor="fiber_g">Fiber (g):</label>
-                                <input id="fiber_g" type="number" value={calc(formData.nutrition.fiber_g)} min={0} readOnly={true} tabIndex={-1} style={{backgroundColor:"lightgray"}}
-                                    onChange={(e) => setFormData(prevState => ({...prevState, nutrition: {...prevState.nutrition, fiber_g: Number(e.target.value)}}))} />
+                                <input id="fiber_g" type="number" value={calc(formData.nutrition.fiber_g)} min={0} readOnly={true} tabIndex={-1} style={{backgroundColor:"lightgray"}} />
                             </section>
 
                             {/* Total Sugar (g) */}
                             <section className="inputLine">
                                 <label htmlFor="total_sugar_g">Total Sugar (g):</label>
-                                <input id="total_sugar_g" type="number" value={calc(formData.nutrition.total_sugar_g)} min={0} readOnly={true} tabIndex={-1} style={{backgroundColor:"lightgray"}}
-                                    onChange={(e) => setFormData(prevState => ({...prevState, nutrition: {...prevState.nutrition, total_sugar_g: Number(e.target.value)}}))} />
+                                <input id="total_sugar_g" type="number" value={calc(formData.nutrition.total_sugar_g)} min={0} readOnly={true} tabIndex={-1} style={{backgroundColor:"lightgray"}} />
                             </section>
 
                             {/* Added Sugar (g) */}
                             <section className="inputLine">
                                 <label htmlFor="added_sugar_g">Added Sugar (g):</label>
-                                <input id="added_sugar_g" type="number" value={calc(formData.nutrition.added_sugar_g)} min={0} readOnly={true} tabIndex={-1} style={{backgroundColor:"lightgray"}}
-                                    onChange={(e) => setFormData(prevState => ({...prevState, nutrition: {...prevState.nutrition, added_sugar_g: Number(e.target.value)}}))} />
+                                <input id="added_sugar_g" type="number" value={calc(formData.nutrition.added_sugar_g)} min={0} readOnly={true} tabIndex={-1} style={{backgroundColor:"lightgray"}} />
                             </section>
 
                             {/* Protein (g) */}
                             <section className="inputLine">
                                 <label htmlFor="protein_g">Protein (g):</label>
-                                <input id="protein_g" type="number" value={calc(formData.nutrition.protein_g)} min={0} readOnly={true} tabIndex={-1} style={{backgroundColor:"lightgray"}}
-                                    onChange={(e) => setFormData(prevState => ({...prevState, nutrition: {...prevState.nutrition, protein_g: Number(e.target.value)}}))} />
+                                <input id="protein_g" type="number" value={calc(formData.nutrition.protein_g)} min={0} readOnly={true} tabIndex={-1} style={{backgroundColor:"lightgray"}} />
                             </section>
                         </section>
 
@@ -389,33 +381,35 @@ function RecipeForm() {
                             {/* Vitamin D (mcg) */}
                             <section className="inputLine">
                                 <label htmlFor="vitamin_d_mcg">Vitamin D (mcg):</label>
-                                <input id="vitamin_d_mcg" type="number" value={calc(formData.nutrition.vitamin_d_mcg)} min={0} readOnly={true} tabIndex={-1} style={{backgroundColor:"lightgray"}}
-                                    onChange={(e) => setFormData(prevState => ({...prevState, nutrition: {...prevState.nutrition, vitamin_d_mcg: Number(e.target.value)}}))} />
+                                <input id="vitamin_d_mcg" type="number" value={calc(formData.nutrition.vitamin_d_mcg)} min={0} readOnly={true} tabIndex={-1} style={{backgroundColor:"lightgray"}} />
                             </section>
 
                             {/* Calcium (mg) */}
                             <section className="inputLine">
                                 <label htmlFor="calcium_mg">Calcium (mg):</label>
-                                <input id="calcium_mg" type="number" value={calc(formData.nutrition.calcium_mg)} min={0} readOnly={true} tabIndex={-1} style={{backgroundColor:"lightgray"}}
-                                    onChange={(e) => setFormData(prevState => ({...prevState, nutrition: {...prevState.nutrition, calcium_mg: Number(e.target.value)}}))} />
+                                <input id="calcium_mg" type="number" value={calc(formData.nutrition.calcium_mg)} min={0} readOnly={true} tabIndex={-1} style={{backgroundColor:"lightgray"}} />
                             </section>
 
                             {/* Iron (mg) */}
                             <section className="inputLine">
                                 <label htmlFor="iron_mg">Iron (mg):</label>
-                                <input id="iron_mg" type="number" value={calc(formData.nutrition.iron_mg)} min={0} step="0.1" readOnly={true} tabIndex={-1} style={{backgroundColor:"lightgray"}}
-                                    onChange={(e) => setFormData(prevState => ({...prevState, nutrition: {...prevState.nutrition, iron_mg: Number(e.target.value)}}))} />
+                                <input id="iron_mg" type="number" value={calc(formData.nutrition.iron_mg,1)} min={0} step="0.1" readOnly={true} tabIndex={-1} style={{backgroundColor:"lightgray"}} />
                             </section>
 
                             {/* Potassium (mg) */}
                             <section className="inputLine">
                                 <label htmlFor="potassium_mg">Potassium (mg):</label>
-                                <input id="potassium_mg" type="number" value={calc(formData.nutrition.potassium_mg)} min={0} readOnly={true} tabIndex={-1} style={{backgroundColor:"lightgray"}}
-                                    onChange={(e) => setFormData(prevState => ({...prevState, nutrition: {...prevState.nutrition, potassium_mg: Number(e.target.value)}}))} />
+                                <input id="potassium_mg" type="number" value={calc(formData.nutrition.potassium_mg)} min={0} readOnly={true} tabIndex={-1} style={{backgroundColor:"lightgray"}}/>
                             </section>
-                            <br></br>
-                            <p>Note: Nutrition data is per serving</p>
+
+                            {/* Price ($) */}
+                            <section className="inputLine">
+                                <label htmlFor="price">Price ($):</label>
+                                <input id="price" type="number" value={calc(formData.price, 2)} min={0} readOnly={true} tabIndex={-1} style={{backgroundColor:"lightgray"}} />
                             </section>
+
+                            <p>Note: All data is per serving</p>
+                        </section>
                     </section>
 
                     <section className="recipeListsBox">
