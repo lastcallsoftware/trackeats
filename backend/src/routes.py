@@ -342,7 +342,7 @@ def get_foods():
         user_id = User.get_id(username)
 
         # Get all the Foods associated with that user_id
-        foods = Food.query.filter_by(user_id=user_id).all()
+        foods = Food.query.filter_by(user_id=user_id).order_by(Food.group, Food.name, Food.subtype).all()
         data = []
         for food in foods:
             data.append(food.json())
