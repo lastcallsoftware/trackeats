@@ -14,7 +14,7 @@ function AboutPage() {
                 <p>The nominal purpose of this app is to track the nutritional content of one's
                     diet.  I chose this goal because it's something I wanted myself.  None of the 
                     nutrition-tracking apps I found out there did quite what I wanted -- so I decided 
-                    to make my own!  One feature I particularly like is the per-serving price calculator
+                    to make my own!  One feature I particularly like is the per-serving price column
                     on the Recipes page, so you can compare how much it costs to make something at home
                     versus buying it in a restaurant.  You might be surprised at some of that data!</p>
                 <br/>
