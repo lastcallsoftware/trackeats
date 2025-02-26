@@ -185,11 +185,10 @@ const FoodsTable: React.FC<FoodsTableProps> = ({setSelectedRowId, isRecipesForm 
     const context = useContext(DataContext)
     if (!context)
         throw Error("useDataContext can only be used inside a DataProvider")
-    const foods = context.foods;
 
     // Define the table's properties.
     const tableOptions: TableOptions<IFood> = {
-        data: foods,
+        data: context.foods,
         columns: foodColumns,
         getCoreRowModel: getCoreRowModel(),
         getSortedRowModel: getSortedRowModel(),
@@ -227,7 +226,7 @@ const FoodsTable: React.FC<FoodsTableProps> = ({setSelectedRowId, isRecipesForm 
             row.toggleSelected()
         // Retrieve the selected record from the context and send it to the edit form.
         const record_id:number = row.getValue("id")
-        const food = foods.find((item:IFood) => item.id == record_id);
+        const food = context.foods.find((item:IFood) => item.id == record_id);
         navigate("/foodForm", { state: { food } });
     }
 
