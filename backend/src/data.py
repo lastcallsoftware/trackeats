@@ -158,7 +158,7 @@ def serialize_data(obj):
 # Save selected data to JSON files.
 def export_db(user_id: int = None):
     if user_id is None:
-        user_id = User.get_id("testuser")
+        user_id = User.get_id("guest")
     export_foods(user_id)
     export_ingredients(user_id)
     export_recipes(user_id)
@@ -179,7 +179,7 @@ def export_ingredients(user_id: int):
 
 def export_recipes(user_id: int):
     logging.info("Exporting Recipe records...")
-    recipes:list[Recipe] = Recipe.query.filter_by(user_id=user_id).all()
+    recipes:list[Recipe] = Recipe.query.all()
     with open(file="./data/recipes.json", mode="w") as f:
         json.dump(obj=recipes, fp=f, indent=4, default=serialize_data)
     logging.info("Recipe records exported")
