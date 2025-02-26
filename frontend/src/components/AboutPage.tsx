@@ -58,8 +58,8 @@ function AboutPage() {
                 </ul>
                 <br/>
                 <p>And there are a couple more techs I want to add in when I have time.  They're total overkill for a
-                    little project like this one, but of course, the idea is to demonstrate their use, so their
-                    fit for the project is secondary:</p>
+                    little project like this one, but of course the idea is to demonstrate my knowledge of them, so
+                    their fit for the project is secondary:</p>
                 <ul>
                     <li>Kubernetes - for smoother orchestration</li>
                     <li>Jenkins or GitHub Actions - for CI/CD</li>
