@@ -1,15 +1,22 @@
 function AboutPage() {
     return (
-        <section className="aboutPage">
-            <section className="aboutBoundingBox">
-                <p>[A NOTE FOR NEW GUESTS: To use the app you can Register your own new account, but it's a lot more
-                    interesting to log on with an account that already has a lot of data.
-                    To do that, log on using these credentials:</p>
-                    <p style={{textIndent: "30px"}}><code>Username: guest</code></p>
-                    <p style={{textIndent: "30px"}}><code>Password: Guest*123</code></p>
-                    <p>Feel free to play around -- all the data (including user accounts) is reset to 
-                    a snapshot regularly.  Also note that Trackeats is more of a technology demo than 
-                    a real application, so flashy user interface design was not stressed.]</p>
+        <section className="about-page">
+            <section className="about-box">
+                <section className="new-guests">
+                    <p>A NOTE FOR NEW GUESTS: If you arrived here from a link on a job application, don't worry --
+                        you came to the right place.  Trackeats is my portfolio app, intended to showcase my tech skills,
+                        and Last Call Software is my one-man software company.</p>
+                        <br/>
+                        <p>To use the app you can Register your own new account, but it's a lot more
+                        interesting to log on with an account that already has a lot of data.
+                        To do that, log on using these credentials:</p>
+                        <p style={{textIndent: "30px"}}><code>Username: guest</code></p>
+                        <p style={{textIndent: "30px"}}><code>Password: Guest*123</code></p>
+                        <br/>
+                        <p>Feel free to play around -- all the data (including user accounts) is reset to 
+                        a snapshot regularly.  Also note that Trackeats is more of a technology demo than 
+                        a real application, so flashy user interface design was not stressed.</p>
+                </section>
                 <br/>
                 <p>The nominal purpose of this app is to track the nutritional content of one's
                     diet.  I chose this goal because it's something I wanted myself.  None of the 

@@ -112,7 +112,7 @@ button:active {
   font-size: small;
 }
 
-.aboutBoundingBox {
+.about-box {
   display: block;
   margin: auto;
   width: 60%;
@@ -120,9 +120,14 @@ button:active {
   border: 1px solid black;
   text-align: left;
 }
-.aboutBoundingBox ul {
+.about-box ul {
   margin-left: 5%;
   text-align: left;
+}
+.new-guests {
+  background: lightyellow;
+  border: 1px solid black;
+  padding: 15px;
 }
 
 /* Food List Page */
