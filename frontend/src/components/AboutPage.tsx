@@ -3,10 +3,10 @@ function AboutPage() {
         <section className="aboutPage">
             <section className="aboutBoundingBox">
                 <p>[A NOTE FOR NEW GUESTS: To use the app you can Register your own new account, but it's a lot more
-                    interesting to log on with an account that already had a lot of data.
+                    interesting to log on with an account that already has a lot of data.
                     To do that, log on using these credentials:</p>
                     <p style={{textIndent: "30px"}}><code>Username: guest</code></p>
-                    <p style={{textIndent: "30px"}}><code>Password: Guest*123.</code></p>
+                    <p style={{textIndent: "30px"}}><code>Password: Guest*123</code></p>
                     <p>Feel free to play around -- all the data (including user accounts) is reset to 
                     a snapshot regularly.  Also note that Trackeats is more of a technology demo than 
                     a real application, so flashy user interface design was not stressed.]</p>
