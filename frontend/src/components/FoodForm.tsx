@@ -37,8 +37,6 @@ function FoodForm() {
     if (!context)
         throw Error("useDataContext can only be used inside a DataProvider")
     const errorMessage = context.errorMessage;
-    const addFood = context.addFood;
-    const updateFood = context.updateFood;
 
     const handleSubmit = (e: { preventDefault: () => void; }) => {
         // Prevent default behavior for form submission (namely, sending the form to the server)
@@ -46,9 +44,9 @@ function FoodForm() {
 
         // Save the new Food
         if (isEdit)
-            updateFood(formData);
+            context.updateFood(formData);
         else
-            addFood(formData);
+            context.addFood(formData);
         
         // Return to the Foods page
         navigate("/foods")
@@ -129,7 +127,7 @@ function FoodForm() {
                     {/* Servings */}
                     <section className="inputLine">
                         <label htmlFor="servings">Servings:</label>
-                        <input id="servings" type="number" value={formData.servings} min={0}
+                        <input id="servings" type="number" value={formData.servings} min={0} step="0.1"
                             onChange={(e) => setFormData(prevState => ({...prevState, servings: Number(e.target.value)}))} />
                     </section>
 
