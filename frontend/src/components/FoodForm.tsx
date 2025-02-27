@@ -78,35 +78,35 @@ function FoodForm() {
                     {/* Name */}
                     <section className="inputLine">
                         <label htmlFor="name">Name:</label>
-                        <input id="name" type="text" value={formData.name} maxLength={100}
+                        <input id="name" type="text" value={formData.name} maxLength={50} size={50}
                             onChange={(e) => setFormData(prevState => ({...prevState, name: e.target.value}))} />
                     </section>
 
                     {/* Subtype */}
                     <section className="inputLine">
                         <label htmlFor="subtype">Subtype:</label>
-                        <input id="subtype" type="text" value={formData.subtype} maxLength={100}
+                        <input id="subtype" type="text" value={formData.subtype} maxLength={50} size={50}
                             onChange={(e) => setFormData(prevState => ({...prevState, subtype: e.target.value}))} />
                     </section>
 
                     {/* Description */}
                     <section className="inputLine">
                         <label htmlFor="description">Description:</label>
-                        <input id="description" type="text" value={formData.description} maxLength={100}
+                        <textarea id="description" value={formData.description} maxLength={100} rows={2} cols={50}
                             onChange={(e) => setFormData(prevState => ({...prevState, description: e.target.value}))} />
                     </section>
 
                     {/* Vendor */}
                     <section className="inputLine">
                         <label htmlFor="vendor">Vendor:</label>
-                        <input id="vendor" type="text" value={formData.vendor} maxLength={100}
+                        <input id="vendor" type="text" value={formData.vendor} maxLength={50} size={50}
                             onChange={(e) => setFormData(prevState => ({...prevState, vendor: e.target.value}))} />
                     </section>
 
                     {/* Size Description */}
                     <section className="inputLine">
                         <label htmlFor="size_description">Size:</label>
-                        <input id="size_description" type="text" value={formData.size_description} maxLength={100}
+                        <input id="size_description" type="text" value={formData.size_description} maxLength={50} size={50}
                             onChange={(e) => setFormData(prevState => ({...prevState, size_description: e.target.value}))} />
                     </section>
 
@@ -135,7 +135,7 @@ function FoodForm() {
                     {/* Serving Size Description */}
                     <section className="inputLine">
                         <label htmlFor="serving_size_description">Serving Size:</label>
-                        <input id="serving_size_description" type="text" value={formData.nutrition.serving_size_description} maxLength={100}
+                        <input id="serving_size_description" type="text" value={formData.nutrition.serving_size_description} maxLength={50} size={50}
                             onChange={(e) => setFormData(prevState => ({...prevState, nutrition: {...prevState.nutrition, serving_size_description: e.target.value}}))} />
                     </section>
 
@@ -275,7 +275,7 @@ function FoodForm() {
                     {/* Shelf Life */}
                     <section className="inputLine">
                         <label htmlFor="shelf_life">Shelf Life:</label>
-                        <input id="shelf_life" type="text" value={formData.shelf_life} maxLength={100}
+                        <textarea id="shelf_life" value={formData.shelf_life} maxLength={150} rows={3} cols={50}
                             onChange={(e) => setFormData(prevState => ({...prevState, shelf_life: e.target.value}))} />
                     </section>
 
