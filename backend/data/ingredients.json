@@ -5,7 +5,7 @@
         "food_ingredient_id": 208,
         "recipe_ingredient_id": null,
         "servings": 7.5,
-        "summary": "7.5 x 0.4 breasts Katie's Best Chicken Breast, Boneless Skinless (30.0 oz/847.5 g)"
+        "summary": "7.5 x (0.4 breasts) Chicken, Breast, Boneless Skinless (30.0 oz/848 g)"
     },
     {
         "id": 2,
@@ -13,7 +13,7 @@
         "food_ingredient_id": 138,
         "recipe_ingredient_id": null,
         "servings": 4.0,
-        "summary": "4 x 1/4 cup dry -> 3/4 cups cooked Lundberg Rice Basmati (6.4 oz/180.0 g)"
+        "summary": "4.0 x (1/4 cup dry -> 3/4 cups cooked) Rice, Basmati (6.4 oz/180 g)"
     },
     {
         "id": 3,
@@ -21,7 +21,7 @@
         "food_ingredient_id": 320,
         "recipe_ingredient_id": null,
         "servings": 1.0,
-        "summary": "1 x 1 onion FreshDirect Onion Yellow (5.2 oz/148.0 g)"
+        "summary": "1.0 x (1 onion) Onion, Yellow (5.2 oz/148 g)"
     },
     {
         "id": 4,
@@ -29,7 +29,7 @@
         "food_ingredient_id": 324,
         "recipe_ingredient_id": null,
         "servings": 1.0,
-        "summary": "1 x 2/3 cup Birds Eye Peas, Frozen Green (3.2 oz/90.0 g)"
+        "summary": "1.0 x (2/3 cup) Peas, Frozen, Green (3.2 oz/90 g)"
     },
     {
         "id": 5,
@@ -37,7 +37,7 @@
         "food_ingredient_id": 7,
         "recipe_ingredient_id": null,
         "servings": 2.0,
-        "summary": "2 x 1 cup Pacific Broth Vegetable (16.0 oz/480.0 g)"
+        "summary": "2.0 x (1 cup) Broth, Vegetable (16.0 oz/480 g)"
     },
     {
         "id": 6,
@@ -45,7 +45,7 @@
         "food_ingredient_id": 100,
         "recipe_ingredient_id": null,
         "servings": 2.0,
-        "summary": "2 x 1 tbsp Just FreshDirect Oil Olive (1.0 oz/30.0 g)"
+        "summary": "2.0 x (1 tbsp) Oil, Olive (1.0 oz/30 g)"
     },
     {
         "id": 7,
@@ -53,7 +53,7 @@
         "food_ingredient_id": 178,
         "recipe_ingredient_id": null,
         "servings": 2.0,
-        "summary": "2 x 1 tsp Just FreshDirect Paprika Dried (0.2 oz/6.0 g)"
+        "summary": "2.0 x (1 tsp) Paprika, Dried (0.2 oz/6 g)"
     },
     {
         "id": 8,
@@ -61,7 +61,7 @@
         "food_ingredient_id": 177,
         "recipe_ingredient_id": null,
         "servings": 1.0,
-        "summary": "1 x 1 tsp Just FreshDirect Oregano Dried (0.0 oz/1.0 g)"
+        "summary": "1.0 x (1 tsp) Oregano, Dried (0.0 oz/1 g)"
     },
     {
         "id": 9,
@@ -69,7 +69,7 @@
         "food_ingredient_id": 187,
         "recipe_ingredient_id": null,
         "servings": 1.0,
-        "summary": "1 x 1 tsp Just FreshDirect Thyme Dried (0.1 oz/1.0 g)"
+        "summary": "1.0 x (1 tsp) Thyme, Dried (0.1 oz/1 g)"
     },
     {
         "id": 10,
@@ -77,7 +77,7 @@
         "food_ingredient_id": 166,
         "recipe_ingredient_id": null,
         "servings": 0.5,
-        "summary": "0.5 x 1 tsp Just FreshDirect Garlic Powder Dried, Ground (0.1 oz/1.5 g)"
+        "summary": "0.5 x (1 tsp) Garlic Powder, Dried, Ground (0.1 oz/2 g)"
     },
     {
         "id": 11,
@@ -85,7 +85,7 @@
         "food_ingredient_id": 176,
         "recipe_ingredient_id": null,
         "servings": 0.5,
-        "summary": "0.5 x 1 tsp Just FreshDirect Onion Powder Ground (0.0 oz/1.0 g)"
+        "summary": "0.5 x (1 tsp) Onion Powder, Ground (0.0 oz/1 g)"
     },
     {
         "id": 12,
@@ -93,7 +93,7 @@
         "food_ingredient_id": 181,
         "recipe_ingredient_id": null,
         "servings": 0.25,
-        "summary": "0.25 x 1 tsp Just FreshDirect Peppercorns Whole (0.0 oz/0.5 g)"
+        "summary": "0.25 x (1 tsp) Peppercorns, Whole (0.0 oz/0 g)"
     },
     {
         "id": 13,
@@ -101,7 +101,7 @@
         "food_ingredient_id": 184,
         "recipe_ingredient_id": null,
         "servings": 1.0,
-        "summary": "1 x 1/4 tsp My Salt Solutiuons MySalt (0.0 oz/1.0 g)"
+        "summary": "1.0 x (1/4 tsp) MySalt (0.0 oz/1 g)"
     },
     {
         "id": 14,
@@ -109,7 +109,7 @@
         "food_ingredient_id": 235,
         "recipe_ingredient_id": null,
         "servings": 1.0,
-        "summary": "1 x 1 can drained Bumble Bee Fish Tuna, Canned (4.0 oz/113.0 g)"
+        "summary": "1.0 x (1 can drained) Fish, Tuna, Canned (4.0 oz/113 g)"
     },
     {
         "id": 15,
@@ -117,7 +117,7 @@
         "food_ingredient_id": 108,
         "recipe_ingredient_id": null,
         "servings": 4.0,
-        "summary": "4 x 1 slice Nature's Own Bread Whole Wheat (4.0 oz/104.0 g)"
+        "summary": "4.0 x (1 slice) Bread, Whole Wheat (4.0 oz/104 g)"
     },
     {
         "id": 16,
@@ -125,7 +125,7 @@
         "food_ingredient_id": 24,
         "recipe_ingredient_id": null,
         "servings": 2.0,
-        "summary": "2 x 1 tbsp Helmann's Mayonnaise, Squeeze Light (1.0 oz/30.0 g)"
+        "summary": "2.0 x (1 tbsp) Mayonnaise, Squeeze, Light (1.0 oz/30 g)"
     },
     {
         "id": 17,
@@ -133,7 +133,7 @@
         "food_ingredient_id": 312,
         "recipe_ingredient_id": null,
         "servings": 1.0,
-        "summary": "1 x 1.5 cups ~ 4 leaves Tanimura & Antle Lettuce Romaine (3.0 oz/85.0 g)"
+        "summary": "1.0 x (1.5 cups ~ 4 leaves) Lettuce, Romaine (3.0 oz/85 g)"
     },
     {
         "id": 18,
@@ -141,7 +141,7 @@
         "food_ingredient_id": 359,
         "recipe_ingredient_id": null,
         "servings": 1.0,
-        "summary": "1 x 1 tomato FreshDirect Tomatoes, Fresh Plum (aka Roma) (2.2 oz/62.0 g)"
+        "summary": "1.0 x (1 tomato) Tomatoes, Fresh, Plum (aka Roma) (2.2 oz/62 g)"
     },
     {
         "id": 19,
@@ -149,7 +149,7 @@
         "food_ingredient_id": 181,
         "recipe_ingredient_id": null,
         "servings": 0.25,
-        "summary": "0.25 x 1 tsp Just FreshDirect Peppercorns Whole (0.0 oz/0.5 g)"
+        "summary": "0.25 x (1 tsp) Peppercorns, Whole (0.0 oz/0 g)"
     },
     {
         "id": 20,
@@ -157,7 +157,7 @@
         "food_ingredient_id": 106,
         "recipe_ingredient_id": null,
         "servings": 1.0,
-        "summary": "1 x 1 bagel Utopia Bagels of NY Bagel Mixed Frozen (5.0 oz/136.0 g)"
+        "summary": "1.0 x (1 bagel) Bagel, Mixed Frozen (5.0 oz/136 g)"
     },
     {
         "id": 21,
@@ -165,7 +165,7 @@
         "food_ingredient_id": 221,
         "recipe_ingredient_id": null,
         "servings": 2.0,
-        "summary": "2 x 1 large egg white Alderfer Egg White Large Brown (2.4 oz/66.0 g)"
+        "summary": "2.0 x (1 large egg white) Egg White, Large Brown (2.4 oz/66 g)"
     },
     {
         "id": 22,
@@ -173,7 +173,7 @@
         "food_ingredient_id": 260,
         "recipe_ingredient_id": null,
         "servings": 1.0,
-        "summary": "1 x 1 patty Applegate Naturals Sausage Breakfast Patties (1.2 oz/33.0 g)"
+        "summary": "1.0 x (1 patty) Sausage, Breakfast Patties (1.2 oz/33 g)"
     },
     {
         "id": 23,
@@ -181,7 +181,7 @@
         "food_ingredient_id": 33,
         "recipe_ingredient_id": null,
         "servings": 2.0,
-        "summary": "2 x 1 tsp Huy Fong via Amazon Sriracha Sauce (0.4 oz/10.0 g)"
+        "summary": "2.0 x (1 tsp) Sriracha Sauce (0.4 oz/10 g)"
     },
     {
         "id": 24,
@@ -189,7 +189,7 @@
         "food_ingredient_id": 59,
         "recipe_ingredient_id": null,
         "servings": 1.0,
-        "summary": "1 x 1/4 cup grated FreshDirect Cheese Parmesan (1.0 oz/28.0 g)"
+        "summary": "1.0 x (1/4 cup grated) Cheese, Parmesan (1.0 oz/28 g)"
     },
     {
         "id": 25,
@@ -197,7 +197,7 @@
         "food_ingredient_id": 181,
         "recipe_ingredient_id": null,
         "servings": 0.25,
-        "summary": "0.25 x 1 tsp Just FreshDirect Peppercorns Whole (0.0 oz/0.5 g)"
+        "summary": "0.25 x (1 tsp) Peppercorns, Whole (0.0 oz/0 g)"
     },
     {
         "id": 26,
@@ -205,7 +205,7 @@
         "food_ingredient_id": 184,
         "recipe_ingredient_id": null,
         "servings": 1.0,
-        "summary": "1 x 1/4 tsp My Salt Solutiuons MySalt (0.0 oz/1.0 g)"
+        "summary": "1.0 x (1/4 tsp) MySalt (0.0 oz/1 g)"
     },
     {
         "id": 27,
@@ -213,7 +213,7 @@
         "food_ingredient_id": 125,
         "recipe_ingredient_id": null,
         "servings": 8.0,
-        "summary": "8 x 1/4 cup = 4 tbsp Just FreshDirect Flour All-Purpose Unbleached (8.0 oz/240.0 g)"
+        "summary": "8.0 x (1/4 cup = 4 tbsp) Flour, All-Purpose Unbleached (8.0 oz/240 g)"
     },
     {
         "id": 28,
@@ -221,7 +221,7 @@
         "food_ingredient_id": 128,
         "recipe_ingredient_id": null,
         "servings": 8.0,
-        "summary": "8 x 1/4 cup = 4 tbsp Anna Flour Tipo \"00\" (8.0 oz/240.0 g)"
+        "summary": "8.0 x (1/4 cup = 4 tbsp) Flour, Tipo \"00\" (8.0 oz/240 g)"
     },
     {
         "id": 29,
@@ -229,7 +229,7 @@
         "food_ingredient_id": 370,
         "recipe_ingredient_id": null,
         "servings": 1.0,
-        "summary": "1 x 1 packet Fleischmann's Active Dry Yeast (0.3 oz/7.0 g)"
+        "summary": "1.0 x (1 packet) Active Dry Yeast (0.2 oz/7 g)"
     },
     {
         "id": 30,
@@ -237,7 +237,7 @@
         "food_ingredient_id": 184,
         "recipe_ingredient_id": null,
         "servings": 8.0,
-        "summary": "8 x 1/4 tsp My Salt Solutiuons MySalt (0.3 oz/8.0 g)"
+        "summary": "8.0 x (1/4 tsp) MySalt (0.3 oz/8 g)"
     },
     {
         "id": 31,
@@ -245,7 +245,7 @@
         "food_ingredient_id": 177,
         "recipe_ingredient_id": null,
         "servings": 1.0,
-        "summary": "1 x 1 tsp Just FreshDirect Oregano Dried (0.0 oz/1.0 g)"
+        "summary": "1.0 x (1 tsp) Oregano, Dried (0.0 oz/1 g)"
     },
     {
         "id": 32,
@@ -253,7 +253,7 @@
         "food_ingredient_id": 148,
         "recipe_ingredient_id": null,
         "servings": 1.0,
-        "summary": "1 x 1 tsp Just FreshDirect Basil Dried, Ground (0.0 oz/1.0 g)"
+        "summary": "1.0 x (1 tsp) Basil, Dried, Ground (0.0 oz/1 g)"
     },
     {
         "id": 33,
@@ -261,7 +261,7 @@
         "food_ingredient_id": 166,
         "recipe_ingredient_id": null,
         "servings": 0.5,
-        "summary": "0.5 x 1 tsp Just FreshDirect Garlic Powder Dried, Ground (0.1 oz/1.5 g)"
+        "summary": "0.5 x (1 tsp) Garlic Powder, Dried, Ground (0.1 oz/2 g)"
     },
     {
         "id": 34,
@@ -269,7 +269,7 @@
         "food_ingredient_id": 100,
         "recipe_ingredient_id": null,
         "servings": 0.33,
-        "summary": "0.33 x 1 tbsp Just FreshDirect Oil Olive (0.2 oz/5.0 g)"
+        "summary": "0.33 x (1 tbsp) Oil, Olive (0.2 oz/5 g)"
     },
     {
         "id": 35,
@@ -277,7 +277,7 @@
         "food_ingredient_id": 351,
         "recipe_ingredient_id": null,
         "servings": 13.0,
-        "summary": "13 x 1/4 cup Cento Tomatoes, Crushed (28.6 oz/1690.0 g)"
+        "summary": "13.0 x (1/4 cup) Tomatoes, Crushed (28.6 oz/1690 g)"
     },
     {
         "id": 36,
@@ -285,7 +285,7 @@
         "food_ingredient_id": 361,
         "recipe_ingredient_id": null,
         "servings": 5.0,
-        "summary": "5 x 2 tbsp Cento Tomato Paste, Canned (6.0 oz/165.0 g)"
+        "summary": "5.0 x (2 tbsp) Tomato Paste, Canned (6.0 oz/165 g)"
     },
     {
         "id": 37,
@@ -293,7 +293,7 @@
         "food_ingredient_id": 171,
         "recipe_ingredient_id": null,
         "servings": 6.0,
-        "summary": "6 x 1 tsp Just FreshDirect Italian Seasoning Dried (0.2 oz/6.0 g)"
+        "summary": "6.0 x (1 tsp) Italian Seasoning, Dried (0.2 oz/6 g)"
     },
     {
         "id": 38,
@@ -301,7 +301,7 @@
         "food_ingredient_id": 177,
         "recipe_ingredient_id": null,
         "servings": 3.0,
-        "summary": "3 x 1 tsp Just FreshDirect Oregano Dried (0.1 oz/3.0 g)"
+        "summary": "3.0 x (1 tsp) Oregano, Dried (0.1 oz/3 g)"
     },
     {
         "id": 39,
@@ -309,7 +309,7 @@
         "food_ingredient_id": 166,
         "recipe_ingredient_id": null,
         "servings": 0.5,
-        "summary": "0.5 x 1 tsp Just FreshDirect Garlic Powder Dried, Ground (0.1 oz/1.5 g)"
+        "summary": "0.5 x (1 tsp) Garlic Powder, Dried, Ground (0.1 oz/2 g)"
     },
     {
         "id": 40,
@@ -317,7 +317,7 @@
         "food_ingredient_id": 176,
         "recipe_ingredient_id": null,
         "servings": 0.5,
-        "summary": "0.5 x 1 tsp Just FreshDirect Onion Powder Ground (0.0 oz/1.0 g)"
+        "summary": "0.5 x (1 tsp) Onion Powder, Ground (0.0 oz/1 g)"
     },
     {
         "id": 41,
@@ -325,7 +325,7 @@
         "food_ingredient_id": 181,
         "recipe_ingredient_id": null,
         "servings": 0.25,
-        "summary": "0.25 x 1 tsp Just FreshDirect Peppercorns Whole (0.0 oz/0.5 g)"
+        "summary": "0.25 x (1 tsp) Peppercorns, Whole (0.0 oz/0 g)"
     },
     {
         "id": 42,
@@ -333,7 +333,7 @@
         "food_ingredient_id": null,
         "recipe_ingredient_id": 4,
         "servings": 1.0,
-        "summary": "1 x Small (10\") Pizza Crust Pizza Dough (0.0 oz/0.0 g)"
+        "summary": "1.0 x Pizza Dough (0.0 oz/0 g)"
     },
     {
         "id": 43,
@@ -341,7 +341,7 @@
         "food_ingredient_id": null,
         "recipe_ingredient_id": 5,
         "servings": 1.0,
-        "summary": "1 x Sauce for Small (10\") Pizza Pizza Sauce (0.0 oz/0.0 g)"
+        "summary": "1.0 x Pizza Sauce (0.0 oz/0 g)"
     },
     {
         "id": 44,
@@ -349,7 +349,7 @@
         "food_ingredient_id": 57,
         "recipe_ingredient_id": null,
         "servings": 4.0,
-        "summary": "4 x 1/4 cup Just FreshDirect Cheese Mozzarella (4.0 oz/112.0 g)"
+        "summary": "4.0 x (1/4 cup) Cheese, Mozzarella (4.0 oz/112 g)"
     },
     {
         "id": 45,
@@ -357,7 +357,7 @@
         "food_ingredient_id": 262,
         "recipe_ingredient_id": null,
         "servings": 1.0,
-        "summary": "1 x 1 link cooked Hickory Nut Gap Sausage Hot Italian Pork (2.0 oz/59.0 g)"
+        "summary": "1.0 x (1 link cooked) Sausage, Hot Italian Pork (2.0 oz/59 g)"
     },
     {
         "id": 46,
@@ -365,7 +365,7 @@
         "food_ingredient_id": 319,
         "recipe_ingredient_id": null,
         "servings": 0.5,
-        "summary": "0.5 x 1/2 onion ~ 1/2 cup chopped FreshDirect Onion Red (1.4 oz/40.0 g)"
+        "summary": "0.5 x (1/2 onion ~ 1/2 cup chopped) Onion, Red (1.4 oz/40 g)"
     },
     {
         "id": 47,
@@ -373,7 +373,7 @@
         "food_ingredient_id": 282,
         "recipe_ingredient_id": null,
         "servings": 0.33,
-        "summary": "0.33 x 1 pepper cleaned FreshDirect Bell Pepper Green (1.7 oz/48.8 g)"
+        "summary": "0.33 x (1 pepper cleaned) Bell Pepper, Green (1.7 oz/49 g)"
     },
     {
         "id": 48,
@@ -381,7 +381,7 @@
         "food_ingredient_id": 313,
         "recipe_ingredient_id": null,
         "servings": 0.5,
-        "summary": "0.5 x 1 cup FreshDirect Mushrooms Baby Bella (Cremini), Packaged (1.5 oz/43.5 g)"
+        "summary": "0.5 x (1 cup) Mushrooms, Baby Bella (Cremini), Packaged (1.5 oz/44 g)"
     },
     {
         "id": 49,
@@ -389,6 +389,6 @@
         "food_ingredient_id": 182,
         "recipe_ingredient_id": null,
         "servings": 1.0,
-        "summary": "1 x 1 tsp Just FreshDirect Red Pepper Crushed (0.1 oz/2.0 g)"
+        "summary": "1.0 x (1 tsp) Red Pepper, Crushed (0.1 oz/2 g)"
     }
 ]
