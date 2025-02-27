@@ -112,7 +112,7 @@ const columns = [
         size: 65
     }),
     columnHelper.accessor("price", {
-        header: () => <span className="headerText">Price ($)</span>,
+        header: () => <span className="headerText">Price / serving</span>,
         cell: info => (info.getValue()/info.row.original.servings).toFixed(2),
         size: 65
     }),
