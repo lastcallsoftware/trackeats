@@ -119,12 +119,12 @@ function RecipeForm() {
                     nutrition = food.nutrition
 
                     // Generate a summary for the Ingredient
-                    let summary = ingredientServings + " x " + nutrition?.serving_size_description + " "
-                    summary += food.vendor + " " + food.name + " "
+                    let summary = ingredientServings + " x (" + nutrition?.serving_size_description + ") "
+                    summary += food.name
                     if (food.subtype) {
-                        summary += food.subtype + " "
+                        summary += ", " + food.subtype
                     }
-                    summary += "(" + (nutrition.serving_size_oz * ingredientServings).toFixed(1) + " oz/" + 
+                    summary += " (" + (nutrition.serving_size_oz * ingredientServings).toFixed(1) + " oz/" + 
                                     (nutrition.serving_size_g * ingredientServings).toFixed(1) + " g)"
 
                     // Add the Food Ingredient to the Recipe's ingredients list
@@ -138,7 +138,7 @@ function RecipeForm() {
                     nutrition = recipe.nutrition
 
                     // Generate a summary for the Ingredient
-                    let summary = ingredientServings + " x " + nutrition.serving_size_description + " "
+                    let summary = ingredientServings + " x (" + nutrition.serving_size_description + ") "
                     summary += recipe.name + " "
                     summary += "(" + (nutrition.serving_size_oz * ingredientServings).toFixed(1) + " oz/" + 
                                     (nutrition.serving_size_g * ingredientServings).toFixed(1) + " g)"
