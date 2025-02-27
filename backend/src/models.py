@@ -588,8 +588,8 @@ class Ingredient(db.Model):
         ss_g:int = round(ingredient.nutrition.serving_size_g * servings)
         if type(ingredient) == Food:
             food:Food = ingredient
-            subtype = f",{food.subtype}" if (food.subtype is None or food.subtype == "") else "" 
-            return f"{servings} x {food.nutrition.serving_size_description} {food.vendor} {food.name}{subtype} ({ss_oz} oz/{ss_g} g)"
+            subtype = "" if (food.subtype is None or food.subtype == "") else f", {food.subtype}" 
+            return f"{servings} x ({food.nutrition.serving_size_description}) {food.name}{subtype} ({ss_oz} oz/{ss_g} g)"
         else:
             recipe:Recipe = ingredient
             return f"{servings} x {recipe.name} ({ss_oz} oz/{ss_g} g)"
@@ -610,14 +610,14 @@ class Ingredient(db.Model):
             # Also, sum the Nutrition data from the new Ingredient into the Recipe.
             if food_ingredient_id is not None:
                 food_ingredient:Food = Food.query.filter_by(id=food_ingredient_id).first()
-                if summary is None or summary == "":
-                    summary = Ingredient.generate_summary(food_ingredient, servings)
+                #if summary is None or summary == "":
+                summary = Ingredient.generate_summary(food_ingredient, servings)
                 recipe.nutrition.sum(food_ingredient.nutrition, servings)
                 recipe.price += round(food_ingredient.price * servings/food_ingredient.servings, 2)
             elif recipe_ingredient_id is not None:
                 recipe_ingredient:Recipe = Recipe.query.filter_by(id=recipe_ingredient_id).first()
-                if summary is None or summary == "":
-                    summary = Ingredient.generate_summary(recipe_ingredient, servings)
+                #if summary is None or summary == "":
+                summary = Ingredient.generate_summary(recipe_ingredient, servings)
                 recipe.nutrition.sum(recipe_ingredient.nutrition, servings, 1/recipe_ingredient.servings)
                 recipe.price += round(recipe_ingredient.price * servings/recipe_ingredient.servings, 2)
             else:
