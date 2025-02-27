@@ -152,7 +152,17 @@ const foodColumns = [
     }),
     columnHelper.accessor("price", {
         header: () => <span className="headerText">Price</span>,
-        cell: info => info.getValue(),
+        cell: info => info.getValue().toFixed(2),
+        size: 65
+    }),
+    columnHelper.accessor("price_per_serving", {
+        header: () => <span className="headerText">Price / serving</span>,
+        cell: info => (info.row.original.price/info.row.original.servings).toFixed(2),
+        sortingFn: (rowA, rowB) => {
+            const val1 = rowA.original.price/rowA.original.servings
+            const val2 = rowB.original.price/rowB.original.servings
+            return val1 < val2 ? -1 : (val1 > val2 ? 1 : 0);
+        },
         size: 65
     }),
     columnHelper.accessor("price_date", {
