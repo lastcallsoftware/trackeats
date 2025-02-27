@@ -83,12 +83,13 @@ button:active {
   border: 1px solid black;
 }
 .registerBoundingBox, .loginBoundingBox, .foodFormBoundingBox {
-  width: 35rem;
+  width: 40rem;
 }
 
-.inputLine {
+.inputLine, textarea {
   display: flex;
   margin: 5px;
+  resize: none;
 }
 .inputLine label {
   width: 30%;
