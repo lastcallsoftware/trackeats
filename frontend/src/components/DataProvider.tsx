@@ -72,7 +72,7 @@ export type DataContextType = {
     recipes: IRecipe[];
     ingredients: IIngredient[];
     errorMessage: string | null;
-    addFood: (food: IFood) => Promise<void>;
+    addFood: (food: IFood) => Promise<number|undefined>;
     updateFood: (food: IFood) => Promise<void>;
     deleteFood: (food_id: number) => Promise<void>;
     addRecipe: (recipe: IRecipe) => Promise<number|undefined>;
@@ -161,17 +161,21 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
     }, [access_token, handleError]);
 
     // Add Food
-    const addFood = async (food: IFood): Promise<void> => {
+    const addFood = async (food: IFood): Promise<number|undefined> => {
         setErrorMessage("");
+        let foodId = undefined
         try {
             // Add the Food record to the back end.
             await axios.post("/food", food, {headers: { "Authorization": "Bearer " + access_token}})
 
             // Add it to the Foods list state variable.
-            setFoods([...foods, food])
+            setFoods((prevFoods) => [...prevFoods, food])
+            foodId = food.id
         } catch (error) {
             handleError(error)
         }
+
+        return foodId
     }
 
     // Update Food
