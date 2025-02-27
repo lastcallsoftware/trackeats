@@ -15,7 +15,7 @@ function FoodForm() {
             cholesterol_mg: 0, sodium_mg: 0, total_carbs_g: 0, fiber_g: 0, total_sugar_g: 0, added_sugar_g: 0,
             protein_g: 0, vitamin_d_mcg: 0, calcium_mg: 0, iron_mg: 0, potassium_mg: 0
         },
-        price: 0, price_date: "", shelf_life: ""
+        price: 0, price_per_serving: 0, price_date: "", shelf_life: ""
     }
     // location.state is non-null only if it has been set manually, and that's 
     // the case only when the user clicked the Edit button on the FoodPage.
@@ -260,7 +260,7 @@ function FoodForm() {
 
                     {/* Price ($) */}
                     <section className="inputLine">
-                        <label htmlFor="price">Price (mg):</label>
+                        <label htmlFor="price">Price:</label>
                         <input id="price" type="number" value={formData.price} min={0}  step="0.01"
                             onChange={(e) => setFormData(prevState => ({...prevState, price: Number(e.target.value)}))} />
                     </section>
