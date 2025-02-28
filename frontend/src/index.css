@@ -67,7 +67,7 @@ button:active {
   font-size: 20pt;
   font-weight: bold;
   font-family: 'Karla Variable', sans-serif;
-  margin: 15pt;
+  margin: 10pt 15pt 5pt 15pt;
 }
 .navbar a:link {
   text-decoration: none;
@@ -135,7 +135,7 @@ button:active {
 .foodTableBox, .recipeTableBox {
   margin: 0 2rem;
   overflow: scroll auto;
-  max-height: 600px;
+  max-height: 620px;
   border: 1px solid;
 }
 .foodTable, .recipeTable, .ingredientTable, .foodOrRecipeTable {

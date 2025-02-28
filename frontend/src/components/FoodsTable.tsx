@@ -80,110 +80,122 @@ const foodColumns = [
         cell: info => info.getValue(),
         size: 65
     }),
-    columnHelper.accessor("nutrition.calories", {
-        header: () => <span className="headerText">Calories</span>,
-        cell: info => info.getValue(),
-        size: 65
+    columnHelper.group ({
+        id: "per_serving",
+        header: () => <span className="headerText">Nutrition Per Serving</span>,
+        columns: [
+            columnHelper.accessor("nutrition.calories", {
+                header: () => <span className="headerText">Calories</span>,
+                cell: info => info.getValue(),
+                size: 65
+            }),
+            columnHelper.accessor("nutrition.total_fat_g", {
+                header: () => <span className="headerText">Total Fat (g)</span>,
+                cell: info => info.getValue(),
+                size: 65
+            }),
+            columnHelper.accessor("nutrition.saturated_fat_g", {
+                header: () => <span className="headerText">Satu- rated Fat (g)</span>,
+                cell: info => info.getValue(),
+                size: 65
+            }),
+            columnHelper.accessor("nutrition.trans_fat_g", {
+                header: () => <span className="headerText">Trans Fat (g)</span>,
+                cell: info => info.getValue(),
+                size: 65
+            }),
+            columnHelper.accessor("nutrition.cholesterol_mg", {
+                header: () => <span className="headerText">Choles- terol (mg)</span>,
+                cell: info => info.getValue(),
+                size: 65
+            }),
+            columnHelper.accessor("nutrition.sodium_mg", {
+                header: () => <span className="headerText">Sodium (mg)</span>,
+                cell: info => info.getValue(),
+                size: 65
+            }),
+            columnHelper.accessor("nutrition.total_carbs_g", {
+                header: () => <span className="headerText">Total Carbs (g)</span>,
+                cell: info => info.getValue(),
+                size: 65
+            }),
+            columnHelper.accessor("nutrition.total_sugar_g", {
+                header: () => <span className="headerText">Total Sugar (g)</span>,
+                cell: info => info.getValue(),
+                size: 65
+            }),
+            columnHelper.accessor("nutrition.added_sugar_g", {
+                header: () => <span className="headerText">Added Sugar (g)</span>,
+                cell: info => info.getValue(),
+                size: 65
+            }),
+            columnHelper.accessor("nutrition.protein_g", {
+                header: () => <span className="headerText">Protein (g)</span>,
+                cell: info => info.getValue(),
+                size: 65
+            }),
+            columnHelper.accessor("nutrition.vitamin_d_mcg", {
+                header: () => <span className="headerText">Vitamin D (mcg)</span>,
+                cell: info => info.getValue(),
+                size: 65
+            }),
+            columnHelper.accessor("nutrition.calcium_mg", {
+                header: () => <span className="headerText">Calcium (mg)</span>,
+                cell: info => info.getValue(),
+                size: 65
+            }),
+            columnHelper.accessor("nutrition.iron_mg", {
+                header: () => <span className="headerText">Iron (mg)</span>,
+                cell: info => info.getValue(),
+                size: 65
+            }),
+            columnHelper.accessor("nutrition.potassium_mg", {
+                header: () => <span className="headerText">Potas- sium (mg)</span>,
+                cell: info => info.getValue(),
+                size: 65
+            }),
+        ]
     }),
-    columnHelper.accessor("nutrition.total_fat_g", {
-        header: () => <span className="headerText">Total Fat (g)</span>,
-        cell: info => info.getValue(),
-        size: 65
-    }),
-    columnHelper.accessor("nutrition.saturated_fat_g", {
-        header: () => <span className="headerText">Satu- rated Fat (g)</span>,
-        cell: info => info.getValue(),
-        size: 65
-    }),
-    columnHelper.accessor("nutrition.trans_fat_g", {
-        header: () => <span className="headerText">Trans Fat (g)</span>,
-        cell: info => info.getValue(),
-        size: 65
-    }),
-    columnHelper.accessor("nutrition.cholesterol_mg", {
-        header: () => <span className="headerText">Choles- terol (mg)</span>,
-        cell: info => info.getValue(),
-        size: 65
-    }),
-    columnHelper.accessor("nutrition.sodium_mg", {
-        header: () => <span className="headerText">Sodium (mg)</span>,
-        cell: info => info.getValue(),
-        size: 65
-    }),
-    columnHelper.accessor("nutrition.total_carbs_g", {
-        header: () => <span className="headerText">Total Carbs (g)</span>,
-        cell: info => info.getValue(),
-        size: 65
-    }),
-    columnHelper.accessor("nutrition.total_sugar_g", {
-        header: () => <span className="headerText">Total Sugar (g)</span>,
-        cell: info => info.getValue(),
-        size: 65
-    }),
-    columnHelper.accessor("nutrition.added_sugar_g", {
-        header: () => <span className="headerText">Added Sugar (g)</span>,
-        cell: info => info.getValue(),
-        size: 65
-    }),
-    columnHelper.accessor("nutrition.protein_g", {
-        header: () => <span className="headerText">Protein (g)</span>,
-        cell: info => info.getValue(),
-        size: 65
-    }),
-    columnHelper.accessor("nutrition.vitamin_d_mcg", {
-        header: () => <span className="headerText">Vitamin D (mcg)</span>,
-        cell: info => info.getValue(),
-        size: 65
-    }),
-    columnHelper.accessor("nutrition.calcium_mg", {
-        header: () => <span className="headerText">Calcium (mg)</span>,
-        cell: info => info.getValue(),
-        size: 65
-    }),
-    columnHelper.accessor("nutrition.iron_mg", {
-        header: () => <span className="headerText">Iron (mg)</span>,
-        cell: info => info.getValue(),
-        size: 65
-    }),
-    columnHelper.accessor("nutrition.potassium_mg", {
-        header: () => <span className="headerText">Potas- sium (mg)</span>,
-        cell: info => info.getValue(),
-        size: 65
-    }),
-    columnHelper.accessor("price", {
-        header: () => <span className="headerText">Price</span>,
-        cell: info => info.getValue().toFixed(2),
-        size: 65
-    }),
-    columnHelper.accessor("price_per_serving", {
-        header: () => <span className="headerText">Price / serving</span>,
-        cell: info => (info.row.original.price/info.row.original.servings).toFixed(2),
-        sortingFn: (rowA, rowB) => {
-            const val1 = rowA.original.price/rowA.original.servings
-            const val2 = rowB.original.price/rowB.original.servings
-            return val1 < val2 ? -1 : (val1 > val2 ? 1 : 0);
-        },
-        size: 65
-    }),
-    columnHelper.accessor("price_per_oz", {
-        header: () => <span className="headerText">Price / oz</span>,
-        cell: info => (info.row.original.price/info.row.original.size_oz).toFixed(2),
-        sortingFn: (rowA, rowB) => {
-            const val1 = rowA.original.price/rowA.original.size_oz
-            const val2 = rowB.original.price/rowB.original.size_oz
-            return val1 < val2 ? -1 : (val1 > val2 ? 1 : 0);
-        },
-        size: 65
-    }),
-    columnHelper.accessor("price_date", {
-        header: () => <span className="headerText">Price Date</span>,
-        cell: info => {
-            if (info.getValue().trim().length > 0)
-                return new Date(info.getValue().replace(/-/g, '/').replace(/T.+/, '')).toLocaleDateString('en-US', {year: 'numeric', month: 'short', day: 'numeric'})
-            else
-                return "";
-        },
-        size: 100
+    columnHelper.group({
+        id: "price_info",
+        header: () => <span className="headerText">Price Info</span>,
+        columns: [
+            columnHelper.accessor("price", {
+                header: () => <span className="headerText">Price</span>,
+                cell: info => info.getValue().toFixed(2),
+                size: 65
+            }),
+            columnHelper.accessor("price_per_serving", {
+                header: () => <span className="headerText">Price / serving</span>,
+                cell: info => (info.row.original.price/info.row.original.servings).toFixed(2),
+                sortingFn: (rowA, rowB) => {
+                    const val1 = rowA.original.price/rowA.original.servings
+                    const val2 = rowB.original.price/rowB.original.servings
+                    return val1 < val2 ? -1 : (val1 > val2 ? 1 : 0);
+                },
+                size: 65
+            }),
+            columnHelper.accessor("price_per_oz", {
+                header: () => <span className="headerText">Price / oz</span>,
+                cell: info => (info.row.original.price/info.row.original.size_oz).toFixed(2),
+                sortingFn: (rowA, rowB) => {
+                    const val1 = rowA.original.price/rowA.original.size_oz
+                    const val2 = rowB.original.price/rowB.original.size_oz
+                    return val1 < val2 ? -1 : (val1 > val2 ? 1 : 0);
+                },
+                size: 65
+            }),
+            columnHelper.accessor("price_date", {
+                header: () => <span className="headerText">Price Date</span>,
+                cell: info => {
+                    if (info.getValue().trim().length > 0)
+                        return new Date(info.getValue().replace(/-/g, '/').replace(/T.+/, '')).toLocaleDateString('en-US', {year: 'numeric', month: 'short', day: 'numeric'})
+                    else
+                        return "";
+                },
+                size: 100
+            }),
+        ]
     }),
     columnHelper.accessor("shelf_life", {
         header: () => <span className="headerText">Shelf Life</span>,
@@ -202,6 +214,7 @@ const FoodsTable: React.FC<FoodsTableProps> = ({setSelectedRowId, isRecipesForm 
     const navigate = useNavigate()
     const [sorting, setSorting] = React.useState<SortingState>([])
     const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
+    const [pagination, setPagination] = React.useState({pageIndex: 0, pageSize: 10});
     const context = useContext(DataContext)
     if (!context)
         throw Error("useDataContext can only be used inside a DataProvider")
@@ -220,8 +233,9 @@ const FoodsTable: React.FC<FoodsTableProps> = ({setSelectedRowId, isRecipesForm 
         enableMultiRowSelection: false,
         onSortingChange: setSorting,
         onColumnFiltersChange: setColumnFilters,
+        onPaginationChange: setPagination,
         filterFns: {},
-        state: { sorting, columnFilters },
+        state: { sorting, columnFilters, pagination },
         initialState: {
             pagination: {
                 pageSize: 10
@@ -229,6 +243,19 @@ const FoodsTable: React.FC<FoodsTableProps> = ({setSelectedRowId, isRecipesForm 
         }
     }
     const table = useReactTable(tableOptions)
+
+    // If a column filter causes the list to shrink such that the current page
+    // is greater than the maximum page, go to the last page.
+    // To make this work you also need to add onPaginationChange to the table 
+    // properties and a pagination state variable.
+    // I admit that I scarfed this ENTIRE FEATURE from ChatGPT.  We'll all
+    // be obsolete soon...
+    const totalPages = table.getPageCount()
+    useEffect(() => {
+        if (pagination.pageIndex >= totalPages) {
+            setPagination((prev) => ({...prev, pageIndex: Math.max(0, totalPages - 1)}))
+        }
+    }, [totalPages, pagination.pageIndex])
 
     const handleClick = (row: Row<IFood>) => {
         // Toggle the row's state (selected/unselected).
