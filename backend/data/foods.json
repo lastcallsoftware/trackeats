@@ -10075,7 +10075,7 @@
         "group": "proteins",
         "name": "Turkey",
         "subtype": "Sliced",
-        "description": "All-Natural Roasted Breast, RWA w/o Salt",
+        "description": "All-Natural Roasted Turkey Breast, RWA, No Salt Added",
         "vendor": "FreshDirect",
         "size_description": "0.25 lb ~ 5 slices",
         "size_oz": 4.0,
@@ -10103,8 +10103,8 @@
             "iron_mg": 0.3,
             "potassium_mg": 0
         },
-        "price": 3.75,
-        "price_date": "2024-11-25",
+        "price": 3.5,
+        "price_date": "2025-02-28",
         "shelf_life": "3-5 days in fridge"
     },
     {
@@ -10113,12 +10113,12 @@
         "group": "proteins",
         "name": "Turkey",
         "subtype": "Sliced",
-        "description": "All-Natural Roasted Breast, RWA w/Salt",
+        "description": "All-Natural Roasted Turkey Breast, RWA (with salt)",
         "vendor": "FreshDirect",
         "size_description": "0.25 lb ~ 5 slices",
         "size_oz": 4.0,
         "size_g": 113,
-        "servings": 8.0,
+        "servings": 2.0,
         "nutrition_id": 267,
         "nutrition": {
             "id": 267,
@@ -10141,8 +10141,8 @@
             "iron_mg": 0.3,
             "potassium_mg": 0
         },
-        "price": 3.75,
-        "price_date": "2024-11-25",
+        "price": 3.5,
+        "price_date": "2025-02-28",
         "shelf_life": "3-5 days in fridge"
     },
     {
