@@ -165,6 +165,16 @@ const foodColumns = [
         },
         size: 65
     }),
+    columnHelper.accessor("price_per_oz", {
+        header: () => <span className="headerText">Price / oz</span>,
+        cell: info => (info.row.original.price/info.row.original.size_oz).toFixed(2),
+        sortingFn: (rowA, rowB) => {
+            const val1 = rowA.original.price/rowA.original.size_oz
+            const val2 = rowB.original.price/rowB.original.size_oz
+            return val1 < val2 ? -1 : (val1 > val2 ? 1 : 0);
+        },
+        size: 65
+    }),
     columnHelper.accessor("price_date", {
         header: () => <span className="headerText">Price Date</span>,
         cell: info => {

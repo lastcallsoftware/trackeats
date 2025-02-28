@@ -44,6 +44,7 @@ export type IFood = {
     nutrition: INutrition
     price: number,
     price_per_serving: number,
+    price_per_oz: number,
     price_date: string
     shelf_life: string
 }
