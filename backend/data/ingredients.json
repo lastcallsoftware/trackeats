@@ -1,109 +1,5 @@
 [
     {
-        "id": 1,
-        "recipe_id": 1,
-        "food_ingredient_id": 208,
-        "recipe_ingredient_id": null,
-        "servings": 7.5,
-        "summary": "7.5 x (0.4 breasts) Chicken, Breast, Boneless Skinless (30.0 oz/848 g)"
-    },
-    {
-        "id": 2,
-        "recipe_id": 1,
-        "food_ingredient_id": 138,
-        "recipe_ingredient_id": null,
-        "servings": 4.0,
-        "summary": "4.0 x (1/4 cup dry -> 3/4 cups cooked) Rice, Basmati (6.4 oz/180 g)"
-    },
-    {
-        "id": 3,
-        "recipe_id": 1,
-        "food_ingredient_id": 320,
-        "recipe_ingredient_id": null,
-        "servings": 1.0,
-        "summary": "1.0 x (1 onion) Onion, Yellow (5.2 oz/148 g)"
-    },
-    {
-        "id": 4,
-        "recipe_id": 1,
-        "food_ingredient_id": 324,
-        "recipe_ingredient_id": null,
-        "servings": 1.0,
-        "summary": "1.0 x (2/3 cup) Peas, Frozen, Green (3.2 oz/90 g)"
-    },
-    {
-        "id": 5,
-        "recipe_id": 1,
-        "food_ingredient_id": 7,
-        "recipe_ingredient_id": null,
-        "servings": 2.0,
-        "summary": "2.0 x (1 cup) Broth, Vegetable (16.0 oz/480 g)"
-    },
-    {
-        "id": 6,
-        "recipe_id": 1,
-        "food_ingredient_id": 100,
-        "recipe_ingredient_id": null,
-        "servings": 2.0,
-        "summary": "2.0 x (1 tbsp) Oil, Olive (1.0 oz/30 g)"
-    },
-    {
-        "id": 7,
-        "recipe_id": 1,
-        "food_ingredient_id": 178,
-        "recipe_ingredient_id": null,
-        "servings": 2.0,
-        "summary": "2.0 x (1 tsp) Paprika, Dried (0.2 oz/6 g)"
-    },
-    {
-        "id": 8,
-        "recipe_id": 1,
-        "food_ingredient_id": 177,
-        "recipe_ingredient_id": null,
-        "servings": 1.0,
-        "summary": "1.0 x (1 tsp) Oregano, Dried (0.0 oz/1 g)"
-    },
-    {
-        "id": 9,
-        "recipe_id": 1,
-        "food_ingredient_id": 187,
-        "recipe_ingredient_id": null,
-        "servings": 1.0,
-        "summary": "1.0 x (1 tsp) Thyme, Dried (0.1 oz/1 g)"
-    },
-    {
-        "id": 10,
-        "recipe_id": 1,
-        "food_ingredient_id": 166,
-        "recipe_ingredient_id": null,
-        "servings": 0.5,
-        "summary": "0.5 x (1 tsp) Garlic Powder, Dried, Ground (0.1 oz/2 g)"
-    },
-    {
-        "id": 11,
-        "recipe_id": 1,
-        "food_ingredient_id": 176,
-        "recipe_ingredient_id": null,
-        "servings": 0.5,
-        "summary": "0.5 x (1 tsp) Onion Powder, Ground (0.0 oz/1 g)"
-    },
-    {
-        "id": 12,
-        "recipe_id": 1,
-        "food_ingredient_id": 181,
-        "recipe_ingredient_id": null,
-        "servings": 0.25,
-        "summary": "0.25 x (1 tsp) Peppercorns, Whole (0.0 oz/0 g)"
-    },
-    {
-        "id": 13,
-        "recipe_id": 1,
-        "food_ingredient_id": 184,
-        "recipe_ingredient_id": null,
-        "servings": 1.0,
-        "summary": "1.0 x (1/4 tsp) MySalt (0.0 oz/1 g)"
-    },
-    {
         "id": 14,
         "recipe_id": 2,
         "food_ingredient_id": 235,
@@ -390,5 +286,261 @@
         "recipe_ingredient_id": null,
         "servings": 1.0,
         "summary": "1.0 x (1 tsp) Red Pepper, Crushed (0.1 oz/2 g)"
+    },
+    {
+        "id": 62,
+        "recipe_id": 7,
+        "food_ingredient_id": 343,
+        "recipe_ingredient_id": null,
+        "servings": 4.0,
+        "summary": "4 x (1 shallot ~ 1/2 cup chopped raw) Shallots (12.8 oz/360 g)"
+    },
+    {
+        "id": 63,
+        "recipe_id": 7,
+        "food_ingredient_id": 165,
+        "recipe_ingredient_id": null,
+        "servings": 40.0,
+        "summary": "40 x (1 clove) Garlic, Fresh (4.0 oz/120 g)"
+    },
+    {
+        "id": 64,
+        "recipe_id": 7,
+        "food_ingredient_id": 168,
+        "recipe_ingredient_id": null,
+        "servings": 2.0,
+        "summary": "2 x (1/2 cup chopped = 8 tbsp) Ginger, Fresh (3.0 oz/88 g)"
+    },
+    {
+        "id": 65,
+        "recipe_id": 7,
+        "food_ingredient_id": 20,
+        "recipe_ingredient_id": null,
+        "servings": 1.0,
+        "summary": "1 x (1 tbsp) Lemon Juice, Fresh Squeezed (0.5 oz/15 g)"
+    },
+    {
+        "id": 66,
+        "recipe_id": 7,
+        "food_ingredient_id": 309,
+        "recipe_ingredient_id": null,
+        "servings": 2.0,
+        "summary": "2 x (1 stalk peeled ~ 1/2 cup chopped) Lemongrass (2.4 oz/68 g)"
+    },
+    {
+        "id": 67,
+        "recipe_id": 7,
+        "food_ingredient_id": 422,
+        "recipe_ingredient_id": null,
+        "servings": 1.0,
+        "summary": "1 x (1/4 cup) Cashews, Roasted Unsalted (1.0 oz/30 g)"
+    },
+    {
+        "id": 68,
+        "recipe_id": 7,
+        "food_ingredient_id": 336,
+        "recipe_ingredient_id": null,
+        "servings": 2.0,
+        "summary": "2 x (2 peppers) Peppers, Bird's Eye aka Thai Chili, Dried (0.1 oz/2 g)"
+    },
+    {
+        "id": 69,
+        "recipe_id": 7,
+        "food_ingredient_id": 150,
+        "recipe_ingredient_id": null,
+        "servings": 3.0,
+        "summary": "3 x (1 tsp ~ 3 leaves) Bay Leaves, Dried (0.1 oz/3 g)"
+    },
+    {
+        "id": 70,
+        "recipe_id": 7,
+        "food_ingredient_id": 103,
+        "recipe_ingredient_id": null,
+        "servings": 3.0,
+        "summary": "3 x (2 tsp) Sugar, Light Brown (0.9 oz/24 g)"
+    },
+    {
+        "id": 71,
+        "recipe_id": 7,
+        "food_ingredient_id": 188,
+        "recipe_ingredient_id": null,
+        "servings": 6.0,
+        "summary": "6 x (1 tsp) Turmeric, Ground (0.4 oz/12 g)"
+    },
+    {
+        "id": 72,
+        "recipe_id": 7,
+        "food_ingredient_id": 183,
+        "recipe_ingredient_id": null,
+        "servings": 12.0,
+        "summary": "12 x (1/4 tsp) Salt, Iodized (0.6 oz/24 g)"
+    },
+    {
+        "id": 73,
+        "recipe_id": 7,
+        "food_ingredient_id": 100,
+        "recipe_ingredient_id": null,
+        "servings": 2.0,
+        "summary": "2 x (1 tbsp) Oil, Olive (1.0 oz/30 g)"
+    },
+    {
+        "id": 74,
+        "recipe_id": 7,
+        "food_ingredient_id": 447,
+        "recipe_ingredient_id": null,
+        "servings": 0.25,
+        "summary": "0.25 x (1 cup) Water (2.0 oz/59 g)"
+    },
+    {
+        "id": 107,
+        "recipe_id": 1,
+        "food_ingredient_id": 207,
+        "recipe_ingredient_id": null,
+        "servings": 5.0,
+        "summary": "5 x (0.4 breasts) Chicken, Breast, Boneless Skinless (20.0 oz/565 g)"
+    },
+    {
+        "id": 108,
+        "recipe_id": 1,
+        "food_ingredient_id": 138,
+        "recipe_ingredient_id": null,
+        "servings": 4.0,
+        "summary": "4 x (1/4 cup dry -> 3/4 cups cooked) Rice, Basmati (6.4 oz/180 g)"
+    },
+    {
+        "id": 109,
+        "recipe_id": 1,
+        "food_ingredient_id": 320,
+        "recipe_ingredient_id": null,
+        "servings": 1.0,
+        "summary": "1 x (1 onion) Onion, Yellow (5.2 oz/148 g)"
+    },
+    {
+        "id": 110,
+        "recipe_id": 1,
+        "food_ingredient_id": 324,
+        "recipe_ingredient_id": null,
+        "servings": 1.0,
+        "summary": "1 x (2/3 cup) Peas, Frozen, Green (3.2 oz/90 g)"
+    },
+    {
+        "id": 111,
+        "recipe_id": 1,
+        "food_ingredient_id": 7,
+        "recipe_ingredient_id": null,
+        "servings": 2.0,
+        "summary": "2 x (1 cup) Broth, Vegetable (16.0 oz/480 g)"
+    },
+    {
+        "id": 112,
+        "recipe_id": 1,
+        "food_ingredient_id": 100,
+        "recipe_ingredient_id": null,
+        "servings": 2.0,
+        "summary": "2 x (1 tbsp) Oil, Olive (1.0 oz/30 g)"
+    },
+    {
+        "id": 113,
+        "recipe_id": 1,
+        "food_ingredient_id": 178,
+        "recipe_ingredient_id": null,
+        "servings": 2.0,
+        "summary": "2 x (1 tsp) Paprika, Dried (0.2 oz/6 g)"
+    },
+    {
+        "id": 114,
+        "recipe_id": 1,
+        "food_ingredient_id": 177,
+        "recipe_ingredient_id": null,
+        "servings": 1.0,
+        "summary": "1 x (1 tsp) Oregano, Dried (0.0 oz/1 g)"
+    },
+    {
+        "id": 115,
+        "recipe_id": 1,
+        "food_ingredient_id": 187,
+        "recipe_ingredient_id": null,
+        "servings": 1.0,
+        "summary": "1 x (1 tsp) Thyme, Dried (0.1 oz/1 g)"
+    },
+    {
+        "id": 116,
+        "recipe_id": 1,
+        "food_ingredient_id": 166,
+        "recipe_ingredient_id": null,
+        "servings": 0.5,
+        "summary": "0.5 x (1 tsp) Garlic Powder, Dried, Ground (0.1 oz/2 g)"
+    },
+    {
+        "id": 117,
+        "recipe_id": 1,
+        "food_ingredient_id": 176,
+        "recipe_ingredient_id": null,
+        "servings": 0.5,
+        "summary": "0.5 x (1 tsp) Onion Powder, Ground (0.0 oz/1 g)"
+    },
+    {
+        "id": 118,
+        "recipe_id": 1,
+        "food_ingredient_id": 181,
+        "recipe_ingredient_id": null,
+        "servings": 0.25,
+        "summary": "0.25 x (1 tsp) Peppercorns, Whole (0.0 oz/0 g)"
+    },
+    {
+        "id": 119,
+        "recipe_id": 1,
+        "food_ingredient_id": 184,
+        "recipe_ingredient_id": null,
+        "servings": 1.0,
+        "summary": "1 x (1/4 tsp) MySalt (0.0 oz/1 g)"
+    },
+    {
+        "id": 120,
+        "recipe_id": 8,
+        "food_ingredient_id": null,
+        "recipe_ingredient_id": 7,
+        "servings": 4.0,
+        "summary": "4 x Bumbu Bali Chile Paste (0.0 oz/0 g)"
+    },
+    {
+        "id": 121,
+        "recipe_id": 8,
+        "food_ingredient_id": 70,
+        "recipe_ingredient_id": null,
+        "servings": 5.0,
+        "summary": "5 x (1/3 cup) Coconut Milk, Lite (13.5 oz/400 g)"
+    },
+    {
+        "id": 122,
+        "recipe_id": 8,
+        "food_ingredient_id": 207,
+        "recipe_ingredient_id": null,
+        "servings": 5.0,
+        "summary": "5 x (0.4 breasts) Chicken, Breast, Boneless Skinless (20.0 oz/565 g)"
+    },
+    {
+        "id": 123,
+        "recipe_id": 8,
+        "food_ingredient_id": 339,
+        "recipe_ingredient_id": null,
+        "servings": 2.0,
+        "summary": "2 x (1/2 potato) Potatoes, Russet (10.0 oz/296 g)"
+    },
+    {
+        "id": 124,
+        "recipe_id": 8,
+        "food_ingredient_id": 448,
+        "recipe_ingredient_id": null,
+        "servings": 4.0,
+        "summary": "4 x (1/2 cup chopped ~ 1/4 jumbo carrot) Carrots, Jumbo (8.8 oz/256 g)"
+    },
+    {
+        "id": 125,
+        "recipe_id": 8,
+        "food_ingredient_id": 138,
+        "recipe_ingredient_id": null,
+        "servings": 4.0,
+        "summary": "4 x (1/4 cup dry -> 3/4 cups cooked) Rice, Basmati (6.4 oz/180 g)"
     }
 ]
