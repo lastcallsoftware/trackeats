@@ -766,5 +766,69 @@
         "recipe_ingredient_id": null,
         "servings": 1.0,
         "summary": "1 x (1-2 scallions ~ 1/4 cup chopped) Scallions (0.9 oz/25 g)"
+    },
+    {
+        "id": 191,
+        "recipe_id": 12,
+        "food_ingredient_id": 108,
+        "recipe_ingredient_id": null,
+        "servings": 2.0,
+        "summary": "2 x (1 slice) Bread, Whole Wheat (2.0 oz/52 g)"
+    },
+    {
+        "id": 192,
+        "recipe_id": 12,
+        "food_ingredient_id": 426,
+        "recipe_ingredient_id": null,
+        "servings": 1.0,
+        "summary": "1 x (2 tbsp) Peanut Butter, Super Chunk (1.1 oz/32 g)"
+    },
+    {
+        "id": 193,
+        "recipe_id": 12,
+        "food_ingredient_id": 390,
+        "recipe_ingredient_id": null,
+        "servings": 1.0,
+        "summary": "1 x (1 tbsp) Jelly, Wild Blueberry Preserves (0.7 oz/20 g)"
+    },
+    {
+        "id": 200,
+        "recipe_id": 13,
+        "food_ingredient_id": 108,
+        "recipe_ingredient_id": null,
+        "servings": 2.0,
+        "summary": "2 x (1 slice) Bread, Whole Wheat (2.0 oz/52 g)"
+    },
+    {
+        "id": 201,
+        "recipe_id": 13,
+        "food_ingredient_id": 194,
+        "recipe_ingredient_id": null,
+        "servings": 1.0,
+        "summary": "1 x (3 slices cooked) Bacon, Smoked (0.5 oz/14 g)"
+    },
+    {
+        "id": 202,
+        "recipe_id": 13,
+        "food_ingredient_id": 312,
+        "recipe_ingredient_id": null,
+        "servings": 0.5,
+        "summary": "0.5 x (1.5 cups ~ 4 leaves) Lettuce, Romaine (1.5 oz/42 g)"
+    },
+    {
+        "id": 203,
+        "recipe_id": 13,
+        "food_ingredient_id": 359,
+        "recipe_ingredient_id": null,
+        "servings": 0.5,
+        "summary": "0.5 x (1 tomato) Tomatoes, Fresh, Plum (aka Roma) (1.1 oz/31 g)"
+    },
+    {
+        "id": 204,
+        "recipe_id": 13,
+        "food_ingredient_id": 24,
+        "recipe_ingredient_id": null,
+        "servings": 0.5,
+        "summary": "0.5 x (1 tbsp) Mayonnaise, Squeeze, Light (0.2 oz/8 g)"
     }
 ]

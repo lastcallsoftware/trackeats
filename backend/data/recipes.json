@@ -328,5 +328,65 @@
             "potassium_mg": 2435
         },
         "price": 19.73
+    },
+    {
+        "id": 12,
+        "cuisine": "american",
+        "name": "PBJ Sandwich",
+        "total_yield": "1 sandwich",
+        "servings": 1.0,
+        "nutrition_id": 460,
+        "nutrition": {
+            "id": 460,
+            "serving_size_description": "1 sandwich",
+            "serving_size_oz": 0.0,
+            "serving_size_g": 0,
+            "calories": 360,
+            "total_fat_g": 17.0,
+            "saturated_fat_g": 3.0,
+            "trans_fat_g": 0,
+            "cholesterol_mg": 0,
+            "sodium_mg": 365,
+            "total_carbs_g": 43,
+            "fiber_g": 6,
+            "total_sugar_g": 18,
+            "added_sugar_g": 17,
+            "protein_g": 13,
+            "vitamin_d_mcg": 0,
+            "calcium_mg": 60,
+            "iron_mg": 1.8,
+            "potassium_mg": 214
+        },
+        "price": 1.16
+    },
+    {
+        "id": 13,
+        "cuisine": "american",
+        "name": "BLT Sandwich",
+        "total_yield": "1 sandwich",
+        "servings": 1.0,
+        "nutrition_id": 462,
+        "nutrition": {
+            "id": 462,
+            "serving_size_description": "1 sandwich",
+            "serving_size_oz": 0.0,
+            "serving_size_g": 0,
+            "calories": 221,
+            "total_fat_g": 8.8,
+            "saturated_fat_g": 2.2,
+            "trans_fat_g": 0,
+            "cholesterol_mg": 15,
+            "sodium_mg": 557,
+            "total_carbs_g": 28,
+            "fiber_g": 4,
+            "total_sugar_g": 2,
+            "added_sugar_g": 2,
+            "protein_g": 10,
+            "vitamin_d_mcg": 0,
+            "calcium_mg": 74,
+            "iron_mg": 1.9,
+            "potassium_mg": 300
+        },
+        "price": 3.41
     }
 ]
