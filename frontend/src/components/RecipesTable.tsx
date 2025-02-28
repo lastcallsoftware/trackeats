@@ -1,10 +1,10 @@
 import { ColumnFiltersState, createColumnHelper, flexRender, getCoreRowModel, getFilteredRowModel, getPaginationRowModel, getSortedRowModel, Row, SortingState, TableOptions, useReactTable } from '@tanstack/react-table';
-import React, { useContext } from 'react';
+import React, { useContext, useEffect } from 'react';
 import { IRecipe, DataContext } from "./DataProvider";
-import { Filter } from "./Widgets"
 import { getCuisineLabel } from './Cuisines';
 import { useNavigate } from 'react-router-dom';
 import Pagination from './Pagination';
+import FilterWidget from './FilterWidget';
 
 // Define the table's columns
 const columnHelper = createColumnHelper<IRecipe>()
@@ -122,7 +122,7 @@ interface IRecipesTableProps {
     setSelectedRowId: React.Dispatch<React.SetStateAction<number | null>>
 }
 
-// Now declare the Foods table itself
+// Declare the Recipes table itself
 const RecipesTable: React.FC<IRecipesTableProps> = ({setSelectedRowId}) => {
     const navigate = useNavigate()
     const [sorting, setSorting] = React.useState<SortingState>([])
@@ -171,6 +171,26 @@ const RecipesTable: React.FC<IRecipesTableProps> = ({setSelectedRowId}) => {
         navigate("/recipeForm", { state: { recipe } });
     }
     
+    const RECIPES_FILTERS_STORAGE = "recipes_filters_storage"
+
+    // Restore filters on mount
+    useEffect(() => {
+        const savedFilters = sessionStorage.getItem(RECIPES_FILTERS_STORAGE);
+        if (savedFilters) {
+            setColumnFilters(JSON.parse(savedFilters));
+        }
+    }, []);
+
+    const updateFilter = (id: string, value: string) => {
+        setColumnFilters((prev) => {
+            const updatedFilters = prev.filter((f) => f.id !== id);
+            if (value)
+                updatedFilters.push({ id, value });
+            sessionStorage.setItem(RECIPES_FILTERS_STORAGE, JSON.stringify(updatedFilters));
+            return updatedFilters;
+        });
+      };
+
     return (
         <>
             <table className="foodTable table-bordered">
@@ -209,9 +229,9 @@ const RecipesTable: React.FC<IRecipesTableProps> = ({setSelectedRowId}) => {
                                             {/* The stopPropagation() call in the onClick handler prevents clicks on the Filter 
                                                 widget from passing through to its parent, the header div.  We need this because 
                                                 clicking on the header enacts the table's sorting functionality. */}
-                                            {header.column.getCanFilter() ? (
+                                            {header.column.getCanFilter() && header.column.columnDef.meta?.filterVariant === "text" ? (
                                                 <section className='filter_box' onClick={(e) => {e.stopPropagation()}}>
-                                                    <Filter column={header.column}/>
+                                                    <FilterWidget column={header.column} updateFilterFunction={updateFilter} />
                                                 </section>
                                             ) : null}
                                         </section>

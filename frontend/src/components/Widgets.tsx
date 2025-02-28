@@ -1,7 +1,6 @@
 import { Column, RowData } from "@tanstack/react-table"
 import React from "react"
 
-
 // Define a filterVariant property, which will be used in the table column
 // definitions to choose what kind of filter input each column gets.
 // The default type is "none". 

@@ -1,10 +1,10 @@
 import { ColumnFiltersState, createColumnHelper, flexRender, getCoreRowModel, getFilteredRowModel, getPaginationRowModel, getSortedRowModel, Row, SortingState, TableOptions, useReactTable } from '@tanstack/react-table';
-import React, { useContext } from 'react';
+import React, { useContext, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { IFood, DataContext } from "./DataProvider";
-import { Filter } from "./Widgets"
 import { getFoodGroupLabel } from './FoodGroups';
 import Pagination from './Pagination';
+import FilterWidget from './FilterWidget';
 
 // Define the table's columns
 const columnHelper = createColumnHelper<IFood>()
@@ -196,6 +196,8 @@ const FoodsTable: React.FC<FoodsTableProps> = ({setSelectedRowId, isRecipesForm 
     if (!context)
         throw Error("useDataContext can only be used inside a DataProvider")
 
+    const FOOD_FILTERS_STORAGE = "food_filters_storage";
+
     // Define the table's properties.
     const tableOptions: TableOptions<IFood> = {
         data: context.foods,
@@ -240,6 +242,24 @@ const FoodsTable: React.FC<FoodsTableProps> = ({setSelectedRowId, isRecipesForm 
         navigate("/foodForm", { state: { food } });
     }
 
+    // Restore filters on mount
+    useEffect(() => {
+        const savedFilters = sessionStorage.getItem(FOOD_FILTERS_STORAGE);
+        if (savedFilters) {
+            setColumnFilters(JSON.parse(savedFilters));
+        }
+    }, []);
+
+    const updateFilter = (id: string, value: string) => {
+        setColumnFilters((prev) => {
+            const updatedFilters = prev.filter((f) => f.id !== id);
+            if (value)
+                updatedFilters.push({ id, value });
+            sessionStorage.setItem(FOOD_FILTERS_STORAGE, JSON.stringify(updatedFilters));
+            return updatedFilters;
+        });
+      };
+    
     return (
         <>
             <table className="foodTable table-bordered">
@@ -278,9 +298,9 @@ const FoodsTable: React.FC<FoodsTableProps> = ({setSelectedRowId, isRecipesForm 
                                             {/* The stopPropagation() call in the onClick handler prevents clicks on the Filter 
                                                 widget from passing through to its parent, the header div.  We need this because 
                                                 clicking on the header enacts the table's sorting functionality. */}
-                                            {header.column.getCanFilter() ? (
+                                            {header.column.getCanFilter() && header.column.columnDef.meta?.filterVariant === "text" ? (
                                                 <section className='filter_box' onClick={(e) => {e.stopPropagation()}}>
-                                                    <Filter column={header.column}/>
+                                                    <FilterWidget column={header.column} updateFilterFunction={updateFilter} />
                                                 </section>
                                             ) : null}
                                         </section>
