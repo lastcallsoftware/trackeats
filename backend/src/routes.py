@@ -465,7 +465,7 @@ def get_recipes():
         user_id = User.get_id(username)
 
         # Get all the Recipes associated with that user_id
-        recipes = Recipe.query.filter_by(user_id=user_id).all()
+        recipes = Recipe.query.filter_by(user_id=user_id).order_by(Recipe.cuisine, Recipe.name).all()
         data = []
         for recipe in recipes:
             data.append(recipe.json())
