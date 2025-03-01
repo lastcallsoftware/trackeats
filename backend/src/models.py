@@ -309,6 +309,7 @@ class Nutrition(db.Model):
 
     def __init__(self, data: dict = None):
         if data is not None:
+            self.id = data.get("id")
             self.serving_size_description = data.get("serving_size_description", "")
             self.serving_size_oz = data.get("serving_size_oz", 0)
             self.serving_size_g = data.get("serving_size_g", 0)
@@ -442,6 +443,7 @@ class Food(db.Model):
 
     def __init__(self, data: dict = None):
         if data is not None:
+            self.id = data.get("id")
             self.user_id = data.get("user_id")
             self.group = FoodGroup[data.get("group")]
             self.name = data.get("name")
@@ -610,6 +612,8 @@ class Ingredient(db.Model):
             # Also, sum the Nutrition data from the new Ingredient into the Recipe.
             if food_ingredient_id is not None:
                 food_ingredient:Food = Food.query.filter_by(id=food_ingredient_id).first()
+                if food_ingredient is None:
+                    raise ValueError(f"Food Ingredient {food_ingredient_id} not found")
                 #if summary is None or summary == "":
                 summary = Ingredient.generate_summary(food_ingredient, servings)
                 recipe.nutrition.sum(food_ingredient.nutrition, servings)
@@ -862,9 +866,3 @@ class Recipe(db.Model):
         db.session.commit()
 
         logging.info(f"Recipe Ingredient {self.id}/{recipe_id} removed")
-
-    # Reset the Nutrition data for the Recipe.
-    # It's simpler to just delete the old record and create a new one.
-    def reset_nutrition(self) -> None:
-        db.session.delete(self.nutrition)
-        self.nutrition = Nutrition()
