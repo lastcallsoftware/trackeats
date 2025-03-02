@@ -55,13 +55,13 @@ const columns = [
         size: 65
     }),
     columnHelper.accessor("nutrition.total_fat_g", {
-        header: () => <span className="headerText">Total Fat (g)</span>,
+        header: () => <span className="headerText">Total Fat (g)<br/>&lt;78 g</span>,
         cell: info => (info.getValue()/info.row.original.servings).toFixed(1),
         sortingFn: sortingFunction,
         size: 65
     }),
     columnHelper.accessor("nutrition.saturated_fat_g", {
-        header: () => <span className="headerText">Satu- rated Fat (g)</span>,
+        header: () => <span className="headerText">Satu- rated Fat (g)<br/>&lt;20 g</span>,
         cell: info => (info.getValue()/info.row.original.servings).toFixed(1),
         sortingFn: sortingFunction,
         size: 65
@@ -73,19 +73,25 @@ const columns = [
         size: 65
     }),
     columnHelper.accessor("nutrition.cholesterol_mg", {
-        header: () => <span className="headerText">Choles- terol (mg)</span>,
+        header: () => <span className="headerText">Choles- terol (mg)<br/>&lt;300 mg</span>,
         cell: info => (info.getValue()/info.row.original.servings).toFixed(0),
         sortingFn: sortingFunction,
         size: 65
     }),
     columnHelper.accessor("nutrition.sodium_mg", {
-        header: () => <span className="headerText">Sodium (mg)</span>,
+        header: () => <span className="headerText">Sodium (mg)<br/>&lt;2300 mg</span>,
         cell: info => (info.getValue()/info.row.original.servings).toFixed(0),
         sortingFn: sortingFunction,
         size: 65
     }),
     columnHelper.accessor("nutrition.total_carbs_g", {
-        header: () => <span className="headerText">Total Carbs (g)</span>,
+        header: () => <span className="headerText">Total Carbs (g)<br/>&gt;275 g</span>,
+        cell: info => (info.getValue()/info.row.original.servings).toFixed(0),
+        sortingFn: sortingFunction,
+        size: 65
+    }),
+    columnHelper.accessor("nutrition.fiber_g", {
+        header: () => <span className="headerText">Fiber (g)<br/>&gt;28 g</span>,
         cell: info => (info.getValue()/info.row.original.servings).toFixed(0),
         sortingFn: sortingFunction,
         size: 65
@@ -97,37 +103,37 @@ const columns = [
         size: 65
     }),
     columnHelper.accessor("nutrition.added_sugar_g", {
-        header: () => <span className="headerText">Added Sugar (g)</span>,
+        header: () => <span className="headerText">Added Sugar (g)<br/>&lt;50 g</span>,
         cell: info => (info.getValue()/info.row.original.servings).toFixed(0),
         sortingFn: sortingFunction,
         size: 65
     }),
     columnHelper.accessor("nutrition.protein_g", {
-        header: () => <span className="headerText">Protein (g)</span>,
+        header: () => <span className="headerText">Protein (g)<br/>&gt;50 g</span>,
         cell: info => (info.getValue()/info.row.original.servings).toFixed(0),
         sortingFn: sortingFunction,
         size: 65
     }),
     columnHelper.accessor("nutrition.vitamin_d_mcg", {
-        header: () => <span className="headerText">Vitamin D (mcg)</span>,
+        header: () => <span className="headerText">Vitamin D (mcg)<br/>&gt;20 mg</span>,
         cell: info => (info.getValue()/info.row.original.servings).toFixed(0),
         sortingFn: sortingFunction,
         size: 65
     }),
     columnHelper.accessor("nutrition.calcium_mg", {
-        header: () => <span className="headerText">Calcium (mg)</span>,
+        header: () => <span className="headerText">Calcium (mg)<br/>&gt;1300 mg</span>,
         cell: info => (info.getValue()/info.row.original.servings).toFixed(0),
         sortingFn: sortingFunction,
         size: 65
     }),
     columnHelper.accessor("nutrition.iron_mg", {
-        header: () => <span className="headerText">Iron (mg)</span>,
+        header: () => <span className="headerText">Iron (mg)<br/>&gt;18 mg</span>,
         cell: info => (info.getValue()/info.row.original.servings).toFixed(1),
         sortingFn: sortingFunction,
         size: 65
     }),
     columnHelper.accessor("nutrition.potassium_mg", {
-        header: () => <span className="headerText">Potas- sium (mg)</span>,
+        header: () => <span className="headerText">Potas. (mg)<br/>&gt;4700 mg</span>,
         cell: info => (info.getValue()/info.row.original.servings).toFixed(0),
         sortingFn: sortingFunction,
         size: 65
