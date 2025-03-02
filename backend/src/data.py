@@ -8,7 +8,6 @@ def load_db():
     purge_data()
     add_users()
     user_id = User.get_id("guest")
-    #add_foods(user_id)
     import_foods(user_id)
     import_recipes(user_id)
     import_ingredients(user_id)
@@ -35,76 +34,11 @@ def add_users():
     db.session.commit()
     logging.info("User records added")
 
-# Add Foods
-# This imports Food data from the various JSON files I manually typed in
-# rather than one created by the export code.  As such it's a more 
-# *reliable* baseline, but not really a permanent solution.
-def add_foods(user_id: int):
-    logging.info("Importing Food records...")
-    # Read in the JSON food data and add it to the database
-    with open("./data/condiments.json") as f:
-        data = json.load(f)
-        for food in data['foods']:
-            Food.add(user_id, food, False)
-    db.session.commit()
-    logging.info("Imported condiments")
-
-    with open("./data/dairy.json") as f:
-        data = json.load(f)
-        for food in data['foods']:
-            Food.add(user_id, food, False)
-    db.session.commit()
-    logging.info("Imported dairy")
-
-    with open("./data/fats_and_sugars.json") as f:
-        data = json.load(f)
-        for food in data['foods']:
-            Food.add(user_id, food, False)
-    db.session.commit()
-    logging.info("Imported fats_and_sugars")
-
-    with open("./data/grains.json") as f:
-        data = json.load(f)
-        for food in data['foods']:
-            Food.add(user_id, food, False)
-    db.session.commit()
-    logging.info("Imported grains")
-
-    with open("./data/herbs_and_spices.json") as f:
-        data = json.load(f)
-        for food in data['foods']:
-            Food.add(user_id, food, False)
-    db.session.commit()
-    logging.info("Imported herbs_and_spices")
-
-    with open("./data/proteins.json") as f:
-        data = json.load(f)
-        for food in data['foods']:
-            Food.add(user_id, food, False)
-    db.session.commit()
-    logging.info("Imported proteins")
-
-    with open("./data/vegetables.json") as f:
-        data = json.load(f)
-        for food in data['foods']:
-            Food.add(user_id, food, False)
-    db.session.commit()
-    logging.info("Imported vegetables")
-
-    with open("./data/other.json") as f:
-        data = json.load(f)
-        for food in data['foods']:
-            Food.add(user_id, food, False)
-    db.session.commit()
-    logging.info("Imported other")
-    
-    logging.info("Food records imported")
-
 # Import Foods
 def import_foods(user_id: int = None):
     logging.info("Importing Food records...")
     with open("./data/foods.json") as f:
-        foods = json.load(f)
+        foods: list[dict] = json.load(f)
         for food in foods:
             Food.add(user_id,
                      food,
@@ -114,8 +48,9 @@ def import_foods(user_id: int = None):
 
 # Import Recipes
 def import_recipes(user_id: int):
+    logging.info("Importing Recipe records...")
     with open("./data/recipes.json") as f:
-        recipes = json.load(f)
+        recipes: list[dict] = json.load(f)
         for recipe in recipes:
             Recipe.add(user_id, 
                        recipe["cuisine"],
@@ -123,8 +58,6 @@ def import_recipes(user_id: int):
                        recipe["total_yield"],
                        recipe["servings"],
                        recipe["nutrition"]["serving_size_description"],
-                       None,
-                       None,
                        recipe["id"])                    
     logging.info("Recipe records imported")
 
@@ -132,13 +65,14 @@ def import_recipes(user_id: int):
 def import_ingredients(user_id: int = None):
     logging.info("Importing Ingredient records...")
     with open("./data/ingredients.json") as f:
-        ingredients = json.load(f)
+        ingredients: list[dict] = json.load(f)
         for ingredient in ingredients:
             Ingredient.add(ingredient["recipe_id"],
                            ingredient["food_ingredient_id"],
                            ingredient["recipe_ingredient_id"],
                            ingredient["servings"],
                            ingredient["summary"],
+                           ingredient.get("ordinal", None),
                            True)
     logging.info("Ingredient records imported")
 

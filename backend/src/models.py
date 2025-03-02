@@ -1,5 +1,5 @@
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import ForeignKey
+from sqlalchemy import ForeignKey, func
 from sqlalchemy.orm import relationship
 from email_validator import validate_email, EmailNotValidError
 from crypto import check_password, encrypt, decrypt, hash_password
@@ -571,6 +571,7 @@ class Ingredient(db.Model):
     recipe_id = db.Column(db.Integer, db.ForeignKey("recipe.id"))
     food_ingredient_id = db.Column(db.Integer, db.ForeignKey("food.id"), nullable=True)
     recipe_ingredient_id = db.Column(db.Integer, db.ForeignKey("recipe.id"), nullable=True)
+    ordinal = db.Column(db.Integer)
     servings = db.Column(db.Float, nullable=False, default=0)
     summary = db.Column(db.String(100))
 
@@ -580,6 +581,7 @@ class Ingredient(db.Model):
             "recipe_id": self.recipe_id,
             "food_ingredient_id": self.food_ingredient_id,
             "recipe_ingredient_id": self.recipe_ingredient_id,
+            "ordinal": self.ordinal,
             "servings": self.servings,
             "summary": self.summary
         }
@@ -596,7 +598,7 @@ class Ingredient(db.Model):
             recipe:Recipe = ingredient
             return f"{servings} x {recipe.name} ({ss_oz} oz/{ss_g} g)"
 
-    def add(recipe_id: int, food_ingredient_id: int, recipe_ingredient_id:int, servings: float, summary: str, commit: bool = True) -> None:
+    def add(recipe_id: int, food_ingredient_id: int, recipe_ingredient_id:int, servings: float, summary: str,  ordinal: int|None = None, commit: bool = True) -> None:
         try:
             # Check whether a matching Ingredient record already exists
             ingredient:Ingredient = Ingredient.query.filter_by(recipe_id=recipe_id, food_ingredient_id=food_ingredient_id, recipe_ingredient_id=recipe_ingredient_id).first()
@@ -626,12 +628,15 @@ class Ingredient(db.Model):
                 recipe.price += round(recipe_ingredient.price * servings/recipe_ingredient.servings, 2)
             else:
                 raise ValueError("Either food_ingredient_id or recipe_ingredient_id must be provided.")
-
+            
+            if ordinal is None:
+                ordinal = db.session.query(func.count(Ingredient.id)).filter_by(recipe_id=recipe_id).scalar()
+            
             # Create a new Ingredient record and add it to the database.
-            ingredient:Ingredient = Ingredient(recipe_id=recipe_id, food_ingredient_id=food_ingredient_id, recipe_ingredient_id=recipe_ingredient_id, servings=servings, summary=summary)
+            ingredient:Ingredient = Ingredient(recipe_id=recipe_id, food_ingredient_id=food_ingredient_id, recipe_ingredient_id=recipe_ingredient_id, ordinal=ordinal, servings=servings, summary=summary)
             db.session.add(ingredient)
 
-            if commit:
+            if True:
                 db.session.commit()
         except Exception as e:
             raise ValueError(f"Ingredient record {recipe_id}/{food_ingredient_id}/{recipe_ingredient_id} could not be added: " + repr(e)) from e
@@ -685,8 +690,6 @@ class Recipe(db.Model):
             total_yield: str, 
             servings: int, 
             serving_size_description: str, 
-            food_ingredients_and_servings: list[tuple[dict,float]] = None,
-            recipe_ingredients_and_servings: list[tuple[dict,float]] = None,
             id: int = None) -> int:
         try:
             recipe = Recipe()
@@ -704,16 +707,6 @@ class Recipe(db.Model):
 
             # Add the Recipe record to the database WITH NO INGREDIENTS YET.
             db.session.add(recipe)
-            db.session.commit()
-
-            # Add the Food and Recipe ingredients to the Recipe, summing in 
-            # their Nutrition data as we go.
-            if food_ingredients_and_servings is not None:
-                for food_ingredient_and_serving in food_ingredients_and_servings:
-                    Ingredient.add(recipe.id, food_ingredient_and_serving[0].id, None, food_ingredient_and_serving[1], None, False)
-            if recipe_ingredients_and_servings is not None:
-                for recipe_ingredient_and_serving in recipe_ingredients_and_servings:
-                    Ingredient.add(recipe.id, None, recipe_ingredient_and_serving[0].id, recipe_ingredient_and_serving[1], None, False)
             db.session.commit()
 
             # Return the ID of the new Recipe record.

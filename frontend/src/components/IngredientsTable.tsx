@@ -1,4 +1,4 @@
-import { createColumnHelper, flexRender, getCoreRowModel, Row, TableOptions, useReactTable } from '@tanstack/react-table';
+import { createColumnHelper, flexRender, getCoreRowModel, getSortedRowModel, Row, TableOptions, useReactTable } from '@tanstack/react-table';
 import { IIngredient } from "./DataProvider";
 
 // Define the table's columns
@@ -18,6 +18,11 @@ const columns = [
         header: "Recipe Ingredient ID",
         cell: info => info.getValue(),
         size: 10
+    }),
+    columnHelper.accessor("ordinal", {
+        header: "Ordinal",
+        cell: info => info.getValue(),
+        size: 19
     }),
     columnHelper.accessor("servings", {
         header: "Servings",
@@ -44,13 +49,20 @@ const IngredientsTable: React.FC<IRecipesTableProps> = ({setSelectedRowId, ingre
         columns: columns,
         getCoreRowModel: getCoreRowModel(),
         enableMultiRowSelection: false,
+        getSortedRowModel: getSortedRowModel(),
         initialState: {
             columnVisibility: {
                 id: false,
                 servings: false,
                 food_ingredient_id: false,
                 recipe_ingredient_id: false
-            }
+            },
+            sorting: [
+                {
+                    id: "ordinal",
+                    desc: false
+                }
+            ]
         }
     }
     const table = useReactTable(tableOptions)

@@ -37,7 +37,6 @@ def health():
 # INIT - Wipe the database and recreate all the tables using the ORM classes in 
 # models.py.  Note that the tables will be EMPTY!
 @bp.route("/db/init", methods=["GET"])
-@jwt_required()
 def db_init():
     logging.info("/db/init")
     try:
@@ -57,7 +56,6 @@ def db_init():
 # LOAD - Populate the (presumably newly created) database with test data.
 # Be aware that this API first deletes the contents of tables it populates!
 @bp.route("/db/load", methods=["GET"])
-@jwt_required()
 def db_load():
     logging.info("/db/load")
     try:
@@ -510,7 +508,7 @@ def add_recipe():
         username = get_jwt_identity()
         user_id = User.get_id(username)
 
-        recipe = request.json
+        recipe: list[dict] = request.json
 
         # Pull the serving size description from the Nutrition child record and
         # make it a separate parameter.  It will be added back to the Nutrition
@@ -526,8 +524,7 @@ def add_recipe():
             recipe["total_yield"],
             recipe["servings"],
             serving_size_description,
-            None,
-            None)
+            recipe.get("id", None))
     except Exception as e:
         msg = f"Recipe record could not be added: {repr(e)}"
         logging.error(msg)
@@ -636,9 +633,11 @@ def add_ingredients(recipe_id:int):
         for ingredient in ingredients:
             food_ingredient_id = ingredient.get("food_ingredient_id")
             recipe_ingredient_id = ingredient.get("recipe_ingredient_id")
+            ordinal = ingredient.get("ordinal")
             servings = ingredient.get("servings")
             summary = ingredient.get("summary")
-            Ingredient.add(recipe_id, food_ingredient_id, recipe_ingredient_id, servings, summary, True)
+            Ingredient.add(recipe_id, food_ingredient_id, recipe_ingredient_id, servings, summary, ordinal, False)
+        db.session.commit()
     except Exception as e:
         msg = f"Ingredient record(s) could not be added to Recipe {recipe_id}: {repr(e)}"
         logging.error(msg)

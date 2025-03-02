@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { IFood, IRecipe, DataContext, IIngredient, INutrition } from "./DataProvider";
 import { cuisines } from "./Cuisines";
 import { IconContext } from "react-icons";
-import { MdKeyboardDoubleArrowLeft, MdKeyboardDoubleArrowRight } from "react-icons/md";
+import { MdKeyboardDoubleArrowLeft, MdKeyboardDoubleArrowRight, MdEdit, MdKeyboardArrowUp, MdKeyboardArrowDown } from "react-icons/md";
 import FoodsTable from "./FoodsTable";
 import RecipesTable from "./RecipesTable";
 import IngredientsTable from "./IngredientsTable";
@@ -46,7 +46,8 @@ function RecipeForm() {
     const context = useContext(DataContext)
     if (!context)
         throw Error("useDataContext can only be used inside a DataProvider")
-    let errorMessage = context.errorMessage;
+
+    const [errorMessage, setErrorMessage] = useState(context.errorMessage)
 
     // State for the selected row in the Ingredients list
     // For this table, rather than the row ID, we use a tuple of the record's 
@@ -93,7 +94,7 @@ function RecipeForm() {
             // Add the new Ingredients
             await context.addIngredients(recipe_id, ingredients);
         } else {
-            errorMessage = "Error saving Recipe: recipe_id is undefined";
+            setErrorMessage("Error saving Recipe: recipe_id is undefined")
         }
 
         // Return to the Recipes page
@@ -107,134 +108,256 @@ function RecipeForm() {
         navigate("/recipes", { state: { } })
     }
 
-    const addIngredient = (e: { preventDefault: () => void; }) => {
-        e.preventDefault();
-        if (selectedFoodOrRecipeRowId) {
-            let nutrition:INutrition|null = null;
-            let modifier:number = 1;
-            if (selectedIngredientList === IngredientTypes.FOOD_INGREDIENTS) {
-                // Find the Food record with the specified ID (this should always succeed)
-                const food:IFood|undefined = context.foods.find((item:IFood) => item.id == selectedFoodOrRecipeRowId);
+    // Generate a summary for the Ingredient
+    const generateSummary = (nutrition: INutrition, food: IFood|undefined = undefined, recipe: IRecipe|undefined = undefined): string|undefined => {
+        if (selectedIngredientRowId) {
+            const ingredient:IIngredient|undefined = ingredients.find((item:IIngredient) => item.food_ingredient_id === selectedIngredientRowId[0] && item.recipe_ingredient_id === selectedIngredientRowId[1]);
+            if (ingredient) {
                 if (food) {
-                    nutrition = food.nutrition
-
-                    // Generate a summary for the Ingredient
                     let summary = ingredientServings + " x (" + nutrition?.serving_size_description + ") "
                     summary += food.name
                     if (food.subtype) {
                         summary += ", " + food.subtype
                     }
                     summary += " (" + (nutrition.serving_size_oz * ingredientServings).toFixed(1) + " oz/" + 
-                                    (nutrition.serving_size_g * ingredientServings).toFixed(1) + " g)"
-
-                    // Add the Food Ingredient to the Recipe's ingredients list
-                    ingredients.push({food_ingredient_id: food.id, servings: ingredientServings, summary: summary});
-                    formData.price += food.price * ingredientServings/food.servings
-                }
-            } else {
-                // Find the Recipe record with the specified ID (this should always succeed)
-                const recipe:IRecipe|undefined = context.recipes.find((item:IRecipe) => item.id == selectedFoodOrRecipeRowId);
-                if (recipe) {
-                    nutrition = recipe.nutrition
-
+                                        (nutrition.serving_size_g * ingredientServings).toFixed(1) + " g)"
+                    return summary
+                } else if (recipe) {
                     // Generate a summary for the Ingredient
                     let summary = ingredientServings + " x (" + nutrition.serving_size_description + ") "
                     summary += recipe.name + " "
                     summary += "(" + (nutrition.serving_size_oz * ingredientServings).toFixed(1) + " oz/" + 
                                     (nutrition.serving_size_g * ingredientServings).toFixed(1) + " g)"
-                    modifier = 1/recipe.servings
                     formData.price += recipe.price * ingredientServings/recipe.servings
-
-                    // Add the Recipe Ingredient to the Recipe's ingredients list
-                    ingredients.push({recipe_ingredient_id: recipe.id, servings: ingredientServings, summary: summary});
+                    return summary
                 }
             }
-            // Update the Recipe's nutrition information
-            if (nutrition) {
-                formData.nutrition.calories         += nutrition.calories * ingredientServings * modifier;
-                formData.nutrition.total_fat_g      += nutrition.total_fat_g * ingredientServings * modifier;
-                formData.nutrition.saturated_fat_g  += nutrition.saturated_fat_g * ingredientServings * modifier;
-                formData.nutrition.trans_fat_g      += nutrition.trans_fat_g * ingredientServings * modifier;
-                formData.nutrition.cholesterol_mg   += nutrition.cholesterol_mg * ingredientServings * modifier;
-                formData.nutrition.sodium_mg        += nutrition.sodium_mg * ingredientServings * modifier;
-                formData.nutrition.total_carbs_g    += nutrition.total_carbs_g * ingredientServings * modifier;
-                formData.nutrition.fiber_g          += nutrition.fiber_g * ingredientServings * modifier;
-                formData.nutrition.total_sugar_g    += nutrition.total_sugar_g * ingredientServings * modifier;
-                formData.nutrition.added_sugar_g    += nutrition.added_sugar_g * ingredientServings * modifier;
-                formData.nutrition.protein_g        += nutrition.protein_g * ingredientServings * modifier;
-                formData.nutrition.vitamin_d_mcg    += nutrition.vitamin_d_mcg * ingredientServings * modifier;
-                formData.nutrition.calcium_mg       += nutrition.calcium_mg * ingredientServings * modifier;
-                formData.nutrition.iron_mg          += nutrition.iron_mg * ingredientServings * modifier;
-                formData.nutrition.potassium_mg     += nutrition.potassium_mg * ingredientServings * modifier;
-                }
-
-            // Set the state variables to themselves.  This is necessary to 
-            // trigger a re-render.
-            // And yes, we need to call both to re-render both parts of the UI.
-            setIngredients([...ingredients]);
-            setFormData({...formData});
         }
+        return undefined
+    }
+
+    // Update the Recipe's nutrition information
+    const updateNutrition = (nutritionA: INutrition, nutritionB: INutrition, servings: number, modifier: number): void => {
+        nutritionA.calories         += nutritionB.calories * servings * modifier;
+        nutritionA.total_fat_g      += nutritionB.total_fat_g * servings * modifier;
+        nutritionA.saturated_fat_g  += nutritionB.saturated_fat_g * servings * modifier;
+        nutritionA.trans_fat_g      += nutritionB.trans_fat_g * servings * modifier;
+        nutritionA.cholesterol_mg   += nutritionB.cholesterol_mg * servings * modifier;
+        nutritionA.sodium_mg        += nutritionB.sodium_mg * servings * modifier;
+        nutritionA.total_carbs_g    += nutritionB.total_carbs_g * servings * modifier;
+        nutritionA.fiber_g          += nutritionB.fiber_g * servings * modifier;
+        nutritionA.total_sugar_g    += nutritionB.total_sugar_g * servings * modifier;
+        nutritionA.added_sugar_g    += nutritionB.added_sugar_g * servings * modifier;
+        nutritionA.protein_g        += nutritionB.protein_g * servings * modifier;
+        nutritionA.vitamin_d_mcg    += nutritionB.vitamin_d_mcg * servings * modifier;
+        nutritionA.calcium_mg       += nutritionB.calcium_mg * servings * modifier;
+        nutritionA.iron_mg          += nutritionB.iron_mg * servings * modifier;
+        nutritionA.potassium_mg     += nutritionB.potassium_mg * servings * modifier;
+    }
+
+    const addIngredient = (e: { preventDefault: () => void; }) => {
+        e.preventDefault();
+        if (!selectedFoodOrRecipeRowId)
+            return
+
+        let nutrition:INutrition|null = null;
+        let modifier:number = 1;
+        if (selectedIngredientList === IngredientTypes.FOOD_INGREDIENTS) {
+            // Find the Food record with the specified ID (this should always succeed)
+            const food:IFood|undefined = context.foods.find((item:IFood) => item.id == selectedFoodOrRecipeRowId);
+            if (!food) {
+                setErrorMessage("Food " + selectedFoodOrRecipeRowId + " not found")
+                return
+            }
+            nutrition = food.nutrition
+            const summary = generateSummary(food.nutrition, food, undefined)
+
+            // Add the Food Ingredient to the Recipe's ingredients list
+            ingredients.push({food_ingredient_id: food.id, ordinal: ingredients.length, servings: ingredientServings, summary: summary});
+            formData.price += food.price * ingredientServings/food.servings
+        } else {
+            // Find the Recipe record with the specified ID (this should always succeed)
+            const recipe:IRecipe|undefined = context.recipes.find((item:IRecipe) => item.id == selectedFoodOrRecipeRowId);
+            if (!recipe) {
+                setErrorMessage("Recipe " + selectedFoodOrRecipeRowId + " for Ingredient not found")
+                return
+            }
+            nutrition = recipe.nutrition
+            const summary = generateSummary(recipe.nutrition, undefined, recipe)
+            modifier = 1/recipe.servings
+
+            // Add the Recipe Ingredient to the Recipe's ingredients list
+            ingredients.push({recipe_ingredient_id: recipe.id, ordinal: ingredients.length, servings: ingredientServings, summary: summary});
+        }
+
+        // Update the Recipe's nutrition information
+        updateNutrition(formData.nutrition, nutrition, ingredientServings, modifier)
+
+        // Set the state variables to themselves.  This is necessary to 
+        // trigger a re-render.
+        // And yes, we need to call both to re-render both parts of the UI.
+        setIngredients([...ingredients]);
+        setFormData({...formData});
+    }
+
+    const updateIngredient = (e: { preventDefault: () => void; }) => {
+        e.preventDefault();
+
+        if (!selectedIngredientRowId)
+            return
+
+        let summary: string|undefined = undefined
+        let food: IFood|undefined = undefined
+        let recipe: IRecipe|undefined = undefined
+        let nutrition:INutrition|undefined = undefined;
+
+        // Get the Ingredient record
+        const ingredient:IIngredient|undefined = ingredients.find((item:IIngredient) => item.food_ingredient_id === selectedIngredientRowId[0] && item.recipe_ingredient_id === selectedIngredientRowId[1]);
+        if (!ingredient) {
+            setErrorMessage("Ingredient not found")
+            return
+        }
+
+        // Get the Food/Recipe and Nutrition records for this Ingredient
+        if (ingredient.food_ingredient_id) {
+            food = context.foods.find((item:IFood) => item.id == ingredient.food_ingredient_id);
+            if (!food) {
+                setErrorMessage("Food " + ingredient.food_ingredient_id + " for Ingredient not found")
+                return
+            }
+            nutrition = food.nutrition
+        } else if (ingredient.recipe_ingredient_id) {
+            recipe = context.recipes.find((item:IRecipe) => item.id === ingredient.recipe_ingredient_id);
+            if (!recipe) {
+                setErrorMessage("Recipe " + ingredient.recipe_ingredient_id + " for Ingredient not found")
+                return
+            }
+            nutrition = recipe.nutrition
+        }
+        if (!nutrition) {
+            setErrorMessage("Nutrition record for Ingredient not found")
+            return
+        }
+
+        // Generate the summary for this Ingedient using the new serving total
+        summary = generateSummary(nutrition, food, recipe)
+
+        // Update the Nutrition data for the Recipe
+        updateNutrition(formData.nutrition, nutrition, ingredientServings, ingredientServings - ingredient.servings)
+
+        // Update the Ingredients state variable, which will trigger a re-render
+        setIngredients((prevItems) =>
+            prevItems.map((item) =>
+                item.food_ingredient_id === selectedIngredientRowId[0] && item.recipe_ingredient_id === selectedIngredientRowId[1] ? 
+                    {...item, summary: summary, servings: ingredientServings} : item))
     }
 
     const removeIngredient = (e: { preventDefault: () => void; }) => {
         e.preventDefault();
-        if (selectedIngredientRowId) {
-            // Find the Food record with the specified ID (this should always succeed)
-            let modifier:number = 1;
-            const ingredient:IIngredient|undefined = ingredients.find((item:IIngredient) => item.food_ingredient_id === selectedIngredientRowId[0] && item.recipe_ingredient_id === selectedIngredientRowId[1]);
-            if (ingredient) {
-                // Get the nutrition information for the selected Ingredient
-                let nutrition: INutrition|null = null;
-                if (ingredient.food_ingredient_id) {
-                    // Find the Food record with the specified ID (this should always succeed)
-                    const food:IFood|undefined = context.foods.find((item:IFood) => item.id === ingredient.food_ingredient_id);
-                    if (food) {
-                        nutrition = food.nutrition
-                    } else {
-                        errorMessage = "Food " + ingredient.food_ingredient_id + " not found."
-                    }
-                } else if (ingredient.recipe_ingredient_id) {
-                    // Find the Recipe record with the specified ID (this should always succeed)
-                    const recipe:IRecipe|undefined = context.recipes.find((item:IRecipe) => item.id === ingredient.recipe_ingredient_id);
-                    if (recipe) {
-                        nutrition = recipe.nutrition
-                        modifier = 1/recipe.servings
-                    } else {
-                        errorMessage = "Recipe " + ingredient.recipe_ingredient_id + " not found."
-                    }
-                } else {
-                    errorMessage = "Ingredient has neither a food_ingredient_id nor a recipe_ingredient_id"
-                }
 
-                // Update the Recipe's nutrition information
-                if (nutrition) {
-                    formData.nutrition.calories         -= nutrition.calories * ingredient.servings * modifier;
-                    formData.nutrition.total_fat_g      -= nutrition.total_fat_g * ingredient.servings * modifier;
-                    formData.nutrition.saturated_fat_g  -= nutrition.saturated_fat_g * ingredient.servings * modifier;
-                    formData.nutrition.trans_fat_g      -= nutrition.trans_fat_g * ingredient.servings * modifier;
-                    formData.nutrition.cholesterol_mg   -= nutrition.cholesterol_mg * ingredient.servings * modifier;
-                    formData.nutrition.sodium_mg        -= nutrition.sodium_mg * ingredient.servings * modifier;
-                    formData.nutrition.total_carbs_g    -= nutrition.total_carbs_g * ingredient.servings * modifier;
-                    formData.nutrition.fiber_g          -= nutrition.fiber_g * ingredient.servings * modifier;
-                    formData.nutrition.total_sugar_g    -= nutrition.total_sugar_g * ingredient.servings * modifier;
-                    formData.nutrition.added_sugar_g    -= nutrition.added_sugar_g * ingredient.servings * modifier;
-                    formData.nutrition.protein_g        -= nutrition.protein_g * ingredient.servings * modifier;
-                    formData.nutrition.vitamin_d_mcg    -= nutrition.vitamin_d_mcg * ingredient.servings * modifier;
-                    formData.nutrition.calcium_mg       -= nutrition.calcium_mg * ingredient.servings * modifier;
-                    formData.nutrition.iron_mg          -= nutrition.iron_mg * ingredient.servings * modifier;
-                    formData.nutrition.potassium_mg     -= nutrition.potassium_mg * ingredient.servings * modifier;
-                }
+        if (!selectedIngredientRowId)
+            return
 
-                // Remove the selected Ingredient from the Recipe's ingredients list
-                ingredients.splice(ingredients.indexOf(ingredient), 1);
-
-                // Set the state variables to themselves.  This is necessary to 
-                // trigger a re-render.
-                // And yes, we need to call both to re-render both parts of the UI.
-                setIngredients([...ingredients]);
-                setFormData({...formData});
-            }
+        // Find the Ingredient record with the selected ID (this should always succeed)
+        let modifier:number = -1;
+        const ingredient:IIngredient|undefined = ingredients.find((item:IIngredient) => item.food_ingredient_id === selectedIngredientRowId[0] && item.recipe_ingredient_id === selectedIngredientRowId[1]);
+        if (!ingredient) {
+            setErrorMessage("Unable to find Ingredient " + selectedIngredientRowId[0] + "/" + selectedIngredientRowId[1])
+            return
         }
+
+        // Get the nutrition information for the selected Ingredient
+        let nutrition: INutrition|null = null;
+        if (ingredient.food_ingredient_id) {
+            // Find the Food record with the specified ID (this should always succeed)
+            const food:IFood|undefined = context.foods.find((item:IFood) => item.id === ingredient.food_ingredient_id);
+            if (!food) {
+                setErrorMessage("Food " + ingredient.food_ingredient_id + " not found.")
+                return
+            }
+            nutrition = food.nutrition
+        } else if (ingredient.recipe_ingredient_id) {
+            // Find the Recipe record with the specified ID (this should always succeed)
+            const recipe:IRecipe|undefined = context.recipes.find((item:IRecipe) => item.id === ingredient.recipe_ingredient_id);
+            if (!recipe) {
+                setErrorMessage("Recipe " + ingredient.recipe_ingredient_id + " not found.")
+                return
+            }
+            nutrition = recipe.nutrition
+            modifier = -1/recipe.servings
+        } else {
+            setErrorMessage("Ingredient has neither a food_ingredient_id nor a recipe_ingredient_id")
+            return
+        }
+
+        // Update the Recipe's nutrition information
+        updateNutrition(formData.nutrition, nutrition, ingredient.servings, modifier)
+
+        // Remove the selected Ingredient from the Recipe's ingredients list
+        ingredients.splice(ingredients.indexOf(ingredient), 1);
+
+        // Set the state variables to themselves.  This is necessary to trigger a re-render.
+        // And yes, we need to call both to re-render both parts of the UI.
+        setIngredients([...ingredients]);
+        setFormData({...formData});
+    }
+
+    const moveIngredientUp = (e: { preventDefault: () => void; }) => {
+        e.preventDefault();
+
+        if (!selectedIngredientRowId)
+            return
+
+        // Find the Ingredient record with the selected ID (this should always succeed)
+        const ingredient:IIngredient|undefined = ingredients.find((item:IIngredient) => item.food_ingredient_id === selectedIngredientRowId[0] && item.recipe_ingredient_id === selectedIngredientRowId[1]);
+        if (!ingredient) {
+            setErrorMessage("Unable to find Ingredient " + selectedIngredientRowId[0] + "/" + selectedIngredientRowId[1])
+            return
+        }
+
+        if (ingredient.ordinal <= 0)
+            return
+
+        // Find the PREVIOUS Ingredient record
+        const prevIngredient:IIngredient|undefined = ingredients.find((item:IIngredient) => item.ordinal == (ingredient.ordinal - 1));
+        if (!prevIngredient) {
+            setErrorMessage("Unable to find Ingredient with ordinal " + (ingredient.ordinal - 1))
+            return
+        }
+
+        prevIngredient.ordinal = ingredient.ordinal
+        ingredient.ordinal = ingredient.ordinal - 1
+
+        setIngredients([...ingredients])
+    }
+
+    const moveIngredientDown = (e: { preventDefault: () => void; }) => {
+        e.preventDefault();
+
+        if (!selectedIngredientRowId)
+            return
+
+        // Find the Ingredient record with the selected ID (this should always succeed)
+        const ingredient:IIngredient|undefined = ingredients.find((item:IIngredient) => item.food_ingredient_id === selectedIngredientRowId[0] && item.recipe_ingredient_id === selectedIngredientRowId[1]);
+        if (!ingredient) {
+            setErrorMessage("Unable to find Ingredient " + selectedIngredientRowId[0] + "/" + selectedIngredientRowId[1])
+            return
+        }
+
+        if (ingredient.ordinal >= ingredients.length - 1)
+            return
+
+        // Find the PREVIOUS Ingredient record
+        const nextIngredient:IIngredient|undefined = ingredients.find((item:IIngredient) => item.ordinal == ingredient.ordinal + 1);
+        if (!nextIngredient) {
+            setErrorMessage("Unable to find Ingredient with ordinal " + (ingredient.ordinal - 1))
+            return
+        }
+
+        nextIngredient.ordinal = ingredient.ordinal
+        ingredient.ordinal = ingredient.ordinal + 1
+
+        setIngredients([...ingredients])
     }
 
     // Get the Ingredients for this Recipe
@@ -428,6 +551,14 @@ function RecipeForm() {
                                     onChange={() => setSelectedIngredientList(IngredientTypes.RECIPE_INGREDENTS)} />
                                 <label htmlFor="selectRecipeIngredients">Recipe Ingredients</label>
                             </section>
+                            <br/>
+
+                            <section className="ingredientsServings">
+                                <input id="ingredientServingsInput" type="number" value={ingredientServings} min={0} step={"0.01"}
+                                    onChange={(e) => setIngredientServings(Number(e.target.value))} />
+                                <label htmlFor="ingredientServingsInput"> Servings</label>
+                            </section>
+                            <br/>
 
                             <button className="button ingredientButton" onClick={addIngredient} disabled={selectedFoodOrRecipeRowId === null || ingredientServings === 0}>
                                 <IconContext.Provider value={selectedFoodOrRecipeRowId === null || ingredientServings === 0 ? {size: "30px"} : { size: "30px", color: "green"}}>
@@ -435,10 +566,11 @@ function RecipeForm() {
                                 </IconContext.Provider>
                             </button>
                             <br/>
-
-                            <input id="ingredientServingsInput" type="number" value={ingredientServings} min={0} step={"0.01"}
-                                onChange={(e) => setIngredientServings(Number(e.target.value))} />
-                            <label htmlFor="ingredientServingsInput">Servings</label>
+                            <button className="button ingredientButton" onClick={updateIngredient} disabled={selectedIngredientRowId === null || ingredientServings === 0}>
+                                <IconContext.Provider value={selectedIngredientRowId === null || ingredientServings === 0 ? {size: "30px"} : { size: "30px", color: "orange"}}>
+                                    <MdEdit/><p>Update</p>
+                                </IconContext.Provider>
+                            </button>
                             <br/>
 
                             <button className="button ingredientButton" onClick={removeIngredient} disabled={selectedIngredientRowId === null}>
@@ -446,6 +578,20 @@ function RecipeForm() {
                                     <p>Remove</p><MdKeyboardDoubleArrowRight/>
                                 </IconContext.Provider>
                             </button>
+                            <br/>
+
+                            <button className="button ingredientButton" onClick={moveIngredientUp} disabled={selectedIngredientRowId === null}>
+                                <IconContext.Provider value={selectedIngredientRowId === null ? {size: "30px"} : { size: "30px", color: "green"}}>
+                                    <MdKeyboardArrowUp/><p>Up</p>
+                                </IconContext.Provider>
+                            </button>
+                            <br/>
+                            <button className="button ingredientButton" onClick={moveIngredientDown} disabled={selectedIngredientRowId === null}>
+                                <IconContext.Provider value={selectedIngredientRowId === null ? {size: "30px"} : { size: "30px", color: "green"}}>
+                                    <MdKeyboardArrowDown/><p>Down</p>
+                                </IconContext.Provider>
+                            </button>
+
                         </section>
 
                         <section className="foodsOrRecipesListBox">

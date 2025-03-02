@@ -54,6 +54,7 @@ export type IIngredient = {
     recipe_id?: number,
     food_ingredient_id?: number,
     recipe_ingredient_id?: number,
+    ordinal: number,
     servings: number
     summary?: string,
 }

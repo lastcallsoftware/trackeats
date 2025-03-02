@@ -176,7 +176,7 @@ button:active {
 .ingredientsListBox {
   border: 1px solid black;
   width: calc((100% - 250px)/2);
-  height: 630px;
+  height: 640px;
   overflow: scroll auto;
 }
 .ingredientsButtonsBox {
@@ -191,7 +191,7 @@ button:active {
 .foodsOrRecipesListBox {
   border: 1px solid black;
   width: calc((100% - 250px)/2);
-  height: 630px;
+  height: 640px;
   overflow: scroll auto;
 }
 .recipeFormButtonBox {
