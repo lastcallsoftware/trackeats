@@ -7405,8 +7405,8 @@
             "iron_mg": 1.0,
             "potassium_mg": 0
         },
-        "price": 0.0,
-        "price_date": "2024-11-23",
+        "price": 50.37,
+        "price_date": "2025-03-02",
         "shelf_life": "raw: 3-5 days in fridge, 12 months in freezer; cooked: 3-4 days in fridge"
     },
     {
@@ -7415,7 +7415,7 @@
         "group": "proteins",
         "name": "Beef, Chuck Roast",
         "subtype": "Boneless",
-        "description": "Premium Angus RWA",
+        "description": "Center-Cut, Premium Angus, RWA",
         "vendor": "FreshDirect",
         "size_description": "1 roast",
         "size_oz": 64.0,
@@ -7519,8 +7519,8 @@
             "iron_mg": 1.0,
             "potassium_mg": 0
         },
-        "price": 55.96,
-        "price_date": "2024-11-23",
+        "price": 23.08,
+        "price_date": "2025-03-02",
         "shelf_life": "raw: 3-5 days in fridge, 12 months in freezer; cooked: 3-4 days in fridge"
     },
     {
@@ -7804,12 +7804,12 @@
         "nutrition_id": 206,
         "nutrition": {
             "id": 206,
-            "serving_size_description": "1/2 breast",
+            "serving_size_description": "0.4 breasts",
             "serving_size_oz": 4.0,
             "serving_size_g": 113,
             "calories": 120,
             "total_fat_g": 1.5,
-            "saturated_fat_g": 0.0,
+            "saturated_fat_g": 0.5,
             "trans_fat_g": 0,
             "cholesterol_mg": 65,
             "sodium_mg": 75,
@@ -7819,13 +7819,13 @@
             "added_sugar_g": 0,
             "protein_g": 26,
             "vitamin_d_mcg": 0,
-            "calcium_mg": 20,
+            "calcium_mg": 0,
             "iron_mg": 0.3,
-            "potassium_mg": 0
+            "potassium_mg": 250
         },
         "price": 13.64,
         "price_date": "2024-11-25",
-        "shelf_life": "raw: 1-2 days in fridge, 12 months in freezer; cooked: 3-4 days in fridge"
+        "shelf_life": "raw: 3 days in fridge, 12 months in freezer; cooked: 3-4 days in fridge"
     },
     {
         "id": 207,
@@ -7857,13 +7857,13 @@
             "added_sugar_g": 0,
             "protein_g": 26,
             "vitamin_d_mcg": 0,
-            "calcium_mg": 20,
+            "calcium_mg": 0,
             "iron_mg": 0.3,
-            "potassium_mg": 0
+            "potassium_mg": 250
         },
         "price": 27.7,
         "price_date": "2024-11-25",
-        "shelf_life": "raw: 1-2 days in fridge, 12 months in freezer; cooked: 3-4 days in fridge"
+        "shelf_life": "raw: 3 days in fridge, 12 months in freezer; cooked: 3-4 days in fridge"
     },
     {
         "id": 208,
@@ -7897,11 +7897,11 @@
             "vitamin_d_mcg": 0,
             "calcium_mg": 0,
             "iron_mg": 0.3,
-            "potassium_mg": 0
+            "potassium_mg": 250
         },
         "price": 15.18,
         "price_date": "2024-11-25",
-        "shelf_life": "raw: 1-2 days in fridge, 12 months in freezer; cooked: 3-4 days in fridge"
+        "shelf_life": "raw: 3 days in fridge, 12 months in freezer; cooked: 3-4 days in fridge"
     },
     {
         "id": 209,
@@ -7918,12 +7918,12 @@
         "nutrition_id": 209,
         "nutrition": {
             "id": 209,
-            "serving_size_description": "1/2 breast",
+            "serving_size_description": "0.4 breasts",
             "serving_size_oz": 4.0,
             "serving_size_g": 113,
-            "calories": 110,
-            "total_fat_g": 1.0,
-            "saturated_fat_g": 0.0,
+            "calories": 120,
+            "total_fat_g": 1.5,
+            "saturated_fat_g": 0.5,
             "trans_fat_g": 0,
             "cholesterol_mg": 80,
             "sodium_mg": 55,
@@ -7934,12 +7934,12 @@
             "protein_g": 26,
             "vitamin_d_mcg": 0,
             "calcium_mg": 0,
-            "iron_mg": 0.2,
+            "iron_mg": 0.3,
             "potassium_mg": 400
         },
         "price": 24.16,
         "price_date": "2024-11-25",
-        "shelf_life": "raw: 1-2 days in fridge, 12 months in freezer; cooked: 3-4 days in fridge"
+        "shelf_life": "raw: 3 days in fridge, 12 months in freezer; cooked: 3-4 days in fridge"
     },
     {
         "id": 210,
@@ -7947,8 +7947,8 @@
         "group": "proteins",
         "name": "Chicken Breast",
         "subtype": "Boneless, Skinless",
-        "description": "",
-        "vendor": "Springer Mtn",
+        "description": "RWA",
+        "vendor": "Springer Mountain Farms",
         "size_description": "2-3 breasts",
         "size_oz": 29.0,
         "size_g": 816,
@@ -7956,12 +7956,12 @@
         "nutrition_id": 210,
         "nutrition": {
             "id": 210,
-            "serving_size_description": "1/2 breast",
+            "serving_size_description": "0.4 breasts",
             "serving_size_oz": 4.0,
             "serving_size_g": 113,
-            "calories": 110,
-            "total_fat_g": 1.0,
-            "saturated_fat_g": 0.0,
+            "calories": 120,
+            "total_fat_g": 1.5,
+            "saturated_fat_g": 0.5,
             "trans_fat_g": 0,
             "cholesterol_mg": 80,
             "sodium_mg": 55,
@@ -7972,12 +7972,12 @@
             "protein_g": 26,
             "vitamin_d_mcg": 0,
             "calcium_mg": 0,
-            "iron_mg": 0.2,
+            "iron_mg": 0.3,
             "potassium_mg": 400
         },
         "price": 10.78,
         "price_date": "2024-11-25",
-        "shelf_life": "raw: 1-2 days in fridge, 12 months in freezer; cooked: 3-4 days in fridge"
+        "shelf_life": "raw: 3 days in fridge, 12 months in freezer; cooked: 3-4 days in fridge"
     },
     {
         "id": 211,
@@ -7994,7 +7994,7 @@
         "nutrition_id": 211,
         "nutrition": {
             "id": 211,
-            "serving_size_description": "1/2 breast",
+            "serving_size_description": "0.4 breasts",
             "serving_size_oz": 4.0,
             "serving_size_g": 113,
             "calories": 200,
@@ -8011,11 +8011,11 @@
             "vitamin_d_mcg": 0,
             "calcium_mg": 0,
             "iron_mg": 0.3,
-            "potassium_mg": 0
+            "potassium_mg": 250
         },
         "price": 9.34,
         "price_date": "2024-11-25",
-        "shelf_life": "raw: 1-2 days in fridge, 12 months in freezer; cooked: 3-4 days in fridge"
+        "shelf_life": "raw: 3 days in fridge, 12 months in freezer; cooked: 3-4 days in fridge"
     },
     {
         "id": 212,
@@ -17022,5 +17022,81 @@
         "price": 3.69,
         "price_date": "2025-03-02",
         "shelf_life": "4 months in fridge"
+    },
+    {
+        "id": 452,
+        "user_id": 3,
+        "group": "proteins",
+        "name": "Chicken Breast",
+        "subtype": "Boneless, Skinless",
+        "description": "RWA, Value Pack",
+        "vendor": "Springer Mountain Farms",
+        "size_description": "5-7 breasts",
+        "size_oz": 70.0,
+        "size_g": 1984,
+        "servings": 17.0,
+        "nutrition_id": 493,
+        "nutrition": {
+            "id": 493,
+            "serving_size_description": "0.4 breasts",
+            "serving_size_oz": 4.0,
+            "serving_size_g": 113,
+            "calories": 120,
+            "total_fat_g": 1.5,
+            "saturated_fat_g": 0.5,
+            "trans_fat_g": 0,
+            "cholesterol_mg": 80,
+            "sodium_mg": 55,
+            "total_carbs_g": 0,
+            "fiber_g": 0,
+            "total_sugar_g": 0,
+            "added_sugar_g": 0,
+            "protein_g": 26,
+            "vitamin_d_mcg": 0,
+            "calcium_mg": 0,
+            "iron_mg": 0.3,
+            "potassium_mg": 400
+        },
+        "price": 24.16,
+        "price_date": "2025-03-02",
+        "shelf_life": "raw: 3 days in fridge, 12 months in freezer; cooked: 3-4 days in fridge"
+    },
+    {
+        "id": 453,
+        "user_id": 3,
+        "group": "preparedFoods",
+        "name": "Chicken McNuggets",
+        "subtype": "",
+        "description": "not counting the dipping sauce",
+        "vendor": "McDonald's",
+        "size_description": "10 piece",
+        "size_oz": 5.7,
+        "size_g": 162,
+        "servings": 1.0,
+        "nutrition_id": 494,
+        "nutrition": {
+            "id": 494,
+            "serving_size_description": "10 pieces",
+            "serving_size_oz": 5.7,
+            "serving_size_g": 162,
+            "calories": 410,
+            "total_fat_g": 24.0,
+            "saturated_fat_g": 4.0,
+            "trans_fat_g": 0,
+            "cholesterol_mg": 65,
+            "sodium_mg": 850,
+            "total_carbs_g": 26,
+            "fiber_g": 0,
+            "total_sugar_g": 0,
+            "added_sugar_g": 0,
+            "protein_g": 23,
+            "vitamin_d_mcg": 0,
+            "calcium_mg": 15,
+            "iron_mg": 1.0,
+            "potassium_mg": 360
+        },
+        "price": 7.19,
+        "price_date": "2025-03-02",
+        "shelf_life": "you're storing McNuggets?"
     }
 ]
