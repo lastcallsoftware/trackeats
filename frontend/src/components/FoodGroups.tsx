@@ -8,7 +8,7 @@ export const foodGroups = [
     { value: "grains", label: "Grains" },
     { value: "herbsAndSpices", label: "Herbs and Spices" },
     { value: "nutsAndSeeds", label: "Nuts and Seeds" },
-    { value: "preparedFoods", label: "Prepared and Packaged Foods" },
+    { value: "preparedFoods", label: "Prepared Foods" },
     { value: "proteins", label: "Proteins" },
     { value: "vegetables", label: "Vegetables" },
     { value: "other", label: "Other" }
