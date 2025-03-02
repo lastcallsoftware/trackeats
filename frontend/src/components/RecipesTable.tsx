@@ -115,7 +115,7 @@ const columns = [
         size: 65
     }),
     columnHelper.accessor("nutrition.vitamin_d_mcg", {
-        header: () => <span className="headerText">Vitamin D (mcg)<br/>&gt;20 mg</span>,
+        header: () => <span className="headerText">Vitamin D (mcg)<br/>&gt;20 mcg</span>,
         cell: info => (info.getValue()/info.row.original.servings).toFixed(0),
         sortingFn: sortingFunction,
         size: 65
