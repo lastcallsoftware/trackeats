@@ -110,30 +110,27 @@ function RecipeForm() {
 
     // Generate a summary for the Ingredient
     const generateSummary = (nutrition: INutrition, food: IFood|undefined = undefined, recipe: IRecipe|undefined = undefined): string|undefined => {
-        if (selectedIngredientRowId) {
-            const ingredient:IIngredient|undefined = ingredients.find((item:IIngredient) => item.food_ingredient_id === selectedIngredientRowId[0] && item.recipe_ingredient_id === selectedIngredientRowId[1]);
-            if (ingredient) {
-                if (food) {
-                    let summary = ingredientServings + " x (" + nutrition?.serving_size_description + ") "
-                    summary += food.name
-                    if (food.subtype) {
-                        summary += ", " + food.subtype
-                    }
-                    summary += " (" + (nutrition.serving_size_oz * ingredientServings).toFixed(1) + " oz/" + 
-                                        (nutrition.serving_size_g * ingredientServings).toFixed(1) + " g)"
-                    return summary
-                } else if (recipe) {
-                    // Generate a summary for the Ingredient
-                    let summary = ingredientServings + " x (" + nutrition.serving_size_description + ") "
-                    summary += recipe.name + " "
-                    summary += "(" + (nutrition.serving_size_oz * ingredientServings).toFixed(1) + " oz/" + 
-                                    (nutrition.serving_size_g * ingredientServings).toFixed(1) + " g)"
-                    formData.price += recipe.price * ingredientServings/recipe.servings
-                    return summary
-                }
+        if (food) {
+            let summary = ingredientServings + " x (" + nutrition?.serving_size_description + ") "
+            summary += food.name
+            if (food.subtype) {
+                summary += ", " + food.subtype
             }
+            summary += " (" + (nutrition.serving_size_oz * ingredientServings).toFixed(1) + " oz/" + 
+                                (nutrition.serving_size_g * ingredientServings).toFixed(1) + " g)"
+            return summary
+        } else if (recipe) {
+            // Generate a summary for the Ingredient
+            let summary = ingredientServings + " x (" + nutrition.serving_size_description + ") "
+            summary += recipe.name + " "
+            summary += "(" + (nutrition.serving_size_oz * ingredientServings).toFixed(1) + " oz/" + 
+                            (nutrition.serving_size_g * ingredientServings).toFixed(1) + " g)"
+            formData.price += recipe.price * ingredientServings/recipe.servings
+            return summary
+        } else {
+            setErrorMessage("Neither a food nor a recipe was provided for ths Ingredient")
+            return undefined
         }
-        return undefined
     }
 
     // Update the Recipe's nutrition information
@@ -292,6 +289,12 @@ function RecipeForm() {
 
         // Update the Recipe's nutrition information
         updateNutrition(formData.nutrition, nutrition, ingredient.servings, modifier)
+
+        // Adjust the ordinals of all subsequent Ingredients
+        ingredients.forEach(item => {
+            if (item.ordinal > ingredient.ordinal)
+                item.ordinal = item.ordinal - 1
+        })
 
         // Remove the selected Ingredient from the Recipe's ingredients list
         ingredients.splice(ingredients.indexOf(ingredient), 1);
