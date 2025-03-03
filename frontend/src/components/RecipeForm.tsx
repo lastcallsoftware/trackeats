@@ -125,7 +125,6 @@ function RecipeForm() {
             summary += recipe.name + " "
             summary += "(" + (nutrition.serving_size_oz * ingredientServings).toFixed(1) + " oz/" + 
                             (nutrition.serving_size_g * ingredientServings).toFixed(1) + " g)"
-            formData.price += recipe.price * ingredientServings/recipe.servings
             return summary
         } else {
             setErrorMessage("Neither a food nor a recipe was provided for ths Ingredient")
@@ -159,6 +158,8 @@ function RecipeForm() {
 
         let nutrition:INutrition|null = null;
         let modifier:number = 1;
+        let ingredient_serving_price = 0;
+
         if (selectedIngredientList === IngredientTypes.FOOD_INGREDIENTS) {
             // Find the Food record with the specified ID (this should always succeed)
             const food:IFood|undefined = context.foods.find((item:IFood) => item.id == selectedFoodOrRecipeRowId);
@@ -168,10 +169,10 @@ function RecipeForm() {
             }
             nutrition = food.nutrition
             const summary = generateSummary(food.nutrition, food, undefined)
+            ingredient_serving_price = food.price/food.servings
 
             // Add the Food Ingredient to the Recipe's ingredients list
             ingredients.push({food_ingredient_id: food.id, ordinal: ingredients.length, servings: ingredientServings, summary: summary});
-            formData.price += food.price * ingredientServings/food.servings
         } else {
             // Find the Recipe record with the specified ID (this should always succeed)
             const recipe:IRecipe|undefined = context.recipes.find((item:IRecipe) => item.id == selectedFoodOrRecipeRowId);
@@ -182,6 +183,7 @@ function RecipeForm() {
             nutrition = recipe.nutrition
             const summary = generateSummary(recipe.nutrition, undefined, recipe)
             modifier = 1/recipe.servings
+            ingredient_serving_price = recipe.price/recipe.servings
 
             // Add the Recipe Ingredient to the Recipe's ingredients list
             ingredients.push({recipe_ingredient_id: recipe.id, ordinal: ingredients.length, servings: ingredientServings, summary: summary});
@@ -189,6 +191,8 @@ function RecipeForm() {
 
         // Update the Recipe's nutrition information
         updateNutrition(formData.nutrition, nutrition, ingredientServings, modifier)
+        // ...and also the price data
+        formData.price += ingredient_serving_price * ingredientServings
 
         // Set the state variables to themselves.  This is necessary to 
         // trigger a re-render.
@@ -207,6 +211,8 @@ function RecipeForm() {
         let food: IFood|undefined = undefined
         let recipe: IRecipe|undefined = undefined
         let nutrition:INutrition|undefined = undefined;
+        let modifier: number = 1;
+        let ingredient_serving_price = 0;
 
         // Get the Ingredient record
         const ingredient:IIngredient|undefined = ingredients.find((item:IIngredient) => item.food_ingredient_id === selectedIngredientRowId[0] && item.recipe_ingredient_id === selectedIngredientRowId[1]);
@@ -223,6 +229,7 @@ function RecipeForm() {
                 return
             }
             nutrition = food.nutrition
+            ingredient_serving_price = food.price/food.servings
         } else if (ingredient.recipe_ingredient_id) {
             recipe = context.recipes.find((item:IRecipe) => item.id === ingredient.recipe_ingredient_id);
             if (!recipe) {
@@ -230,6 +237,8 @@ function RecipeForm() {
                 return
             }
             nutrition = recipe.nutrition
+            modifier = 1/recipe.servings
+            ingredient_serving_price = recipe.price/recipe.servings
         }
         if (!nutrition) {
             setErrorMessage("Nutrition record for Ingredient not found")
@@ -240,7 +249,9 @@ function RecipeForm() {
         summary = generateSummary(nutrition, food, recipe)
 
         // Update the Nutrition data for the Recipe
-        updateNutrition(formData.nutrition, nutrition, ingredientServings, ingredientServings - ingredient.servings)
+        updateNutrition(formData.nutrition, nutrition, ingredientServings - ingredient.servings, modifier)
+        // ...and also the price data
+        formData.price += ingredient_serving_price * (ingredientServings - ingredient.servings)
 
         // Update the Ingredients state variable, which will trigger a re-render
         setIngredients((prevItems) =>
@@ -273,6 +284,7 @@ function RecipeForm() {
                 return
             }
             nutrition = food.nutrition
+            formData.price -= food.price * ingredient.servings/food.servings
         } else if (ingredient.recipe_ingredient_id) {
             // Find the Recipe record with the specified ID (this should always succeed)
             const recipe:IRecipe|undefined = context.recipes.find((item:IRecipe) => item.id === ingredient.recipe_ingredient_id);
@@ -282,6 +294,7 @@ function RecipeForm() {
             }
             nutrition = recipe.nutrition
             modifier = -1/recipe.servings
+            formData.price -= recipe.price * ingredient.servings/recipe.servings
         } else {
             setErrorMessage("Ingredient has neither a food_ingredient_id nor a recipe_ingredient_id")
             return
