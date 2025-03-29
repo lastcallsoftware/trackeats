@@ -38,6 +38,9 @@ const FoodsPage = () => {
         }
     }
 
+    if (context.isLoading) {
+        return (<p>Loading...</p>)
+    }
     return (
         <section className="foodPage">
             <section className="foodTableBox">
@@ -45,19 +48,21 @@ const FoodsPage = () => {
             </section>
 
             <section className="buttonBar">
-                <button className="addButton" onClick={addRecord}>
+                <button style={{width: "150px"}} onClick={addRecord}>
                     <IconContext.Provider value={{ size: "30px", color: "green"}}>
-                        <p className="addButtonText">Add</p><MdAddCircleOutline/>
+                        <p>Add</p><MdAddCircleOutline/>
                     </IconContext.Provider>
                 </button>
-                <button className="editButton" onClick={editRecord}>
+
+                <button style={{width: "150px"}} onClick={editRecord}>
                     <IconContext.Provider value={{ size: "30px", color: "orange"}}>
-                        <p className="editButtonText">Edit</p><MdEdit/>
+                        <p>Edit</p><MdEdit/>
                     </IconContext.Provider>
                 </button>
-                <button className="deleteButton" onClick={deleteRecord}>
+
+                <button style={{width: "150px"}} onClick={deleteRecord}>
                     <IconContext.Provider value={{ size: "30px", color: "red"}}>
-                        <p className="deleteButtonText">Delete</p><MdRemoveCircleOutline/>
+                        <p>Delete</p><MdRemoveCircleOutline/>
                     </IconContext.Provider>
                 </button>
             </section>
