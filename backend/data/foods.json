@@ -1,10 +1,10 @@
 [
     {
         "id": 1,
-        "user_id": 3,
+        "user_id": 6,
         "group": "condiments",
-        "name": "Bolognese Sauce, Fresh",
-        "subtype": "Beef",
+        "name": "Bolognese Sauce",
+        "subtype": "Fresh, Beef",
         "description": "",
         "vendor": "Just FreshDirect",
         "size_description": "2 cups",
@@ -39,7 +39,7 @@
     },
     {
         "id": 2,
-        "user_id": 3,
+        "user_id": 6,
         "group": "condiments",
         "name": "Bolognese Sauce",
         "subtype": "Beef/Pork",
@@ -77,10 +77,10 @@
     },
     {
         "id": 3,
-        "user_id": 3,
+        "user_id": 6,
         "group": "condiments",
-        "name": "Bouillon, Cubes",
-        "subtype": "Chicken",
+        "name": "Chicken Bouillon",
+        "subtype": "Cubes",
         "description": "Extra Large",
         "vendor": "Knoss",
         "size_description": "6 cubes",
@@ -115,11 +115,11 @@
     },
     {
         "id": 4,
-        "user_id": 3,
+        "user_id": 6,
         "group": "condiments",
-        "name": "Bouillon, Granulated",
-        "subtype": "Beef",
-        "description": "Sodium Free",
+        "name": "Beef Bouillon",
+        "subtype": "Granulated, Sodium Free",
+        "description": "",
         "vendor": "Herb Ox via Amazon",
         "size_description": "50 packets",
         "size_oz": 7.0,
@@ -153,11 +153,11 @@
     },
     {
         "id": 5,
-        "user_id": 3,
+        "user_id": 6,
         "group": "condiments",
-        "name": "Bouillon, Granulated",
-        "subtype": "Chicken",
-        "description": "Sodium Free",
+        "name": "Chicken Bouillon",
+        "subtype": "Granulated, Sodium Free",
+        "description": "",
         "vendor": "Herb Ox via Amazon",
         "size_description": "50 packets",
         "size_oz": 7.0,
@@ -191,11 +191,11 @@
     },
     {
         "id": 6,
-        "user_id": 3,
+        "user_id": 6,
         "group": "condiments",
-        "name": "Broth",
-        "subtype": "Chicken",
-        "description": "Organic Free-Range Low-Sodium",
+        "name": "Chicken Broth",
+        "subtype": "Low-Sodium",
+        "description": "Organic Free-Range",
         "vendor": "Pacific",
         "size_description": "1 box",
         "size_oz": 32.0,
@@ -229,11 +229,11 @@
     },
     {
         "id": 7,
-        "user_id": 3,
+        "user_id": 6,
         "group": "condiments",
-        "name": "Broth",
-        "subtype": "Vegetable",
-        "description": "Organic Low-Sodium",
+        "name": "Vegetable Broth",
+        "subtype": "Low-Sodium",
+        "description": "Organic",
         "vendor": "Pacific",
         "size_description": "1 box",
         "size_oz": 32.0,
@@ -267,7 +267,7 @@
     },
     {
         "id": 8,
-        "user_id": 3,
+        "user_id": 6,
         "group": "condiments",
         "name": "Chili Sauce",
         "subtype": "Sweet Red",
@@ -305,7 +305,7 @@
     },
     {
         "id": 9,
-        "user_id": 3,
+        "user_id": 6,
         "group": "condiments",
         "name": "Chili Oil, Szechuan",
         "subtype": "",
@@ -343,7 +343,7 @@
     },
     {
         "id": 10,
-        "user_id": 3,
+        "user_id": 6,
         "group": "condiments",
         "name": "Chili Oil",
         "subtype": "",
@@ -381,7 +381,7 @@
     },
     {
         "id": 11,
-        "user_id": 3,
+        "user_id": 6,
         "group": "condiments",
         "name": "Coconut Aminos",
         "subtype": "",
@@ -419,7 +419,7 @@
     },
     {
         "id": 12,
-        "user_id": 3,
+        "user_id": 6,
         "group": "condiments",
         "name": "Fish Sauce",
         "subtype": "",
@@ -457,7 +457,7 @@
     },
     {
         "id": 13,
-        "user_id": 3,
+        "user_id": 6,
         "group": "condiments",
         "name": "Gochujang",
         "subtype": "",
@@ -495,7 +495,7 @@
     },
     {
         "id": 14,
-        "user_id": 3,
+        "user_id": 6,
         "group": "condiments",
         "name": "Harissa",
         "subtype": "",
@@ -533,7 +533,7 @@
     },
     {
         "id": 15,
-        "user_id": 3,
+        "user_id": 6,
         "group": "condiments",
         "name": "Hoisin Sauce",
         "subtype": "",
@@ -571,7 +571,7 @@
     },
     {
         "id": 16,
-        "user_id": 3,
+        "user_id": 6,
         "group": "condiments",
         "name": "Hot Sauce",
         "subtype": "",
@@ -609,10 +609,10 @@
     },
     {
         "id": 17,
-        "user_id": 3,
+        "user_id": 6,
         "group": "condiments",
-        "name": "Ketchup, Squeezable",
-        "subtype": "",
+        "name": "Ketchup",
+        "subtype": "Squeezable",
         "description": "",
         "vendor": "Heinz",
         "size_description": "1 bottle",
@@ -647,10 +647,10 @@
     },
     {
         "id": 18,
-        "user_id": 3,
+        "user_id": 6,
         "group": "condiments",
-        "name": "Ketchup, Squeezable",
-        "subtype": "No Salt Added",
+        "name": "Ketchup",
+        "subtype": "Squeezable, No Salt Added",
         "description": "",
         "vendor": "Heinz via Amazon",
         "size_description": "1 bottle ~ 1.5 cups",
@@ -685,10 +685,10 @@
     },
     {
         "id": 19,
-        "user_id": 3,
+        "user_id": 6,
         "group": "fruits",
-        "name": "Lemon Juice, Plastic Bottle",
-        "subtype": "",
+        "name": "Lemon Juice",
+        "subtype": "Plastic Bottle",
         "description": "Organic",
         "vendor": "Sicilia",
         "size_description": "1 bottle",
@@ -723,10 +723,10 @@
     },
     {
         "id": 20,
-        "user_id": 3,
+        "user_id": 6,
         "group": "fruits",
-        "name": "Lemon Juice, Fresh Squeezed",
-        "subtype": "",
+        "name": "Lemon Juice",
+        "subtype": "Fresh Squeezed",
         "description": "from 1 fresh medium lemon",
         "vendor": "FreshDirect",
         "size_description": "1 tbsp",
@@ -761,10 +761,10 @@
     },
     {
         "id": 21,
-        "user_id": 3,
+        "user_id": 6,
         "group": "fruits",
-        "name": "Lime Juice, Fresh Squeezed",
-        "subtype": "",
+        "name": "Lime Juice",
+        "subtype": "Fresh Squeezed",
         "description": "from 1 fresh medium lime",
         "vendor": "FreshDirect",
         "size_description": "1 tbsp",
@@ -799,7 +799,7 @@
     },
     {
         "id": 22,
-        "user_id": 3,
+        "user_id": 6,
         "group": "condiments",
         "name": "Marinara Sauce",
         "subtype": "",
@@ -837,10 +837,10 @@
     },
     {
         "id": 23,
-        "user_id": 3,
+        "user_id": 6,
         "group": "condiments",
-        "name": "Mayonnaise, Squeeze",
-        "subtype": "",
+        "name": "Mayonnaise",
+        "subtype": "Squeezeable",
         "description": "",
         "vendor": "Helmann's",
         "size_description": "1 bottle",
@@ -875,10 +875,10 @@
     },
     {
         "id": 24,
-        "user_id": 3,
+        "user_id": 6,
         "group": "condiments",
-        "name": "Mayonnaise, Squeeze",
-        "subtype": "Light",
+        "name": "Mayonnaise",
+        "subtype": "Squeezable, Light",
         "description": "",
         "vendor": "Helmann's",
         "size_description": "1 bottle",
@@ -913,7 +913,7 @@
     },
     {
         "id": 25,
-        "user_id": 3,
+        "user_id": 6,
         "group": "condiments",
         "name": "Mustard, Brown Spicy",
         "subtype": "",
@@ -951,7 +951,7 @@
     },
     {
         "id": 26,
-        "user_id": 3,
+        "user_id": 6,
         "group": "condiments",
         "name": "Mustard, Dijon",
         "subtype": "",
@@ -989,7 +989,7 @@
     },
     {
         "id": 27,
-        "user_id": 3,
+        "user_id": 6,
         "group": "condiments",
         "name": "Mustard, Yellow",
         "subtype": "",
@@ -1027,7 +1027,7 @@
     },
     {
         "id": 28,
-        "user_id": 3,
+        "user_id": 6,
         "group": "condiments",
         "name": "Oyster Sauce",
         "subtype": "",
@@ -1065,7 +1065,7 @@
     },
     {
         "id": 29,
-        "user_id": 3,
+        "user_id": 6,
         "group": "condiments",
         "name": "Pizza Sauce",
         "subtype": "",
@@ -1103,7 +1103,7 @@
     },
     {
         "id": 30,
-        "user_id": 3,
+        "user_id": 6,
         "group": "condiments",
         "name": "Sherry",
         "subtype": "",
@@ -1141,7 +1141,7 @@
     },
     {
         "id": 31,
-        "user_id": 3,
+        "user_id": 6,
         "group": "condiments",
         "name": "Soy Sauce",
         "subtype": "",
@@ -1179,7 +1179,7 @@
     },
     {
         "id": 32,
-        "user_id": 3,
+        "user_id": 6,
         "group": "condiments",
         "name": "Soy Sauce",
         "subtype": "Less Sodium",
@@ -1217,7 +1217,7 @@
     },
     {
         "id": 33,
-        "user_id": 3,
+        "user_id": 6,
         "group": "condiments",
         "name": "Sriracha Sauce",
         "subtype": "",
@@ -1255,7 +1255,7 @@
     },
     {
         "id": 34,
-        "user_id": 3,
+        "user_id": 6,
         "group": "condiments",
         "name": "Sriracha Sauce",
         "subtype": "",
@@ -1293,7 +1293,7 @@
     },
     {
         "id": 35,
-        "user_id": 3,
+        "user_id": 6,
         "group": "condiments",
         "name": "Teriyaki Sauce",
         "subtype": "",
@@ -1331,7 +1331,7 @@
     },
     {
         "id": 36,
-        "user_id": 3,
+        "user_id": 6,
         "group": "condiments",
         "name": "Teriyaki Sauce",
         "subtype": "",
@@ -1369,7 +1369,7 @@
     },
     {
         "id": 37,
-        "user_id": 3,
+        "user_id": 6,
         "group": "condiments",
         "name": "Teriyaki Sauce",
         "subtype": "",
@@ -1407,7 +1407,7 @@
     },
     {
         "id": 38,
-        "user_id": 3,
+        "user_id": 6,
         "group": "condiments",
         "name": "Tahini",
         "subtype": "",
@@ -1445,7 +1445,7 @@
     },
     {
         "id": 39,
-        "user_id": 3,
+        "user_id": 6,
         "group": "condiments",
         "name": "Tamarind Mix",
         "subtype": "",
@@ -1483,7 +1483,7 @@
     },
     {
         "id": 40,
-        "user_id": 3,
+        "user_id": 6,
         "group": "condiments",
         "name": "Vanilla Extract",
         "subtype": "",
@@ -1521,10 +1521,10 @@
     },
     {
         "id": 41,
-        "user_id": 3,
+        "user_id": 6,
         "group": "condiments",
-        "name": "Vinegar",
-        "subtype": "Apple Cider",
+        "name": "Vinegar, Apple Cider",
+        "subtype": "",
         "description": "",
         "vendor": "Heinz",
         "size_description": "1 bottle",
@@ -1559,10 +1559,10 @@
     },
     {
         "id": 42,
-        "user_id": 3,
+        "user_id": 6,
         "group": "condiments",
-        "name": "Vinegar",
-        "subtype": "Balmamic",
+        "name": "Vinegar, Balmamic",
+        "subtype": "",
         "description": "Balsalmic Vinegar of Modena, Density 1.12",
         "vendor": "Just FreshDirect",
         "size_description": "1 bottle",
@@ -1597,10 +1597,10 @@
     },
     {
         "id": 43,
-        "user_id": 3,
+        "user_id": 6,
         "group": "condiments",
-        "name": "Vinegar",
-        "subtype": "Rice, Seasoned",
+        "name": "Vinegar, Rice",
+        "subtype": "Seasoned",
         "description": "",
         "vendor": "Marukan",
         "size_description": "1 bottle",
@@ -1635,10 +1635,10 @@
     },
     {
         "id": 44,
-        "user_id": 3,
+        "user_id": 6,
         "group": "condiments",
-        "name": "Vinegar",
-        "subtype": "Rice, Unseasoned",
+        "name": "Vinegar, Rice",
+        "subtype": "Unseasoned",
         "description": "",
         "vendor": "Marukan",
         "size_description": "1 bottle",
@@ -1673,10 +1673,10 @@
     },
     {
         "id": 45,
-        "user_id": 3,
+        "user_id": 6,
         "group": "condiments",
-        "name": "Vinegar",
-        "subtype": "White",
+        "name": "Vinegar, White",
+        "subtype": "",
         "description": "",
         "vendor": "Heinz",
         "size_description": "1 bottle",
@@ -1711,10 +1711,10 @@
     },
     {
         "id": 46,
-        "user_id": 3,
+        "user_id": 6,
         "group": "condiments",
-        "name": "Vinegar",
-        "subtype": "White Wine",
+        "name": "Vinegar, White Wine",
+        "subtype": "",
         "description": "",
         "vendor": "Just FreshDirect",
         "size_description": "1 bottle",
@@ -1749,7 +1749,7 @@
     },
     {
         "id": 47,
-        "user_id": 3,
+        "user_id": 6,
         "group": "condiments",
         "name": "Wasabi",
         "subtype": "",
@@ -1787,7 +1787,7 @@
     },
     {
         "id": 48,
-        "user_id": 3,
+        "user_id": 6,
         "group": "condiments",
         "name": "Worstershire Sauce",
         "subtype": "",
@@ -1825,7 +1825,7 @@
     },
     {
         "id": 49,
-        "user_id": 3,
+        "user_id": 6,
         "group": "dairy",
         "name": "Butter",
         "subtype": "Unsalted",
@@ -1863,7 +1863,7 @@
     },
     {
         "id": 50,
-        "user_id": 3,
+        "user_id": 6,
         "group": "dairy",
         "name": "Cheese, American",
         "subtype": "Singles",
@@ -1901,7 +1901,7 @@
     },
     {
         "id": 51,
-        "user_id": 3,
+        "user_id": 6,
         "group": "dairy",
         "name": "Cheese, Cheddar",
         "subtype": "Extra Sharp, Block",
@@ -1939,7 +1939,7 @@
     },
     {
         "id": 52,
-        "user_id": 3,
+        "user_id": 6,
         "group": "dairy",
         "name": "Cheese, Cheddar",
         "subtype": "Sharp, Shredded",
@@ -1977,7 +1977,7 @@
     },
     {
         "id": 53,
-        "user_id": 3,
+        "user_id": 6,
         "group": "dairy",
         "name": "Cheese, Cottage",
         "subtype": "Low-Fat",
@@ -2015,7 +2015,7 @@
     },
     {
         "id": 54,
-        "user_id": 3,
+        "user_id": 6,
         "group": "dairy",
         "name": "Cheese, Mozzarella",
         "subtype": "Block",
@@ -2053,7 +2053,7 @@
     },
     {
         "id": 55,
-        "user_id": 3,
+        "user_id": 6,
         "group": "dairy",
         "name": "Cheese, Mozzarella",
         "subtype": "Smoked, Block",
@@ -2091,7 +2091,7 @@
     },
     {
         "id": 56,
-        "user_id": 3,
+        "user_id": 6,
         "group": "dairy",
         "name": "Cheese, Mozzarella",
         "subtype": "Shredded, Block",
@@ -2129,7 +2129,7 @@
     },
     {
         "id": 57,
-        "user_id": 3,
+        "user_id": 6,
         "group": "dairy",
         "name": "Cheese, Mozzarella",
         "subtype": "Unsalted, Block",
@@ -2167,7 +2167,7 @@
     },
     {
         "id": 58,
-        "user_id": 3,
+        "user_id": 6,
         "group": "dairy",
         "name": "Cheese, Mozzarella",
         "subtype": "Sliced",
@@ -2205,7 +2205,7 @@
     },
     {
         "id": 59,
-        "user_id": 3,
+        "user_id": 6,
         "group": "dairy",
         "name": "Cheese, Parmesan",
         "subtype": "Block",
@@ -2243,7 +2243,7 @@
     },
     {
         "id": 60,
-        "user_id": 3,
+        "user_id": 6,
         "group": "dairy",
         "name": "Cheese, Parmesan",
         "subtype": "Grated",
@@ -2281,7 +2281,7 @@
     },
     {
         "id": 61,
-        "user_id": 3,
+        "user_id": 6,
         "group": "dairy",
         "name": "Cheese, Swiss",
         "subtype": "Low Sodium, Sliced",
@@ -2319,7 +2319,7 @@
     },
     {
         "id": 62,
-        "user_id": 3,
+        "user_id": 6,
         "group": "dairy",
         "name": "Condensed Milk",
         "subtype": "Sweetned",
@@ -2357,7 +2357,7 @@
     },
     {
         "id": 63,
-        "user_id": 3,
+        "user_id": 6,
         "group": "dairy",
         "name": "Cr\u00e8me Fraiche",
         "subtype": "",
@@ -2395,7 +2395,7 @@
     },
     {
         "id": 64,
-        "user_id": 3,
+        "user_id": 6,
         "group": "dairy",
         "name": "Heavy Cream",
         "subtype": "",
@@ -2433,7 +2433,7 @@
     },
     {
         "id": 65,
-        "user_id": 3,
+        "user_id": 6,
         "group": "dairy",
         "name": "Ice Cream",
         "subtype": "Chocolate",
@@ -2471,7 +2471,7 @@
     },
     {
         "id": 66,
-        "user_id": 3,
+        "user_id": 6,
         "group": "dairy",
         "name": "Ice Cream",
         "subtype": "Natural Vanilla",
@@ -2509,7 +2509,7 @@
     },
     {
         "id": 67,
-        "user_id": 3,
+        "user_id": 6,
         "group": "dairy",
         "name": "Milk, Almond",
         "subtype": "",
@@ -2547,7 +2547,7 @@
     },
     {
         "id": 68,
-        "user_id": 3,
+        "user_id": 6,
         "group": "dairy",
         "name": "Milk, Cashew",
         "subtype": "",
@@ -2585,7 +2585,7 @@
     },
     {
         "id": 69,
-        "user_id": 3,
+        "user_id": 6,
         "group": "fruits",
         "name": "Coconut Milk",
         "subtype": "Unsweetened",
@@ -2623,7 +2623,7 @@
     },
     {
         "id": 70,
-        "user_id": 3,
+        "user_id": 6,
         "group": "fruits",
         "name": "Coconut Milk",
         "subtype": "Lite",
@@ -2661,7 +2661,7 @@
     },
     {
         "id": 71,
-        "user_id": 3,
+        "user_id": 6,
         "group": "dairy",
         "name": "Milk, Dairy",
         "subtype": "Fat Free",
@@ -2699,7 +2699,7 @@
     },
     {
         "id": 72,
-        "user_id": 3,
+        "user_id": 6,
         "group": "dairy",
         "name": "Milk, Dairy",
         "subtype": "Fat Free",
@@ -2737,7 +2737,7 @@
     },
     {
         "id": 73,
-        "user_id": 3,
+        "user_id": 6,
         "group": "dairy",
         "name": "Milk, Dairy",
         "subtype": "1% Low Fat",
@@ -2775,7 +2775,7 @@
     },
     {
         "id": 74,
-        "user_id": 3,
+        "user_id": 6,
         "group": "dairy",
         "name": "Milk, Dairy",
         "subtype": "2% Reduced Fat",
@@ -2813,7 +2813,7 @@
     },
     {
         "id": 75,
-        "user_id": 3,
+        "user_id": 6,
         "group": "dairy",
         "name": "Milk, Dairy",
         "subtype": "Whole",
@@ -2851,7 +2851,7 @@
     },
     {
         "id": 76,
-        "user_id": 3,
+        "user_id": 6,
         "group": "dairy",
         "name": "Milk, Dairy",
         "subtype": "1% Low Fat, Lactose Free, Chocolate",
@@ -2889,7 +2889,7 @@
     },
     {
         "id": 77,
-        "user_id": 3,
+        "user_id": 6,
         "group": "dairy",
         "name": "Milk, Oat",
         "subtype": "",
@@ -2927,7 +2927,7 @@
     },
     {
         "id": 78,
-        "user_id": 3,
+        "user_id": 6,
         "group": "dairy",
         "name": "Milk, Oat",
         "subtype": "Chocolate ",
@@ -2965,7 +2965,7 @@
     },
     {
         "id": 79,
-        "user_id": 3,
+        "user_id": 6,
         "group": "dairy",
         "name": "Milk, Soy",
         "subtype": "",
@@ -3003,7 +3003,7 @@
     },
     {
         "id": 80,
-        "user_id": 3,
+        "user_id": 6,
         "group": "dairy",
         "name": "Sour Cream",
         "subtype": "",
@@ -3041,7 +3041,7 @@
     },
     {
         "id": 81,
-        "user_id": 3,
+        "user_id": 6,
         "group": "dairy",
         "name": "Whipped Cream",
         "subtype": "",
@@ -3079,7 +3079,7 @@
     },
     {
         "id": 82,
-        "user_id": 3,
+        "user_id": 6,
         "group": "dairy",
         "name": "Yogurt",
         "subtype": "Non-Fat Greek",
@@ -3117,7 +3117,7 @@
     },
     {
         "id": 83,
-        "user_id": 3,
+        "user_id": 6,
         "group": "dairy",
         "name": "Yogurt",
         "subtype": "Non-Fat Greek",
@@ -3155,7 +3155,7 @@
     },
     {
         "id": 84,
-        "user_id": 3,
+        "user_id": 6,
         "group": "dairy",
         "name": "Yogurt",
         "subtype": "Low-Fat Greek",
@@ -3193,7 +3193,7 @@
     },
     {
         "id": 85,
-        "user_id": 3,
+        "user_id": 6,
         "group": "dairy",
         "name": "Yogurt",
         "subtype": "Non-Fat Greek",
@@ -3231,7 +3231,7 @@
     },
     {
         "id": 86,
-        "user_id": 3,
+        "user_id": 6,
         "group": "dairy",
         "name": "Yogurt",
         "subtype": "Non-Fat Greek",
@@ -3269,7 +3269,7 @@
     },
     {
         "id": 87,
-        "user_id": 3,
+        "user_id": 6,
         "group": "dairy",
         "name": "Yogurt",
         "subtype": "5% Greek",
@@ -3307,7 +3307,7 @@
     },
     {
         "id": 88,
-        "user_id": 3,
+        "user_id": 6,
         "group": "fatsAndSugars",
         "name": "Chocolate",
         "subtype": "Mexican",
@@ -3345,7 +3345,7 @@
     },
     {
         "id": 89,
-        "user_id": 3,
+        "user_id": 6,
         "group": "fatsAndSugars",
         "name": "Chocolate Chips",
         "subtype": "Semi-Sweet",
@@ -3383,7 +3383,7 @@
     },
     {
         "id": 90,
-        "user_id": 3,
+        "user_id": 6,
         "group": "fatsAndSugars",
         "name": "Cocoa Powder",
         "subtype": "",
@@ -3421,7 +3421,7 @@
     },
     {
         "id": 91,
-        "user_id": 3,
+        "user_id": 6,
         "group": "fatsAndSugars",
         "name": "Cocoa Powder",
         "subtype": "Unsweetened",
@@ -3459,7 +3459,7 @@
     },
     {
         "id": 92,
-        "user_id": 3,
+        "user_id": 6,
         "group": "fatsAndSugars",
         "name": "Corn Syrup",
         "subtype": "Light",
@@ -3497,7 +3497,7 @@
     },
     {
         "id": 93,
-        "user_id": 3,
+        "user_id": 6,
         "group": "fatsAndSugars",
         "name": "Honey",
         "subtype": "Clover",
@@ -3535,11 +3535,11 @@
     },
     {
         "id": 94,
-        "user_id": 3,
+        "user_id": 6,
         "group": "fatsAndSugars",
         "name": "Maple Syrup",
-        "subtype": "Local Amber (Rich Taste)",
-        "description": "",
+        "subtype": "",
+        "description": "Local Amber (Rich Taste)",
         "vendor": "Just FreshDirect",
         "size_description": "1 bottle",
         "size_oz": 12.5,
@@ -3573,7 +3573,7 @@
     },
     {
         "id": 95,
-        "user_id": 3,
+        "user_id": 6,
         "group": "fatsAndSugars",
         "name": "Molasses",
         "subtype": "Unsulfured",
@@ -3611,7 +3611,7 @@
     },
     {
         "id": 96,
-        "user_id": 3,
+        "user_id": 6,
         "group": "fatsAndSugars",
         "name": "Oil, Avocado",
         "subtype": "Spray",
@@ -3649,7 +3649,7 @@
     },
     {
         "id": 97,
-        "user_id": 3,
+        "user_id": 6,
         "group": "fatsAndSugars",
         "name": "Oil, Avocado",
         "subtype": "Spray",
@@ -3687,7 +3687,7 @@
     },
     {
         "id": 98,
-        "user_id": 3,
+        "user_id": 6,
         "group": "fatsAndSugars",
         "name": "Oil, Canola",
         "subtype": "",
@@ -3725,7 +3725,7 @@
     },
     {
         "id": 99,
-        "user_id": 3,
+        "user_id": 6,
         "group": "fatsAndSugars",
         "name": "Oil, Coconut",
         "subtype": "",
@@ -3763,7 +3763,7 @@
     },
     {
         "id": 100,
-        "user_id": 3,
+        "user_id": 6,
         "group": "fatsAndSugars",
         "name": "Oil, Olive",
         "subtype": "",
@@ -3801,7 +3801,7 @@
     },
     {
         "id": 101,
-        "user_id": 3,
+        "user_id": 6,
         "group": "fatsAndSugars",
         "name": "Oil, Peanut",
         "subtype": "",
@@ -3839,7 +3839,7 @@
     },
     {
         "id": 102,
-        "user_id": 3,
+        "user_id": 6,
         "group": "fatsAndSugars",
         "name": "Oil, Sesame",
         "subtype": "",
@@ -3877,7 +3877,7 @@
     },
     {
         "id": 103,
-        "user_id": 3,
+        "user_id": 6,
         "group": "fatsAndSugars",
         "name": "Sugar",
         "subtype": "Light Brown",
@@ -3915,7 +3915,7 @@
     },
     {
         "id": 104,
-        "user_id": 3,
+        "user_id": 6,
         "group": "fatsAndSugars",
         "name": "Sugar",
         "subtype": "Granulated White",
@@ -3953,7 +3953,7 @@
     },
     {
         "id": 105,
-        "user_id": 3,
+        "user_id": 6,
         "group": "fatsAndSugars",
         "name": "Sugar",
         "subtype": "Powdered Confedtioners",
@@ -3991,7 +3991,7 @@
     },
     {
         "id": 106,
-        "user_id": 3,
+        "user_id": 6,
         "group": "grains",
         "name": "Bagel",
         "subtype": "Mixed Frozen",
@@ -4029,7 +4029,7 @@
     },
     {
         "id": 107,
-        "user_id": 3,
+        "user_id": 6,
         "group": "grains",
         "name": "Bread",
         "subtype": "Whole Wheat",
@@ -4067,7 +4067,7 @@
     },
     {
         "id": 108,
-        "user_id": 3,
+        "user_id": 6,
         "group": "grains",
         "name": "Bread",
         "subtype": "Whole Wheat",
@@ -4105,7 +4105,7 @@
     },
     {
         "id": 109,
-        "user_id": 3,
+        "user_id": 6,
         "group": "grains",
         "name": "Buns",
         "subtype": "Brioche",
@@ -4143,7 +4143,7 @@
     },
     {
         "id": 110,
-        "user_id": 3,
+        "user_id": 6,
         "group": "grains",
         "name": "Buns",
         "subtype": "Challah",
@@ -4181,7 +4181,7 @@
     },
     {
         "id": 111,
-        "user_id": 3,
+        "user_id": 6,
         "group": "grains",
         "name": "Buns",
         "subtype": "Long Potato Rolls",
@@ -4219,7 +4219,7 @@
     },
     {
         "id": 112,
-        "user_id": 3,
+        "user_id": 6,
         "group": "grains",
         "name": "Buns",
         "subtype": "Sandwich Potato Rolls",
@@ -4257,7 +4257,7 @@
     },
     {
         "id": 113,
-        "user_id": 3,
+        "user_id": 6,
         "group": "grains",
         "name": "Buns",
         "subtype": "Pretzel Rolls",
@@ -4295,7 +4295,7 @@
     },
     {
         "id": 114,
-        "user_id": 3,
+        "user_id": 6,
         "group": "grains",
         "name": "Buns",
         "subtype": "Whole Wheat",
@@ -4333,7 +4333,7 @@
     },
     {
         "id": 115,
-        "user_id": 3,
+        "user_id": 6,
         "group": "grains",
         "name": "Puff Pastry Sheets",
         "subtype": "",
@@ -4371,7 +4371,7 @@
     },
     {
         "id": 116,
-        "user_id": 3,
+        "user_id": 6,
         "group": "grains",
         "name": "Taco Shell",
         "subtype": "Hard",
@@ -4409,7 +4409,7 @@
     },
     {
         "id": 117,
-        "user_id": 3,
+        "user_id": 6,
         "group": "grains",
         "name": "Tortilla",
         "subtype": "Flour",
@@ -4447,7 +4447,7 @@
     },
     {
         "id": 118,
-        "user_id": 3,
+        "user_id": 6,
         "group": "grains",
         "name": "Cereal",
         "subtype": "",
@@ -4485,7 +4485,7 @@
     },
     {
         "id": 119,
-        "user_id": 3,
+        "user_id": 6,
         "group": "grains",
         "name": "Cereal",
         "subtype": "",
@@ -4523,7 +4523,7 @@
     },
     {
         "id": 120,
-        "user_id": 3,
+        "user_id": 6,
         "group": "grains",
         "name": "Cereal",
         "subtype": "",
@@ -4561,7 +4561,7 @@
     },
     {
         "id": 121,
-        "user_id": 3,
+        "user_id": 6,
         "group": "grains",
         "name": "Corn Starch",
         "subtype": "",
@@ -4599,7 +4599,7 @@
     },
     {
         "id": 122,
-        "user_id": 3,
+        "user_id": 6,
         "group": "grains",
         "name": "Couscous",
         "subtype": "Traditional Pearl",
@@ -4637,7 +4637,7 @@
     },
     {
         "id": 123,
-        "user_id": 3,
+        "user_id": 6,
         "group": "grains",
         "name": "Dumpling Wrappers",
         "subtype": "Shanghai Style",
@@ -4675,7 +4675,7 @@
     },
     {
         "id": 124,
-        "user_id": 3,
+        "user_id": 6,
         "group": "grains",
         "name": "Flaxseed",
         "subtype": "Ground",
@@ -4713,7 +4713,7 @@
     },
     {
         "id": 125,
-        "user_id": 3,
+        "user_id": 6,
         "group": "grains",
         "name": "Flour",
         "subtype": "All-Purpose Unbleached",
@@ -4751,7 +4751,7 @@
     },
     {
         "id": 126,
-        "user_id": 3,
+        "user_id": 6,
         "group": "grains",
         "name": "Flour",
         "subtype": "All-Purpose Enriched Bleached Pre-Sifted",
@@ -4789,7 +4789,7 @@
     },
     {
         "id": 127,
-        "user_id": 3,
+        "user_id": 6,
         "group": "grains",
         "name": "Flour",
         "subtype": "Dark Rye",
@@ -4827,7 +4827,7 @@
     },
     {
         "id": 128,
-        "user_id": 3,
+        "user_id": 6,
         "group": "grains",
         "name": "Flour",
         "subtype": "Tipo \"00\"",
@@ -4865,7 +4865,7 @@
     },
     {
         "id": 129,
-        "user_id": 3,
+        "user_id": 6,
         "group": "grains",
         "name": "Oats",
         "subtype": "Steel Cut",
@@ -4903,7 +4903,7 @@
     },
     {
         "id": 130,
-        "user_id": 3,
+        "user_id": 6,
         "group": "grains",
         "name": "Panko",
         "subtype": "",
@@ -4941,7 +4941,7 @@
     },
     {
         "id": 131,
-        "user_id": 3,
+        "user_id": 6,
         "group": "grains",
         "name": "Pasta",
         "subtype": "Lasagna",
@@ -4979,7 +4979,7 @@
     },
     {
         "id": 132,
-        "user_id": 3,
+        "user_id": 6,
         "group": "grains",
         "name": "Pasta",
         "subtype": "Linguine",
@@ -5017,7 +5017,7 @@
     },
     {
         "id": 133,
-        "user_id": 3,
+        "user_id": 6,
         "group": "grains",
         "name": "Pasta",
         "subtype": "Spaghetti",
@@ -5055,7 +5055,7 @@
     },
     {
         "id": 134,
-        "user_id": 3,
+        "user_id": 6,
         "group": "grains",
         "name": "Pasta",
         "subtype": "Rice Noodles",
@@ -5093,7 +5093,7 @@
     },
     {
         "id": 135,
-        "user_id": 3,
+        "user_id": 6,
         "group": "grains",
         "name": "Pasta",
         "subtype": "Rice Noodles",
@@ -5131,7 +5131,7 @@
     },
     {
         "id": 136,
-        "user_id": 3,
+        "user_id": 6,
         "group": "grains",
         "name": "Pasta",
         "subtype": "Linguine",
@@ -5169,7 +5169,7 @@
     },
     {
         "id": 137,
-        "user_id": 3,
+        "user_id": 6,
         "group": "grains",
         "name": "Pasta",
         "subtype": "Lo Mein Noodles",
@@ -5207,7 +5207,7 @@
     },
     {
         "id": 138,
-        "user_id": 3,
+        "user_id": 6,
         "group": "grains",
         "name": "Rice",
         "subtype": "Basmati",
@@ -5245,7 +5245,7 @@
     },
     {
         "id": 139,
-        "user_id": 3,
+        "user_id": 6,
         "group": "grains",
         "name": "Rice",
         "subtype": "Brown",
@@ -5283,7 +5283,7 @@
     },
     {
         "id": 140,
-        "user_id": 3,
+        "user_id": 6,
         "group": "grains",
         "name": "Rice",
         "subtype": "Brown",
@@ -5321,7 +5321,7 @@
     },
     {
         "id": 141,
-        "user_id": 3,
+        "user_id": 6,
         "group": "grains",
         "name": "Rice",
         "subtype": "Jasmine",
@@ -5359,7 +5359,7 @@
     },
     {
         "id": 142,
-        "user_id": 3,
+        "user_id": 6,
         "group": "grains",
         "name": "Rice",
         "subtype": "Jasmine",
@@ -5397,7 +5397,7 @@
     },
     {
         "id": 143,
-        "user_id": 3,
+        "user_id": 6,
         "group": "grains",
         "name": "Rice",
         "subtype": "Sushi",
@@ -5435,7 +5435,7 @@
     },
     {
         "id": 144,
-        "user_id": 3,
+        "user_id": 6,
         "group": "grains",
         "name": "Rice",
         "subtype": "White",
@@ -5473,7 +5473,7 @@
     },
     {
         "id": 145,
-        "user_id": 3,
+        "user_id": 6,
         "group": "grains",
         "name": "Spring Roll Wrappers",
         "subtype": "",
@@ -5511,7 +5511,7 @@
     },
     {
         "id": 146,
-        "user_id": 3,
+        "user_id": 6,
         "group": "herbsAndSpices",
         "name": "Allspice",
         "subtype": "Ground",
@@ -5549,7 +5549,7 @@
     },
     {
         "id": 147,
-        "user_id": 3,
+        "user_id": 6,
         "group": "herbsAndSpices",
         "name": "Ancho Chile Powder",
         "subtype": "Dried, Ground",
@@ -5587,7 +5587,7 @@
     },
     {
         "id": 148,
-        "user_id": 3,
+        "user_id": 6,
         "group": "herbsAndSpices",
         "name": "Basil",
         "subtype": "Dried, Ground",
@@ -5625,7 +5625,7 @@
     },
     {
         "id": 149,
-        "user_id": 3,
+        "user_id": 6,
         "group": "herbsAndSpices",
         "name": "Basil",
         "subtype": "Fresh",
@@ -5663,7 +5663,7 @@
     },
     {
         "id": 150,
-        "user_id": 3,
+        "user_id": 6,
         "group": "herbsAndSpices",
         "name": "Bay Leaves",
         "subtype": "Dried",
@@ -5701,7 +5701,7 @@
     },
     {
         "id": 151,
-        "user_id": 3,
+        "user_id": 6,
         "group": "herbsAndSpices",
         "name": "Black Pepper",
         "subtype": "Ground",
@@ -5739,7 +5739,7 @@
     },
     {
         "id": 152,
-        "user_id": 3,
+        "user_id": 6,
         "group": "herbsAndSpices",
         "name": "Cardamom",
         "subtype": "Ground",
@@ -5777,7 +5777,7 @@
     },
     {
         "id": 153,
-        "user_id": 3,
+        "user_id": 6,
         "group": "herbsAndSpices",
         "name": "Cayenne Pepper",
         "subtype": "Dried, Ground",
@@ -5815,7 +5815,7 @@
     },
     {
         "id": 154,
-        "user_id": 3,
+        "user_id": 6,
         "group": "herbsAndSpices",
         "name": "Chili Powder",
         "subtype": "Dried, Ground",
@@ -5853,7 +5853,7 @@
     },
     {
         "id": 155,
-        "user_id": 3,
+        "user_id": 6,
         "group": "herbsAndSpices",
         "name": "Chives",
         "subtype": "Fresh",
@@ -5891,7 +5891,7 @@
     },
     {
         "id": 156,
-        "user_id": 3,
+        "user_id": 6,
         "group": "herbsAndSpices",
         "name": "Cinnamon",
         "subtype": "Ground",
@@ -5929,7 +5929,7 @@
     },
     {
         "id": 157,
-        "user_id": 3,
+        "user_id": 6,
         "group": "herbsAndSpices",
         "name": "Cilantro",
         "subtype": "Fresh, Organic",
@@ -5967,7 +5967,7 @@
     },
     {
         "id": 158,
-        "user_id": 3,
+        "user_id": 6,
         "group": "herbsAndSpices",
         "name": "Cilantro",
         "subtype": "Fresh",
@@ -6005,7 +6005,7 @@
     },
     {
         "id": 159,
-        "user_id": 3,
+        "user_id": 6,
         "group": "herbsAndSpices",
         "name": "Cloves",
         "subtype": "Ground",
@@ -6043,7 +6043,7 @@
     },
     {
         "id": 160,
-        "user_id": 3,
+        "user_id": 6,
         "group": "herbsAndSpices",
         "name": "Coriander",
         "subtype": "Ground",
@@ -6081,7 +6081,7 @@
     },
     {
         "id": 161,
-        "user_id": 3,
+        "user_id": 6,
         "group": "herbsAndSpices",
         "name": "Cumin",
         "subtype": "Ground",
@@ -6119,7 +6119,7 @@
     },
     {
         "id": 162,
-        "user_id": 3,
+        "user_id": 6,
         "group": "herbsAndSpices",
         "name": "Dill",
         "subtype": "Fresh",
@@ -6157,7 +6157,7 @@
     },
     {
         "id": 163,
-        "user_id": 3,
+        "user_id": 6,
         "group": "herbsAndSpices",
         "name": "Dill Weed",
         "subtype": "Dried",
@@ -6195,7 +6195,7 @@
     },
     {
         "id": 164,
-        "user_id": 3,
+        "user_id": 6,
         "group": "herbsAndSpices",
         "name": "Fennel Seeds",
         "subtype": "Dried",
@@ -6233,7 +6233,7 @@
     },
     {
         "id": 165,
-        "user_id": 3,
+        "user_id": 6,
         "group": "herbsAndSpices",
         "name": "Garlic",
         "subtype": "Fresh",
@@ -6271,7 +6271,7 @@
     },
     {
         "id": 166,
-        "user_id": 3,
+        "user_id": 6,
         "group": "herbsAndSpices",
         "name": "Garlic Powder",
         "subtype": "Dried, Ground",
@@ -6309,7 +6309,7 @@
     },
     {
         "id": 167,
-        "user_id": 3,
+        "user_id": 6,
         "group": "herbsAndSpices",
         "name": "Garlic Salt",
         "subtype": "Dried, Ground",
@@ -6347,7 +6347,7 @@
     },
     {
         "id": 168,
-        "user_id": 3,
+        "user_id": 6,
         "group": "herbsAndSpices",
         "name": "Ginger",
         "subtype": "Fresh",
@@ -6385,11 +6385,11 @@
     },
     {
         "id": 169,
-        "user_id": 3,
+        "user_id": 6,
         "group": "herbsAndSpices",
         "name": "Ginger",
         "subtype": "Dried, Ground",
-        "description": "big in Indian, Chinese, Thai, Korean and Vietnamese cuisine",
+        "description": "big in Indian, Chinese, Thai, Korean and Vietnamese cuisine;1/4 tsp dried = 1 tbsp fresh",
         "vendor": "Just FreshDirect",
         "size_description": "1 jar",
         "size_oz": 1.5,
@@ -6423,7 +6423,7 @@
     },
     {
         "id": 170,
-        "user_id": 3,
+        "user_id": 6,
         "group": "herbsAndSpices",
         "name": "Ginger",
         "subtype": "Pickled",
@@ -6461,7 +6461,7 @@
     },
     {
         "id": 171,
-        "user_id": 3,
+        "user_id": 6,
         "group": "herbsAndSpices",
         "name": "Italian Seasoning",
         "subtype": "Dried",
@@ -6499,7 +6499,7 @@
     },
     {
         "id": 172,
-        "user_id": 3,
+        "user_id": 6,
         "group": "herbsAndSpices",
         "name": "Marjoram",
         "subtype": "Fresh",
@@ -6537,7 +6537,7 @@
     },
     {
         "id": 173,
-        "user_id": 3,
+        "user_id": 6,
         "group": "herbsAndSpices",
         "name": "Mint",
         "subtype": "Fresh",
@@ -6575,7 +6575,7 @@
     },
     {
         "id": 174,
-        "user_id": 3,
+        "user_id": 6,
         "group": "herbsAndSpices",
         "name": "Mustard",
         "subtype": "Dried, Ground",
@@ -6613,7 +6613,7 @@
     },
     {
         "id": 175,
-        "user_id": 3,
+        "user_id": 6,
         "group": "herbsAndSpices",
         "name": "Nutmeg",
         "subtype": "Ground",
@@ -6651,7 +6651,7 @@
     },
     {
         "id": 176,
-        "user_id": 3,
+        "user_id": 6,
         "group": "herbsAndSpices",
         "name": "Onion Powder",
         "subtype": "Ground",
@@ -6689,7 +6689,7 @@
     },
     {
         "id": 177,
-        "user_id": 3,
+        "user_id": 6,
         "group": "herbsAndSpices",
         "name": "Oregano",
         "subtype": "Dried",
@@ -6727,7 +6727,7 @@
     },
     {
         "id": 178,
-        "user_id": 3,
+        "user_id": 6,
         "group": "herbsAndSpices",
         "name": "Paprika",
         "subtype": "Dried",
@@ -6765,7 +6765,7 @@
     },
     {
         "id": 179,
-        "user_id": 3,
+        "user_id": 6,
         "group": "herbsAndSpices",
         "name": "Parsley",
         "subtype": "Fresh",
@@ -6803,7 +6803,7 @@
     },
     {
         "id": 180,
-        "user_id": 3,
+        "user_id": 6,
         "group": "herbsAndSpices",
         "name": "Parsley",
         "subtype": "Fresh",
@@ -6841,7 +6841,7 @@
     },
     {
         "id": 181,
-        "user_id": 3,
+        "user_id": 6,
         "group": "herbsAndSpices",
         "name": "Peppercorns",
         "subtype": "Whole",
@@ -6879,10 +6879,10 @@
     },
     {
         "id": 182,
-        "user_id": 3,
+        "user_id": 6,
         "group": "herbsAndSpices",
-        "name": "Red Pepper",
-        "subtype": "Crushed",
+        "name": "Crushed Red Pepper",
+        "subtype": "",
         "description": "big in Italian, Mexican, Asian, Mediterranean, and American cuisine",
         "vendor": "Just FreshDirect",
         "size_description": "1 jar",
@@ -6917,7 +6917,7 @@
     },
     {
         "id": 183,
-        "user_id": 3,
+        "user_id": 6,
         "group": "herbsAndSpices",
         "name": "Salt",
         "subtype": "Iodized",
@@ -6955,7 +6955,7 @@
     },
     {
         "id": 184,
-        "user_id": 3,
+        "user_id": 6,
         "group": "herbsAndSpices",
         "name": "MySalt",
         "subtype": "",
@@ -6993,7 +6993,7 @@
     },
     {
         "id": 185,
-        "user_id": 3,
+        "user_id": 6,
         "group": "herbsAndSpices",
         "name": "Sesame Seeds",
         "subtype": "Black",
@@ -7031,7 +7031,7 @@
     },
     {
         "id": 186,
-        "user_id": 3,
+        "user_id": 6,
         "group": "herbsAndSpices",
         "name": "Sesame Seeds",
         "subtype": "White",
@@ -7069,7 +7069,7 @@
     },
     {
         "id": 187,
-        "user_id": 3,
+        "user_id": 6,
         "group": "herbsAndSpices",
         "name": "Thyme",
         "subtype": "Dried",
@@ -7107,7 +7107,7 @@
     },
     {
         "id": 188,
-        "user_id": 3,
+        "user_id": 6,
         "group": "herbsAndSpices",
         "name": "Turmeric",
         "subtype": "Ground",
@@ -7145,7 +7145,7 @@
     },
     {
         "id": 189,
-        "user_id": 3,
+        "user_id": 6,
         "group": "proteins",
         "name": "Bacon",
         "subtype": "Smoked, Uncured",
@@ -7183,7 +7183,7 @@
     },
     {
         "id": 190,
-        "user_id": 3,
+        "user_id": 6,
         "group": "proteins",
         "name": "Bacon",
         "subtype": "Smoked, Uncured",
@@ -7221,7 +7221,7 @@
     },
     {
         "id": 191,
-        "user_id": 3,
+        "user_id": 6,
         "group": "proteins",
         "name": "Bacon",
         "subtype": "Freshly Cut",
@@ -7259,7 +7259,7 @@
     },
     {
         "id": 192,
-        "user_id": 3,
+        "user_id": 6,
         "group": "proteins",
         "name": "Bacon",
         "subtype": "Freshly Cut, Smoked",
@@ -7297,7 +7297,7 @@
     },
     {
         "id": 193,
-        "user_id": 3,
+        "user_id": 6,
         "group": "proteins",
         "name": "Bacon",
         "subtype": "Uncured",
@@ -7335,7 +7335,7 @@
     },
     {
         "id": 194,
-        "user_id": 3,
+        "user_id": 6,
         "group": "proteins",
         "name": "Bacon",
         "subtype": "Smoked",
@@ -7373,7 +7373,7 @@
     },
     {
         "id": 195,
-        "user_id": 3,
+        "user_id": 6,
         "group": "proteins",
         "name": "Beef, Chuck Roast",
         "subtype": "Boneless",
@@ -7411,7 +7411,7 @@
     },
     {
         "id": 196,
-        "user_id": 3,
+        "user_id": 6,
         "group": "proteins",
         "name": "Beef, Chuck Roast",
         "subtype": "Boneless",
@@ -7449,7 +7449,7 @@
     },
     {
         "id": 197,
-        "user_id": 3,
+        "user_id": 6,
         "group": "proteins",
         "name": "Beef, Flank Steak",
         "subtype": "Boneless",
@@ -7487,7 +7487,7 @@
     },
     {
         "id": 198,
-        "user_id": 3,
+        "user_id": 6,
         "group": "proteins",
         "name": "Beef, London Broil",
         "subtype": "Boneless, 1.5\"",
@@ -7525,7 +7525,7 @@
     },
     {
         "id": 199,
-        "user_id": 3,
+        "user_id": 6,
         "group": "proteins",
         "name": "Beef, NY Strip Steak",
         "subtype": "Boneless, 0.75\"",
@@ -7563,7 +7563,7 @@
     },
     {
         "id": 200,
-        "user_id": 3,
+        "user_id": 6,
         "group": "proteins",
         "name": "Beef, Ribeye Steak",
         "subtype": "Boneless, 1\"",
@@ -7601,7 +7601,7 @@
     },
     {
         "id": 201,
-        "user_id": 3,
+        "user_id": 6,
         "group": "proteins",
         "name": "Beef, Sirloin Steak",
         "subtype": "Boneless, 0.5\"",
@@ -7639,7 +7639,7 @@
     },
     {
         "id": 202,
-        "user_id": 3,
+        "user_id": 6,
         "group": "proteins",
         "name": "Beef, Ground",
         "subtype": "95% lean",
@@ -7677,7 +7677,7 @@
     },
     {
         "id": 203,
-        "user_id": 3,
+        "user_id": 6,
         "group": "proteins",
         "name": "Beef, Ground",
         "subtype": "90% lean",
@@ -7715,7 +7715,7 @@
     },
     {
         "id": 204,
-        "user_id": 3,
+        "user_id": 6,
         "group": "proteins",
         "name": "Beef, Ground",
         "subtype": "85% Lean",
@@ -7753,7 +7753,7 @@
     },
     {
         "id": 205,
-        "user_id": 3,
+        "user_id": 6,
         "group": "proteins",
         "name": "Beef, Ground",
         "subtype": "80% Lean",
@@ -7791,7 +7791,7 @@
     },
     {
         "id": 206,
-        "user_id": 3,
+        "user_id": 6,
         "group": "proteins",
         "name": "Chicken Breast",
         "subtype": "Boneless, Skinless",
@@ -7829,7 +7829,7 @@
     },
     {
         "id": 207,
-        "user_id": 3,
+        "user_id": 6,
         "group": "proteins",
         "name": "Chicken Breast",
         "subtype": "Boneless, Skinless",
@@ -7867,7 +7867,7 @@
     },
     {
         "id": 208,
-        "user_id": 3,
+        "user_id": 6,
         "group": "proteins",
         "name": "Chicken Breast",
         "subtype": "Boneless, Skinless",
@@ -7905,7 +7905,7 @@
     },
     {
         "id": 209,
-        "user_id": 3,
+        "user_id": 6,
         "group": "proteins",
         "name": "Chicken Breast",
         "subtype": "Boneless, Skinless",
@@ -7943,7 +7943,7 @@
     },
     {
         "id": 210,
-        "user_id": 3,
+        "user_id": 6,
         "group": "proteins",
         "name": "Chicken Breast",
         "subtype": "Boneless, Skinless",
@@ -7981,7 +7981,7 @@
     },
     {
         "id": 211,
-        "user_id": 3,
+        "user_id": 6,
         "group": "proteins",
         "name": "Chicken Breast",
         "subtype": "With Ribs",
@@ -8019,7 +8019,7 @@
     },
     {
         "id": 212,
-        "user_id": 3,
+        "user_id": 6,
         "group": "proteins",
         "name": "Chicken Legs",
         "subtype": "Thigh & Drumstick",
@@ -8057,7 +8057,7 @@
     },
     {
         "id": 213,
-        "user_id": 3,
+        "user_id": 6,
         "group": "proteins",
         "name": "Chicken Thigh",
         "subtype": "Boneless, Skinless",
@@ -8095,7 +8095,7 @@
     },
     {
         "id": 214,
-        "user_id": 3,
+        "user_id": 6,
         "group": "proteins",
         "name": "Chicken, Thigh",
         "subtype": "Boneless, Skinless",
@@ -8133,7 +8133,7 @@
     },
     {
         "id": 215,
-        "user_id": 3,
+        "user_id": 6,
         "group": "proteins",
         "name": "Chicken Thigh",
         "subtype": "Boneless, Skinless",
@@ -8171,7 +8171,7 @@
     },
     {
         "id": 216,
-        "user_id": 3,
+        "user_id": 6,
         "group": "proteins",
         "name": "Chicken Wings",
         "subtype": "",
@@ -8209,7 +8209,7 @@
     },
     {
         "id": 217,
-        "user_id": 3,
+        "user_id": 6,
         "group": "proteins",
         "name": "Chicken Wings",
         "subtype": "Hot Buffalo",
@@ -8247,7 +8247,7 @@
     },
     {
         "id": 218,
-        "user_id": 3,
+        "user_id": 6,
         "group": "proteins",
         "name": "Chicken Wings",
         "subtype": "BBQ",
@@ -8285,7 +8285,7 @@
     },
     {
         "id": 219,
-        "user_id": 3,
+        "user_id": 6,
         "group": "proteins",
         "name": "Crab Sticks",
         "subtype": "",
@@ -8323,7 +8323,7 @@
     },
     {
         "id": 220,
-        "user_id": 3,
+        "user_id": 6,
         "group": "proteins",
         "name": "Egg",
         "subtype": "Large Brown",
@@ -8361,7 +8361,7 @@
     },
     {
         "id": 221,
-        "user_id": 3,
+        "user_id": 6,
         "group": "proteins",
         "name": "Egg White",
         "subtype": "Large Brown",
@@ -8399,7 +8399,7 @@
     },
     {
         "id": 222,
-        "user_id": 3,
+        "user_id": 6,
         "group": "proteins",
         "name": "Egg",
         "subtype": "Large Brown",
@@ -8437,7 +8437,7 @@
     },
     {
         "id": 223,
-        "user_id": 3,
+        "user_id": 6,
         "group": "proteins",
         "name": "Egg White",
         "subtype": "Large Brown",
@@ -8475,7 +8475,7 @@
     },
     {
         "id": 224,
-        "user_id": 3,
+        "user_id": 6,
         "group": "proteins",
         "name": "Egg",
         "subtype": "Plant-Based Liquid Substitute",
@@ -8513,7 +8513,7 @@
     },
     {
         "id": 225,
-        "user_id": 3,
+        "user_id": 6,
         "group": "proteins",
         "name": "Fish, Cod",
         "subtype": "Loin",
@@ -8551,7 +8551,7 @@
     },
     {
         "id": 226,
-        "user_id": 3,
+        "user_id": 6,
         "group": "proteins",
         "name": "Fish, Cod",
         "subtype": "Fillet",
@@ -8589,7 +8589,7 @@
     },
     {
         "id": 227,
-        "user_id": 3,
+        "user_id": 6,
         "group": "proteins",
         "name": "Fish, Flounder",
         "subtype": "Fillet",
@@ -8627,7 +8627,7 @@
     },
     {
         "id": 228,
-        "user_id": 3,
+        "user_id": 6,
         "group": "proteins",
         "name": "Fish, Haddock",
         "subtype": "Fillet",
@@ -8665,7 +8665,7 @@
     },
     {
         "id": 229,
-        "user_id": 3,
+        "user_id": 6,
         "group": "proteins",
         "name": "Fish, Salmon",
         "subtype": "Fillet",
@@ -8703,7 +8703,7 @@
     },
     {
         "id": 230,
-        "user_id": 3,
+        "user_id": 6,
         "group": "proteins",
         "name": "Fish, Salmon",
         "subtype": "Fillet",
@@ -8741,7 +8741,7 @@
     },
     {
         "id": 231,
-        "user_id": 3,
+        "user_id": 6,
         "group": "proteins",
         "name": "Fish, Salmon",
         "subtype": "Fillet",
@@ -8779,7 +8779,7 @@
     },
     {
         "id": 232,
-        "user_id": 3,
+        "user_id": 6,
         "group": "proteins",
         "name": "Fish, Salmon",
         "subtype": "Fillet",
@@ -8817,7 +8817,7 @@
     },
     {
         "id": 233,
-        "user_id": 3,
+        "user_id": 6,
         "group": "proteins",
         "name": "Fish, Tilapia",
         "subtype": "Fillet",
@@ -8855,7 +8855,7 @@
     },
     {
         "id": 234,
-        "user_id": 3,
+        "user_id": 6,
         "group": "proteins",
         "name": "Fish, Tuna",
         "subtype": "Canned",
@@ -8893,7 +8893,7 @@
     },
     {
         "id": 235,
-        "user_id": 3,
+        "user_id": 6,
         "group": "proteins",
         "name": "Fish, Tuna",
         "subtype": "Canned",
@@ -8931,7 +8931,7 @@
     },
     {
         "id": 236,
-        "user_id": 3,
+        "user_id": 6,
         "group": "proteins",
         "name": "Fish, Tuna",
         "subtype": "Canned",
@@ -8969,7 +8969,7 @@
     },
     {
         "id": 237,
-        "user_id": 3,
+        "user_id": 6,
         "group": "proteins",
         "name": "Fish, Tuna",
         "subtype": "Canned",
@@ -9007,7 +9007,7 @@
     },
     {
         "id": 238,
-        "user_id": 3,
+        "user_id": 6,
         "group": "proteins",
         "name": "Fish, Tuna Salad",
         "subtype": "",
@@ -9045,7 +9045,7 @@
     },
     {
         "id": 239,
-        "user_id": 3,
+        "user_id": 6,
         "group": "proteins",
         "name": "Ham",
         "subtype": "Sliced",
@@ -9083,7 +9083,7 @@
     },
     {
         "id": 240,
-        "user_id": 3,
+        "user_id": 6,
         "group": "proteins",
         "name": "Ham",
         "subtype": "Sliced",
@@ -9121,7 +9121,7 @@
     },
     {
         "id": 241,
-        "user_id": 3,
+        "user_id": 6,
         "group": "proteins",
         "name": "Hot Dogs",
         "subtype": "Skinless Beef Franks",
@@ -9159,7 +9159,7 @@
     },
     {
         "id": 242,
-        "user_id": 3,
+        "user_id": 6,
         "group": "proteins",
         "name": "Lamb",
         "subtype": "Ground",
@@ -9197,7 +9197,7 @@
     },
     {
         "id": 243,
-        "user_id": 3,
+        "user_id": 6,
         "group": "proteins",
         "name": "Lamb",
         "subtype": "Chuck Roast, Boneless",
@@ -9235,7 +9235,7 @@
     },
     {
         "id": 244,
-        "user_id": 3,
+        "user_id": 6,
         "group": "proteins",
         "name": "Pepperoni",
         "subtype": "Sliced, Turkey",
@@ -9273,7 +9273,7 @@
     },
     {
         "id": 245,
-        "user_id": 3,
+        "user_id": 6,
         "group": "proteins",
         "name": "Pepperoni",
         "subtype": "Sliced, Turkey",
@@ -9311,7 +9311,7 @@
     },
     {
         "id": 246,
-        "user_id": 3,
+        "user_id": 6,
         "group": "proteins",
         "name": "Pork Belly",
         "subtype": "Boneless",
@@ -9349,7 +9349,7 @@
     },
     {
         "id": 247,
-        "user_id": 3,
+        "user_id": 6,
         "group": "proteins",
         "name": "Pork Chop",
         "subtype": "Boneless, 0.5\" (Medallions)",
@@ -9387,7 +9387,7 @@
     },
     {
         "id": 248,
-        "user_id": 3,
+        "user_id": 6,
         "group": "proteins",
         "name": "Pork Tenderloin Roast",
         "subtype": "Boneless (Medallions)",
@@ -9425,7 +9425,7 @@
     },
     {
         "id": 249,
-        "user_id": 3,
+        "user_id": 6,
         "group": "proteins",
         "name": "Pork Loin",
         "subtype": "Boneless (Medallions)",
@@ -9463,7 +9463,7 @@
     },
     {
         "id": 250,
-        "user_id": 3,
+        "user_id": 6,
         "group": "proteins",
         "name": "Pork Chop",
         "subtype": "Bone-In, 1.5\"",
@@ -9501,7 +9501,7 @@
     },
     {
         "id": 251,
-        "user_id": 3,
+        "user_id": 6,
         "group": "proteins",
         "name": "Pork Chop",
         "subtype": "Bone-In, 1.5\"",
@@ -9539,7 +9539,7 @@
     },
     {
         "id": 252,
-        "user_id": 3,
+        "user_id": 6,
         "group": "proteins",
         "name": "Pork Chop",
         "subtype": "Bone-In, 0.75\"",
@@ -9577,7 +9577,7 @@
     },
     {
         "id": 253,
-        "user_id": 3,
+        "user_id": 6,
         "group": "proteins",
         "name": "Pork, Ground",
         "subtype": "",
@@ -9615,7 +9615,7 @@
     },
     {
         "id": 254,
-        "user_id": 3,
+        "user_id": 6,
         "group": "proteins",
         "name": "Pork, Ground",
         "subtype": "",
@@ -9653,7 +9653,7 @@
     },
     {
         "id": 255,
-        "user_id": 3,
+        "user_id": 6,
         "group": "proteins",
         "name": "Pork Ribs",
         "subtype": "Baby Back",
@@ -9691,7 +9691,7 @@
     },
     {
         "id": 256,
-        "user_id": 3,
+        "user_id": 6,
         "group": "proteins",
         "name": "Pork Ribs",
         "subtype": " St. Louis Style",
@@ -9729,7 +9729,7 @@
     },
     {
         "id": 257,
-        "user_id": 3,
+        "user_id": 6,
         "group": "proteins",
         "name": "Pork Shoulder",
         "subtype": "Boneless",
@@ -9767,7 +9767,7 @@
     },
     {
         "id": 258,
-        "user_id": 3,
+        "user_id": 6,
         "group": "proteins",
         "name": "Sausage",
         "subtype": "Breakfast Patties",
@@ -9805,7 +9805,7 @@
     },
     {
         "id": 259,
-        "user_id": 3,
+        "user_id": 6,
         "group": "proteins",
         "name": "Sausage",
         "subtype": "Breakfast Links",
@@ -9843,7 +9843,7 @@
     },
     {
         "id": 260,
-        "user_id": 3,
+        "user_id": 6,
         "group": "proteins",
         "name": "Sausage",
         "subtype": "Breakfast Patties",
@@ -9881,7 +9881,7 @@
     },
     {
         "id": 261,
-        "user_id": 3,
+        "user_id": 6,
         "group": "proteins",
         "name": "Sausage",
         "subtype": "Chorizo",
@@ -9919,7 +9919,7 @@
     },
     {
         "id": 262,
-        "user_id": 3,
+        "user_id": 6,
         "group": "proteins",
         "name": "Sausage",
         "subtype": "Hot Italian Pork",
@@ -9957,7 +9957,7 @@
     },
     {
         "id": 263,
-        "user_id": 3,
+        "user_id": 6,
         "group": "proteins",
         "name": "Shrimp",
         "subtype": "Cleaned",
@@ -9995,7 +9995,7 @@
     },
     {
         "id": 264,
-        "user_id": 3,
+        "user_id": 6,
         "group": "proteins",
         "name": "Shrimp",
         "subtype": "EZ Peel",
@@ -10033,7 +10033,7 @@
     },
     {
         "id": 265,
-        "user_id": 3,
+        "user_id": 6,
         "group": "proteins",
         "name": "Tofu",
         "subtype": "Extra Firm",
@@ -10071,10 +10071,10 @@
     },
     {
         "id": 266,
-        "user_id": 3,
+        "user_id": 6,
         "group": "proteins",
-        "name": "Turkey",
-        "subtype": "Sliced",
+        "name": "Turkey, Sliced",
+        "subtype": "",
         "description": "All-Natural Roasted Turkey Breast, RWA, No Salt Added",
         "vendor": "FreshDirect",
         "size_description": "0.25 lb ~ 5 slices",
@@ -10109,10 +10109,10 @@
     },
     {
         "id": 267,
-        "user_id": 3,
+        "user_id": 6,
         "group": "proteins",
-        "name": "Turkey",
-        "subtype": "Sliced",
+        "name": "Turkey, Sliced",
+        "subtype": "",
         "description": "All-Natural Roasted Turkey Breast, RWA (with salt)",
         "vendor": "FreshDirect",
         "size_description": "0.25 lb ~ 5 slices",
@@ -10147,11 +10147,11 @@
     },
     {
         "id": 268,
-        "user_id": 3,
+        "user_id": 6,
         "group": "proteins",
-        "name": "Turkey",
-        "subtype": "Ground",
-        "description": "98% Lean",
+        "name": "Turkey, Ground",
+        "subtype": "98% Lean",
+        "description": "",
         "vendor": "Just FreshDirect",
         "size_description": "1 pound",
         "size_oz": 16.0,
@@ -10185,11 +10185,11 @@
     },
     {
         "id": 269,
-        "user_id": 3,
+        "user_id": 6,
         "group": "proteins",
-        "name": "Turkey",
-        "subtype": "Ground",
-        "description": "94% Lean",
+        "name": "Turkey, Ground",
+        "subtype": "94% Lean",
+        "description": "",
         "vendor": "Just FreshDirect",
         "size_description": "1 pound",
         "size_oz": 16.0,
@@ -10223,11 +10223,11 @@
     },
     {
         "id": 270,
-        "user_id": 3,
+        "user_id": 6,
         "group": "proteins",
-        "name": "Turkey",
-        "subtype": "Ground",
-        "description": "94% Lean, Organic",
+        "name": "Turkey, Ground",
+        "subtype": "94% Lean",
+        "description": "Organic",
         "vendor": "Just FreshDirect",
         "size_description": "1 pound",
         "size_oz": 16.0,
@@ -10261,7 +10261,7 @@
     },
     {
         "id": 271,
-        "user_id": 3,
+        "user_id": 6,
         "group": "vegetables",
         "name": "Arugula",
         "subtype": "",
@@ -10299,7 +10299,7 @@
     },
     {
         "id": 272,
-        "user_id": 3,
+        "user_id": 6,
         "group": "vegetables",
         "name": "Arugula",
         "subtype": "",
@@ -10337,7 +10337,7 @@
     },
     {
         "id": 273,
-        "user_id": 3,
+        "user_id": 6,
         "group": "vegetables",
         "name": "Asparagus",
         "subtype": "",
@@ -10375,11 +10375,11 @@
     },
     {
         "id": 274,
-        "user_id": 3,
+        "user_id": 6,
         "group": "vegetables",
-        "name": "Beans",
-        "subtype": "Baked, Canned",
-        "description": "Best Baked Beans",
+        "name": "Baked Beans",
+        "subtype": "Canned",
+        "description": "Best Baked Beans; delicious but very high in sodium",
         "vendor": "Bush's",
         "size_description": "1 can",
         "size_oz": 28.0,
@@ -10413,11 +10413,11 @@
     },
     {
         "id": 275,
-        "user_id": 3,
+        "user_id": 6,
         "group": "vegetables",
-        "name": "Beans",
-        "subtype": "Black, Canned",
-        "description": "Low Sodium",
+        "name": "Black Beans",
+        "subtype": "Canned, Low Sodium",
+        "description": "",
         "vendor": "Goya",
         "size_description": "1 can",
         "size_oz": 15.5,
@@ -10451,11 +10451,11 @@
     },
     {
         "id": 276,
-        "user_id": 3,
+        "user_id": 6,
         "group": "vegetables",
-        "name": "Beans",
-        "subtype": "Cannelini, Canned",
-        "description": "Organic, Low Sodium",
+        "name": "Cannelini Beans (aka White Kidney Beans)",
+        "subtype": "Canned, Low Sodium",
+        "description": "Goya Organics",
         "vendor": "Goya",
         "size_description": "1 can ~ 2 cups",
         "size_oz": 15.5,
@@ -10489,10 +10489,10 @@
     },
     {
         "id": 277,
-        "user_id": 3,
+        "user_id": 6,
         "group": "vegetables",
-        "name": "Beans",
-        "subtype": "Cannellini, Dry",
+        "name": "Cannellini Beans (aka White Kidney Beans)",
+        "subtype": "Dry",
         "description": "",
         "vendor": "Goya",
         "size_description": "1 package",
@@ -10527,10 +10527,10 @@
     },
     {
         "id": 278,
-        "user_id": 3,
+        "user_id": 6,
         "group": "vegetables",
-        "name": "Beans",
-        "subtype": "Pinto, Canned",
+        "name": "Pinto Beans",
+        "subtype": "Canned",
         "description": "Organic, Low Sodium",
         "vendor": "Goya",
         "size_description": "1 can ~ 2 cups",
@@ -10565,10 +10565,10 @@
     },
     {
         "id": 279,
-        "user_id": 3,
+        "user_id": 6,
         "group": "vegetables",
-        "name": "Beans",
-        "subtype": "Pinto, Dry",
+        "name": "Pinto Beans",
+        "subtype": "Dry",
         "description": "",
         "vendor": "Goya",
         "size_description": "1 package",
@@ -10603,7 +10603,7 @@
     },
     {
         "id": 280,
-        "user_id": 3,
+        "user_id": 6,
         "group": "vegetables",
         "name": "Beets",
         "subtype": "Bunched",
@@ -10641,7 +10641,7 @@
     },
     {
         "id": 281,
-        "user_id": 3,
+        "user_id": 6,
         "group": "vegetables",
         "name": "Bell Pepper, Red",
         "subtype": "",
@@ -10679,7 +10679,7 @@
     },
     {
         "id": 282,
-        "user_id": 3,
+        "user_id": 6,
         "group": "vegetables",
         "name": "Bell Pepper, Green",
         "subtype": "",
@@ -10717,7 +10717,7 @@
     },
     {
         "id": 283,
-        "user_id": 3,
+        "user_id": 6,
         "group": "vegetables",
         "name": "Bok Choy",
         "subtype": "Baby",
@@ -10755,7 +10755,7 @@
     },
     {
         "id": 284,
-        "user_id": 3,
+        "user_id": 6,
         "group": "vegetables",
         "name": "Broccoli",
         "subtype": "Full Stalks",
@@ -10793,7 +10793,7 @@
     },
     {
         "id": 285,
-        "user_id": 3,
+        "user_id": 6,
         "group": "vegetables",
         "name": "Broccoli",
         "subtype": "Crowns",
@@ -10831,7 +10831,7 @@
     },
     {
         "id": 286,
-        "user_id": 3,
+        "user_id": 6,
         "group": "vegetables",
         "name": "Broccoli",
         "subtype": "Florets",
@@ -10869,7 +10869,7 @@
     },
     {
         "id": 287,
-        "user_id": 3,
+        "user_id": 6,
         "group": "vegetables",
         "name": "Brussels Sprouts",
         "subtype": "",
@@ -10907,7 +10907,7 @@
     },
     {
         "id": 288,
-        "user_id": 3,
+        "user_id": 6,
         "group": "vegetables",
         "name": "Butternut Squash",
         "subtype": "Whole",
@@ -10945,7 +10945,7 @@
     },
     {
         "id": 289,
-        "user_id": 3,
+        "user_id": 6,
         "group": "vegetables",
         "name": "Cabbage",
         "subtype": "Green, Whole",
@@ -10983,7 +10983,7 @@
     },
     {
         "id": 290,
-        "user_id": 3,
+        "user_id": 6,
         "group": "vegetables",
         "name": "Cabbage",
         "subtype": "Red, Whole",
@@ -11021,7 +11021,7 @@
     },
     {
         "id": 294,
-        "user_id": 3,
+        "user_id": 6,
         "group": "vegetables",
         "name": "Cauliflower",
         "subtype": "White",
@@ -11059,7 +11059,7 @@
     },
     {
         "id": 295,
-        "user_id": 3,
+        "user_id": 6,
         "group": "vegetables",
         "name": "Cauliflower",
         "subtype": "White, Florets",
@@ -11097,7 +11097,7 @@
     },
     {
         "id": 296,
-        "user_id": 3,
+        "user_id": 6,
         "group": "vegetables",
         "name": "Celery",
         "subtype": "",
@@ -11135,7 +11135,7 @@
     },
     {
         "id": 297,
-        "user_id": 3,
+        "user_id": 6,
         "group": "vegetables",
         "name": "Corn",
         "subtype": "Canned",
@@ -11173,7 +11173,7 @@
     },
     {
         "id": 298,
-        "user_id": 3,
+        "user_id": 6,
         "group": "vegetables",
         "name": "Corn",
         "subtype": "Canned, Creamed",
@@ -11211,7 +11211,7 @@
     },
     {
         "id": 299,
-        "user_id": 3,
+        "user_id": 6,
         "group": "vegetables",
         "name": "Corn",
         "subtype": "Frozen",
@@ -11249,7 +11249,7 @@
     },
     {
         "id": 300,
-        "user_id": 3,
+        "user_id": 6,
         "group": "vegetables",
         "name": "Corn",
         "subtype": "On Cob",
@@ -11287,7 +11287,7 @@
     },
     {
         "id": 301,
-        "user_id": 3,
+        "user_id": 6,
         "group": "vegetables",
         "name": "Cucumber",
         "subtype": "Green (English)",
@@ -11325,7 +11325,7 @@
     },
     {
         "id": 302,
-        "user_id": 3,
+        "user_id": 6,
         "group": "vegetables",
         "name": "Cucumber",
         "subtype": "Green (English)",
@@ -11363,7 +11363,7 @@
     },
     {
         "id": 303,
-        "user_id": 3,
+        "user_id": 6,
         "group": "vegetables",
         "name": "Cucumber",
         "subtype": "Mini Seedless (Persian)",
@@ -11401,7 +11401,7 @@
     },
     {
         "id": 304,
-        "user_id": 3,
+        "user_id": 6,
         "group": "vegetables",
         "name": "Green Beans",
         "subtype": "",
@@ -11439,7 +11439,7 @@
     },
     {
         "id": 305,
-        "user_id": 3,
+        "user_id": 6,
         "group": "vegetables",
         "name": "Green Beans",
         "subtype": "In Microwavable Bag, Snipped",
@@ -11477,7 +11477,7 @@
     },
     {
         "id": 306,
-        "user_id": 3,
+        "user_id": 6,
         "group": "vegetables",
         "name": "Green Beans",
         "subtype": "In Microwavable Bag",
@@ -11515,7 +11515,7 @@
     },
     {
         "id": 307,
-        "user_id": 3,
+        "user_id": 6,
         "group": "vegetables",
         "name": "Kimchi",
         "subtype": "",
@@ -11553,7 +11553,7 @@
     },
     {
         "id": 308,
-        "user_id": 3,
+        "user_id": 6,
         "group": "vegetables",
         "name": "Kimchi",
         "subtype": "",
@@ -11591,7 +11591,7 @@
     },
     {
         "id": 309,
-        "user_id": 3,
+        "user_id": 6,
         "group": "vegetables",
         "name": "Lemongrass",
         "subtype": "",
@@ -11629,7 +11629,7 @@
     },
     {
         "id": 310,
-        "user_id": 3,
+        "user_id": 6,
         "group": "vegetables",
         "name": "Lettuce",
         "subtype": "Romaine Hearts",
@@ -11667,7 +11667,7 @@
     },
     {
         "id": 311,
-        "user_id": 3,
+        "user_id": 6,
         "group": "vegetables",
         "name": "Lettuce",
         "subtype": "Romaine",
@@ -11705,7 +11705,7 @@
     },
     {
         "id": 312,
-        "user_id": 3,
+        "user_id": 6,
         "group": "vegetables",
         "name": "Lettuce",
         "subtype": "Romaine",
@@ -11743,7 +11743,7 @@
     },
     {
         "id": 313,
-        "user_id": 3,
+        "user_id": 6,
         "group": "vegetables",
         "name": "Mushrooms",
         "subtype": "Baby Bella (Cremini), Packaged",
@@ -11781,7 +11781,7 @@
     },
     {
         "id": 314,
-        "user_id": 3,
+        "user_id": 6,
         "group": "vegetables",
         "name": "Nori",
         "subtype": "",
@@ -11819,7 +11819,7 @@
     },
     {
         "id": 315,
-        "user_id": 3,
+        "user_id": 6,
         "group": "vegetables",
         "name": "Okra",
         "subtype": "Packaged",
@@ -11857,7 +11857,7 @@
     },
     {
         "id": 316,
-        "user_id": 3,
+        "user_id": 6,
         "group": "vegetables",
         "name": "Olives",
         "subtype": "Black, Sliced",
@@ -11895,7 +11895,7 @@
     },
     {
         "id": 317,
-        "user_id": 3,
+        "user_id": 6,
         "group": "vegetables",
         "name": "Olives",
         "subtype": "Black, Whole",
@@ -11933,7 +11933,7 @@
     },
     {
         "id": 318,
-        "user_id": 3,
+        "user_id": 6,
         "group": "vegetables",
         "name": "Olives",
         "subtype": "Black, Whole",
@@ -11971,7 +11971,7 @@
     },
     {
         "id": 319,
-        "user_id": 3,
+        "user_id": 6,
         "group": "vegetables",
         "name": "Onion",
         "subtype": "Red",
@@ -12009,7 +12009,7 @@
     },
     {
         "id": 320,
-        "user_id": 3,
+        "user_id": 6,
         "group": "vegetables",
         "name": "Onion",
         "subtype": "Yellow",
@@ -12047,7 +12047,7 @@
     },
     {
         "id": 321,
-        "user_id": 3,
+        "user_id": 6,
         "group": "vegetables",
         "name": "Onion",
         "subtype": "Yellow",
@@ -12085,7 +12085,7 @@
     },
     {
         "id": 322,
-        "user_id": 3,
+        "user_id": 6,
         "group": "vegetables",
         "name": "Parsnips",
         "subtype": "",
@@ -12123,7 +12123,7 @@
     },
     {
         "id": 323,
-        "user_id": 3,
+        "user_id": 6,
         "group": "vegetables",
         "name": "Peas, Canned",
         "subtype": "Green",
@@ -12161,7 +12161,7 @@
     },
     {
         "id": 324,
-        "user_id": 3,
+        "user_id": 6,
         "group": "vegetables",
         "name": "Peas, Frozen",
         "subtype": "Green",
@@ -12199,7 +12199,7 @@
     },
     {
         "id": 325,
-        "user_id": 3,
+        "user_id": 6,
         "group": "vegetables",
         "name": "Peas",
         "subtype": "Snow",
@@ -12237,7 +12237,7 @@
     },
     {
         "id": 326,
-        "user_id": 3,
+        "user_id": 6,
         "group": "vegetables",
         "name": "Peas",
         "subtype": "Sugar Snap",
@@ -12275,7 +12275,7 @@
     },
     {
         "id": 327,
-        "user_id": 3,
+        "user_id": 6,
         "group": "vegetables",
         "name": "Peppers, Chipotle",
         "subtype": "Canned",
@@ -12313,7 +12313,7 @@
     },
     {
         "id": 328,
-        "user_id": 3,
+        "user_id": 6,
         "group": "vegetables",
         "name": "Peppers, Jalapeno",
         "subtype": "Fresh",
@@ -12351,7 +12351,7 @@
     },
     {
         "id": 329,
-        "user_id": 3,
+        "user_id": 6,
         "group": "vegetables",
         "name": "Peppers, Serrano",
         "subtype": "Fresh",
@@ -12389,7 +12389,7 @@
     },
     {
         "id": 330,
-        "user_id": 3,
+        "user_id": 6,
         "group": "vegetables",
         "name": "Peppers, Jalapeno",
         "subtype": "Pickled",
@@ -12427,7 +12427,7 @@
     },
     {
         "id": 331,
-        "user_id": 3,
+        "user_id": 6,
         "group": "vegetables",
         "name": "Peppers, Ancho",
         "subtype": "Dried",
@@ -12465,7 +12465,7 @@
     },
     {
         "id": 332,
-        "user_id": 3,
+        "user_id": 6,
         "group": "vegetables",
         "name": "Peppers, Arbol",
         "subtype": "Dried",
@@ -12503,7 +12503,7 @@
     },
     {
         "id": 333,
-        "user_id": 3,
+        "user_id": 6,
         "group": "vegetables",
         "name": "Peppers, Guajillo",
         "subtype": "Dried",
@@ -12541,7 +12541,7 @@
     },
     {
         "id": 334,
-        "user_id": 3,
+        "user_id": 6,
         "group": "vegetables",
         "name": "Peppers, Pasilla",
         "subtype": "Dried",
@@ -12579,7 +12579,7 @@
     },
     {
         "id": 335,
-        "user_id": 3,
+        "user_id": 6,
         "group": "vegetables",
         "name": "Peppers, Tien Tsin aka Tianjin aka Szechuan",
         "subtype": "Dried",
@@ -12617,7 +12617,7 @@
     },
     {
         "id": 336,
-        "user_id": 3,
+        "user_id": 6,
         "group": "vegetables",
         "name": "Peppers, Bird's Eye aka Thai Chili",
         "subtype": "Dried",
@@ -12655,7 +12655,7 @@
     },
     {
         "id": 337,
-        "user_id": 3,
+        "user_id": 6,
         "group": "vegetables",
         "name": "Pesto Sauce",
         "subtype": "",
@@ -12693,7 +12693,7 @@
     },
     {
         "id": 338,
-        "user_id": 3,
+        "user_id": 6,
         "group": "vegetables",
         "name": "Pickles",
         "subtype": "Bread & Butter Chips",
@@ -12731,7 +12731,7 @@
     },
     {
         "id": 339,
-        "user_id": 3,
+        "user_id": 6,
         "group": "vegetables",
         "name": "Potatoes",
         "subtype": "Russet",
@@ -12769,7 +12769,7 @@
     },
     {
         "id": 340,
-        "user_id": 3,
+        "user_id": 6,
         "group": "vegetables",
         "name": "Potatoes",
         "subtype": "Red",
@@ -12807,7 +12807,7 @@
     },
     {
         "id": 341,
-        "user_id": 3,
+        "user_id": 6,
         "group": "vegetables",
         "name": "Potatoes",
         "subtype": "Small Red",
@@ -12845,7 +12845,7 @@
     },
     {
         "id": 342,
-        "user_id": 3,
+        "user_id": 6,
         "group": "vegetables",
         "name": "Scallions",
         "subtype": "",
@@ -12883,7 +12883,7 @@
     },
     {
         "id": 343,
-        "user_id": 3,
+        "user_id": 6,
         "group": "vegetables",
         "name": "Shallots",
         "subtype": "",
@@ -12921,7 +12921,7 @@
     },
     {
         "id": 344,
-        "user_id": 3,
+        "user_id": 6,
         "group": "vegetables",
         "name": "Spinach, Fresh",
         "subtype": "",
@@ -12959,7 +12959,7 @@
     },
     {
         "id": 345,
-        "user_id": 3,
+        "user_id": 6,
         "group": "vegetables",
         "name": "Spinach, Frozen",
         "subtype": "",
@@ -12997,7 +12997,7 @@
     },
     {
         "id": 346,
-        "user_id": 3,
+        "user_id": 6,
         "group": "vegetables",
         "name": "Spinach, Frozen",
         "subtype": "",
@@ -13035,7 +13035,7 @@
     },
     {
         "id": 347,
-        "user_id": 3,
+        "user_id": 6,
         "group": "vegetables",
         "name": "Sprouts",
         "subtype": "Alfalfa",
@@ -13073,7 +13073,7 @@
     },
     {
         "id": 348,
-        "user_id": 3,
+        "user_id": 6,
         "group": "vegetables",
         "name": "Sprouts",
         "subtype": "Mung Bean",
@@ -13111,7 +13111,7 @@
     },
     {
         "id": 349,
-        "user_id": 3,
+        "user_id": 6,
         "group": "vegetables",
         "name": "Sweet Potato, Covington",
         "subtype": "",
@@ -13149,7 +13149,7 @@
     },
     {
         "id": 350,
-        "user_id": 3,
+        "user_id": 6,
         "group": "vegetables",
         "name": "Sweet Potato, Garnet",
         "subtype": "",
@@ -13187,7 +13187,7 @@
     },
     {
         "id": 351,
-        "user_id": 3,
+        "user_id": 6,
         "group": "vegetables",
         "name": "Tomatoes, Crushed",
         "subtype": "",
@@ -13225,7 +13225,7 @@
     },
     {
         "id": 352,
-        "user_id": 3,
+        "user_id": 6,
         "group": "vegetables",
         "name": "Tomatoes, Crushed",
         "subtype": "",
@@ -13263,7 +13263,7 @@
     },
     {
         "id": 353,
-        "user_id": 3,
+        "user_id": 6,
         "group": "vegetables",
         "name": "Tomatoes, Diced",
         "subtype": "",
@@ -13301,7 +13301,7 @@
     },
     {
         "id": 354,
-        "user_id": 3,
+        "user_id": 6,
         "group": "vegetables",
         "name": "Tomatoes, Diced",
         "subtype": "",
@@ -13339,7 +13339,7 @@
     },
     {
         "id": 355,
-        "user_id": 3,
+        "user_id": 6,
         "group": "vegetables",
         "name": "Tomatoes, Fresh",
         "subtype": "Beefsteak",
@@ -13377,7 +13377,7 @@
     },
     {
         "id": 356,
-        "user_id": 3,
+        "user_id": 6,
         "group": "vegetables",
         "name": "Tomatoes, Fresh",
         "subtype": "Cherry",
@@ -13415,7 +13415,7 @@
     },
     {
         "id": 357,
-        "user_id": 3,
+        "user_id": 6,
         "group": "vegetables",
         "name": "Tomatoes, Fresh",
         "subtype": "Globe (the \"standard\" kind)",
@@ -13453,7 +13453,7 @@
     },
     {
         "id": 358,
-        "user_id": 3,
+        "user_id": 6,
         "group": "vegetables",
         "name": "Tomatoes, Fresh",
         "subtype": "Grape",
@@ -13491,7 +13491,7 @@
     },
     {
         "id": 359,
-        "user_id": 3,
+        "user_id": 6,
         "group": "vegetables",
         "name": "Tomatoes, Fresh",
         "subtype": "Plum (aka Roma)",
@@ -13529,7 +13529,7 @@
     },
     {
         "id": 360,
-        "user_id": 3,
+        "user_id": 6,
         "group": "vegetables",
         "name": "Tomato Paste, Canned",
         "subtype": "",
@@ -13567,7 +13567,7 @@
     },
     {
         "id": 361,
-        "user_id": 3,
+        "user_id": 6,
         "group": "vegetables",
         "name": "Tomato Paste, Canned",
         "subtype": "",
@@ -13605,7 +13605,7 @@
     },
     {
         "id": 362,
-        "user_id": 3,
+        "user_id": 6,
         "group": "vegetables",
         "name": "Tomato Paste, Tube",
         "subtype": "",
@@ -13643,7 +13643,7 @@
     },
     {
         "id": 363,
-        "user_id": 3,
+        "user_id": 6,
         "group": "vegetables",
         "name": "Tomato Sauce (aka Pasta Sauce)",
         "subtype": "",
@@ -13681,7 +13681,7 @@
     },
     {
         "id": 364,
-        "user_id": 3,
+        "user_id": 6,
         "group": "vegetables",
         "name": "Tomato Sauce (aka Pasta Sauce)",
         "subtype": "",
@@ -13719,7 +13719,7 @@
     },
     {
         "id": 365,
-        "user_id": 3,
+        "user_id": 6,
         "group": "vegetables",
         "name": "Tomato, Sundried",
         "subtype": "",
@@ -13757,7 +13757,7 @@
     },
     {
         "id": 366,
-        "user_id": 3,
+        "user_id": 6,
         "group": "vegetables",
         "name": "Turnips",
         "subtype": "",
@@ -13795,7 +13795,7 @@
     },
     {
         "id": 367,
-        "user_id": 3,
+        "user_id": 6,
         "group": "vegetables",
         "name": "Zucchini",
         "subtype": "",
@@ -13833,7 +13833,7 @@
     },
     {
         "id": 368,
-        "user_id": 3,
+        "user_id": 6,
         "group": "other",
         "name": "Baking Powder",
         "subtype": "",
@@ -13871,7 +13871,7 @@
     },
     {
         "id": 369,
-        "user_id": 3,
+        "user_id": 6,
         "group": "other",
         "name": "Baking Soda",
         "subtype": "",
@@ -13909,7 +13909,7 @@
     },
     {
         "id": 370,
-        "user_id": 3,
+        "user_id": 6,
         "group": "other",
         "name": "Active Dry Yeast",
         "subtype": "",
@@ -13947,7 +13947,7 @@
     },
     {
         "id": 371,
-        "user_id": 3,
+        "user_id": 6,
         "group": "fruits",
         "name": "Apple",
         "subtype": "Honeycrisp",
@@ -13985,7 +13985,7 @@
     },
     {
         "id": 372,
-        "user_id": 3,
+        "user_id": 6,
         "group": "fruits",
         "name": "Apple",
         "subtype": "Fuji",
@@ -14023,7 +14023,7 @@
     },
     {
         "id": 373,
-        "user_id": 3,
+        "user_id": 6,
         "group": "fruits",
         "name": "Apple",
         "subtype": "Pink Lady",
@@ -14061,7 +14061,7 @@
     },
     {
         "id": 374,
-        "user_id": 3,
+        "user_id": 6,
         "group": "fruits",
         "name": "Apricots",
         "subtype": "Dried",
@@ -14099,7 +14099,7 @@
     },
     {
         "id": 375,
-        "user_id": 3,
+        "user_id": 6,
         "group": "fruits",
         "name": "Avocado",
         "subtype": "",
@@ -14137,7 +14137,7 @@
     },
     {
         "id": 376,
-        "user_id": 3,
+        "user_id": 6,
         "group": "fruits",
         "name": "Avocado",
         "subtype": "Ready-to-Eat",
@@ -14175,7 +14175,7 @@
     },
     {
         "id": 377,
-        "user_id": 3,
+        "user_id": 6,
         "group": "fruits",
         "name": "Avocado",
         "subtype": "",
@@ -14213,7 +14213,7 @@
     },
     {
         "id": 378,
-        "user_id": 3,
+        "user_id": 6,
         "group": "fruits",
         "name": "Banana",
         "subtype": "",
@@ -14251,7 +14251,7 @@
     },
     {
         "id": 379,
-        "user_id": 3,
+        "user_id": 6,
         "group": "fruits",
         "name": "Blueberries",
         "subtype": "",
@@ -14289,7 +14289,7 @@
     },
     {
         "id": 380,
-        "user_id": 3,
+        "user_id": 6,
         "group": "fruits",
         "name": "Cantaloupe",
         "subtype": "",
@@ -14327,7 +14327,7 @@
     },
     {
         "id": 381,
-        "user_id": 3,
+        "user_id": 6,
         "group": "fruits",
         "name": "Coconut",
         "subtype": "Unsweetened Shredded",
@@ -14365,7 +14365,7 @@
     },
     {
         "id": 382,
-        "user_id": 3,
+        "user_id": 6,
         "group": "fruits",
         "name": "Dates",
         "subtype": "Medjool",
@@ -14403,7 +14403,7 @@
     },
     {
         "id": 383,
-        "user_id": 3,
+        "user_id": 6,
         "group": "fruits",
         "name": "Grapefruit",
         "subtype": "Pink",
@@ -14441,7 +14441,7 @@
     },
     {
         "id": 384,
-        "user_id": 3,
+        "user_id": 6,
         "group": "fruits",
         "name": "Grapes",
         "subtype": "Red Seedless, stemmed",
@@ -14479,7 +14479,7 @@
     },
     {
         "id": 385,
-        "user_id": 3,
+        "user_id": 6,
         "group": "fruits",
         "name": "Grapes",
         "subtype": "Black Seedless",
@@ -14517,7 +14517,7 @@
     },
     {
         "id": 386,
-        "user_id": 3,
+        "user_id": 6,
         "group": "fruits",
         "name": "Grapes",
         "subtype": "Green Seedless",
@@ -14555,7 +14555,7 @@
     },
     {
         "id": 387,
-        "user_id": 3,
+        "user_id": 6,
         "group": "fruits",
         "name": "Grapes",
         "subtype": "Candy Heart",
@@ -14593,7 +14593,7 @@
     },
     {
         "id": 388,
-        "user_id": 3,
+        "user_id": 6,
         "group": "fruits",
         "name": "Grapes",
         "subtype": "Red Seedless",
@@ -14631,7 +14631,7 @@
     },
     {
         "id": 389,
-        "user_id": 3,
+        "user_id": 6,
         "group": "fruits",
         "name": "Grapes",
         "subtype": "Cotton Candy",
@@ -14669,7 +14669,7 @@
     },
     {
         "id": 390,
-        "user_id": 3,
+        "user_id": 6,
         "group": "fruits",
         "name": "Jelly",
         "subtype": "Wild Blueberry Preserves",
@@ -14707,7 +14707,7 @@
     },
     {
         "id": 391,
-        "user_id": 3,
+        "user_id": 6,
         "group": "fruits",
         "name": "Jelly",
         "subtype": "Raspberry Preserves",
@@ -14745,7 +14745,7 @@
     },
     {
         "id": 392,
-        "user_id": 3,
+        "user_id": 6,
         "group": "fruits",
         "name": "Jelly",
         "subtype": "Strawberry Preserves",
@@ -14783,7 +14783,7 @@
     },
     {
         "id": 393,
-        "user_id": 3,
+        "user_id": 6,
         "group": "fatsAndSugars",
         "name": "Honey",
         "subtype": "Clover",
@@ -14821,7 +14821,7 @@
     },
     {
         "id": 394,
-        "user_id": 3,
+        "user_id": 6,
         "group": "fruits",
         "name": "Jelly",
         "subtype": "Grape Jelly",
@@ -14859,7 +14859,7 @@
     },
     {
         "id": 395,
-        "user_id": 3,
+        "user_id": 6,
         "group": "fruits",
         "name": "Jelly",
         "subtype": "Strawberry Preserves",
@@ -14897,7 +14897,7 @@
     },
     {
         "id": 396,
-        "user_id": 3,
+        "user_id": 6,
         "group": "fruits",
         "name": "Jelly",
         "subtype": "Pineapple Preserves",
@@ -14935,7 +14935,7 @@
     },
     {
         "id": 397,
-        "user_id": 3,
+        "user_id": 6,
         "group": "fruits",
         "name": "Jelly",
         "subtype": "Lingonberry Jam",
@@ -14973,7 +14973,7 @@
     },
     {
         "id": 398,
-        "user_id": 3,
+        "user_id": 6,
         "group": "fruits",
         "name": "Lemon",
         "subtype": "",
@@ -15011,7 +15011,7 @@
     },
     {
         "id": 399,
-        "user_id": 3,
+        "user_id": 6,
         "group": "fruits",
         "name": "Lime",
         "subtype": "",
@@ -15049,7 +15049,7 @@
     },
     {
         "id": 400,
-        "user_id": 3,
+        "user_id": 6,
         "group": "fruits",
         "name": "Mango",
         "subtype": "Tommy Atkins",
@@ -15087,7 +15087,7 @@
     },
     {
         "id": 401,
-        "user_id": 3,
+        "user_id": 6,
         "group": "fruits",
         "name": "Orange",
         "subtype": "Navel",
@@ -15125,7 +15125,7 @@
     },
     {
         "id": 402,
-        "user_id": 3,
+        "user_id": 6,
         "group": "beverages",
         "name": "Orange Juice",
         "subtype": "Some Pulp",
@@ -15163,7 +15163,7 @@
     },
     {
         "id": 403,
-        "user_id": 3,
+        "user_id": 6,
         "group": "beverages",
         "name": "Orange Juice",
         "subtype": "Some Pulp",
@@ -15201,7 +15201,7 @@
     },
     {
         "id": 404,
-        "user_id": 3,
+        "user_id": 6,
         "group": "fruits",
         "name": "Peach",
         "subtype": "Yellow",
@@ -15239,7 +15239,7 @@
     },
     {
         "id": 405,
-        "user_id": 3,
+        "user_id": 6,
         "group": "fruits",
         "name": "Peaches",
         "subtype": "Canned",
@@ -15277,7 +15277,7 @@
     },
     {
         "id": 406,
-        "user_id": 3,
+        "user_id": 6,
         "group": "fruits",
         "name": "Pears",
         "subtype": "Canned",
@@ -15315,7 +15315,7 @@
     },
     {
         "id": 407,
-        "user_id": 3,
+        "user_id": 6,
         "group": "fruits",
         "name": "Pear",
         "subtype": "Bartlett",
@@ -15353,7 +15353,7 @@
     },
     {
         "id": 408,
-        "user_id": 3,
+        "user_id": 6,
         "group": "fruits",
         "name": "Pineapple",
         "subtype": "Canned Chunks",
@@ -15391,7 +15391,7 @@
     },
     {
         "id": 409,
-        "user_id": 3,
+        "user_id": 6,
         "group": "fruits",
         "name": "Pinepple",
         "subtype": "Canned Slices",
@@ -15429,7 +15429,7 @@
     },
     {
         "id": 410,
-        "user_id": 3,
+        "user_id": 6,
         "group": "beverages",
         "name": "Pineapple Juice",
         "subtype": "",
@@ -15467,7 +15467,7 @@
     },
     {
         "id": 411,
-        "user_id": 3,
+        "user_id": 6,
         "group": "beverages",
         "name": "Apple Cider",
         "subtype": "",
@@ -15505,7 +15505,7 @@
     },
     {
         "id": 412,
-        "user_id": 3,
+        "user_id": 6,
         "group": "beverages",
         "name": "Sparkling Apple Cider",
         "subtype": "",
@@ -15543,7 +15543,7 @@
     },
     {
         "id": 413,
-        "user_id": 3,
+        "user_id": 6,
         "group": "beverages",
         "name": "Vegetable Juice",
         "subtype": "Low Sodium",
@@ -15581,7 +15581,7 @@
     },
     {
         "id": 414,
-        "user_id": 3,
+        "user_id": 6,
         "group": "beverages",
         "name": "Apple Juice",
         "subtype": "",
@@ -15619,7 +15619,7 @@
     },
     {
         "id": 415,
-        "user_id": 3,
+        "user_id": 6,
         "group": "fruits",
         "name": "Plantain",
         "subtype": "Green",
@@ -15657,7 +15657,7 @@
     },
     {
         "id": 416,
-        "user_id": 3,
+        "user_id": 6,
         "group": "fruits",
         "name": "Plantain",
         "subtype": "Yellow",
@@ -15695,7 +15695,7 @@
     },
     {
         "id": 417,
-        "user_id": 3,
+        "user_id": 6,
         "group": "fruits",
         "name": "Raisins",
         "subtype": "Thompson",
@@ -15733,7 +15733,7 @@
     },
     {
         "id": 418,
-        "user_id": 3,
+        "user_id": 6,
         "group": "fruits",
         "name": "Raisins",
         "subtype": "Golden",
@@ -15771,7 +15771,7 @@
     },
     {
         "id": 419,
-        "user_id": 3,
+        "user_id": 6,
         "group": "fruits",
         "name": "Raisins",
         "subtype": "Thompson",
@@ -15809,7 +15809,7 @@
     },
     {
         "id": 420,
-        "user_id": 3,
+        "user_id": 6,
         "group": "fruits",
         "name": "Strawberries",
         "subtype": "",
@@ -15847,7 +15847,7 @@
     },
     {
         "id": 421,
-        "user_id": 3,
+        "user_id": 6,
         "group": "fruits",
         "name": "Tamarind",
         "subtype": "",
@@ -15885,7 +15885,7 @@
     },
     {
         "id": 422,
-        "user_id": 3,
+        "user_id": 6,
         "group": "nutsAndSeeds",
         "name": "Cashews",
         "subtype": "Roasted Unsalted",
@@ -15923,7 +15923,7 @@
     },
     {
         "id": 423,
-        "user_id": 3,
+        "user_id": 6,
         "group": "nutsAndSeeds",
         "name": "Peanut Butter",
         "subtype": "Reduced Fat Creamy",
@@ -15961,7 +15961,7 @@
     },
     {
         "id": 424,
-        "user_id": 3,
+        "user_id": 6,
         "group": "nutsAndSeeds",
         "name": "Peanut Butter",
         "subtype": "Natural Creamy",
@@ -15999,7 +15999,7 @@
     },
     {
         "id": 425,
-        "user_id": 3,
+        "user_id": 6,
         "group": "nutsAndSeeds",
         "name": "Peanut Butter",
         "subtype": "Natural Super Chunk",
@@ -16037,7 +16037,7 @@
     },
     {
         "id": 426,
-        "user_id": 3,
+        "user_id": 6,
         "group": "nutsAndSeeds",
         "name": "Peanut Butter",
         "subtype": "Super Chunk",
@@ -16075,7 +16075,7 @@
     },
     {
         "id": 427,
-        "user_id": 3,
+        "user_id": 6,
         "group": "nutsAndSeeds",
         "name": "Pumpkin Seeds (aka Pepitas)",
         "subtype": "Shelled",
@@ -16113,7 +16113,7 @@
     },
     {
         "id": 428,
-        "user_id": 3,
+        "user_id": 6,
         "group": "nutsAndSeeds",
         "name": "Sunflower Seeds",
         "subtype": "Raw",
@@ -16151,7 +16151,7 @@
     },
     {
         "id": 429,
-        "user_id": 3,
+        "user_id": 6,
         "group": "nutsAndSeeds",
         "name": "Fruit & Nut Trail Mix",
         "subtype": "",
@@ -16189,7 +16189,7 @@
     },
     {
         "id": 430,
-        "user_id": 3,
+        "user_id": 6,
         "group": "nutsAndSeeds",
         "name": "Sesame Sticks",
         "subtype": "",
@@ -16227,7 +16227,7 @@
     },
     {
         "id": 431,
-        "user_id": 3,
+        "user_id": 6,
         "group": "nutsAndSeeds",
         "name": "Wasabi Peas",
         "subtype": "",
@@ -16265,7 +16265,7 @@
     },
     {
         "id": 432,
-        "user_id": 3,
+        "user_id": 6,
         "group": "nutsAndSeeds",
         "name": "Peanuts",
         "subtype": "Honey Roasted",
@@ -16303,7 +16303,7 @@
     },
     {
         "id": 433,
-        "user_id": 3,
+        "user_id": 6,
         "group": "nutsAndSeeds",
         "name": "Peanuts",
         "subtype": "Dry Roasted Unsalted",
@@ -16341,7 +16341,7 @@
     },
     {
         "id": 434,
-        "user_id": 3,
+        "user_id": 6,
         "group": "nutsAndSeeds",
         "name": "Peanuts",
         "subtype": "Roasted Unsalted",
@@ -16379,7 +16379,7 @@
     },
     {
         "id": 435,
-        "user_id": 3,
+        "user_id": 6,
         "group": "nutsAndSeeds",
         "name": "Pistachios",
         "subtype": "Honey Roasted",
@@ -16417,7 +16417,7 @@
     },
     {
         "id": 436,
-        "user_id": 3,
+        "user_id": 6,
         "group": "nutsAndSeeds",
         "name": "Pistachios",
         "subtype": "In Shell, Roasted Unsalted",
@@ -16455,7 +16455,7 @@
     },
     {
         "id": 437,
-        "user_id": 3,
+        "user_id": 6,
         "group": "nutsAndSeeds",
         "name": "Pistachios",
         "subtype": "No Shell, Lightly Salted",
@@ -16493,7 +16493,7 @@
     },
     {
         "id": 438,
-        "user_id": 3,
+        "user_id": 6,
         "group": "nutsAndSeeds",
         "name": "Pistachios",
         "subtype": "No Shell, Lightly Salted",
@@ -16531,7 +16531,7 @@
     },
     {
         "id": 439,
-        "user_id": 3,
+        "user_id": 6,
         "group": "nutsAndSeeds",
         "name": "Pistachios",
         "subtype": "In Shell, Lightly Salted",
@@ -16569,7 +16569,7 @@
     },
     {
         "id": 440,
-        "user_id": 3,
+        "user_id": 6,
         "group": "nutsAndSeeds",
         "name": "Walnuts",
         "subtype": "Chopped",
@@ -16607,7 +16607,7 @@
     },
     {
         "id": 441,
-        "user_id": 3,
+        "user_id": 6,
         "group": "nutsAndSeeds",
         "name": "Walnuts",
         "subtype": "Chopped",
@@ -16645,7 +16645,7 @@
     },
     {
         "id": 442,
-        "user_id": 3,
+        "user_id": 6,
         "group": "nutsAndSeeds",
         "name": "Pecans",
         "subtype": "Raw",
@@ -16683,7 +16683,7 @@
     },
     {
         "id": 443,
-        "user_id": 3,
+        "user_id": 6,
         "group": "nutsAndSeeds",
         "name": "Pecans",
         "subtype": "Chopped",
@@ -16721,7 +16721,7 @@
     },
     {
         "id": 444,
-        "user_id": 3,
+        "user_id": 6,
         "group": "nutsAndSeeds",
         "name": "Almonds",
         "subtype": "Sliced",
@@ -16759,7 +16759,7 @@
     },
     {
         "id": 445,
-        "user_id": 3,
+        "user_id": 6,
         "group": "nutsAndSeeds",
         "name": "Almonds",
         "subtype": "Roasted Unsalted",
@@ -16797,7 +16797,7 @@
     },
     {
         "id": 446,
-        "user_id": 3,
+        "user_id": 6,
         "group": "nutsAndSeeds",
         "name": "Almonds",
         "subtype": "Raw",
@@ -16835,7 +16835,7 @@
     },
     {
         "id": 447,
-        "user_id": 3,
+        "user_id": 6,
         "group": "beverages",
         "name": "Water",
         "subtype": "",
@@ -16873,7 +16873,7 @@
     },
     {
         "id": 448,
-        "user_id": 3,
+        "user_id": 6,
         "group": "vegetables",
         "name": "Carrots",
         "subtype": "Jumbo",
@@ -16911,7 +16911,7 @@
     },
     {
         "id": 449,
-        "user_id": 3,
+        "user_id": 6,
         "group": "nutsAndSeeds",
         "name": "Peanut Butter",
         "subtype": "Old Fashioned Crunchy",
@@ -16949,7 +16949,7 @@
     },
     {
         "id": 450,
-        "user_id": 3,
+        "user_id": 6,
         "group": "vegetables",
         "name": "Pickles",
         "subtype": "Bread & Butter Chips",
@@ -16987,7 +16987,7 @@
     },
     {
         "id": 451,
-        "user_id": 3,
+        "user_id": 6,
         "group": "condiments",
         "name": "Barbecue (BBQ) Sauce",
         "subtype": "",
@@ -17025,7 +17025,7 @@
     },
     {
         "id": 452,
-        "user_id": 3,
+        "user_id": 6,
         "group": "proteins",
         "name": "Chicken Breast",
         "subtype": "Boneless, Skinless",
@@ -17063,13 +17063,13 @@
     },
     {
         "id": 453,
-        "user_id": 3,
+        "user_id": 6,
         "group": "preparedFoods",
         "name": "Chicken McNuggets",
-        "subtype": "",
+        "subtype": "10-Piece",
         "description": "not counting the dipping sauce",
         "vendor": "McDonald's",
-        "size_description": "10 piece",
+        "size_description": "10 nuggets",
         "size_oz": 5.7,
         "size_g": 162,
         "servings": 1.0,
@@ -17097,6 +17097,386 @@
         },
         "price": 7.19,
         "price_date": "2025-03-02",
-        "shelf_life": "you're storing McNuggets?"
+        "shelf_life": "You're storing McDonald's food???"
+    },
+    {
+        "id": 454,
+        "user_id": 6,
+        "group": "preparedFoods",
+        "name": "Hamburger",
+        "subtype": "Regular Size",
+        "description": "",
+        "vendor": "McDonald's",
+        "size_description": "",
+        "size_oz": 4.0,
+        "size_g": 113,
+        "servings": 1.0,
+        "nutrition_id": 510,
+        "nutrition": {
+            "id": 510,
+            "serving_size_description": "1 burger",
+            "serving_size_oz": 4.0,
+            "serving_size_g": 113,
+            "calories": 250,
+            "total_fat_g": 9.0,
+            "saturated_fat_g": 3.5,
+            "trans_fat_g": 0,
+            "cholesterol_mg": 30,
+            "sodium_mg": 510,
+            "total_carbs_g": 30,
+            "fiber_g": 0,
+            "total_sugar_g": 5,
+            "added_sugar_g": 5,
+            "protein_g": 12,
+            "vitamin_d_mcg": 0,
+            "calcium_mg": 15,
+            "iron_mg": 2.5,
+            "potassium_mg": 190
+        },
+        "price": 3.19,
+        "price_date": "2025-03-02",
+        "shelf_life": "You're storing McDonald's food???"
+    },
+    {
+        "id": 455,
+        "user_id": 6,
+        "group": "preparedFoods",
+        "name": "French Fries",
+        "subtype": "Large",
+        "description": "",
+        "vendor": "McDonald's",
+        "size_description": "1 large fries",
+        "size_oz": 5.3,
+        "size_g": 150,
+        "servings": 1.0,
+        "nutrition_id": 511,
+        "nutrition": {
+            "id": 511,
+            "serving_size_description": "1 large fries",
+            "serving_size_oz": 5.3,
+            "serving_size_g": 150,
+            "calories": 480,
+            "total_fat_g": 23.0,
+            "saturated_fat_g": 3.0,
+            "trans_fat_g": 0,
+            "cholesterol_mg": 0,
+            "sodium_mg": 400,
+            "total_carbs_g": 65,
+            "fiber_g": 6,
+            "total_sugar_g": 0,
+            "added_sugar_g": 0,
+            "protein_g": 7,
+            "vitamin_d_mcg": 0,
+            "calcium_mg": 25,
+            "iron_mg": 1.5,
+            "potassium_mg": 1000
+        },
+        "price": 6.79,
+        "price_date": "2025-03-02",
+        "shelf_life": "You're storing McDonald's food???"
+    },
+    {
+        "id": 456,
+        "user_id": 6,
+        "group": "preparedFoods",
+        "name": "McCrispy Sandwich",
+        "subtype": "",
+        "description": "",
+        "vendor": "McDonald's",
+        "size_description": "",
+        "size_oz": 5.1,
+        "size_g": 140,
+        "servings": 1.0,
+        "nutrition_id": 512,
+        "nutrition": {
+            "id": 512,
+            "serving_size_description": "1 sandwich",
+            "serving_size_oz": 5.1,
+            "serving_size_g": 140,
+            "calories": 470,
+            "total_fat_g": 20.0,
+            "saturated_fat_g": 5.0,
+            "trans_fat_g": 0,
+            "cholesterol_mg": 70,
+            "sodium_mg": 1140,
+            "total_carbs_g": 46,
+            "fiber_g": 0,
+            "total_sugar_g": 9,
+            "added_sugar_g": 7,
+            "protein_g": 26,
+            "vitamin_d_mcg": 0,
+            "calcium_mg": 30,
+            "iron_mg": 2.0,
+            "potassium_mg": 420
+        },
+        "price": 7.09,
+        "price_date": "2025-03-02",
+        "shelf_life": "You're storing McDonald's food???"
+    },
+    {
+        "id": 457,
+        "user_id": 6,
+        "group": "preparedFoods",
+        "name": "Quarter Pounder",
+        "subtype": "With Cheese",
+        "description": "",
+        "vendor": "McDonald's",
+        "size_description": "",
+        "size_oz": 9.0,
+        "size_g": 256,
+        "servings": 1.0,
+        "nutrition_id": 513,
+        "nutrition": {
+            "id": 513,
+            "serving_size_description": "1 burger",
+            "serving_size_oz": 9.0,
+            "serving_size_g": 256,
+            "calories": 520,
+            "total_fat_g": 26.0,
+            "saturated_fat_g": 12.0,
+            "trans_fat_g": 2,
+            "cholesterol_mg": 95,
+            "sodium_mg": 1140,
+            "total_carbs_g": 42,
+            "fiber_g": 2,
+            "total_sugar_g": 10,
+            "added_sugar_g": 8,
+            "protein_g": 30,
+            "vitamin_d_mcg": 0,
+            "calcium_mg": 190,
+            "iron_mg": 4.0,
+            "potassium_mg": 420
+        },
+        "price": 7.39,
+        "price_date": "2025-03-02",
+        "shelf_life": "You're storing McDonald's food???"
+    },
+    {
+        "id": 458,
+        "user_id": 6,
+        "group": "preparedFoods",
+        "name": "Chicken McNuggets",
+        "subtype": "20-Piece",
+        "description": "not counting the dipping sauce",
+        "vendor": "McDonald's",
+        "size_description": "1 serving",
+        "size_oz": 11.2,
+        "size_g": 318,
+        "servings": 1.0,
+        "nutrition_id": 516,
+        "nutrition": {
+            "id": 516,
+            "serving_size_description": "20 nuggets",
+            "serving_size_oz": 11.2,
+            "serving_size_g": 318,
+            "calories": 830,
+            "total_fat_g": 49.0,
+            "saturated_fat_g": 8.0,
+            "trans_fat_g": 0,
+            "cholesterol_mg": 125,
+            "sodium_mg": 1700,
+            "total_carbs_g": 51,
+            "fiber_g": 2,
+            "total_sugar_g": 0,
+            "added_sugar_g": 0,
+            "protein_g": 46,
+            "vitamin_d_mcg": 0,
+            "calcium_mg": 35,
+            "iron_mg": 2.0,
+            "potassium_mg": 730
+        },
+        "price": 10.99,
+        "price_date": "2025-03-02",
+        "shelf_life": "You're storing McDonald's food???"
+    },
+    {
+        "id": 459,
+        "user_id": 6,
+        "group": "condiments",
+        "name": "Vegetable Broth Concentrate",
+        "subtype": "Reduced Sodium",
+        "description": "Packets; 1 packet makes 1 cup broth; still loads of sodium",
+        "vendor": "Savory Choice via Amazon",
+        "size_description": "30 packets",
+        "size_oz": 12.7,
+        "size_g": 360,
+        "servings": 30.0,
+        "nutrition_id": 520,
+        "nutrition": {
+            "id": 520,
+            "serving_size_description": "1 packet",
+            "serving_size_oz": 0.4,
+            "serving_size_g": 12,
+            "calories": 20,
+            "total_fat_g": 0.0,
+            "saturated_fat_g": 0.0,
+            "trans_fat_g": 0,
+            "cholesterol_mg": 0,
+            "sodium_mg": 360,
+            "total_carbs_g": 4,
+            "fiber_g": 0,
+            "total_sugar_g": 0,
+            "added_sugar_g": 0,
+            "protein_g": 1,
+            "vitamin_d_mcg": 0,
+            "calcium_mg": 0,
+            "iron_mg": 0.0,
+            "potassium_mg": 0
+        },
+        "price": 34.99,
+        "price_date": "2025-03-11",
+        "shelf_life": "1-2 years in pantry"
+    },
+    {
+        "id": 460,
+        "user_id": 6,
+        "group": "condiments",
+        "name": "Vegetable Broth Powder",
+        "subtype": "Reduced Sodium",
+        "description": "1 tsp makes 1 cup broth",
+        "vendor": "Better Than Bouillon",
+        "size_description": "1 jar",
+        "size_oz": 8.0,
+        "size_g": 227,
+        "servings": 38.0,
+        "nutrition_id": 521,
+        "nutrition": {
+            "id": 521,
+            "serving_size_description": "1 tsp",
+            "serving_size_oz": 0.2,
+            "serving_size_g": 6,
+            "calories": 10,
+            "total_fat_g": 0.0,
+            "saturated_fat_g": 0.0,
+            "trans_fat_g": 0,
+            "cholesterol_mg": 0,
+            "sodium_mg": 500,
+            "total_carbs_g": 2,
+            "fiber_g": 0,
+            "total_sugar_g": 0,
+            "added_sugar_g": 0,
+            "protein_g": 0,
+            "vitamin_d_mcg": 0,
+            "calcium_mg": 0,
+            "iron_mg": 0.0,
+            "potassium_mg": 0
+        },
+        "price": 9.16,
+        "price_date": "2025-03-11",
+        "shelf_life": "2 years in fridge"
+    },
+    {
+        "id": 461,
+        "user_id": 6,
+        "group": "vegetables",
+        "name": "Cannellini Beans (aka White Kidney Beans)",
+        "subtype": "Canned",
+        "description": "",
+        "vendor": "Cento",
+        "size_description": "1 can",
+        "size_oz": 15.5,
+        "size_g": 439,
+        "servings": 3.5,
+        "nutrition_id": 524,
+        "nutrition": {
+            "id": 524,
+            "serving_size_description": "1/2 cup",
+            "serving_size_oz": 4.6,
+            "serving_size_g": 130,
+            "calories": 130,
+            "total_fat_g": 0.0,
+            "saturated_fat_g": 0.0,
+            "trans_fat_g": 0,
+            "cholesterol_mg": 0,
+            "sodium_mg": 360,
+            "total_carbs_g": 24,
+            "fiber_g": 10,
+            "total_sugar_g": 1,
+            "added_sugar_g": 0,
+            "protein_g": 9,
+            "vitamin_d_mcg": 0,
+            "calcium_mg": 60,
+            "iron_mg": 3.3,
+            "potassium_mg": 570
+        },
+        "price": 2.29,
+        "price_date": "2025-03-11",
+        "shelf_life": "unopened: 2-5 years in pantry; opened: 3-4 days in fridge"
+    },
+    {
+        "id": 462,
+        "user_id": 6,
+        "group": "dairy",
+        "name": "Cheese, Cotija",
+        "subtype": "Grated",
+        "description": "",
+        "vendor": "Cacique",
+        "size_description": "1/4 pound",
+        "size_oz": 4.0,
+        "size_g": 113,
+        "servings": 1.0,
+        "nutrition_id": 528,
+        "nutrition": {
+            "id": 528,
+            "serving_size_description": "1/4 pound",
+            "serving_size_oz": 3.5,
+            "serving_size_g": 100,
+            "calories": 357,
+            "total_fat_g": 29.0,
+            "saturated_fat_g": 18.0,
+            "trans_fat_g": 0,
+            "cholesterol_mg": 107,
+            "sodium_mg": 1536,
+            "total_carbs_g": 0,
+            "fiber_g": 0,
+            "total_sugar_g": 0,
+            "added_sugar_g": 0,
+            "protein_g": 25,
+            "vitamin_d_mcg": 0,
+            "calcium_mg": 70,
+            "iron_mg": 0.0,
+            "potassium_mg": 0
+        },
+        "price": 3.0,
+        "price_date": "2025-03-11",
+        "shelf_life": "6 days in fridge"
+    },
+    {
+        "id": 463,
+        "user_id": 6,
+        "group": "dairy",
+        "name": "Cheese, Parmesan",
+        "subtype": "Grated",
+        "description": "",
+        "vendor": "FreshDirect",
+        "size_description": "1 container",
+        "size_oz": 6.0,
+        "size_g": 170,
+        "servings": 6.0,
+        "nutrition_id": 529,
+        "nutrition": {
+            "id": 529,
+            "serving_size_description": "1 oz",
+            "serving_size_oz": 1.0,
+            "serving_size_g": 28,
+            "calories": 106,
+            "total_fat_g": 7.0,
+            "saturated_fat_g": 4.0,
+            "trans_fat_g": 0,
+            "cholesterol_mg": 22,
+            "sodium_mg": 258,
+            "total_carbs_g": 0,
+            "fiber_g": 0,
+            "total_sugar_g": 0,
+            "added_sugar_g": 0,
+            "protein_g": 10,
+            "vitamin_d_mcg": 0,
+            "calcium_mg": 340,
+            "iron_mg": 0.0,
+            "potassium_mg": 0
+        },
+        "price": 7.49,
+        "price_date": "2025-03-11",
+        "shelf_life": "14 days in fridge"
     }
 ]
