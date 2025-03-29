@@ -1,5 +1,6 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react-swc'
+import tsconfigPaths from "vite-tsconfig-paths"
 
 // This file configures how the app runs in Vite's built-in dev server.
 //
@@ -26,7 +27,7 @@ import react from '@vitejs/plugin-react-swc'
 // https://vitejs.dev/config/
 export default defineConfig({
   base: "/",
-  plugins: [react()],
+  plugins: [react(), tsconfigPaths()],
   preview: {
     port: 8080,
     strictPort: true,
@@ -36,6 +37,9 @@ export default defineConfig({
     strictPort: true,
     host: true,
   //  origin: "http://0.0.0.0:80",
+  },
+  build: {
+    chunkSizeWarningLimit: 650
   }
 })
  
