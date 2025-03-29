@@ -1,9 +1,10 @@
 import logo from '../assets/lcs3.png';
+import { Image } from '@chakra-ui/react';
 
 function Footer() {
     return (
         <section className="footerContainer">
-            <img className="lcsLogo" src={logo} alt="LCS Logo" height="60"/>
+            <Image className="lcsLogo" src={logo} alt="LCS Logo" height="60px"/>
             <p>Copyright: © 2024 Last Call Software.  All rights reserved.</p>
         </section>
     );

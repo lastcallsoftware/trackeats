@@ -1,8 +1,9 @@
+import { Image } from '@chakra-ui/react';
 import logo from '../assets/trackeats.png';
 
 function Header() {
     return (
-        <img className="logo" src={logo} alt="TrackEats logo" />
+            <Image className="logo" src={logo} alt="TrackEats logo" />
     );
 }
 

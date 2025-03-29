@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useLocation, useNavigate } from 'react-router-dom';
 import axios from "axios";
+import { Button, Container, Field, Input, Text } from "@chakra-ui/react";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function LoginPage(props: any) {
@@ -34,30 +35,28 @@ function LoginPage(props: any) {
     }
 
     return (
-        <section className="loginPage">
-            <form className="inputForm" onSubmit={handleSubmit}>
-                <section className="inputBoundingBox loginBoundingBox">
-                    <section className="inputLine">
-                        <label htmlFor="username">Username:</label>
-                        <input id="username" type="text" placeholder="Username" value={formData.username}
-                            onChange={(e) => setFormData(prevState => ({...prevState, username: e.target.value}))} />
-                    </section>
-                    
-                    <section className="inputLine">
-                        <label htmlFor="password">Password:</label>
-                        <input id="password" type="password" placeholder="Password" value={formData.password}
-                            onChange={(e) => setFormData(prevState => ({...prevState, password: e.target.value}))} />
-                    </section>
+        <form onSubmit={handleSubmit}>
+            <Container marginLeft={"30%"} width={"40%"} border={"1px solid"} padding={5}>
+                <Field.Root orientation={"horizontal"} marginTop={2}>
+                    <Field.Label minWidth={100}>Username:</Field.Label>
+                    <Input type="text" placeholder="Username" value={formData.username} height={6}
+                        onChange={(e) => setFormData(prevState => ({...prevState, username: e.target.value}))} />
+                </Field.Root>
 
-                    {isConfirm ? <><p>Check your inbox for an email from Trackeats.</p><p>Click on the link in that email
-                        (or paste it into a browser) to complete registration and activate your account.</p><p>Then you will be able to log in.</p></> : ""}
+                <Field.Root orientation={"horizontal"} marginTop={2}>
+                    <Field.Label textAlign={"right"} minWidth={100}>Password:</Field.Label>
+                    <Input type="password" placeholder="Password" value={formData.password} height={6}
+                        onChange={(e) => setFormData(prevState => ({...prevState, password: e.target.value}))} />
+                </Field.Root>
 
-                    <button className="button loginButton" type="submit" disabled={loginIsDisabled}>Login</button>
+                {isConfirm ? <><p>Check your inbox for an email from Trackeats.</p><p>Click on the link in that email
+                    (or paste it into a browser) to complete registration and activate your account.</p><p>Then you will be able to log in.</p></> : ""}
 
-                    <p className="errorText">{loginMessage}</p>
-                </section>
-            </form>
-        </section>
+                <Button h={8} color={"black"} type="submit" disabled={loginIsDisabled}>Login</Button><br/>
+
+                <Text className="errorText">{loginMessage}</Text>
+            </Container>
+        </form>
     );
 }
 

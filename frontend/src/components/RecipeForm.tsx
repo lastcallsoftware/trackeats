@@ -8,6 +8,7 @@ import FoodsTable from "./FoodsTable";
 import RecipesTable from "./RecipesTable";
 import IngredientsTable from "./IngredientsTable";
 import axios from 'axios';
+import { Tooltip } from "./ui/tooltip";
 
 function RecipeForm() {
     const location = useLocation();
@@ -59,7 +60,7 @@ function RecipeForm() {
     
     // State for the ingredient servings, which tells us how many servings of
     // the selected Ingredient to add to the Recipe when the user clicks Add.
-    const [ingredientServings, setIngredientServings] = useState<number>(0)
+    const [ingredientServings, setIngredientServings] = useState<number>(1)
 
     // State for which type of Ingredient list is selected: Foods or Recipes
     const IngredientTypes = {FOOD_INGREDIENTS: "foodIngredients", RECIPE_INGREDENTS: "recipeIngedients"}
@@ -406,8 +407,8 @@ function RecipeForm() {
                     <section className="recipeInputBox">
                         {/* Cuisine */}
                         <section className="inputLine">
-                            <label htmlFor="group">Cuisine:</label>
-                            <select id="group" value={formData.cuisine}
+                            <label htmlFor="cuisine">Cuisine:</label>
+                            <select id="cuisine" value={formData.cuisine}
                                 onChange={(e) => setFormData(prevState => ({...prevState, cuisine: e.target.value}))}>
                                 {cuisines.map((option) => (
                                     <option key={option.value} value={option.value}>{option.label}</option>
@@ -558,56 +559,98 @@ function RecipeForm() {
 
                         <section className="ingredientsButtonsBox">
                             <section className="ingredientsRadioButtonsBox">
+                                {/* Food Ingredients radio button */}
                                 <input type="radio" id="selectFoodIngredients" value={IngredientTypes.FOOD_INGREDIENTS}
                                     checked={selectedIngredientList === IngredientTypes.FOOD_INGREDIENTS}
                                     onChange={() => setSelectedIngredientList(IngredientTypes.FOOD_INGREDIENTS)} />
-                                <label htmlFor="selectFoodIngredients">Food Ingredients</label><br></br>
+                                <Tooltip content="Select Foods to add to this Recipe" showArrow={true} portalled={false}>
+                                    <label htmlFor="selectFoodIngredients">Food Ingredients</label>
+                                </Tooltip>
+                                <br></br>
+
+                                {/* Recipe Ingredients radio button */}
                                 <input type="radio" id="selectRecipeIngredients" value={IngredientTypes.RECIPE_INGREDENTS} 
                                     checked={selectedIngredientList === IngredientTypes.RECIPE_INGREDENTS}
                                     onChange={() => setSelectedIngredientList(IngredientTypes.RECIPE_INGREDENTS)} />
-                                <label htmlFor="selectRecipeIngredients">Recipe Ingredients</label>
+                                <Tooltip content="Select other Recipes to add to this Recipe" showArrow={true} portalled={false}>
+                                    <label htmlFor="selectRecipeIngredients">Recipe Ingredients</label>
+                                </Tooltip>
                             </section>
                             <br/>
 
-                            <section className="ingredientsServings">
-                                <input id="ingredientServingsInput" type="number" value={ingredientServings} min={0} step={"0.01"}
+                            {/* Servings input */}
+                            <section>
+                                <input id="ingredientServingsInput" type="number" value={ingredientServings} min={0}
                                     onChange={(e) => setIngredientServings(Number(e.target.value))} />
-                                <label htmlFor="ingredientServingsInput"> Servings</label>
+                                <Tooltip content="Enter the number of Servings of the selected Food or Recipe to add to the Ingredients list" showArrow={true} portalled={false}>
+                                    <label htmlFor="ingredientServingsInput"> Servings</label>
+                                </Tooltip>
                             </section>
                             <br/>
 
-                            <button className="button ingredientButton" onClick={addIngredient} disabled={selectedFoodOrRecipeRowId === null || ingredientServings === 0}>
-                                <IconContext.Provider value={selectedFoodOrRecipeRowId === null || ingredientServings === 0 ? {size: "30px"} : { size: "30px", color: "green"}}>
-                                    <MdKeyboardDoubleArrowLeft/><p>Add</p>
-                                </IconContext.Provider>
-                            </button>
-                            <br/>
-                            <button className="button ingredientButton" onClick={updateIngredient} disabled={selectedIngredientRowId === null || ingredientServings === 0}>
-                                <IconContext.Provider value={selectedIngredientRowId === null || ingredientServings === 0 ? {size: "30px"} : { size: "30px", color: "orange"}}>
-                                    <MdEdit/><p>Update</p>
-                                </IconContext.Provider>
-                            </button>
-                            <br/>
-
-                            <button className="button ingredientButton" onClick={removeIngredient} disabled={selectedIngredientRowId === null}>
-                                <IconContext.Provider value={selectedIngredientRowId === null ? {size: "30px"}: { size: "30px", color: "red"}}>
-                                    <p>Remove</p><MdKeyboardDoubleArrowRight/>
-                                </IconContext.Provider>
-                            </button>
+                            {/* Add button */}
+                            <Tooltip content="Add the selected Food or Recipe from the table to the right to the Ingredients list in the table to the left.  Servings must be > 0." showArrow={true} portalled={false}>
+                                <button className="ingredientButton" 
+                                        onClick={addIngredient} 
+                                        style={selectedFoodOrRecipeRowId == null || ingredientServings === 0 ? {color: "gray"} : {}}
+                                        disabled={selectedFoodOrRecipeRowId == null || ingredientServings === 0}>
+                                    <IconContext.Provider value={selectedFoodOrRecipeRowId === null || ingredientServings === 0 ? {size: "30px"} : { size: "30px", color: "green"}}>
+                                        <MdKeyboardDoubleArrowLeft/><p>Add</p>
+                                    </IconContext.Provider>
+                                </button>
+                            </Tooltip>
                             <br/>
 
-                            <button className="button ingredientButton" onClick={moveIngredientUp} disabled={selectedIngredientRowId === null}>
+                            {/* Update button */}
+                            <Tooltip content="Update the number of Servings for the selected Ingredient in the table to the left.  Servings must be > 0" showArrow={true} portalled={false}>
+                                <button className="ingredientButton" 
+                                        onClick={updateIngredient}
+                                        style={selectedIngredientRowId == null || ingredientServings === 0 ? {color: "gray"} : {}}
+                                        disabled={selectedIngredientRowId == null || ingredientServings === 0}>
+                                    <IconContext.Provider value={selectedIngredientRowId === null || ingredientServings === 0 ? {size: "30px"} : { size: "30px", color: "orange"}}>
+                                        <MdEdit/><p>Update</p>
+                                    </IconContext.Provider>
+                                </button>
+                            </Tooltip>
+                            <br/>
+
+                            {/* Remove button */}
+                            <Tooltip content="Remove the selected Ingredient from the table to the left" showArrow={true} portalled={false}>
+                                <button className="ingredientButton"
+                                        onClick={removeIngredient} 
+                                        style={selectedIngredientRowId == null ? {color: "gray"} : {}}
+                                        disabled={selectedIngredientRowId == null}>
+                                    <IconContext.Provider value={selectedIngredientRowId === null ? {size: "30px"}: { size: "30px", color: "red"}}>
+                                        <p>Remove</p><MdKeyboardDoubleArrowRight/>
+                                    </IconContext.Provider>
+                                </button>
+                            </Tooltip>
+                            <br/>
+
+                            {/* Move Up button */}
+                            <Tooltip content="Move the selected Ingredient up in the list to the left" showArrow={true} portalled={false}>
+                            <button className="ingredientButton"
+                                    onClick={moveIngredientUp}
+                                    style={selectedIngredientRowId == null ? {color: "gray"} : {}}
+                                    disabled={selectedIngredientRowId == null}>
                                 <IconContext.Provider value={selectedIngredientRowId === null ? {size: "30px"} : { size: "30px", color: "green"}}>
                                     <MdKeyboardArrowUp/><p>Up</p>
                                 </IconContext.Provider>
                             </button>
+                            </Tooltip>
                             <br/>
-                            <button className="button ingredientButton" onClick={moveIngredientDown} disabled={selectedIngredientRowId === null}>
-                                <IconContext.Provider value={selectedIngredientRowId === null ? {size: "30px"} : { size: "30px", color: "green"}}>
-                                    <MdKeyboardArrowDown/><p>Down</p>
-                                </IconContext.Provider>
-                            </button>
 
+                            {/* Move Down button */}
+                            <Tooltip content="Move the selected Ingredient down in the list to the left" showArrow={true} portalled={false}>
+                                <button className="ingredientButton"
+                                        onClick={moveIngredientDown}
+                                        style={selectedIngredientRowId == null ? {color: "gray"} : {}}
+                                        disabled={selectedIngredientRowId == null}>
+                                    <IconContext.Provider value={selectedIngredientRowId === null ? {size: "30px"} : { size: "30px", color: "green"}}>
+                                        <MdKeyboardArrowDown/><p>Down</p>
+                                    </IconContext.Provider>
+                                </button>
+                            </Tooltip>
                         </section>
 
                         <section className="foodsOrRecipesListBox">
