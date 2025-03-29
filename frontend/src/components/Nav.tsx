@@ -56,10 +56,11 @@ function Nav() {
                 {/*}
                 { isAuthenticated ? <Link to="/dailylog" className="nav-item">Daily Log</Link> : ""}
                  */}
+                <Link to="/about" className="nav-item">About</Link>
                 { isAuthenticated ? <Link to="/login" className="nav-item" onClick={removeToken}>Log Out</Link>
                                : <Link to="/login" className="nav-item">Log In</Link>}
-                                 <Link to="/register" className="nav-item">Register</Link>
-                                 <Link to="/about" className="nav-item">About</Link>
+                { !isAuthenticated ? <Link to="/register" className="nav-item">Register</Link>
+                                : ""}
             </nav>
 
             <Routes>
