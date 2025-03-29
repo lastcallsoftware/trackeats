@@ -74,6 +74,7 @@ export type DataContextType = {
     foods: IFood[];
     recipes: IRecipe[];
     ingredients: IIngredient[];
+    isLoading: boolean;
     errorMessage: string | null;
     addFood: (food: IFood) => Promise<number|undefined>;
     updateFood: (food: IFood) => Promise<void>;
@@ -103,6 +104,9 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
         sessionStorage.removeItem("access_token")
     }
 
+    // "Loading screen"
+    const [isLoading, setLoading] = useState(false)
+
     // Handle errors that occur when calling the back end.
     // Not sure if the navigate() call is kosher here.
     // Actually I'm not even sure if having this separate error handler function
@@ -110,6 +114,7 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const handleError = useCallback((error: any) => {
         console.log(error)
+        setLoading(false)
         if (error.status == 401) {
             removeToken()
             navigate("/login", { state: { message: "Your token has expired and you have been logged out." } });
@@ -158,9 +163,15 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
             }
         };
 
-        // The functions are defined above, but we still have to call them.
-        getFoods();
-        getRecipes();
+        const fetchData = async () => {
+            // Calling setLoading makes it so the state changes on every load, so it ALWAYS re-loads.
+            setLoading(true)
+            await getFoods();
+            await getRecipes();
+            setLoading(false)
+        };
+
+        fetchData();
     }, [access_token, handleError]);
 
     // Add Food
@@ -318,6 +329,7 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
             foods, 
             recipes, 
             ingredients,
+            isLoading,
             errorMessage, 
             addFood, 
             updateFood, 
