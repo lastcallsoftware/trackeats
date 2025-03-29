@@ -1,4 +1,7 @@
 :root {
+  margin: 0;
+  padding: 0;
+  text-align: center;
   font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
   font-family: 'Karla Variable', sans-serif;
 /* font-family: 'Markazi Text Variable', serif; */
@@ -9,17 +12,8 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
-* {
-  margin: 0;
-  padding: 0;
-}
-
-#root {
-  text-align: center;
-}
-
 .logo {
-  margin-top: 1rem;
+  margin: 1rem auto 0 auto;
   width: 120px;
 }
 
@@ -29,6 +23,7 @@ button {
   justify-content: center;
   border-radius: 8px;
   border: 1px solid black;
+  background-color: rgb(235, 235, 235);
   margin: 0.5rem;
   padding: 0.3rem 1rem;
   font-size: 1rem;
@@ -36,12 +31,6 @@ button {
   font-family: inherit;
   box-shadow: 0px 1px 2px rgba(0, 0, 0, 0.5);
   cursor: pointer;
-}
-.editButton {
-  width: 150px;
-}
-.editButtonText {
-  margin-right: 5px;
 }
 button:hover {
   background-color: lightgray;
@@ -76,19 +65,44 @@ button:active {
   text-decoration: underline;
 }
 
+input, select, textarea {
+border: 1px solid black;
+font-size: small;
+padding-top: 2px;
+padding-left: 4px;
+margin-top: 4px;
+}
+label {
+  margin-top: 4px;
+}
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.input-form {
+  display: block;
+  margin: auto;
+  padding: 1rem;
+  border: 1px solid black;
+}
+.food-input-form {
+  width: 40rem;
+}
 .inputBoundingBox {
   display: block;
   margin: auto;
   padding: 1rem;
   border: 1px solid black;
 }
-.registerBoundingBox, .loginBoundingBox, .foodFormBoundingBox {
+.registerBoundingBox, .loginBoundingBox {
   width: 40rem;
 }
 
 .inputLine, textarea {
   display: flex;
-  margin: 5px;
+  /*margin: 5px;*/
   resize: none;
 }
 .inputLine label {
@@ -199,9 +213,7 @@ button:active {
 }
 
 /* The thead's style attribute, with the specified position, top, and zindex parameters
-    you see here, combine to make the header row "sticky", so it's always visible.  I searched 
-    far and wide for how to do this for AGES without success, and then some guy in a video just
-    casually mentioned it like it's common knowledge.  It isn't common knowledge, people!!! lol */
+    you see here, combine to make the header row "sticky", so it's always visible. */
 /* The stickiness doesn't include the header's borders if we use border-collapse, though, so we 
     have to get a little tricky to make the borders look right.  Specifically, we specify only 
     right and bottom borders in some places.*/
@@ -247,8 +259,9 @@ td {
 .footerContainer p {
   margin-left: 20px;
 }
-.headerText {
+.header-text {
   font-size: 14px;
+  font-weight: bold;
 }
 
 .clearable-input {
