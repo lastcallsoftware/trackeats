@@ -65,10 +65,10 @@ function FoodForm() {
             <Grid templateColumns="200px 1fr" alignItems="center" gap={1}>
                 {/* Food Group */}
                 <GridItem textAlign={"right"}>
-                    <label htmlFor="food_group">Food Group:</label>
+                    <label htmlFor="food-group">Food Group:</label>
                 </GridItem>
                 <GridItem textAlign={"left"}>
-                    <select id="food_group" value={formData.group} 
+                    <select id="food-group" value={formData.group} 
                         onChange={(e) => setFormData(prevState => ({...prevState, group: e.target.value}))}>
                         {foodGroups.map((option) => (
                             <option key={option.value} value={option.value}>{option.label}</option>

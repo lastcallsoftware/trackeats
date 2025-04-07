@@ -87,22 +87,15 @@ input::-webkit-inner-spin-button {
   padding: 1rem;
   border: 1px solid black;
 }
-.food-input-form {
+.food-input-form, .register-input-form, .login-input-form {
   width: 40rem;
 }
-.inputBoundingBox {
-  display: block;
-  margin: auto;
-  padding: 1rem;
-  border: 1px solid black;
+.recipe-input-form {
+  width: 95%;
+  padding: 5px;
 }
-.registerBoundingBox, .loginBoundingBox {
-  width: 40rem;
-}
-
 .inputLine, textarea {
   display: flex;
-  /*margin: 5px;*/
   resize: none;
 }
 .inputLine label {
@@ -123,9 +116,7 @@ input::-webkit-inner-spin-button {
 .errorText {
   color: red;
 }
-.inputBoundingBox p {
-  font-size: small;
-}
+
 
 .about-box {
   display: block;
@@ -160,12 +151,7 @@ input::-webkit-inner-spin-button {
 }
 
 /* Recipe Form Page */
-.recipeFormBox {
-  width: 95%;
-  padding: 5px;
-  margin: auto;
-}
-.recipeInputBox {
+.recipe-input-box {
   width: fit-content;
   margin: auto;
 }
@@ -271,7 +257,7 @@ td {
 .clearable-input-button {
   position: absolute;
   right: 1px;
-  top: 1px;
+  top: 6px;
   transform: translateY(-50%);
   background: #f0f0f0;
   border: none;
@@ -283,7 +269,7 @@ td {
 
 .clearable-input-button:active {
   outline: 1px solid black;
-  top: 2px;
+  top: 7px;
   left: auto;
   right: 1px;
   box-shadow: none;

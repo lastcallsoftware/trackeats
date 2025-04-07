@@ -126,82 +126,80 @@ function RegisterPage() {
         }
 
     return (
-        <form className="inputForm" onSubmit={handleSubmit}>
-            <section className="inputBoundingBox registerBoundingBox">
-                <Grid  templateColumns="200px 1fr" alignItems="center" gap={1}>
-                    {/* Username */}
-                    <GridItem textAlign={"right"}>
-                        <label htmlFor="username">Username:</label>
-                    </GridItem>
-                    <GridItem textAlign={"left"}>
-                    <input id="username" type="text" placeholder="Username" maxLength={100}
-                            onFocus={() => setFormData(prevState => ({...prevState, usernameTouched: false}))}
-                            onBlur={() => setFormData(prevState => ({...prevState, usernameTouched: true}))}
-                            onChange={usernameChanged} />
-                    </GridItem>
-                    {(formData.usernameMessage && formData.usernameTouched && formData.username.length > 0) ? 
-                    <GridItem colSpan={2}>
-                        <p className = "inputSpacer" />
-                        <p className="inputErrorText">{formData.usernameMessage}</p>
-                    </GridItem>
-                    : "" }
+        <form className="input-form register-input-form" onSubmit={handleSubmit}>
+            <Grid  templateColumns="200px 1fr" alignItems="center" gap={1}>
+                {/* Username */}
+                <GridItem textAlign={"right"}>
+                    <label htmlFor="username">Username:</label>
+                </GridItem>
+                <GridItem textAlign={"left"}>
+                <input id="username" type="text" placeholder="Username" maxLength={100}
+                        onFocus={() => setFormData(prevState => ({...prevState, usernameTouched: false}))}
+                        onBlur={() => setFormData(prevState => ({...prevState, usernameTouched: true}))}
+                        onChange={usernameChanged} />
+                </GridItem>
+                {(formData.usernameMessage && formData.usernameTouched && formData.username.length > 0) ? 
+                <GridItem colSpan={2}>
+                    <p className = "inputSpacer" />
+                    <p className="inputErrorText">{formData.usernameMessage}</p>
+                </GridItem>
+                : "" }
 
-                    {/* Password */}
-                    <GridItem textAlign={"right"}>
-                        <label htmlFor="password">Password:</label>
-                    </GridItem>
-                    <GridItem textAlign={"left"}>
-                        <input id="password" type="password" placeholder="Password" maxLength={100}
-                            onFocus={() => setFormData(prevState => ({...prevState, passwordTouched: false}))}
-                            onBlur={() => setFormData(prevState => ({...prevState, passwordTouched: true}))}
-                            onChange={passwordChanged} />
-                    </GridItem>
-                    {(formData.passwordMessage && formData.passwordTouched && formData.password.length > 0) ?
-                    <GridItem colSpan={2} textAlign={"left"}>
-                        <p style={{marginLeft:"210px"}} className="inputErrorText">{formData.passwordMessage}</p>
-                    </GridItem>
-                    : ""}
+                {/* Password */}
+                <GridItem textAlign={"right"}>
+                    <label htmlFor="password">Password:</label>
+                </GridItem>
+                <GridItem textAlign={"left"}>
+                    <input id="password" type="password" placeholder="Password" maxLength={100}
+                        onFocus={() => setFormData(prevState => ({...prevState, passwordTouched: false}))}
+                        onBlur={() => setFormData(prevState => ({...prevState, passwordTouched: true}))}
+                        onChange={passwordChanged} />
+                </GridItem>
+                {(formData.passwordMessage && formData.passwordTouched && formData.password.length > 0) ?
+                <GridItem colSpan={2} textAlign={"left"}>
+                    <p style={{marginLeft:"210px"}} className="inputErrorText">{formData.passwordMessage}</p>
+                </GridItem>
+                : ""}
 
-                    {/* Password 2 */}
-                    <GridItem textAlign={"right"}>
-                        <label htmlFor="password2">Retype Password:</label>
-                    </GridItem>
-                    <GridItem textAlign={"left"}>
-                    <input id="password2" type="password" placeholder="Retype password" maxLength={100}
-                            onFocus={() => setFormData(prevState => ({...prevState, password2Touched: false}))}
-                            onBlur={() => setFormData(prevState => ({...prevState, password2Touched: true}))}
-                            onChange={password2Changed} />
-                    </GridItem>
-                    {(formData.password2Message && formData.password2Touched && formData.password2.length > 0) ?
-                    <GridItem colSpan={2} textAlign={"left"}>
-                        <p style={{marginLeft:"210px"}} className="inputErrorText">{formData.password2Message}</p>
-                    </GridItem>
-                    : ""}
+                {/* Password 2 */}
+                <GridItem textAlign={"right"}>
+                    <label htmlFor="password2">Retype Password:</label>
+                </GridItem>
+                <GridItem textAlign={"left"}>
+                <input id="password2" type="password" placeholder="Retype password" maxLength={100}
+                        onFocus={() => setFormData(prevState => ({...prevState, password2Touched: false}))}
+                        onBlur={() => setFormData(prevState => ({...prevState, password2Touched: true}))}
+                        onChange={password2Changed} />
+                </GridItem>
+                {(formData.password2Message && formData.password2Touched && formData.password2.length > 0) ?
+                <GridItem colSpan={2} textAlign={"left"}>
+                    <p style={{marginLeft:"210px"}} className="inputErrorText">{formData.password2Message}</p>
+                </GridItem>
+                : ""}
 
-                    {/* Email Address */}
-                    <GridItem textAlign={"right"}>
-                        <label htmlFor="email">Email Address:</label>
-                    </GridItem>
-                    <GridItem textAlign={"left"}>
-                        <input id="email" type="email" placeholder="Email address" maxLength={320}
-                            onFocus={() => setFormData(prevState => ({...prevState, emailTouched: false}))}
-                            onBlur={() => setFormData(prevState => ({...prevState, emailTouched: true}))}
-                            onChange={emailChanged}/>
-                    </GridItem>
-                    {(formData.emailMessage && formData.emailTouched && formData.email.length > 0) ?
-                    <GridItem colSpan={2} textAlign={"left"}>
-                        <p style={{marginLeft:"210px"}} className="inputErrorText">{formData.emailMessage}</p>
-                    </GridItem> : ""}
-                </Grid>
+                {/* Email Address */}
+                <GridItem textAlign={"right"}>
+                    <label htmlFor="email">Email Address:</label>
+                </GridItem>
+                <GridItem textAlign={"left"}>
+                    <input id="email" type="email" placeholder="Email address" maxLength={320}
+                        onFocus={() => setFormData(prevState => ({...prevState, emailTouched: false}))}
+                        onBlur={() => setFormData(prevState => ({...prevState, emailTouched: true}))}
+                        onChange={emailChanged}/>
+                </GridItem>
+                {(formData.emailMessage && formData.emailTouched && formData.email.length > 0) ?
+                <GridItem colSpan={2} textAlign={"left"}>
+                    <p style={{marginLeft:"210px"}} className="inputErrorText">{formData.emailMessage}</p>
+                </GridItem> : ""}
+            </Grid>
 
-                <br/>
-                <p>When you click Register, an email will be sent to the Email Address.</p>
-                <p>Click on the link in that email (or paste it into a brower) to complete registration and activate your accoount.</p>
+            <br/>
+            <p>When you click Register, an email will be sent to the Email Address.</p>
+            <p>Click on the link in that email (or paste it into a brower) to complete registration and activate your accoount.</p>
 
-                <button className="button loginButton" type="submit" disabled={registerIsDisabled}>Register</button>
+            <button className="button loginButton" type="submit" disabled={registerIsDisabled}>Register</button>
 
-                <p className="errorText">{errorMessage}</p>
-            </section>
+            <p className="errorText">{errorMessage}</p>
         </form>
     );
 }

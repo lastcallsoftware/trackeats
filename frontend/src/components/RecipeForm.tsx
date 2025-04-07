@@ -401,275 +401,270 @@ function RecipeForm() {
     }
 
     return (
-        <section className="recipeForm">
-            <form className="inputForm" onSubmit={handleSubmit}>
-                <section className="inputBoundingBox recipeFormBox">
-                    <section className="recipeInputBox">
-                        {/* Cuisine */}
-                        <section className="inputLine">
-                            <label htmlFor="cuisine">Cuisine:</label>
-                            <select id="cuisine" value={formData.cuisine}
-                                onChange={(e) => setFormData(prevState => ({...prevState, cuisine: e.target.value}))}>
-                                {cuisines.map((option) => (
-                                    <option key={option.value} value={option.value}>{option.label}</option>
-                                ))}
-                            </select>
-                        </section>
-
-                        {/* Name */}
-                        <section className="inputLine">
-                            <label htmlFor="name">Name:</label>
-                            <input id="name" type="text" value={formData.name} maxLength={100}
-                                onChange={(e) => setFormData(prevState => ({...prevState, name: e.target.value}))} />
-                        </section>
-
-                        {/* Total Yield */}
-                        <section className="inputLine">
-                            <label htmlFor="totalyield">Total Yield:</label>
-                            <input id="totalyield" type="text" value={formData.total_yield} maxLength={100}
-                                onChange={(e) => setFormData(prevState => ({...prevState, total_yield: e.target.value}))} />
-                        </section>
-
-                        {/* Servings */}
-                        <section className="inputLine">
-                            <label htmlFor="size_g">Servings:</label>
-                            <input id="ingredientServings" type="number" value={formData.servings} min={0}
-                                onChange={(e) => setFormData(prevState => ({...prevState, servings: Number(e.target.value)}))} />
-                        </section>
-                    </section>
-
-                    {/* NUTRITION */}
-                    <section className="recipeNutritionBox">
-                        <section className="recipeNutritionColumn">
-                            {/* Serving Size Description */}
-                            <section className="inputLine">
-                                <label htmlFor="serving_size_description">Serving Size:</label>
-                                <input id="serving_size_description" type="text" value={formData.nutrition.serving_size_description} maxLength={100}
-                                    onChange={(e) => setFormData(prevState => ({...prevState, nutrition: {...prevState.nutrition, serving_size_description: e.target.value}}))} />
-                            </section>
-
-                            {/* Calories */}
-                            <section className="inputLine">
-                                <label htmlFor="calories">Calories:</label>
-                                <input id="calories" type="number" value={calc(formData.nutrition.calories)} min={0} readOnly={true} tabIndex={-1} style={{backgroundColor:"lightgray"}} />
-                            </section>
-
-                            {/* Total Fat (g) */}
-                            <section className="inputLine">
-                                <label htmlFor="total_fat_g">Total Fat (g):</label>
-                                <input id="total_fat_g" type="number" value={calc(formData.nutrition.total_fat_g,1)} min={0} step="0.1" readOnly={true} tabIndex={-1} style={{backgroundColor:"lightgray"}} />
-                            </section>
-
-                            {/* Saturated Fat (g) */}
-                            <section className="inputLine">
-                                <label htmlFor="saturated_fat_g">Saturated Fat (g):</label>
-                                <input id="saturated_fat_g" type="number" value={calc(formData.nutrition.saturated_fat_g,1)} min={0} step="0.1" readOnly={true} tabIndex={-1} style={{backgroundColor:"lightgray"}} />
-                            </section>
-
-                            {/* Trans Fat (g) */}
-                            <section className="inputLine">
-                                <label htmlFor="trans_fat_g">Trans Fat (g):</label>
-                                <input id="trans_fat_g" type="number" value={calc(formData.nutrition.trans_fat_g)} min={0} step="0.1" readOnly={true} tabIndex={-1} style={{backgroundColor:"lightgray"}} />
-                            </section>
-
-                            {/* Cholesterol (mg) */}
-                            <section className="inputLine">
-                                <label htmlFor="cholesterol_mg">Cholesterol (mg):</label>
-                                <input id="cholesterol_mg" type="number" value={calc(formData.nutrition.cholesterol_mg)} min={0} readOnly={true} tabIndex={-1} style={{backgroundColor:"lightgray"}} />
-                            </section>
-                        </section>
-
-                        <section className="recipeNutritionColumn">
-                            {/* Sodium (mg) */}
-                            <section className="inputLine">
-                                <label htmlFor="sodium_mg">Sodium (mg):</label>
-                                <input id="sodium_mg" type="number" value={calc(formData.nutrition.sodium_mg)} min={0} readOnly={true} tabIndex={-1} style={{backgroundColor:"lightgray"}} />
-                            </section>
-
-                            {/* Total Carbs (g) */}
-                            <section className="inputLine">
-                                <label htmlFor="total_carbs_g">Total Carbs (g):</label>
-                                <input id="total_carbs_g" type="number" value={calc(formData.nutrition.total_carbs_g)} min={0} readOnly={true} tabIndex={-1} style={{backgroundColor:"lightgray"}} />
-                            </section>
-
-                            {/* Fiber (g) */}
-                            <section className="inputLine">
-                                <label htmlFor="fiber_g">Fiber (g):</label>
-                                <input id="fiber_g" type="number" value={calc(formData.nutrition.fiber_g)} min={0} readOnly={true} tabIndex={-1} style={{backgroundColor:"lightgray"}} />
-                            </section>
-
-                            {/* Total Sugar (g) */}
-                            <section className="inputLine">
-                                <label htmlFor="total_sugar_g">Total Sugar (g):</label>
-                                <input id="total_sugar_g" type="number" value={calc(formData.nutrition.total_sugar_g)} min={0} readOnly={true} tabIndex={-1} style={{backgroundColor:"lightgray"}} />
-                            </section>
-
-                            {/* Added Sugar (g) */}
-                            <section className="inputLine">
-                                <label htmlFor="added_sugar_g">Added Sugar (g):</label>
-                                <input id="added_sugar_g" type="number" value={calc(formData.nutrition.added_sugar_g)} min={0} readOnly={true} tabIndex={-1} style={{backgroundColor:"lightgray"}} />
-                            </section>
-
-                            {/* Protein (g) */}
-                            <section className="inputLine">
-                                <label htmlFor="protein_g">Protein (g):</label>
-                                <input id="protein_g" type="number" value={calc(formData.nutrition.protein_g)} min={0} readOnly={true} tabIndex={-1} style={{backgroundColor:"lightgray"}} />
-                            </section>
-                        </section>
-
-                        <section className="recipeNutritionColumn">
-                            {/* Vitamin D (mcg) */}
-                            <section className="inputLine">
-                                <label htmlFor="vitamin_d_mcg">Vitamin D (mcg):</label>
-                                <input id="vitamin_d_mcg" type="number" value={calc(formData.nutrition.vitamin_d_mcg)} min={0} readOnly={true} tabIndex={-1} style={{backgroundColor:"lightgray"}} />
-                            </section>
-
-                            {/* Calcium (mg) */}
-                            <section className="inputLine">
-                                <label htmlFor="calcium_mg">Calcium (mg):</label>
-                                <input id="calcium_mg" type="number" value={calc(formData.nutrition.calcium_mg)} min={0} readOnly={true} tabIndex={-1} style={{backgroundColor:"lightgray"}} />
-                            </section>
-
-                            {/* Iron (mg) */}
-                            <section className="inputLine">
-                                <label htmlFor="iron_mg">Iron (mg):</label>
-                                <input id="iron_mg" type="number" value={calc(formData.nutrition.iron_mg,1)} min={0} step="0.1" readOnly={true} tabIndex={-1} style={{backgroundColor:"lightgray"}} />
-                            </section>
-
-                            {/* Potassium (mg) */}
-                            <section className="inputLine">
-                                <label htmlFor="potassium_mg">Potassium (mg):</label>
-                                <input id="potassium_mg" type="number" value={calc(formData.nutrition.potassium_mg)} min={0} readOnly={true} tabIndex={-1} style={{backgroundColor:"lightgray"}}/>
-                            </section>
-
-                            {/* Price ($) */}
-                            <section className="inputLine">
-                                <label htmlFor="price">Price ($):</label>
-                                <input id="price" type="number" value={calc(formData.price, 2)} min={0} readOnly={true} tabIndex={-1} style={{backgroundColor:"lightgray"}} />
-                            </section>
-
-                            <p>Note: All data is per serving</p>
-                        </section>
-                    </section>
-
-                    <section className="recipeListsBox">
-                        <section className="ingredientsListBox">
-                            <IngredientsTable ingredients={ingredients} setSelectedRowId={setSelectedIngredientRowId}/>
-                        </section>
-
-                        <section className="ingredientsButtonsBox">
-                            <section className="ingredientsRadioButtonsBox">
-                                {/* Food Ingredients radio button */}
-                                <input type="radio" id="selectFoodIngredients" value={IngredientTypes.FOOD_INGREDIENTS}
-                                    checked={selectedIngredientList === IngredientTypes.FOOD_INGREDIENTS}
-                                    onChange={() => setSelectedIngredientList(IngredientTypes.FOOD_INGREDIENTS)} />
-                                <Tooltip content="Select Foods to add to this Recipe" showArrow={true} portalled={false}>
-                                    <label htmlFor="selectFoodIngredients">Food Ingredients</label>
-                                </Tooltip>
-                                <br></br>
-
-                                {/* Recipe Ingredients radio button */}
-                                <input type="radio" id="selectRecipeIngredients" value={IngredientTypes.RECIPE_INGREDENTS} 
-                                    checked={selectedIngredientList === IngredientTypes.RECIPE_INGREDENTS}
-                                    onChange={() => setSelectedIngredientList(IngredientTypes.RECIPE_INGREDENTS)} />
-                                <Tooltip content="Select other Recipes to add to this Recipe" showArrow={true} portalled={false}>
-                                    <label htmlFor="selectRecipeIngredients">Recipe Ingredients</label>
-                                </Tooltip>
-                            </section>
-                            <br/>
-
-                            {/* Servings input */}
-                            <section>
-                                <input id="ingredientServingsInput" type="number" value={ingredientServings} min={0}
-                                    onChange={(e) => setIngredientServings(Number(e.target.value))} />
-                                <Tooltip content="Enter the number of Servings of the selected Food or Recipe to add to the Ingredients list" showArrow={true} portalled={false}>
-                                    <label htmlFor="ingredientServingsInput"> Servings</label>
-                                </Tooltip>
-                            </section>
-                            <br/>
-
-                            {/* Add button */}
-                            <Tooltip content="Add the selected Food or Recipe from the table to the right to the Ingredients list in the table to the left.  Servings must be > 0." showArrow={true} portalled={false}>
-                                <button className="ingredientButton" 
-                                        onClick={addIngredient} 
-                                        style={selectedFoodOrRecipeRowId == null || ingredientServings === 0 ? {color: "gray"} : {}}
-                                        disabled={selectedFoodOrRecipeRowId == null || ingredientServings === 0}>
-                                    <IconContext.Provider value={selectedFoodOrRecipeRowId === null || ingredientServings === 0 ? {size: "30px"} : { size: "30px", color: "green"}}>
-                                        <MdKeyboardDoubleArrowLeft/><p>Add</p>
-                                    </IconContext.Provider>
-                                </button>
-                            </Tooltip>
-                            <br/>
-
-                            {/* Update button */}
-                            <Tooltip content="Update the number of Servings for the selected Ingredient in the table to the left.  Servings must be > 0" showArrow={true} portalled={false}>
-                                <button className="ingredientButton" 
-                                        onClick={updateIngredient}
-                                        style={selectedIngredientRowId == null || ingredientServings === 0 ? {color: "gray"} : {}}
-                                        disabled={selectedIngredientRowId == null || ingredientServings === 0}>
-                                    <IconContext.Provider value={selectedIngredientRowId === null || ingredientServings === 0 ? {size: "30px"} : { size: "30px", color: "orange"}}>
-                                        <MdEdit/><p>Update</p>
-                                    </IconContext.Provider>
-                                </button>
-                            </Tooltip>
-                            <br/>
-
-                            {/* Remove button */}
-                            <Tooltip content="Remove the selected Ingredient from the table to the left" showArrow={true} portalled={false}>
-                                <button className="ingredientButton"
-                                        onClick={removeIngredient} 
-                                        style={selectedIngredientRowId == null ? {color: "gray"} : {}}
-                                        disabled={selectedIngredientRowId == null}>
-                                    <IconContext.Provider value={selectedIngredientRowId === null ? {size: "30px"}: { size: "30px", color: "red"}}>
-                                        <p>Remove</p><MdKeyboardDoubleArrowRight/>
-                                    </IconContext.Provider>
-                                </button>
-                            </Tooltip>
-                            <br/>
-
-                            {/* Move Up button */}
-                            <Tooltip content="Move the selected Ingredient up in the list to the left" showArrow={true} portalled={false}>
-                            <button className="ingredientButton"
-                                    onClick={moveIngredientUp}
-                                    style={selectedIngredientRowId == null ? {color: "gray"} : {}}
-                                    disabled={selectedIngredientRowId == null}>
-                                <IconContext.Provider value={selectedIngredientRowId === null ? {size: "30px"} : { size: "30px", color: "green"}}>
-                                    <MdKeyboardArrowUp/><p>Up</p>
-                                </IconContext.Provider>
-                            </button>
-                            </Tooltip>
-                            <br/>
-
-                            {/* Move Down button */}
-                            <Tooltip content="Move the selected Ingredient down in the list to the left" showArrow={true} portalled={false}>
-                                <button className="ingredientButton"
-                                        onClick={moveIngredientDown}
-                                        style={selectedIngredientRowId == null ? {color: "gray"} : {}}
-                                        disabled={selectedIngredientRowId == null}>
-                                    <IconContext.Provider value={selectedIngredientRowId === null ? {size: "30px"} : { size: "30px", color: "green"}}>
-                                        <MdKeyboardArrowDown/><p>Down</p>
-                                    </IconContext.Provider>
-                                </button>
-                            </Tooltip>
-                        </section>
-
-                        <section className="foodsOrRecipesListBox">
-                            {(selectedIngredientList === IngredientTypes.FOOD_INGREDIENTS) ? 
-                                <FoodsTable setSelectedRowId={setSelectedFoodOrRecipeRowId} isRecipesForm={true}/> : 
-                                <RecipesTable setSelectedRowId={setSelectedFoodOrRecipeRowId}/>}
-                        </section>
-                    </section>
-
-                    <section className="recipeFormButtonBox">
-                        <button className="button" type="submit" disabled={saveIsDisabled}>Save</button>
-                        <button className="button" onClick={handleCancel}>Cancel</button>
-                    </section>
-
-                    <p>{errorMessage}</p>
+        <form className="input-form recipe-input-form" onSubmit={handleSubmit}>
+            <section className="recipe-input-box">
+                {/* Cuisine */}
+                <section className="inputLine">
+                    <label htmlFor="cuisine">Cuisine:</label>
+                    <select id="cuisine" value={formData.cuisine}
+                        onChange={(e) => setFormData(prevState => ({...prevState, cuisine: e.target.value}))}>
+                        {cuisines.map((option) => (
+                            <option key={option.value} value={option.value}>{option.label}</option>
+                        ))}
+                    </select>
                 </section>
-            </form>
 
-        </section>
+                {/* Name */}
+                <section className="inputLine">
+                    <label htmlFor="name">Name:</label>
+                    <input id="name" type="text" value={formData.name} maxLength={100}
+                        onChange={(e) => setFormData(prevState => ({...prevState, name: e.target.value}))} />
+                </section>
+
+                {/* Total Yield */}
+                <section className="inputLine">
+                    <label htmlFor="totalyield">Total Yield:</label>
+                    <input id="totalyield" type="text" value={formData.total_yield} maxLength={100}
+                        onChange={(e) => setFormData(prevState => ({...prevState, total_yield: e.target.value}))} />
+                </section>
+
+                {/* Servings */}
+                <section className="inputLine">
+                    <label htmlFor="size_g">Servings:</label>
+                    <input id="ingredientServings" type="number" value={formData.servings} min={0}
+                        onChange={(e) => setFormData(prevState => ({...prevState, servings: Number(e.target.value)}))} />
+                </section>
+            </section>
+
+            {/* NUTRITION */}
+            <section className="recipeNutritionBox">
+                <section className="recipeNutritionColumn">
+                    {/* Serving Size Description */}
+                    <section className="inputLine">
+                        <label htmlFor="serving_size_description">Serving Size:</label>
+                        <input id="serving_size_description" type="text" value={formData.nutrition.serving_size_description} maxLength={100}
+                            onChange={(e) => setFormData(prevState => ({...prevState, nutrition: {...prevState.nutrition, serving_size_description: e.target.value}}))} />
+                    </section>
+
+                    {/* Calories */}
+                    <section className="inputLine">
+                        <label htmlFor="calories">Calories:</label>
+                        <input id="calories" type="number" value={calc(formData.nutrition.calories)} min={0} readOnly={true} tabIndex={-1} style={{backgroundColor:"lightgray"}} />
+                    </section>
+
+                    {/* Total Fat (g) */}
+                    <section className="inputLine">
+                        <label htmlFor="total_fat_g">Total Fat (g):</label>
+                        <input id="total_fat_g" type="number" value={calc(formData.nutrition.total_fat_g,1)} min={0} step="0.1" readOnly={true} tabIndex={-1} style={{backgroundColor:"lightgray"}} />
+                    </section>
+
+                    {/* Saturated Fat (g) */}
+                    <section className="inputLine">
+                        <label htmlFor="saturated_fat_g">Saturated Fat (g):</label>
+                        <input id="saturated_fat_g" type="number" value={calc(formData.nutrition.saturated_fat_g,1)} min={0} step="0.1" readOnly={true} tabIndex={-1} style={{backgroundColor:"lightgray"}} />
+                    </section>
+
+                    {/* Trans Fat (g) */}
+                    <section className="inputLine">
+                        <label htmlFor="trans_fat_g">Trans Fat (g):</label>
+                        <input id="trans_fat_g" type="number" value={calc(formData.nutrition.trans_fat_g)} min={0} step="0.1" readOnly={true} tabIndex={-1} style={{backgroundColor:"lightgray"}} />
+                    </section>
+
+                    {/* Cholesterol (mg) */}
+                    <section className="inputLine">
+                        <label htmlFor="cholesterol_mg">Cholesterol (mg):</label>
+                        <input id="cholesterol_mg" type="number" value={calc(formData.nutrition.cholesterol_mg)} min={0} readOnly={true} tabIndex={-1} style={{backgroundColor:"lightgray"}} />
+                    </section>
+                </section>
+
+                <section className="recipeNutritionColumn">
+                    {/* Sodium (mg) */}
+                    <section className="inputLine">
+                        <label htmlFor="sodium_mg">Sodium (mg):</label>
+                        <input id="sodium_mg" type="number" value={calc(formData.nutrition.sodium_mg)} min={0} readOnly={true} tabIndex={-1} style={{backgroundColor:"lightgray"}} />
+                    </section>
+
+                    {/* Total Carbs (g) */}
+                    <section className="inputLine">
+                        <label htmlFor="total_carbs_g">Total Carbs (g):</label>
+                        <input id="total_carbs_g" type="number" value={calc(formData.nutrition.total_carbs_g)} min={0} readOnly={true} tabIndex={-1} style={{backgroundColor:"lightgray"}} />
+                    </section>
+
+                    {/* Fiber (g) */}
+                    <section className="inputLine">
+                        <label htmlFor="fiber_g">Fiber (g):</label>
+                        <input id="fiber_g" type="number" value={calc(formData.nutrition.fiber_g)} min={0} readOnly={true} tabIndex={-1} style={{backgroundColor:"lightgray"}} />
+                    </section>
+
+                    {/* Total Sugar (g) */}
+                    <section className="inputLine">
+                        <label htmlFor="total_sugar_g">Total Sugar (g):</label>
+                        <input id="total_sugar_g" type="number" value={calc(formData.nutrition.total_sugar_g)} min={0} readOnly={true} tabIndex={-1} style={{backgroundColor:"lightgray"}} />
+                    </section>
+
+                    {/* Added Sugar (g) */}
+                    <section className="inputLine">
+                        <label htmlFor="added_sugar_g">Added Sugar (g):</label>
+                        <input id="added_sugar_g" type="number" value={calc(formData.nutrition.added_sugar_g)} min={0} readOnly={true} tabIndex={-1} style={{backgroundColor:"lightgray"}} />
+                    </section>
+
+                    {/* Protein (g) */}
+                    <section className="inputLine">
+                        <label htmlFor="protein_g">Protein (g):</label>
+                        <input id="protein_g" type="number" value={calc(formData.nutrition.protein_g)} min={0} readOnly={true} tabIndex={-1} style={{backgroundColor:"lightgray"}} />
+                    </section>
+                </section>
+
+                <section className="recipeNutritionColumn">
+                    {/* Vitamin D (mcg) */}
+                    <section className="inputLine">
+                        <label htmlFor="vitamin_d_mcg">Vitamin D (mcg):</label>
+                        <input id="vitamin_d_mcg" type="number" value={calc(formData.nutrition.vitamin_d_mcg)} min={0} readOnly={true} tabIndex={-1} style={{backgroundColor:"lightgray"}} />
+                    </section>
+
+                    {/* Calcium (mg) */}
+                    <section className="inputLine">
+                        <label htmlFor="calcium_mg">Calcium (mg):</label>
+                        <input id="calcium_mg" type="number" value={calc(formData.nutrition.calcium_mg)} min={0} readOnly={true} tabIndex={-1} style={{backgroundColor:"lightgray"}} />
+                    </section>
+
+                    {/* Iron (mg) */}
+                    <section className="inputLine">
+                        <label htmlFor="iron_mg">Iron (mg):</label>
+                        <input id="iron_mg" type="number" value={calc(formData.nutrition.iron_mg,1)} min={0} step="0.1" readOnly={true} tabIndex={-1} style={{backgroundColor:"lightgray"}} />
+                    </section>
+
+                    {/* Potassium (mg) */}
+                    <section className="inputLine">
+                        <label htmlFor="potassium_mg">Potassium (mg):</label>
+                        <input id="potassium_mg" type="number" value={calc(formData.nutrition.potassium_mg)} min={0} readOnly={true} tabIndex={-1} style={{backgroundColor:"lightgray"}}/>
+                    </section>
+
+                    {/* Price ($) */}
+                    <section className="inputLine">
+                        <label htmlFor="price">Price ($):</label>
+                        <input id="price" type="number" value={calc(formData.price, 2)} min={0} readOnly={true} tabIndex={-1} style={{backgroundColor:"lightgray"}} />
+                    </section>
+
+                    <p>Note: All data is per serving</p>
+                </section>
+            </section>
+
+            <section className="recipeListsBox">
+                <section className="ingredientsListBox">
+                    <IngredientsTable ingredients={ingredients} setSelectedRowId={setSelectedIngredientRowId}/>
+                </section>
+
+                <section className="ingredientsButtonsBox">
+                    <section className="ingredientsRadioButtonsBox">
+                        {/* Food Ingredients radio button */}
+                        <input type="radio" id="selectFoodIngredients" value={IngredientTypes.FOOD_INGREDIENTS}
+                            checked={selectedIngredientList === IngredientTypes.FOOD_INGREDIENTS}
+                            onChange={() => setSelectedIngredientList(IngredientTypes.FOOD_INGREDIENTS)} />
+                        <Tooltip content="Select Foods to add to this Recipe" showArrow={true} portalled={false}>
+                            <label htmlFor="selectFoodIngredients">Food Ingredients</label>
+                        </Tooltip>
+                        <br></br>
+
+                        {/* Recipe Ingredients radio button */}
+                        <input type="radio" id="selectRecipeIngredients" value={IngredientTypes.RECIPE_INGREDENTS} 
+                            checked={selectedIngredientList === IngredientTypes.RECIPE_INGREDENTS}
+                            onChange={() => setSelectedIngredientList(IngredientTypes.RECIPE_INGREDENTS)} />
+                        <Tooltip content="Select other Recipes to add to this Recipe" showArrow={true} portalled={false}>
+                            <label htmlFor="selectRecipeIngredients">Recipe Ingredients</label>
+                        </Tooltip>
+                    </section>
+                    <br/>
+
+                    {/* Servings input */}
+                    <section>
+                        <input id="ingredientServingsInput" type="number" value={ingredientServings} min={0}
+                            onChange={(e) => setIngredientServings(Number(e.target.value))} />
+                        <Tooltip content="Enter the number of Servings of the selected Food or Recipe to add to the Ingredients list" showArrow={true} portalled={false}>
+                            <label htmlFor="ingredientServingsInput"> Servings</label>
+                        </Tooltip>
+                    </section>
+                    <br/>
+
+                    {/* Add button */}
+                    <Tooltip content="Add the selected Food or Recipe from the table to the right to the Ingredients list in the table to the left.  Servings must be > 0." showArrow={true} portalled={false}>
+                        <button className="ingredientButton" 
+                                onClick={addIngredient} 
+                                style={selectedFoodOrRecipeRowId == null || ingredientServings === 0 ? {color: "gray"} : {}}
+                                disabled={selectedFoodOrRecipeRowId == null || ingredientServings === 0}>
+                            <IconContext.Provider value={selectedFoodOrRecipeRowId === null || ingredientServings === 0 ? {size: "30px"} : { size: "30px", color: "green"}}>
+                                <MdKeyboardDoubleArrowLeft/><p>Add</p>
+                            </IconContext.Provider>
+                        </button>
+                    </Tooltip>
+                    <br/>
+
+                    {/* Update button */}
+                    <Tooltip content="Update the number of Servings for the selected Ingredient in the table to the left.  Servings must be > 0" showArrow={true} portalled={false}>
+                        <button className="ingredientButton" 
+                                onClick={updateIngredient}
+                                style={selectedIngredientRowId == null || ingredientServings === 0 ? {color: "gray"} : {}}
+                                disabled={selectedIngredientRowId == null || ingredientServings === 0}>
+                            <IconContext.Provider value={selectedIngredientRowId === null || ingredientServings === 0 ? {size: "30px"} : { size: "30px", color: "orange"}}>
+                                <MdEdit/><p>Update</p>
+                            </IconContext.Provider>
+                        </button>
+                    </Tooltip>
+                    <br/>
+
+                    {/* Remove button */}
+                    <Tooltip content="Remove the selected Ingredient from the table to the left" showArrow={true} portalled={false}>
+                        <button className="ingredientButton"
+                                onClick={removeIngredient} 
+                                style={selectedIngredientRowId == null ? {color: "gray"} : {}}
+                                disabled={selectedIngredientRowId == null}>
+                            <IconContext.Provider value={selectedIngredientRowId === null ? {size: "30px"}: { size: "30px", color: "red"}}>
+                                <p>Remove</p><MdKeyboardDoubleArrowRight/>
+                            </IconContext.Provider>
+                        </button>
+                    </Tooltip>
+                    <br/>
+
+                    {/* Move Up button */}
+                    <Tooltip content="Move the selected Ingredient up in the list to the left" showArrow={true} portalled={false}>
+                    <button className="ingredientButton"
+                            onClick={moveIngredientUp}
+                            style={selectedIngredientRowId == null ? {color: "gray"} : {}}
+                            disabled={selectedIngredientRowId == null}>
+                        <IconContext.Provider value={selectedIngredientRowId === null ? {size: "30px"} : { size: "30px", color: "green"}}>
+                            <MdKeyboardArrowUp/><p>Up</p>
+                        </IconContext.Provider>
+                    </button>
+                    </Tooltip>
+                    <br/>
+
+                    {/* Move Down button */}
+                    <Tooltip content="Move the selected Ingredient down in the list to the left" showArrow={true} portalled={false}>
+                        <button className="ingredientButton"
+                                onClick={moveIngredientDown}
+                                style={selectedIngredientRowId == null ? {color: "gray"} : {}}
+                                disabled={selectedIngredientRowId == null}>
+                            <IconContext.Provider value={selectedIngredientRowId === null ? {size: "30px"} : { size: "30px", color: "green"}}>
+                                <MdKeyboardArrowDown/><p>Down</p>
+                            </IconContext.Provider>
+                        </button>
+                    </Tooltip>
+                </section>
+
+                <section className="foodsOrRecipesListBox">
+                    {(selectedIngredientList === IngredientTypes.FOOD_INGREDIENTS) ? 
+                        <FoodsTable setSelectedRowId={setSelectedFoodOrRecipeRowId} isRecipesForm={true}/> : 
+                        <RecipesTable setSelectedRowId={setSelectedFoodOrRecipeRowId}/>}
+                </section>
+            </section>
+
+            <section className="recipeFormButtonBox">
+                <button className="button" type="submit" disabled={saveIsDisabled}>Save</button>
+                <button className="button" onClick={handleCancel}>Cancel</button>
+            </section>
+
+            <p>{errorMessage}</p>
+        </form>
     );
 }
 
