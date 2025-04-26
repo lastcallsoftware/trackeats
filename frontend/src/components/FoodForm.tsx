@@ -39,15 +39,15 @@ function FoodForm() {
         throw Error("useDataContext can only be used inside a DataProvider")
     const errorMessage = context.errorMessage;
 
-    const handleSubmit = (e: { preventDefault: () => void; }) => {
+    const handleSubmit = async (e: { preventDefault: () => void; }) => {
         // Prevent default behavior for form submission (namely, sending the form to the server)
         e.preventDefault();
 
         // Save the new Food
         if (isEdit)
-            context.updateFood(formData);
+            await context.updateFood(formData);
         else
-            context.addFood(formData);
+            await context.addFood(formData);
         
         // Return to the Foods page
         navigate("/foods")
