@@ -76,7 +76,7 @@ export type DataContextType = {
     ingredients: IIngredient[];
     isLoading: boolean;
     errorMessage: string | null;
-    addFood: (food: IFood) => Promise<number|undefined>;
+    addFood: (food: IFood) => Promise<void>;
     updateFood: (food: IFood) => Promise<void>;
     deleteFood: (food_id: number) => Promise<void>;
     addRecipe: (recipe: IRecipe) => Promise<number|undefined>;
@@ -175,21 +175,18 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
     }, [access_token, handleError]);
 
     // Add Food
-    const addFood = async (food: IFood): Promise<number|undefined> => {
+    const addFood = async (food: IFood): Promise<void> => {
         setErrorMessage("");
-        let foodId = undefined
         try {
             // Add the Food record to the back end.
-            await axios.post("/food", food, {headers: { "Authorization": "Bearer " + access_token}})
+            const response = await axios.post("/food", food, {headers: { "Authorization": "Bearer " + access_token}})
+            const newFood = response.data
 
             // Add it to the Foods list state variable.
-            setFoods((prevFoods) => [...prevFoods, food])
-            foodId = food.id
+            setFoods((prev_foods) => [...prev_foods, newFood])
         } catch (error) {
             handleError(error)
         }
-
-        return foodId
     }
 
     // Update Food
@@ -232,15 +229,17 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
         setErrorMessage("");
         try {
             // Save the new recipe to the back end.
-            const response1 = await axios.post("/recipe", recipe, {headers: { "Authorization": "Bearer " + access_token}})
+            const response = await axios.post("/recipe", recipe, {headers: { "Authorization": "Bearer " + access_token}})
+            const new_recipe = response.data
+            recipe_id = new_recipe.id
 
             // Retrieve the newly created Recipe using the URL provided in 
             // the Location header in the response to the previous call.
-            const response2 = await axios.get(response1.headers["location"], {headers: { "Authorization": "Bearer " + access_token}})
-            recipe_id = response2.data.id
+            //const response2 = await axios.get(response1.headers["location"], {headers: { "Authorization": "Bearer " + access_token}})
+            //recipe_id = response2.data.id
 
             // Add the new Recipe to the recipes list state varaible.
-            setRecipes([...recipes, response2.data])
+            setRecipes((prev_recipes) => [...prev_recipes, new_recipe])
         } catch (error) {
             handleError(error)
         }
