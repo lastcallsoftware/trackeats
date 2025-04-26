@@ -270,8 +270,6 @@ const FoodsTable: React.FC<FoodsTableProps> = ({setSelectedRowId, isRecipesForm 
     // is greater than the maximum page, go to the last page.
     // To make this work you also need to add onPaginationChange to the table 
     // properties and a pagination state variable.
-    // I admit that I scarfed this ENTIRE FEATURE from ChatGPT.  We'll all
-    // be obsolete soon...
     const totalPages = table.getPageCount()
     useEffect(() => {
         if (pagination.pageIndex >= totalPages) {
