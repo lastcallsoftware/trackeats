@@ -389,7 +389,7 @@ def add_food():
 
         # Add the food to the database
         food = request.json
-        Food.add(user_id, food, True)
+        new_food = Food.add(user_id, food, True)
     except Exception as e:
         msg = f"Food record could not be added: {repr(e)}"
         logging.error(msg)
@@ -397,7 +397,7 @@ def add_food():
     else:
         msg = "Food record added"
         logging.info(msg)
-        return jsonify({"msg": msg}), 200
+        return jsonify(new_food), 200
 
 # Update Food
 @bp.route("/food", methods = ["PUT"])
@@ -411,7 +411,7 @@ def update_food():
 
         # Replace the database's record with the data in the request
         food = request.json
-        Food.update(user_id, food)
+        updated_food = Food.update(user_id, food)
     except Exception as e:
         msg = f"Food record could not be updated: {repr(e)}"
         logging.error(msg)
@@ -419,7 +419,7 @@ def update_food():
     else:
         msg = f"Food record updated"
         logging.info(msg)
-        return jsonify({"msg": msg}), 200
+        return jsonify(updated_food), 200
 
 # Delete Food
 @bp.route("/food/<int:food_id>", methods = ["DELETE"])
@@ -517,7 +517,7 @@ def add_recipe():
         serving_size_description = recipe["nutrition"]["serving_size_description"]
 
         # Add the recipe to the database
-        new_recipe_id = Recipe.add(
+        new_recipe = Recipe.add(
             user_id, 
             recipe["cuisine"],
             recipe["name"], 
@@ -530,11 +530,11 @@ def add_recipe():
         logging.error(msg)
         return jsonify({"msg": msg}), 400
     else:
-        msg = f"Recipe record {new_recipe_id} added"
+        msg = f"Recipe record {new_recipe.id} added"
         logging.info(msg)
-        resp = make_response(jsonify({"msg": msg}), 201)
+        resp = make_response(jsonify(new_recipe), 201)
         #resp.headers["Access-Control-Expose-Headers"] = f"Location"
-        resp.headers["Location"] = f"/recipe/{new_recipe_id}"
+        resp.headers["Location"] = f"/recipe/{new_recipe.id}"
         return resp
 
 # Update Recipe
@@ -549,7 +549,7 @@ def update_recipe():
 
         # Update the database's record with the data in the request
         recipe = request.json
-        Recipe.update(user_id, recipe)
+        updated_recipe = Recipe.update(user_id, recipe)
     except Exception as e:
         msg = f"Recipe record could not be updated: {repr(e)}"
         logging.error(msg)
@@ -557,7 +557,7 @@ def update_recipe():
     else:
         msg = "Recipe record updated"
         logging.info(msg)
-        return jsonify({"msg": msg}), 200
+        return jsonify(updated_recipe), 200
 
 # Delete Recipe
 @bp.route("/recipe/<int:recipe_id>", methods = ["DELETE"])
@@ -630,13 +630,15 @@ def add_ingredients(recipe_id:int):
 
         # Add the Ingredients to the database
         ingredients: list[dict[str,any]] = request.json
+        added_inrgedients = []
         for ingredient in ingredients:
             food_ingredient_id = ingredient.get("food_ingredient_id")
             recipe_ingredient_id = ingredient.get("recipe_ingredient_id")
             ordinal = ingredient.get("ordinal")
             servings = ingredient.get("servings")
             summary = ingredient.get("summary")
-            Ingredient.add(recipe_id, food_ingredient_id, recipe_ingredient_id, servings, summary, ordinal, False)
+            new_ingredient = Ingredient.add(recipe_id, food_ingredient_id, recipe_ingredient_id, servings, summary, ordinal, False)
+            added_inrgedients.append(new_ingredient)
         db.session.commit()
     except Exception as e:
         msg = f"Ingredient record(s) could not be added to Recipe {recipe_id}: {repr(e)}"
@@ -645,7 +647,7 @@ def add_ingredients(recipe_id:int):
     else:
         msg = f"{len(ingredients)} Ingredient records added to Recipe {recipe_id}"
         logging.info(msg)
-        return jsonify({"msg": msg}), 200
+        return jsonify(added_inrgedients), 200
 
 # Update a Food Ingredient for a Recipe
 @bp.route("/recipe/<int:recipe_id>/food_ingredient/<int:food_id>/<float:servings>", methods = ["PUT"])
@@ -662,7 +664,7 @@ def update_food_ingredient(recipe_id:int, food_id:int, servings:float):
 
         # Update the Ingredient record (this just means updating its servings 
         # field), and alter the Recipe's Nutrition data accordingly
-        recipe.update_food_ingredient(food_id=food_id, servings=servings)
+        updated_ingredient = recipe.update_food_ingredient(food_id=food_id, servings=servings)
     except Exception as e:
         msg = f"Food Ingredient record {recipe_id}/{food_id} could not be updated: {repr(e)}"
         logging.error(msg)
@@ -670,7 +672,7 @@ def update_food_ingredient(recipe_id:int, food_id:int, servings:float):
     else:
         msg = f"Food Ingredent record {recipe_id}/{food_id} updated"
         logging.info(msg)
-        return jsonify({"msg": msg}), 200
+        return jsonify(updated_ingredient), 200
     
 # Update a Recipe Ingredient for a Recipe
 @bp.route("/recipe/<int:recipe_id>/recipe_ingredient/<int:recipe_ingredient_id>/<float:servings>", methods = ["PUT"])
@@ -687,7 +689,7 @@ def update_recipe_ingredient(recipe_id:int, recipe_ingredient_id:int, servings:f
 
         # Update the Ingredient record (this just means updating its servings 
         # field), and alter the Recipe's Nutrition data accordingly
-        recipe.update_recipe_ingredient(recipe_id=recipe_ingredient_id, servings=servings)
+        updated_recipe_ingredient = recipe.update_recipe_ingredient(recipe_id=recipe_ingredient_id, servings=servings)
     except Exception as e:
         msg = f"Recipe Ingredient record {recipe_id}/{recipe_ingredient_id} could not be updated: {repr(e)}"
         logging.error(msg)
@@ -695,7 +697,7 @@ def update_recipe_ingredient(recipe_id:int, recipe_ingredient_id:int, servings:f
     else:
         msg = f"Recipe Ingredent record {recipe_id}/{recipe_ingredient_id} updated"
         logging.info(msg)
-        return jsonify({"msg": msg}), 200
+        return jsonify(updated_recipe_ingredient), 200
 
 # Remove all Ingredients for this Recipe
 @bp.route("/recipe/<int:recipe_id>/ingredient", methods = ["DELETE"])

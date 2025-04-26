@@ -496,7 +496,7 @@ class Food(db.Model):
     #   the database.  Set it to false when you want to add a bunch of records
     #   at once (calling this function multiple times), in which case the caller
     #   is required to commit the records afterwards (via db.session.commit()).
-    def add(user_id: int, food: dict[str, str|int|float], commit: bool) -> None:
+    def add(user_id: int, food: dict[str, str|int|float], commit: bool) -> dict[str, str|int|float]:
         try: 
             # Add the user_id field.
             food["user_id"] = user_id
@@ -513,11 +513,13 @@ class Food(db.Model):
 
             if commit:
                 db.session.commit()
+
+            return f.json()
         except Exception as e:
             raise ValueError("Food record could not be added: " + repr(e)) from e
 
     # Update an existing Food record.
-    def update(user_id: int, food: dict[str, str|int|float]) -> None:
+    def update(user_id: int, food: dict[str, str|int|float]) -> dict[str, str|int|float]:
         try:
             # Add the user_id field.
             food["user_id"] = user_id
@@ -544,6 +546,8 @@ class Food(db.Model):
                 raise ValueError(f"Expected to update 1 Food record but found {num_updates}.")
 
             db.session.commit()
+
+            return food
         except Exception as e:
             raise ValueError("Food record could not be updated: " + repr(e)) from e
 
@@ -598,7 +602,7 @@ class Ingredient(db.Model):
             recipe:Recipe = ingredient
             return f"{servings} x {recipe.name} ({ss_oz} oz/{ss_g} g)"
 
-    def add(recipe_id: int, food_ingredient_id: int, recipe_ingredient_id:int, servings: float, summary: str,  ordinal: int|None = None, commit: bool = True) -> None:
+    def add(recipe_id: int, food_ingredient_id: int, recipe_ingredient_id:int, servings: float, summary: str,  ordinal: int|None = None, commit: bool = True) -> dict[str, str|int|float]:
         try:
             # Check whether a matching Ingredient record already exists
             ingredient:Ingredient = Ingredient.query.filter_by(recipe_id=recipe_id, food_ingredient_id=food_ingredient_id, recipe_ingredient_id=recipe_ingredient_id).first()
@@ -638,6 +642,8 @@ class Ingredient(db.Model):
 
             if True:
                 db.session.commit()
+
+            return ingredient.json()
         except Exception as e:
             raise ValueError(f"Ingredient record {recipe_id}/{food_ingredient_id}/{recipe_ingredient_id} could not be added: " + repr(e)) from e
 
@@ -683,14 +689,14 @@ class Recipe(db.Model):
             "price": self.price
             }
     
-    # Returns the ID of the new Recipe record.
+    # Returns the new Recipe record.
     def add(user_id: int, 
             cuisine: str,
             name: str,
             total_yield: str, 
             servings: int, 
             serving_size_description: str, 
-            id: int = None) -> int:
+            id: int = None) -> dict[str, str|int|float]:
         try:
             recipe = Recipe()
             if id is not None:
@@ -709,8 +715,8 @@ class Recipe(db.Model):
             db.session.add(recipe)
             db.session.commit()
 
-            # Return the ID of the new Recipe record.
-            return recipe.id
+            # Return the new Recipe record.
+            return recipe.json()
         except Exception as e:
             raise ValueError("Recipe record could not be added: " + repr(e)) from e
 
@@ -721,7 +727,7 @@ class Recipe(db.Model):
     # their own separate API calls.
     # Therefore this API call only affects the Recipe record's own data
     # fields, not those of its child records.
-    def update(user_id: int, recipe: dict) -> None:
+    def update(user_id: int, recipe: dict) -> dict[str, str|int|float]:
         # Add the user_id field.
         recipe["user_id"] = user_id
 
@@ -745,8 +751,10 @@ class Recipe(db.Model):
 
         db.session.commit()
 
+        return recipe
+
     # Update a Food Ingredient.
-    def update_food_ingredient(self, food_id: int, servings: int) -> None:
+    def update_food_ingredient(self, food_id: int, servings: int) -> dict[str, str|int|float]:
         logging.info(f"Updating Food Ingredient {self.id}/{food_id}")
 
         # Find the Ingredient record that links the Recipe to the Food.
@@ -773,11 +781,12 @@ class Recipe(db.Model):
 
         # Commit the changes.
         db.session.commit()
-
         logging.info(f"Food Ingredient {self.id}/{food_id} updated")
 
+        return ingredient.json()
+
     # Update a Recipe Ingredient.
-    def update_recipe_ingredient(self, recipe_id: int, servings: int) -> None:
+    def update_recipe_ingredient(self, recipe_id: int, servings: int) -> dict[str, str|int|float]:
         logging.info(f"Updating Recipe Ingredient {self.id}/{recipe_id}")
 
         # Find the Ingredient record that links the Recipe to the Recipe.
@@ -804,9 +813,10 @@ class Recipe(db.Model):
 
         # Commit the changes.
         db.session.commit()
-
         logging.info(f"Recipe Ingredient {self.id}/{recipe_id} updated")
-        
+
+        return ingredient.json()
+
     # Remove a Food Ingredient from the Recipe.
     def remove_food_ingredient(self, food_id: int) -> None:
         logging.info(f"Removing Food Ingredient {self.id}/{food_id}")
@@ -831,7 +841,6 @@ class Recipe(db.Model):
 
         # Commit the changes.
         db.session.commit()
-
         logging.info(f"Food Ingredient {self.id}/{food_id} removed")
 
     # Remove a Recipe Ingredient from the Recipe.
