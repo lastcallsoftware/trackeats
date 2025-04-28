@@ -467,7 +467,7 @@ class Food(db.Model):
     
     def json(self):
         price_date = ""
-        if (self.price_date):
+        if (self.price_date and type(self.price_date) == datetime.date):
             price_date = datetime.datetime.strftime(self.price_date, "%Y-%m-%d")
         return {
             "id": self.id,
