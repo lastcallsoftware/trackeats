@@ -39,7 +39,7 @@ export default defineConfig({
   //  origin: "http://0.0.0.0:80",
   },
   build: {
-    chunkSizeWarningLimit: 650
+    chunkSizeWarningLimit: 700
   }
 })
  

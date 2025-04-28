@@ -32,6 +32,8 @@ console.log("import.meta.env.MODE:", import.meta.env.MODE)
 console.log("import.meta.env.VITE_BACKEND_BASE_URL:", import.meta.env.VITE_BACKEND_BASE_URL)
 axios.defaults.baseURL = import.meta.env.VITE_BACKEND_BASE_URL
 axios.defaults.timeout = 4000
+console.log("import.meta.env.VITE_PORTFOLIO_URL:", import.meta.env.VITE_PORTFOLIO_URL)
+const portfolioUrl = import.meta.env.VITE_PORTFOLIO_URL
 
 function Nav() {
     const [isAuthenticated, setAuthenticated] = useState(sessionStorage.getItem("access_token") != null);
@@ -47,7 +49,7 @@ function Nav() {
     }
 
     const handleAboutMeClick = () => {
-        window.location.href = "../../portfolio/index.html";
+        window.location.href = portfolioUrl;
         return null;
     }
 

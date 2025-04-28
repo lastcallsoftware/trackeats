@@ -1,4 +1,4 @@
-import logo from '../assets/lcs3.png';
+import logo from '../assets/lcs-1280x501.png';
 import { Image } from '@chakra-ui/react';
 
 function Footer() {

@@ -1,5 +1,5 @@
 import { Image } from '@chakra-ui/react';
-import logo from '../assets/trackeats.png';
+import logo from '../assets/trackeats-1280x873.png';
 
 function Header() {
     return (
