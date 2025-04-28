@@ -1,6 +1,6 @@
 [
     {
-        "id": 127,
+        "id": 1,
         "recipe_id": 2,
         "food_ingredient_id": 235,
         "recipe_ingredient_id": null,
@@ -9,7 +9,7 @@
         "summary": "1.0 x (1 can drained) Fish, Tuna, Canned (4.0 oz/113 g)"
     },
     {
-        "id": 128,
+        "id": 2,
         "recipe_id": 2,
         "food_ingredient_id": 108,
         "recipe_ingredient_id": null,
@@ -18,16 +18,16 @@
         "summary": "4.0 x (1 slice) Bread, Whole Wheat (4.0 oz/104 g)"
     },
     {
-        "id": 129,
+        "id": 3,
         "recipe_id": 2,
         "food_ingredient_id": 24,
         "recipe_ingredient_id": null,
         "ordinal": 2,
         "servings": 2.0,
-        "summary": "2.0 x (1 tbsp) Mayonnaise, Squeeze, Light (1.0 oz/30 g)"
+        "summary": "2.0 x (1 tbsp) Mayonnaise, Squeezable, Light (1.0 oz/30 g)"
     },
     {
-        "id": 130,
+        "id": 4,
         "recipe_id": 2,
         "food_ingredient_id": 312,
         "recipe_ingredient_id": null,
@@ -36,7 +36,7 @@
         "summary": "1.0 x (1.5 cups ~ 4 leaves) Lettuce, Romaine (3.0 oz/85 g)"
     },
     {
-        "id": 131,
+        "id": 5,
         "recipe_id": 2,
         "food_ingredient_id": 359,
         "recipe_ingredient_id": null,
@@ -45,7 +45,7 @@
         "summary": "1.0 x (1 tomato) Tomatoes, Fresh, Plum (aka Roma) (2.2 oz/62 g)"
     },
     {
-        "id": 132,
+        "id": 6,
         "recipe_id": 2,
         "food_ingredient_id": 181,
         "recipe_ingredient_id": null,
@@ -54,70 +54,7 @@
         "summary": "0.25 x (1 tsp) Peppercorns, Whole (0.0 oz/0 g)"
     },
     {
-        "id": 133,
-        "recipe_id": 3,
-        "food_ingredient_id": 106,
-        "recipe_ingredient_id": null,
-        "ordinal": 0,
-        "servings": 1.0,
-        "summary": "1.0 x (1 bagel) Bagel, Mixed Frozen (5.0 oz/136 g)"
-    },
-    {
-        "id": 134,
-        "recipe_id": 3,
-        "food_ingredient_id": 221,
-        "recipe_ingredient_id": null,
-        "ordinal": 1,
-        "servings": 2.0,
-        "summary": "2.0 x (1 large egg white) Egg White, Large Brown (2.4 oz/66 g)"
-    },
-    {
-        "id": 135,
-        "recipe_id": 3,
-        "food_ingredient_id": 260,
-        "recipe_ingredient_id": null,
-        "ordinal": 2,
-        "servings": 1.0,
-        "summary": "1.0 x (1 patty) Sausage, Breakfast Patties (1.2 oz/33 g)"
-    },
-    {
-        "id": 136,
-        "recipe_id": 3,
-        "food_ingredient_id": 33,
-        "recipe_ingredient_id": null,
-        "ordinal": 3,
-        "servings": 2.0,
-        "summary": "2.0 x (1 tsp) Sriracha Sauce (0.4 oz/10 g)"
-    },
-    {
-        "id": 137,
-        "recipe_id": 3,
-        "food_ingredient_id": 59,
-        "recipe_ingredient_id": null,
-        "ordinal": 4,
-        "servings": 1.0,
-        "summary": "1.0 x (1/4 cup grated) Cheese, Parmesan, Block (1.0 oz/28 g)"
-    },
-    {
-        "id": 138,
-        "recipe_id": 3,
-        "food_ingredient_id": 181,
-        "recipe_ingredient_id": null,
-        "ordinal": 5,
-        "servings": 0.25,
-        "summary": "0.25 x (1 tsp) Peppercorns, Whole (0.0 oz/0 g)"
-    },
-    {
-        "id": 139,
-        "recipe_id": 3,
-        "food_ingredient_id": 184,
-        "recipe_ingredient_id": null,
-        "ordinal": 6,
-        "servings": 1.0,
-        "summary": "1.0 x (1/4 tsp) MySalt (0.0 oz/1 g)"
-    },
-    {
-        "id": 140,
+        "id": 14,
         "recipe_id": 4,
         "food_ingredient_id": 125,
         "recipe_ingredient_id": null,
@@ -126,7 +63,7 @@
         "summary": "8.0 x (1/4 cup = 4 tbsp) Flour, All-Purpose Unbleached (8.0 oz/240 g)"
     },
     {
-        "id": 141,
+        "id": 15,
         "recipe_id": 4,
         "food_ingredient_id": 128,
         "recipe_ingredient_id": null,
@@ -135,7 +72,7 @@
         "summary": "8.0 x (1/4 cup = 4 tbsp) Flour, Tipo \"00\" (8.0 oz/240 g)"
     },
     {
-        "id": 142,
+        "id": 16,
         "recipe_id": 4,
         "food_ingredient_id": 370,
         "recipe_ingredient_id": null,
@@ -144,7 +81,7 @@
         "summary": "1.0 x (1 packet) Active Dry Yeast (0.2 oz/7 g)"
     },
     {
-        "id": 143,
+        "id": 17,
         "recipe_id": 4,
         "food_ingredient_id": 184,
         "recipe_ingredient_id": null,
@@ -153,7 +90,7 @@
         "summary": "8.0 x (1/4 tsp) MySalt (0.3 oz/8 g)"
     },
     {
-        "id": 144,
+        "id": 18,
         "recipe_id": 4,
         "food_ingredient_id": 177,
         "recipe_ingredient_id": null,
@@ -162,7 +99,7 @@
         "summary": "1.0 x (1 tsp) Oregano, Dried (0.0 oz/1 g)"
     },
     {
-        "id": 145,
+        "id": 19,
         "recipe_id": 4,
         "food_ingredient_id": 148,
         "recipe_ingredient_id": null,
@@ -171,7 +108,7 @@
         "summary": "1.0 x (1 tsp) Basil, Dried, Ground (0.0 oz/1 g)"
     },
     {
-        "id": 146,
+        "id": 20,
         "recipe_id": 4,
         "food_ingredient_id": 166,
         "recipe_ingredient_id": null,
@@ -180,7 +117,7 @@
         "summary": "0.5 x (1 tsp) Garlic Powder, Dried, Ground (0.1 oz/2 g)"
     },
     {
-        "id": 147,
+        "id": 21,
         "recipe_id": 4,
         "food_ingredient_id": 100,
         "recipe_ingredient_id": null,
@@ -189,7 +126,7 @@
         "summary": "0.33 x (1 tbsp) Oil, Olive (0.2 oz/5 g)"
     },
     {
-        "id": 148,
+        "id": 22,
         "recipe_id": 7,
         "food_ingredient_id": 343,
         "recipe_ingredient_id": null,
@@ -198,7 +135,7 @@
         "summary": "4.0 x (1 shallot ~ 1/2 cup chopped raw) Shallots (12.8 oz/360 g)"
     },
     {
-        "id": 149,
+        "id": 23,
         "recipe_id": 7,
         "food_ingredient_id": 165,
         "recipe_ingredient_id": null,
@@ -207,7 +144,7 @@
         "summary": "40.0 x (1 clove) Garlic, Fresh (4.0 oz/120 g)"
     },
     {
-        "id": 150,
+        "id": 24,
         "recipe_id": 7,
         "food_ingredient_id": 168,
         "recipe_ingredient_id": null,
@@ -216,7 +153,7 @@
         "summary": "2.0 x (1/2 cup chopped = 8 tbsp) Ginger, Fresh (3.0 oz/88 g)"
     },
     {
-        "id": 151,
+        "id": 25,
         "recipe_id": 7,
         "food_ingredient_id": 20,
         "recipe_ingredient_id": null,
@@ -225,7 +162,7 @@
         "summary": "1.0 x (1 tbsp) Lemon Juice, Fresh Squeezed (0.5 oz/15 g)"
     },
     {
-        "id": 152,
+        "id": 26,
         "recipe_id": 7,
         "food_ingredient_id": 309,
         "recipe_ingredient_id": null,
@@ -234,7 +171,7 @@
         "summary": "2.0 x (1 stalk peeled ~ 1/2 cup chopped) Lemongrass (2.4 oz/68 g)"
     },
     {
-        "id": 153,
+        "id": 27,
         "recipe_id": 7,
         "food_ingredient_id": 422,
         "recipe_ingredient_id": null,
@@ -243,7 +180,7 @@
         "summary": "1.0 x (1/4 cup) Cashews, Roasted Unsalted (1.0 oz/30 g)"
     },
     {
-        "id": 154,
+        "id": 28,
         "recipe_id": 7,
         "food_ingredient_id": 336,
         "recipe_ingredient_id": null,
@@ -252,7 +189,7 @@
         "summary": "2.0 x (2 peppers) Peppers, Bird's Eye aka Thai Chili, Dried (0.1 oz/2 g)"
     },
     {
-        "id": 155,
+        "id": 29,
         "recipe_id": 7,
         "food_ingredient_id": 150,
         "recipe_ingredient_id": null,
@@ -261,7 +198,7 @@
         "summary": "3.0 x (1 tsp ~ 3 leaves) Bay Leaves, Dried (0.1 oz/3 g)"
     },
     {
-        "id": 156,
+        "id": 30,
         "recipe_id": 7,
         "food_ingredient_id": 103,
         "recipe_ingredient_id": null,
@@ -270,7 +207,7 @@
         "summary": "3.0 x (2 tsp) Sugar, Light Brown (0.9 oz/24 g)"
     },
     {
-        "id": 157,
+        "id": 31,
         "recipe_id": 7,
         "food_ingredient_id": 188,
         "recipe_ingredient_id": null,
@@ -279,7 +216,7 @@
         "summary": "6.0 x (1 tsp) Turmeric, Ground (0.4 oz/12 g)"
     },
     {
-        "id": 158,
+        "id": 32,
         "recipe_id": 7,
         "food_ingredient_id": 183,
         "recipe_ingredient_id": null,
@@ -288,7 +225,7 @@
         "summary": "12.0 x (1/4 tsp) Salt, Iodized (0.6 oz/24 g)"
     },
     {
-        "id": 159,
+        "id": 33,
         "recipe_id": 7,
         "food_ingredient_id": 100,
         "recipe_ingredient_id": null,
@@ -297,7 +234,7 @@
         "summary": "2.0 x (1 tbsp) Oil, Olive (1.0 oz/30 g)"
     },
     {
-        "id": 160,
+        "id": 34,
         "recipe_id": 7,
         "food_ingredient_id": 447,
         "recipe_ingredient_id": null,
@@ -306,7 +243,7 @@
         "summary": "0.25 x (1 cup) Water (2.0 oz/59 g)"
     },
     {
-        "id": 161,
+        "id": 35,
         "recipe_id": 1,
         "food_ingredient_id": 207,
         "recipe_ingredient_id": null,
@@ -315,7 +252,7 @@
         "summary": "5.0 x (0.4 breasts) Chicken Breast, Boneless, Skinless (20.0 oz/565 g)"
     },
     {
-        "id": 162,
+        "id": 36,
         "recipe_id": 1,
         "food_ingredient_id": 138,
         "recipe_ingredient_id": null,
@@ -324,7 +261,7 @@
         "summary": "4.0 x (1/4 cup dry -> 3/4 cups cooked) Rice, Basmati (6.4 oz/180 g)"
     },
     {
-        "id": 163,
+        "id": 37,
         "recipe_id": 1,
         "food_ingredient_id": 320,
         "recipe_ingredient_id": null,
@@ -333,7 +270,7 @@
         "summary": "1.0 x (1 onion) Onion, Yellow (5.2 oz/148 g)"
     },
     {
-        "id": 164,
+        "id": 38,
         "recipe_id": 1,
         "food_ingredient_id": 324,
         "recipe_ingredient_id": null,
@@ -342,16 +279,16 @@
         "summary": "1.0 x (2/3 cup) Peas, Frozen, Green (3.2 oz/90 g)"
     },
     {
-        "id": 165,
+        "id": 39,
         "recipe_id": 1,
         "food_ingredient_id": 7,
         "recipe_ingredient_id": null,
         "ordinal": 4,
         "servings": 2.0,
-        "summary": "2.0 x (1 cup) Broth, Vegetable (16.0 oz/480 g)"
+        "summary": "2.0 x (1 cup) Vegetable Broth, Low-Sodium (16.0 oz/480 g)"
     },
     {
-        "id": 166,
+        "id": 40,
         "recipe_id": 1,
         "food_ingredient_id": 100,
         "recipe_ingredient_id": null,
@@ -360,7 +297,7 @@
         "summary": "2.0 x (1 tbsp) Oil, Olive (1.0 oz/30 g)"
     },
     {
-        "id": 167,
+        "id": 41,
         "recipe_id": 1,
         "food_ingredient_id": 178,
         "recipe_ingredient_id": null,
@@ -369,7 +306,7 @@
         "summary": "2.0 x (1 tsp) Paprika, Dried (0.2 oz/6 g)"
     },
     {
-        "id": 168,
+        "id": 42,
         "recipe_id": 1,
         "food_ingredient_id": 177,
         "recipe_ingredient_id": null,
@@ -378,7 +315,7 @@
         "summary": "1.0 x (1 tsp) Oregano, Dried (0.0 oz/1 g)"
     },
     {
-        "id": 169,
+        "id": 43,
         "recipe_id": 1,
         "food_ingredient_id": 187,
         "recipe_ingredient_id": null,
@@ -387,7 +324,7 @@
         "summary": "1.0 x (1 tsp) Thyme, Dried (0.1 oz/1 g)"
     },
     {
-        "id": 170,
+        "id": 44,
         "recipe_id": 1,
         "food_ingredient_id": 166,
         "recipe_ingredient_id": null,
@@ -396,7 +333,7 @@
         "summary": "0.5 x (1 tsp) Garlic Powder, Dried, Ground (0.1 oz/2 g)"
     },
     {
-        "id": 171,
+        "id": 45,
         "recipe_id": 1,
         "food_ingredient_id": 176,
         "recipe_ingredient_id": null,
@@ -405,7 +342,7 @@
         "summary": "0.5 x (1 tsp) Onion Powder, Ground (0.0 oz/1 g)"
     },
     {
-        "id": 172,
+        "id": 46,
         "recipe_id": 1,
         "food_ingredient_id": 181,
         "recipe_ingredient_id": null,
@@ -414,7 +351,7 @@
         "summary": "0.25 x (1 tsp) Peppercorns, Whole (0.0 oz/0 g)"
     },
     {
-        "id": 173,
+        "id": 47,
         "recipe_id": 1,
         "food_ingredient_id": 184,
         "recipe_ingredient_id": null,
@@ -423,7 +360,7 @@
         "summary": "1.0 x (1/4 tsp) MySalt (0.0 oz/1 g)"
     },
     {
-        "id": 174,
+        "id": 48,
         "recipe_id": 8,
         "food_ingredient_id": null,
         "recipe_ingredient_id": 7,
@@ -432,7 +369,7 @@
         "summary": "4.0 x Bumbu Bali Chile Paste (0.0 oz/0 g)"
     },
     {
-        "id": 175,
+        "id": 49,
         "recipe_id": 8,
         "food_ingredient_id": 70,
         "recipe_ingredient_id": null,
@@ -441,7 +378,7 @@
         "summary": "5.0 x (1/3 cup) Coconut Milk, Lite (13.5 oz/400 g)"
     },
     {
-        "id": 176,
+        "id": 50,
         "recipe_id": 8,
         "food_ingredient_id": 207,
         "recipe_ingredient_id": null,
@@ -450,7 +387,7 @@
         "summary": "5.0 x (0.4 breasts) Chicken Breast, Boneless, Skinless (20.0 oz/565 g)"
     },
     {
-        "id": 177,
+        "id": 51,
         "recipe_id": 8,
         "food_ingredient_id": 339,
         "recipe_ingredient_id": null,
@@ -459,7 +396,7 @@
         "summary": "2.0 x (1/2 potato) Potatoes, Russet (10.0 oz/296 g)"
     },
     {
-        "id": 178,
+        "id": 52,
         "recipe_id": 8,
         "food_ingredient_id": 448,
         "recipe_ingredient_id": null,
@@ -468,7 +405,7 @@
         "summary": "4.0 x (1/2 cup chopped ~ 1/4 jumbo carrot) Carrots, Jumbo (8.8 oz/256 g)"
     },
     {
-        "id": 179,
+        "id": 53,
         "recipe_id": 8,
         "food_ingredient_id": 138,
         "recipe_ingredient_id": null,
@@ -477,7 +414,7 @@
         "summary": "4.0 x (1/4 cup dry -> 3/4 cups cooked) Rice, Basmati (6.4 oz/180 g)"
     },
     {
-        "id": 180,
+        "id": 54,
         "recipe_id": 10,
         "food_ingredient_id": 339,
         "recipe_ingredient_id": null,
@@ -486,7 +423,7 @@
         "summary": "2.0 x (1/2 potato) Potatoes, Russet (10.0 oz/296 g)"
     },
     {
-        "id": 181,
+        "id": 55,
         "recipe_id": 10,
         "food_ingredient_id": 100,
         "recipe_ingredient_id": null,
@@ -495,7 +432,7 @@
         "summary": "0.67 x (1 tbsp) Oil, Olive (0.3 oz/10 g)"
     },
     {
-        "id": 182,
+        "id": 56,
         "recipe_id": 10,
         "food_ingredient_id": 166,
         "recipe_ingredient_id": null,
@@ -504,7 +441,7 @@
         "summary": "1.0 x (1 tsp) Garlic Powder, Dried, Ground (0.1 oz/3 g)"
     },
     {
-        "id": 183,
+        "id": 57,
         "recipe_id": 10,
         "food_ingredient_id": 178,
         "recipe_ingredient_id": null,
@@ -513,7 +450,7 @@
         "summary": "1.0 x (1 tsp) Paprika, Dried (0.1 oz/3 g)"
     },
     {
-        "id": 184,
+        "id": 58,
         "recipe_id": 10,
         "food_ingredient_id": 177,
         "recipe_ingredient_id": null,
@@ -522,7 +459,7 @@
         "summary": "1.0 x (1 tsp) Oregano, Dried (0.0 oz/1 g)"
     },
     {
-        "id": 185,
+        "id": 59,
         "recipe_id": 10,
         "food_ingredient_id": 184,
         "recipe_ingredient_id": null,
@@ -531,7 +468,7 @@
         "summary": "1.0 x (1/4 tsp) MySalt (0.0 oz/1 g)"
     },
     {
-        "id": 186,
+        "id": 60,
         "recipe_id": 11,
         "food_ingredient_id": 207,
         "recipe_ingredient_id": null,
@@ -540,7 +477,7 @@
         "summary": "5.0 x (0.4 breasts) Chicken Breast, Boneless, Skinless (20.0 oz/565 g)"
     },
     {
-        "id": 187,
+        "id": 61,
         "recipe_id": 11,
         "food_ingredient_id": 98,
         "recipe_ingredient_id": null,
@@ -549,7 +486,7 @@
         "summary": "3.0 x (1 tbsp) Oil, Canola (1.5 oz/45 g)"
     },
     {
-        "id": 188,
+        "id": 62,
         "recipe_id": 11,
         "food_ingredient_id": 220,
         "recipe_ingredient_id": null,
@@ -558,7 +495,7 @@
         "summary": "1.0 x (1 large egg) Egg, Large Brown (1.8 oz/50 g)"
     },
     {
-        "id": 189,
+        "id": 63,
         "recipe_id": 11,
         "food_ingredient_id": 121,
         "recipe_ingredient_id": null,
@@ -567,7 +504,7 @@
         "summary": "4.33 x (1 tbsp) Corn Starch (1.3 oz/35 g)"
     },
     {
-        "id": 190,
+        "id": 64,
         "recipe_id": 11,
         "food_ingredient_id": 336,
         "recipe_ingredient_id": null,
@@ -576,7 +513,7 @@
         "summary": "4.0 x (2 peppers) Peppers, Bird's Eye aka Thai Chili, Dried (0.2 oz/4 g)"
     },
     {
-        "id": 191,
+        "id": 65,
         "recipe_id": 11,
         "food_ingredient_id": 165,
         "recipe_ingredient_id": null,
@@ -585,7 +522,7 @@
         "summary": "2.0 x (1 clove) Garlic, Fresh (0.2 oz/6 g)"
     },
     {
-        "id": 192,
+        "id": 66,
         "recipe_id": 11,
         "food_ingredient_id": 181,
         "recipe_ingredient_id": null,
@@ -594,7 +531,7 @@
         "summary": "1.0 x (1 tsp) Peppercorns, Whole (0.1 oz/2 g)"
     },
     {
-        "id": 193,
+        "id": 67,
         "recipe_id": 11,
         "food_ingredient_id": 184,
         "recipe_ingredient_id": null,
@@ -603,7 +540,7 @@
         "summary": "2.0 x (1/4 tsp) MySalt (0.1 oz/2 g)"
     },
     {
-        "id": 194,
+        "id": 68,
         "recipe_id": 11,
         "food_ingredient_id": 18,
         "recipe_ingredient_id": null,
@@ -612,7 +549,7 @@
         "summary": "8.0 x (1 tbsp) Ketchup, Squeezable, No Salt Added (4.8 oz/136 g)"
     },
     {
-        "id": 195,
+        "id": 69,
         "recipe_id": 11,
         "food_ingredient_id": 8,
         "recipe_ingredient_id": null,
@@ -621,7 +558,7 @@
         "summary": "12.0 x (1 tsp) Chili Sauce, Sweet Red (2.4 oz/72 g)"
     },
     {
-        "id": 196,
+        "id": 70,
         "recipe_id": 11,
         "food_ingredient_id": 11,
         "recipe_ingredient_id": null,
@@ -630,16 +567,16 @@
         "summary": "2.0 x (1 tbsp) Coconut Aminos (1.0 oz/30 g)"
     },
     {
-        "id": 197,
+        "id": 71,
         "recipe_id": 11,
         "food_ingredient_id": 5,
         "recipe_ingredient_id": null,
         "ordinal": 11,
         "servings": 1.0,
-        "summary": "1.0 x (1 packet makes 1 cup) Bouillon, Granulated, Chicken (0.1 oz/4 g)"
+        "summary": "1.0 x (1 packet makes 1 cup) Chicken Bouillon, Granulated, Sodium Free (0.1 oz/4 g)"
     },
     {
-        "id": 198,
+        "id": 72,
         "recipe_id": 11,
         "food_ingredient_id": 138,
         "recipe_ingredient_id": null,
@@ -648,7 +585,7 @@
         "summary": "4.0 x (1/4 cup dry -> 3/4 cups cooked) Rice, Basmati (6.4 oz/180 g)"
     },
     {
-        "id": 199,
+        "id": 73,
         "recipe_id": 11,
         "food_ingredient_id": 44,
         "recipe_ingredient_id": null,
@@ -657,7 +594,7 @@
         "summary": "1.0 x (1 tbsp) Vinegar, Rice, Unseasoned (0.5 oz/15 g)"
     },
     {
-        "id": 200,
+        "id": 74,
         "recipe_id": 11,
         "food_ingredient_id": 342,
         "recipe_ingredient_id": null,
@@ -666,7 +603,7 @@
         "summary": "1.0 x (1-2 scallions ~ 1/4 cup chopped) Scallions (0.9 oz/25 g)"
     },
     {
-        "id": 201,
+        "id": 75,
         "recipe_id": 12,
         "food_ingredient_id": 108,
         "recipe_ingredient_id": null,
@@ -675,7 +612,7 @@
         "summary": "2.0 x (1 slice) Bread, Whole Wheat (2.0 oz/52 g)"
     },
     {
-        "id": 202,
+        "id": 76,
         "recipe_id": 12,
         "food_ingredient_id": 426,
         "recipe_ingredient_id": null,
@@ -684,7 +621,7 @@
         "summary": "1.0 x (2 tbsp) Peanut Butter, Super Chunk (1.1 oz/32 g)"
     },
     {
-        "id": 203,
+        "id": 77,
         "recipe_id": 12,
         "food_ingredient_id": 390,
         "recipe_ingredient_id": null,
@@ -693,7 +630,7 @@
         "summary": "1.0 x (1 tbsp) Jelly, Wild Blueberry Preserves (0.7 oz/20 g)"
     },
     {
-        "id": 204,
+        "id": 78,
         "recipe_id": 6,
         "food_ingredient_id": null,
         "recipe_ingredient_id": 4,
@@ -702,7 +639,7 @@
         "summary": "1.0 x Pizza Dough (0.0 oz/0 g)"
     },
     {
-        "id": 205,
+        "id": 79,
         "recipe_id": 6,
         "food_ingredient_id": null,
         "recipe_ingredient_id": 5,
@@ -711,7 +648,7 @@
         "summary": "1.0 x Pizza Sauce (0.0 oz/0 g)"
     },
     {
-        "id": 206,
+        "id": 80,
         "recipe_id": 6,
         "food_ingredient_id": 57,
         "recipe_ingredient_id": null,
@@ -720,7 +657,7 @@
         "summary": "4.0 x (1/4 cup) Cheese, Mozzarella, Unsalted, Block (4.0 oz/112 g)"
     },
     {
-        "id": 207,
+        "id": 81,
         "recipe_id": 6,
         "food_ingredient_id": 262,
         "recipe_ingredient_id": null,
@@ -729,7 +666,7 @@
         "summary": "1.0 x (1 link cooked) Sausage, Hot Italian Pork (2.0 oz/59 g)"
     },
     {
-        "id": 208,
+        "id": 82,
         "recipe_id": 6,
         "food_ingredient_id": 319,
         "recipe_ingredient_id": null,
@@ -738,7 +675,7 @@
         "summary": "0.5 x (1/2 onion ~ 1/2 cup chopped) Onion, Red (1.4 oz/40 g)"
     },
     {
-        "id": 209,
+        "id": 83,
         "recipe_id": 6,
         "food_ingredient_id": 282,
         "recipe_ingredient_id": null,
@@ -747,7 +684,7 @@
         "summary": "0.33 x (1 pepper cleaned) Bell Pepper, Green (1.7 oz/49 g)"
     },
     {
-        "id": 210,
+        "id": 84,
         "recipe_id": 6,
         "food_ingredient_id": 313,
         "recipe_ingredient_id": null,
@@ -756,16 +693,16 @@
         "summary": "0.5 x (1 cup) Mushrooms, Baby Bella (Cremini), Packaged (1.5 oz/44 g)"
     },
     {
-        "id": 211,
+        "id": 85,
         "recipe_id": 6,
         "food_ingredient_id": 182,
         "recipe_ingredient_id": null,
         "ordinal": 7,
         "servings": 1.0,
-        "summary": "1.0 x (1 tsp) Red Pepper, Crushed (0.1 oz/2 g)"
+        "summary": "1.0 x (1 tsp) Crushed Red Pepper (0.1 oz/2 g)"
     },
     {
-        "id": 212,
+        "id": 86,
         "recipe_id": 9,
         "food_ingredient_id": null,
         "recipe_ingredient_id": 4,
@@ -774,7 +711,7 @@
         "summary": "1.0 x Pizza Dough (0.0 oz/0 g)"
     },
     {
-        "id": 213,
+        "id": 87,
         "recipe_id": 9,
         "food_ingredient_id": null,
         "recipe_ingredient_id": 5,
@@ -783,7 +720,7 @@
         "summary": "1.0 x Pizza Sauce (0.0 oz/0 g)"
     },
     {
-        "id": 214,
+        "id": 88,
         "recipe_id": 9,
         "food_ingredient_id": 57,
         "recipe_ingredient_id": null,
@@ -792,7 +729,7 @@
         "summary": "4.0 x (1/4 cup) Cheese, Mozzarella, Unsalted, Block (4.0 oz/112 g)"
     },
     {
-        "id": 215,
+        "id": 89,
         "recipe_id": 9,
         "food_ingredient_id": 319,
         "recipe_ingredient_id": null,
@@ -801,7 +738,7 @@
         "summary": "0.5 x (1/2 onion ~ 1/2 cup chopped) Onion, Red (1.4 oz/40 g)"
     },
     {
-        "id": 216,
+        "id": 90,
         "recipe_id": 9,
         "food_ingredient_id": 282,
         "recipe_ingredient_id": null,
@@ -810,7 +747,7 @@
         "summary": "0.33 x (1 pepper cleaned) Bell Pepper, Green (1.7 oz/49 g)"
     },
     {
-        "id": 217,
+        "id": 91,
         "recipe_id": 9,
         "food_ingredient_id": 313,
         "recipe_ingredient_id": null,
@@ -819,16 +756,16 @@
         "summary": "0.5 x (1 cup) Mushrooms, Baby Bella (Cremini), Packaged (1.5 oz/44 g)"
     },
     {
-        "id": 218,
+        "id": 92,
         "recipe_id": 9,
         "food_ingredient_id": 182,
         "recipe_ingredient_id": null,
         "ordinal": 6,
         "servings": 1.0,
-        "summary": "1.0 x (1 tsp) Red Pepper, Crushed (0.1 oz/2 g)"
+        "summary": "1.0 x (1 tsp) Crushed Red Pepper (0.1 oz/2 g)"
     },
     {
-        "id": 219,
+        "id": 93,
         "recipe_id": 5,
         "food_ingredient_id": 361,
         "recipe_ingredient_id": null,
@@ -837,7 +774,7 @@
         "summary": "5.0 x (2 tbsp) Tomato Paste, Canned (6.0 oz/165 g)"
     },
     {
-        "id": 220,
+        "id": 94,
         "recipe_id": 5,
         "food_ingredient_id": 171,
         "recipe_ingredient_id": null,
@@ -846,7 +783,7 @@
         "summary": "6.0 x (1 tsp) Italian Seasoning, Dried (0.2 oz/6 g)"
     },
     {
-        "id": 221,
+        "id": 95,
         "recipe_id": 5,
         "food_ingredient_id": 177,
         "recipe_ingredient_id": null,
@@ -855,7 +792,7 @@
         "summary": "3.0 x (1 tsp) Oregano, Dried (0.1 oz/3 g)"
     },
     {
-        "id": 222,
+        "id": 96,
         "recipe_id": 5,
         "food_ingredient_id": 166,
         "recipe_ingredient_id": null,
@@ -864,7 +801,7 @@
         "summary": "0.5 x (1 tsp) Garlic Powder, Dried, Ground (0.1 oz/2 g)"
     },
     {
-        "id": 223,
+        "id": 97,
         "recipe_id": 5,
         "food_ingredient_id": 176,
         "recipe_ingredient_id": null,
@@ -873,7 +810,7 @@
         "summary": "0.5 x (1 tsp) Onion Powder, Ground (0.0 oz/1 g)"
     },
     {
-        "id": 224,
+        "id": 98,
         "recipe_id": 5,
         "food_ingredient_id": 181,
         "recipe_ingredient_id": null,
@@ -882,7 +819,7 @@
         "summary": "0.25 x (1 tsp) Peppercorns, Whole (0.0 oz/0 g)"
     },
     {
-        "id": 225,
+        "id": 99,
         "recipe_id": 5,
         "food_ingredient_id": 354,
         "recipe_ingredient_id": null,
@@ -891,7 +828,7 @@
         "summary": "3.0 x (1/2 cup) Tomatoes, Diced (13.8 oz/390 g)"
     },
     {
-        "id": 226,
+        "id": 100,
         "recipe_id": 13,
         "food_ingredient_id": 108,
         "recipe_ingredient_id": null,
@@ -900,7 +837,7 @@
         "summary": "2.0 x (1 slice) Bread, Whole Wheat (2.0 oz/52 g)"
     },
     {
-        "id": 227,
+        "id": 101,
         "recipe_id": 13,
         "food_ingredient_id": 194,
         "recipe_ingredient_id": null,
@@ -909,7 +846,7 @@
         "summary": "1.0 x (3 slices cooked) Bacon, Smoked (0.5 oz/14 g)"
     },
     {
-        "id": 228,
+        "id": 102,
         "recipe_id": 13,
         "food_ingredient_id": 312,
         "recipe_ingredient_id": null,
@@ -918,7 +855,7 @@
         "summary": "0.5 x (1.5 cups ~ 4 leaves) Lettuce, Romaine (1.5 oz/42 g)"
     },
     {
-        "id": 229,
+        "id": 103,
         "recipe_id": 13,
         "food_ingredient_id": 359,
         "recipe_ingredient_id": null,
@@ -927,16 +864,16 @@
         "summary": "0.5 x (1 tomato) Tomatoes, Fresh, Plum (aka Roma) (1.1 oz/31 g)"
     },
     {
-        "id": 230,
+        "id": 104,
         "recipe_id": 13,
         "food_ingredient_id": 24,
         "recipe_ingredient_id": null,
         "ordinal": 4,
         "servings": 2.0,
-        "summary": "2.0 x (1 tbsp) Mayonnaise, Squeeze, Light (1.0 oz/30 g)"
+        "summary": "2.0 x (1 tbsp) Mayonnaise, Squeezable, Light (1.0 oz/30 g)"
     },
     {
-        "id": 238,
+        "id": 105,
         "recipe_id": 15,
         "food_ingredient_id": 354,
         "recipe_ingredient_id": null,
@@ -945,7 +882,7 @@
         "summary": "3.0 x (1/2 cup) Tomatoes, Diced (13.8 oz/390 g)"
     },
     {
-        "id": 239,
+        "id": 106,
         "recipe_id": 15,
         "food_ingredient_id": 88,
         "recipe_ingredient_id": null,
@@ -954,7 +891,7 @@
         "summary": "2.0 x (1/2 disc) Chocolate, Mexican (2.8 oz/76 g)"
     },
     {
-        "id": 240,
+        "id": 107,
         "recipe_id": 15,
         "food_ingredient_id": 418,
         "recipe_ingredient_id": null,
@@ -963,7 +900,7 @@
         "summary": "1.0 x (1/4 cup) Raisins, Golden (1.4 oz/40 g)"
     },
     {
-        "id": 241,
+        "id": 108,
         "recipe_id": 15,
         "food_ingredient_id": 41,
         "recipe_ingredient_id": null,
@@ -972,7 +909,7 @@
         "summary": "4.0 x (1 tbsp) Vinegar, Apple Cider (2.0 oz/60 g)"
     },
     {
-        "id": 242,
+        "id": 109,
         "recipe_id": 15,
         "food_ingredient_id": 327,
         "recipe_ingredient_id": null,
@@ -981,7 +918,7 @@
         "summary": "1.0 x (2 tbsp) Peppers, Chipotle, Canned (1.2 oz/34 g)"
     },
     {
-        "id": 243,
+        "id": 110,
         "recipe_id": 15,
         "food_ingredient_id": 331,
         "recipe_ingredient_id": null,
@@ -990,7 +927,7 @@
         "summary": "0.33 x (3 peppers) Peppers, Ancho, Dried (0.3 oz/9 g)"
     },
     {
-        "id": 244,
+        "id": 111,
         "recipe_id": 15,
         "food_ingredient_id": 334,
         "recipe_ingredient_id": null,
@@ -999,7 +936,7 @@
         "summary": "0.5 x (2 peppers) Peppers, Pasilla, Dried (0.5 oz/14 g)"
     },
     {
-        "id": 245,
+        "id": 112,
         "recipe_id": 15,
         "food_ingredient_id": 444,
         "recipe_ingredient_id": null,
@@ -1008,7 +945,7 @@
         "summary": "0.75 x (1/3 cup) Almonds, Sliced (0.8 oz/22 g)"
     },
     {
-        "id": 246,
+        "id": 113,
         "recipe_id": 15,
         "food_ingredient_id": 427,
         "recipe_ingredient_id": null,
@@ -1017,7 +954,7 @@
         "summary": "0.5 x (1/4 cup) Pumpkin Seeds (aka Pepitas), Shelled (0.5 oz/15 g)"
     },
     {
-        "id": 247,
+        "id": 114,
         "recipe_id": 15,
         "food_ingredient_id": 320,
         "recipe_ingredient_id": null,
@@ -1026,7 +963,7 @@
         "summary": "0.5 x (1 onion) Onion, Yellow (2.6 oz/74 g)"
     },
     {
-        "id": 248,
+        "id": 115,
         "recipe_id": 15,
         "food_ingredient_id": 165,
         "recipe_ingredient_id": null,
@@ -1035,7 +972,7 @@
         "summary": "2.0 x (1 clove) Garlic, Fresh (0.2 oz/6 g)"
     },
     {
-        "id": 249,
+        "id": 116,
         "recipe_id": 15,
         "food_ingredient_id": 186,
         "recipe_ingredient_id": null,
@@ -1044,7 +981,7 @@
         "summary": "3.0 x (1 tsp) Sesame Seeds, White (0.3 oz/9 g)"
     },
     {
-        "id": 250,
+        "id": 117,
         "recipe_id": 15,
         "food_ingredient_id": 156,
         "recipe_ingredient_id": null,
@@ -1053,7 +990,7 @@
         "summary": "0.5 x (1 tsp) Cinnamon, Ground (0.0 oz/1 g)"
     },
     {
-        "id": 251,
+        "id": 118,
         "recipe_id": 15,
         "food_ingredient_id": 117,
         "recipe_ingredient_id": null,
@@ -1062,7 +999,7 @@
         "summary": "8.0 x (1 tortilla) Tortilla, Flour (12.0 oz/344 g)"
     },
     {
-        "id": 252,
+        "id": 119,
         "recipe_id": 15,
         "food_ingredient_id": 207,
         "recipe_ingredient_id": null,
@@ -1071,43 +1008,34 @@
         "summary": "7.5 x (0.4 breasts) Chicken Breast, Boneless, Skinless (30.0 oz/848 g)"
     },
     {
-        "id": 299,
-        "recipe_id": 16,
-        "food_ingredient_id": 457,
-        "recipe_ingredient_id": null,
-        "ordinal": 0,
-        "servings": 1.0,
-        "summary": "1 x (1 burger) Quarter Pounder, With Cheese (9.0 oz/256 g)"
-    },
-    {
-        "id": 323,
+        "id": 121,
         "recipe_id": 17,
         "food_ingredient_id": 453,
         "recipe_ingredient_id": null,
         "ordinal": 0,
         "servings": 1.0,
-        "summary": "1 x (10 pieces) Chicken McNuggets, 10-Piece (5.7 oz/162 g)"
+        "summary": "1.0 x (10 pieces) Chicken McNuggets, 10-Piece (5.7 oz/162 g)"
     },
     {
-        "id": 331,
+        "id": 122,
         "recipe_id": 18,
         "food_ingredient_id": 207,
         "recipe_ingredient_id": null,
         "ordinal": 0,
         "servings": 5.0,
-        "summary": "5 x (0.4 breasts) Chicken Breast, Boneless, Skinless (20.0 oz/565 g)"
+        "summary": "5.0 x (0.4 breasts) Chicken Breast, Boneless, Skinless (20.0 oz/565 g)"
     },
     {
-        "id": 332,
+        "id": 123,
         "recipe_id": 18,
         "food_ingredient_id": 130,
         "recipe_ingredient_id": null,
         "ordinal": 1,
         "servings": 2.0,
-        "summary": "2 x (1/2 cup) Panko (2.2 oz/64 g)"
+        "summary": "2.0 x (1/2 cup) Panko (2.2 oz/64 g)"
     },
     {
-        "id": 333,
+        "id": 124,
         "recipe_id": 18,
         "food_ingredient_id": 59,
         "recipe_ingredient_id": null,
@@ -1116,196 +1044,196 @@
         "summary": "1.33 x (1/4 cup grated) Cheese, Parmesan, Block (1.3 oz/37 g)"
     },
     {
-        "id": 334,
+        "id": 125,
         "recipe_id": 18,
         "food_ingredient_id": 184,
         "recipe_ingredient_id": null,
         "ordinal": 3,
         "servings": 2.0,
-        "summary": "2 x (1/4 tsp) MySalt (0.1 oz/2 g)"
+        "summary": "2.0 x (1/4 tsp) MySalt (0.1 oz/2 g)"
     },
     {
-        "id": 335,
+        "id": 126,
         "recipe_id": 18,
         "food_ingredient_id": 100,
         "recipe_ingredient_id": null,
         "ordinal": 4,
         "servings": 1.0,
-        "summary": "1 x (1 tbsp) Oil, Olive (0.5 oz/15 g)"
+        "summary": "1.0 x (1 tbsp) Oil, Olive (0.5 oz/15 g)"
     },
     {
-        "id": 336,
+        "id": 127,
         "recipe_id": 18,
         "food_ingredient_id": 125,
         "recipe_ingredient_id": null,
         "ordinal": 5,
         "servings": 2.0,
-        "summary": "2 x (1/4 cup = 4 tbsp) Flour, All-Purpose Unbleached (2.0 oz/60 g)"
+        "summary": "2.0 x (1/4 cup = 4 tbsp) Flour, All-Purpose Unbleached (2.0 oz/60 g)"
     },
     {
-        "id": 337,
+        "id": 128,
         "recipe_id": 18,
         "food_ingredient_id": 221,
         "recipe_ingredient_id": null,
         "ordinal": 6,
         "servings": 4.0,
-        "summary": "4 x (1 large egg white) Egg White, Large Brown (4.8 oz/132 g)"
+        "summary": "4.0 x (1 large egg white) Egg White, Large Brown (4.8 oz/132 g)"
     },
     {
-        "id": 351,
+        "id": 129,
         "recipe_id": 19,
         "food_ingredient_id": 269,
         "recipe_ingredient_id": null,
         "ordinal": 0,
         "servings": 4.0,
-        "summary": "4 x (1/4 pound) Turkey, Ground (16.0 oz/452 g)"
+        "summary": "4.0 x (1/4 pound) Turkey, Ground, 94% Lean (16.0 oz/452 g)"
     },
     {
-        "id": 352,
+        "id": 130,
         "recipe_id": 19,
         "food_ingredient_id": 112,
         "recipe_ingredient_id": null,
         "ordinal": 1,
         "servings": 4.0,
-        "summary": "4 x (1 bun) Buns, Sandwich Potato Rolls (7.6 oz/212 g)"
+        "summary": "4.0 x (1 bun) Buns, Sandwich Potato Rolls (7.6 oz/212 g)"
     },
     {
-        "id": 353,
+        "id": 131,
         "recipe_id": 19,
         "food_ingredient_id": 312,
         "recipe_ingredient_id": null,
         "ordinal": 2,
         "servings": 1.0,
-        "summary": "1 x (1.5 cups ~ 4 leaves) Lettuce, Romaine (3.0 oz/85 g)"
+        "summary": "1.0 x (1.5 cups ~ 4 leaves) Lettuce, Romaine (3.0 oz/85 g)"
     },
     {
-        "id": 354,
+        "id": 132,
         "recipe_id": 19,
         "food_ingredient_id": 359,
         "recipe_ingredient_id": null,
         "ordinal": 3,
         "servings": 1.0,
-        "summary": "1 x (1 tomato) Tomatoes, Fresh, Plum (aka Roma) (2.2 oz/62 g)"
+        "summary": "1.0 x (1 tomato) Tomatoes, Fresh, Plum (aka Roma) (2.2 oz/62 g)"
     },
     {
-        "id": 355,
+        "id": 133,
         "recipe_id": 19,
         "food_ingredient_id": 450,
         "recipe_ingredient_id": null,
         "ordinal": 5,
         "servings": 4.0,
-        "summary": "4 x (3 chips) Pickles, Bread & Butter Chips (4.0 oz/112 g)"
+        "summary": "4.0 x (3 chips) Pickles, Bread & Butter Chips (4.0 oz/112 g)"
     },
     {
-        "id": 356,
+        "id": 134,
         "recipe_id": 19,
         "food_ingredient_id": 319,
         "recipe_ingredient_id": null,
         "ordinal": 4,
         "servings": 2.0,
-        "summary": "2 x (1/2 onion ~ 1/2 cup chopped) Onion, Red (5.6 oz/160 g)"
+        "summary": "2.0 x (1/2 onion ~ 1/2 cup chopped) Onion, Red (5.6 oz/160 g)"
     },
     {
-        "id": 357,
+        "id": 135,
         "recipe_id": 19,
         "food_ingredient_id": 18,
         "recipe_ingredient_id": null,
         "ordinal": 6,
         "servings": 2.0,
-        "summary": "2 x (1 tbsp) Ketchup, Squeezable, No Salt Added (1.2 oz/34 g)"
+        "summary": "2.0 x (1 tbsp) Ketchup, Squeezable, No Salt Added (1.2 oz/34 g)"
     },
     {
-        "id": 358,
+        "id": 136,
         "recipe_id": 14,
         "food_ingredient_id": 202,
         "recipe_ingredient_id": null,
         "ordinal": 0,
         "servings": 4.0,
-        "summary": "4 x (1/4 pound) Beef, Ground, 95% lean (16.0 oz/452 g)"
+        "summary": "4.0 x (1/4 pound) Beef, Ground, 95% lean (16.0 oz/452 g)"
     },
     {
-        "id": 359,
+        "id": 137,
         "recipe_id": 14,
         "food_ingredient_id": 112,
         "recipe_ingredient_id": null,
         "ordinal": 1,
         "servings": 4.0,
-        "summary": "4 x (1 bun) Buns, Sandwich Potato Rolls (7.6 oz/212 g)"
+        "summary": "4.0 x (1 bun) Buns, Sandwich Potato Rolls (7.6 oz/212 g)"
     },
     {
-        "id": 360,
+        "id": 138,
         "recipe_id": 14,
         "food_ingredient_id": 359,
         "recipe_ingredient_id": null,
         "ordinal": 2,
         "servings": 1.0,
-        "summary": "1 x (1 tomato) Tomatoes, Fresh, Plum (aka Roma) (2.2 oz/62 g)"
+        "summary": "1.0 x (1 tomato) Tomatoes, Fresh, Plum (aka Roma) (2.2 oz/62 g)"
     },
     {
-        "id": 361,
+        "id": 139,
         "recipe_id": 14,
         "food_ingredient_id": 312,
         "recipe_ingredient_id": null,
         "ordinal": 3,
         "servings": 1.0,
-        "summary": "1 x (1.5 cups ~ 4 leaves) Lettuce, Romaine (3.0 oz/85 g)"
+        "summary": "1.0 x (1.5 cups ~ 4 leaves) Lettuce, Romaine (3.0 oz/85 g)"
     },
     {
-        "id": 362,
+        "id": 140,
         "recipe_id": 14,
         "food_ingredient_id": 319,
         "recipe_ingredient_id": null,
         "ordinal": 4,
         "servings": 2.0,
-        "summary": "2 x (1/2 onion ~ 1/2 cup chopped) Onion, Red (5.6 oz/160 g)"
+        "summary": "2.0 x (1/2 onion ~ 1/2 cup chopped) Onion, Red (5.6 oz/160 g)"
     },
     {
-        "id": 363,
+        "id": 141,
         "recipe_id": 14,
         "food_ingredient_id": 450,
         "recipe_ingredient_id": null,
         "ordinal": 5,
         "servings": 4.0,
-        "summary": "4 x (3 chips) Pickles, Bread & Butter Chips (4.0 oz/112 g)"
+        "summary": "4.0 x (3 chips) Pickles, Bread & Butter Chips (4.0 oz/112 g)"
     },
     {
-        "id": 364,
+        "id": 142,
         "recipe_id": 14,
         "food_ingredient_id": 18,
         "recipe_ingredient_id": null,
         "ordinal": 6,
         "servings": 2.0,
-        "summary": "2 x (1 tbsp) Ketchup, Squeezable, No Salt Added (1.2 oz/34 g)"
+        "summary": "2.0 x (1 tbsp) Ketchup, Squeezable, No Salt Added (1.2 oz/34 g)"
     },
     {
-        "id": 407,
+        "id": 143,
         "recipe_id": 21,
         "food_ingredient_id": 133,
         "recipe_ingredient_id": null,
         "ordinal": 0,
         "servings": 1.0,
-        "summary": "1 x (1/8 box) Pasta, Spaghetti (2.0 oz/56 g)"
+        "summary": "1.0 x (1/8 box) Pasta, Spaghetti (2.0 oz/56 g)"
     },
     {
-        "id": 408,
+        "id": 144,
         "recipe_id": 21,
         "food_ingredient_id": null,
         "recipe_ingredient_id": 20,
         "ordinal": 1,
         "servings": 1.0,
-        "summary": "1 x Meat Sauce (0.0 oz/0 g)"
+        "summary": "1.0 x Meat Sauce (0.0 oz/0 g)"
     },
     {
-        "id": 409,
+        "id": 145,
         "recipe_id": 22,
         "food_ingredient_id": 133,
         "recipe_ingredient_id": null,
         "ordinal": 0,
         "servings": 1.0,
-        "summary": "1 x (1/8 box) Pasta, Spaghetti (2.0 oz/56 g)"
+        "summary": "1.0 x (1/8 box) Pasta, Spaghetti (2.0 oz/56 g)"
     },
     {
-        "id": 410,
+        "id": 146,
         "recipe_id": 22,
         "food_ingredient_id": 2,
         "recipe_ingredient_id": null,
@@ -1314,70 +1242,70 @@
         "summary": "1.33 x (1/2 cup) Bolognese Sauce, Beef/Pork (5.9 oz/166 g)"
     },
     {
-        "id": 420,
+        "id": 147,
         "recipe_id": 20,
         "food_ingredient_id": 202,
         "recipe_ingredient_id": null,
         "ordinal": 0,
         "servings": 4.0,
-        "summary": "4 x (1/4 pound) Beef, Ground, 95% lean (16.0 oz/452 g)"
+        "summary": "4.0 x (1/4 pound) Beef, Ground, 95% lean (16.0 oz/452 g)"
     },
     {
-        "id": 421,
+        "id": 148,
         "recipe_id": 20,
         "food_ingredient_id": 351,
         "recipe_ingredient_id": null,
         "ordinal": 1,
         "servings": 13.0,
-        "summary": "13 x (1/4 cup) Tomatoes, Crushed (28.6 oz/1690 g)"
+        "summary": "13.0 x (1/4 cup) Tomatoes, Crushed (28.6 oz/1690 g)"
     },
     {
-        "id": 422,
+        "id": 149,
         "recipe_id": 20,
         "food_ingredient_id": 460,
         "recipe_ingredient_id": null,
         "ordinal": 2,
         "servings": 1.0,
-        "summary": "1 x (1 tsp) Vegetable Broth Powder, Reduced Sodium (0.2 oz/6 g)"
+        "summary": "1.0 x (1 tsp) Vegetable Broth Powder, Reduced Sodium (0.2 oz/6 g)"
     },
     {
-        "id": 423,
+        "id": 150,
         "recipe_id": 20,
         "food_ingredient_id": 100,
         "recipe_ingredient_id": null,
         "ordinal": 3,
         "servings": 3.0,
-        "summary": "3 x (1 tbsp) Oil, Olive (1.5 oz/45 g)"
+        "summary": "3.0 x (1 tbsp) Oil, Olive (1.5 oz/45 g)"
     },
     {
-        "id": 424,
+        "id": 151,
         "recipe_id": 20,
         "food_ingredient_id": 320,
         "recipe_ingredient_id": null,
         "ordinal": 4,
         "servings": 1.0,
-        "summary": "1 x (1 onion) Onion, Yellow (5.2 oz/148 g)"
+        "summary": "1.0 x (1 onion) Onion, Yellow (5.2 oz/148 g)"
     },
     {
-        "id": 425,
+        "id": 152,
         "recipe_id": 20,
         "food_ingredient_id": 165,
         "recipe_ingredient_id": null,
         "ordinal": 5,
         "servings": 3.0,
-        "summary": "3 x (1 clove) Garlic, Fresh (0.3 oz/9 g)"
+        "summary": "3.0 x (1 clove) Garlic, Fresh (0.3 oz/9 g)"
     },
     {
-        "id": 426,
+        "id": 153,
         "recipe_id": 20,
         "food_ingredient_id": 362,
         "recipe_ingredient_id": null,
         "ordinal": 6,
         "servings": 1.0,
-        "summary": "1 x (2 tbsp) Tomato Paste, Tube (1.2 oz/33 g)"
+        "summary": "1.0 x (2 tbsp) Tomato Paste, Tube (1.2 oz/33 g)"
     },
     {
-        "id": 427,
+        "id": 154,
         "recipe_id": 20,
         "food_ingredient_id": 177,
         "recipe_ingredient_id": null,
@@ -1386,7 +1314,7 @@
         "summary": "0.5 x (1 tsp) Oregano, Dried (0.0 oz/0 g)"
     },
     {
-        "id": 428,
+        "id": 155,
         "recipe_id": 20,
         "food_ingredient_id": 182,
         "recipe_ingredient_id": null,
@@ -1395,7 +1323,7 @@
         "summary": "0.25 x (1 tsp) Crushed Red Pepper (0.0 oz/0 g)"
     },
     {
-        "id": 429,
+        "id": 156,
         "recipe_id": 23,
         "food_ingredient_id": 276,
         "recipe_ingredient_id": null,
@@ -1404,7 +1332,7 @@
         "summary": "10.5 x (1/2 cup) Cannelini Beans (aka White Kidney Beans), Canned, Low Sodium (45.1 oz/1281 g)"
     },
     {
-        "id": 430,
+        "id": 157,
         "recipe_id": 23,
         "food_ingredient_id": 194,
         "recipe_ingredient_id": null,
@@ -1413,79 +1341,79 @@
         "summary": "2.5 x (3 slices cooked) Bacon, Smoked (1.2 oz/35 g)"
     },
     {
-        "id": 431,
+        "id": 158,
         "recipe_id": 23,
         "food_ingredient_id": 321,
         "recipe_ingredient_id": null,
         "ordinal": 2,
         "servings": 1.0,
-        "summary": "1 x (1 onion) Onion, Yellow (5.2 oz/148 g)"
+        "summary": "1.0 x (1 onion) Onion, Yellow (5.2 oz/148 g)"
     },
     {
-        "id": 432,
+        "id": 159,
         "recipe_id": 23,
         "food_ingredient_id": 281,
         "recipe_ingredient_id": null,
         "ordinal": 3,
         "servings": 1.0,
-        "summary": "1 x (1 pepper cleaned) Bell Pepper, Red (5.2 oz/148 g)"
+        "summary": "1.0 x (1 pepper cleaned) Bell Pepper, Red (5.2 oz/148 g)"
     },
     {
-        "id": 433,
+        "id": 160,
         "recipe_id": 23,
         "food_ingredient_id": 18,
         "recipe_ingredient_id": null,
         "ordinal": 4,
         "servings": 16.0,
-        "summary": "16 x (1 tbsp) Ketchup, Squeezable, No Salt Added (9.6 oz/272 g)"
+        "summary": "16.0 x (1 tbsp) Ketchup, Squeezable, No Salt Added (9.6 oz/272 g)"
     },
     {
-        "id": 434,
+        "id": 161,
         "recipe_id": 23,
         "food_ingredient_id": 95,
         "recipe_ingredient_id": null,
         "ordinal": 5,
         "servings": 8.0,
-        "summary": "8 x (1 tbsp) Molasses, Unsulfured (4.0 oz/120 g)"
+        "summary": "8.0 x (1 tbsp) Molasses, Unsulfured (4.0 oz/120 g)"
     },
     {
-        "id": 435,
+        "id": 162,
         "recipe_id": 23,
         "food_ingredient_id": 26,
         "recipe_ingredient_id": null,
         "ordinal": 6,
         "servings": 12.0,
-        "summary": "12 x (1 tsp) Mustard, Dijon (2.4 oz/60 g)"
+        "summary": "12.0 x (1 tsp) Mustard, Dijon (2.4 oz/60 g)"
     },
     {
-        "id": 436,
+        "id": 163,
         "recipe_id": 23,
         "food_ingredient_id": 103,
         "recipe_ingredient_id": null,
         "ordinal": 7,
         "servings": 6.0,
-        "summary": "6 x (2 tsp) Sugar, Light Brown (1.8 oz/48 g)"
+        "summary": "6.0 x (2 tsp) Sugar, Light Brown (1.8 oz/48 g)"
     },
     {
-        "id": 437,
+        "id": 164,
         "recipe_id": 23,
         "food_ingredient_id": 41,
         "recipe_ingredient_id": null,
         "ordinal": 8,
         "servings": 2.0,
-        "summary": "2 x (1 tbsp) Vinegar, Apple Cider (1.0 oz/30 g)"
+        "summary": "2.0 x (1 tbsp) Vinegar, Apple Cider (1.0 oz/30 g)"
     },
     {
-        "id": 438,
+        "id": 165,
         "recipe_id": 23,
         "food_ingredient_id": 48,
         "recipe_ingredient_id": null,
         "ordinal": 9,
         "servings": 3.0,
-        "summary": "3 x (1 tsp) Worstershire Sauce (0.6 oz/15 g)"
+        "summary": "3.0 x (1 tsp) Worstershire Sauce (0.6 oz/15 g)"
     },
     {
-        "id": 439,
+        "id": 166,
         "recipe_id": 23,
         "food_ingredient_id": 151,
         "recipe_ingredient_id": null,
@@ -1494,25 +1422,25 @@
         "summary": "0.5 x (1 tsp) Black Pepper, Ground (0.0 oz/1 g)"
     },
     {
-        "id": 525,
+        "id": 167,
         "recipe_id": 24,
         "food_ingredient_id": 154,
         "recipe_ingredient_id": null,
         "ordinal": 0,
         "servings": 6.0,
-        "summary": "6 x (1 tsp ~ 1 dried pepper) Chili Powder, Dried, Ground (0.6 oz/18 g)"
+        "summary": "6.0 x (1 tsp ~ 1 dried pepper) Chili Powder, Dried, Ground (0.6 oz/18 g)"
     },
     {
-        "id": 526,
+        "id": 168,
         "recipe_id": 24,
         "food_ingredient_id": 161,
         "recipe_ingredient_id": null,
         "ordinal": 1,
         "servings": 3.0,
-        "summary": "3 x (1 tsp) Cumin, Ground (0.2 oz/6 g)"
+        "summary": "3.0 x (1 tsp) Cumin, Ground (0.2 oz/6 g)"
     },
     {
-        "id": 527,
+        "id": 169,
         "recipe_id": 24,
         "food_ingredient_id": 121,
         "recipe_ingredient_id": null,
@@ -1521,7 +1449,7 @@
         "summary": "0.66 x (1 tbsp) Corn Starch (0.2 oz/5 g)"
     },
     {
-        "id": 528,
+        "id": 170,
         "recipe_id": 24,
         "food_ingredient_id": 178,
         "recipe_ingredient_id": null,
@@ -1530,16 +1458,16 @@
         "summary": "1.5 x (1 tsp) Paprika, Dried (0.2 oz/4 g)"
     },
     {
-        "id": 529,
+        "id": 171,
         "recipe_id": 24,
         "food_ingredient_id": 160,
         "recipe_ingredient_id": null,
         "ordinal": 4,
         "servings": 1.0,
-        "summary": "1 x (1 tsp) Coriander, Ground (0.1 oz/2 g)"
+        "summary": "1.0 x (1 tsp) Coriander, Ground (0.1 oz/2 g)"
     },
     {
-        "id": 530,
+        "id": 172,
         "recipe_id": 24,
         "food_ingredient_id": 153,
         "recipe_ingredient_id": null,
@@ -1548,106 +1476,106 @@
         "summary": "0.5 x (1 tsp) Cayenne Pepper, Dried, Ground (0.0 oz/1 g)"
     },
     {
-        "id": 568,
+        "id": 173,
         "recipe_id": 25,
         "food_ingredient_id": 116,
         "recipe_ingredient_id": null,
         "ordinal": 0,
         "servings": 4.0,
-        "summary": "4 x (3 shells) Taco Shell, Hard (4.4 oz/128 g)"
+        "summary": "4.0 x (3 shells) Taco Shell, Hard (4.4 oz/128 g)"
     },
     {
-        "id": 569,
+        "id": 174,
         "recipe_id": 25,
         "food_ingredient_id": 202,
         "recipe_ingredient_id": null,
         "ordinal": 1,
         "servings": 4.0,
-        "summary": "4 x (1/4 pound) Beef, Ground, 95% lean (16.0 oz/452 g)"
+        "summary": "4.0 x (1/4 pound) Beef, Ground, 95% lean (16.0 oz/452 g)"
     },
     {
-        "id": 570,
+        "id": 175,
         "recipe_id": 25,
         "food_ingredient_id": 100,
         "recipe_ingredient_id": null,
         "ordinal": 2,
         "servings": 1.0,
-        "summary": "1 x (1 tbsp) Oil, Olive (0.5 oz/15 g)"
+        "summary": "1.0 x (1 tbsp) Oil, Olive (0.5 oz/15 g)"
     },
     {
-        "id": 571,
+        "id": 176,
         "recipe_id": 25,
         "food_ingredient_id": 184,
         "recipe_ingredient_id": null,
         "ordinal": 5,
         "servings": 2.0,
-        "summary": "2 x (1/4 tsp) MySalt (0.1 oz/2 g)"
+        "summary": "2.0 x (1/4 tsp) MySalt (0.1 oz/2 g)"
     },
     {
-        "id": 572,
+        "id": 177,
         "recipe_id": 25,
         "food_ingredient_id": 321,
         "recipe_ingredient_id": null,
         "ordinal": 6,
         "servings": 1.0,
-        "summary": "1 x (1 onion) Onion, Yellow (5.2 oz/148 g)"
+        "summary": "1.0 x (1 onion) Onion, Yellow (5.2 oz/148 g)"
     },
     {
-        "id": 573,
+        "id": 178,
         "recipe_id": 25,
         "food_ingredient_id": 165,
         "recipe_ingredient_id": null,
         "ordinal": 7,
         "servings": 2.0,
-        "summary": "2 x (1 clove) Garlic, Fresh (0.2 oz/6 g)"
+        "summary": "2.0 x (1 clove) Garlic, Fresh (0.2 oz/6 g)"
     },
     {
-        "id": 574,
+        "id": 179,
         "recipe_id": 25,
         "food_ingredient_id": 330,
         "recipe_ingredient_id": null,
         "ordinal": 8,
         "servings": 4.0,
-        "summary": "4 x (1/8 cup = 2 tbsp drained) Peppers, Jalapeno, Pickled (3.6 oz/104 g)"
+        "summary": "4.0 x (1/8 cup = 2 tbsp drained) Peppers, Jalapeno, Pickled (3.6 oz/104 g)"
     },
     {
-        "id": 575,
+        "id": 180,
         "recipe_id": 25,
         "food_ingredient_id": 312,
         "recipe_ingredient_id": null,
         "ordinal": 9,
         "servings": 2.0,
-        "summary": "2 x (1.5 cups ~ 4 leaves) Lettuce, Romaine (6.0 oz/170 g)"
+        "summary": "2.0 x (1.5 cups ~ 4 leaves) Lettuce, Romaine (6.0 oz/170 g)"
     },
     {
-        "id": 576,
+        "id": 181,
         "recipe_id": 25,
         "food_ingredient_id": 359,
         "recipe_ingredient_id": null,
         "ordinal": 10,
         "servings": 1.0,
-        "summary": "1 x (1 tomato) Tomatoes, Fresh, Plum (aka Roma) (2.2 oz/62 g)"
+        "summary": "1.0 x (1 tomato) Tomatoes, Fresh, Plum (aka Roma) (2.2 oz/62 g)"
     },
     {
-        "id": 577,
+        "id": 182,
         "recipe_id": 25,
         "food_ingredient_id": 4,
         "recipe_ingredient_id": null,
         "ordinal": 3,
         "servings": 1.0,
-        "summary": "1 x (1 packet makes 1 cup) Beef Bouillon, Granulated, Sodium Free (0.1 oz/4 g)"
+        "summary": "1.0 x (1 packet makes 1 cup) Beef Bouillon, Granulated, Sodium Free (0.1 oz/4 g)"
     },
     {
-        "id": 578,
+        "id": 183,
         "recipe_id": 25,
         "food_ingredient_id": null,
         "recipe_ingredient_id": 24,
         "ordinal": 4,
         "servings": 1.0,
-        "summary": "1 x Taco Potion #19 (0.0 oz/0 g)"
+        "summary": "1.0 x Taco Potion #19 (0.0 oz/0 g)"
     },
     {
-        "id": 579,
+        "id": 184,
         "recipe_id": 25,
         "food_ingredient_id": 463,
         "recipe_ingredient_id": null,
@@ -1656,34 +1584,34 @@
         "summary": "0.01 x (1 oz) Cheese, Parmesan, Grated (0.0 oz/0 g)"
     },
     {
-        "id": 580,
+        "id": 185,
         "recipe_id": 25,
         "food_ingredient_id": 158,
         "recipe_ingredient_id": null,
         "ordinal": 12,
         "servings": 8.0,
-        "summary": "8 x (1 tbsp) Cilantro, Fresh (0.3 oz/8 g)"
+        "summary": "8.0 x (1 tbsp) Cilantro, Fresh (0.3 oz/8 g)"
     },
     {
-        "id": 599,
+        "id": 186,
         "recipe_id": 26,
         "food_ingredient_id": 137,
         "recipe_ingredient_id": null,
         "ordinal": 0,
         "servings": 5.0,
-        "summary": "5 x (1/5 package) Pasta, Lo Mein Noodles (15.0 oz/425 g)"
+        "summary": "5.0 x (1/5 package) Pasta, Lo Mein Noodles (15.0 oz/425 g)"
     },
     {
-        "id": 600,
+        "id": 187,
         "recipe_id": 26,
         "food_ingredient_id": 102,
         "recipe_ingredient_id": null,
         "ordinal": 1,
         "servings": 2.0,
-        "summary": "2 x (1 tbsp) Oil, Sesame (1.0 oz/28 g)"
+        "summary": "2.0 x (1 tbsp) Oil, Sesame (1.0 oz/28 g)"
     },
     {
-        "id": 601,
+        "id": 188,
         "recipe_id": 26,
         "food_ingredient_id": 11,
         "recipe_ingredient_id": null,
@@ -1692,25 +1620,25 @@
         "summary": "3.5 x (1 tbsp) Coconut Aminos (1.8 oz/52 g)"
     },
     {
-        "id": 602,
+        "id": 189,
         "recipe_id": 26,
         "food_ingredient_id": 44,
         "recipe_ingredient_id": null,
         "ordinal": 3,
         "servings": 2.0,
-        "summary": "2 x (1 tbsp) Vinegar, Rice, Unseasoned (1.0 oz/30 g)"
+        "summary": "2.0 x (1 tbsp) Vinegar, Rice, Unseasoned (1.0 oz/30 g)"
     },
     {
-        "id": 603,
+        "id": 190,
         "recipe_id": 26,
         "food_ingredient_id": 38,
         "recipe_ingredient_id": null,
         "ordinal": 4,
         "servings": 1.0,
-        "summary": "1 x (2 tbsp) Tahini (1.0 oz/28 g)"
+        "summary": "1.0 x (2 tbsp) Tahini (1.0 oz/28 g)"
     },
     {
-        "id": 604,
+        "id": 191,
         "recipe_id": 26,
         "food_ingredient_id": 426,
         "recipe_ingredient_id": null,
@@ -1719,7 +1647,7 @@
         "summary": "0.5 x (2 tbsp) Peanut Butter, Super Chunk (0.6 oz/16 g)"
     },
     {
-        "id": 605,
+        "id": 192,
         "recipe_id": 26,
         "food_ingredient_id": 104,
         "recipe_ingredient_id": null,
@@ -1728,7 +1656,7 @@
         "summary": "1.5 x (2 tsp) Sugar, Granulated White (0.4 oz/12 g)"
     },
     {
-        "id": 606,
+        "id": 193,
         "recipe_id": 26,
         "food_ingredient_id": 169,
         "recipe_ingredient_id": null,
@@ -1737,30 +1665,426 @@
         "summary": "0.25 x (1 tsp) Ginger, Dried, Ground (0.0 oz/0 g)"
     },
     {
-        "id": 607,
+        "id": 194,
         "recipe_id": 26,
         "food_ingredient_id": 165,
         "recipe_ingredient_id": null,
         "ordinal": 8,
         "servings": 2.0,
-        "summary": "2 x (1 clove) Garlic, Fresh (0.2 oz/6 g)"
+        "summary": "2.0 x (1 clove) Garlic, Fresh (0.2 oz/6 g)"
     },
     {
-        "id": 608,
+        "id": 195,
         "recipe_id": 26,
         "food_ingredient_id": 10,
         "recipe_ingredient_id": null,
         "ordinal": 9,
         "servings": 2.0,
-        "summary": "2 x (1 tsp) Chili Oil (0.4 oz/10 g)"
+        "summary": "2.0 x (1 tsp) Chili Oil (0.4 oz/10 g)"
     },
     {
-        "id": 609,
+        "id": 196,
         "recipe_id": 26,
         "food_ingredient_id": 433,
         "recipe_ingredient_id": null,
         "ordinal": 10,
         "servings": 1.0,
-        "summary": "1 x (1/4 cup ~ 35 pieces) Peanuts, Dry Roasted Unsalted (1.0 oz/28 g)"
+        "summary": "1.0 x (1/4 cup ~ 35 pieces) Peanuts, Dry Roasted Unsalted (1.0 oz/28 g)"
+    },
+    {
+        "id": 200,
+        "recipe_id": 28,
+        "food_ingredient_id": 287,
+        "recipe_ingredient_id": null,
+        "ordinal": 0,
+        "servings": 5.0,
+        "summary": "5 x (4.5 sprouts) Brussels Sprouts (15.0 oz/430 g)"
+    },
+    {
+        "id": 201,
+        "recipe_id": 28,
+        "food_ingredient_id": 100,
+        "recipe_ingredient_id": null,
+        "ordinal": 1,
+        "servings": 1.0,
+        "summary": "1 x (1 tbsp) Oil, Olive (0.5 oz/15 g)"
+    },
+    {
+        "id": 202,
+        "recipe_id": 28,
+        "food_ingredient_id": 42,
+        "recipe_ingredient_id": null,
+        "ordinal": 2,
+        "servings": 4.0,
+        "summary": "4 x (1 tbsp) Vinegar, Balmamic (2.0 oz/60 g)"
+    },
+    {
+        "id": 203,
+        "recipe_id": 28,
+        "food_ingredient_id": 165,
+        "recipe_ingredient_id": null,
+        "ordinal": 3,
+        "servings": 2.0,
+        "summary": "2 x (1 clove) Garlic, Fresh (0.2 oz/6 g)"
+    },
+    {
+        "id": 204,
+        "recipe_id": 28,
+        "food_ingredient_id": 184,
+        "recipe_ingredient_id": null,
+        "ordinal": 4,
+        "servings": 1.0,
+        "summary": "1 x (1/4 tsp) MySalt (0.0 oz/1 g)"
+    },
+    {
+        "id": 205,
+        "recipe_id": 28,
+        "food_ingredient_id": 19,
+        "recipe_ingredient_id": null,
+        "ordinal": 5,
+        "servings": 1.0,
+        "summary": "1 x (1 tsp) Lemon Juice, Plastic Bottle (0.2 oz/5 g)"
+    },
+    {
+        "id": 206,
+        "recipe_id": 28,
+        "food_ingredient_id": 11,
+        "recipe_ingredient_id": null,
+        "ordinal": 6,
+        "servings": 0.17,
+        "summary": "0.17 x (1 tbsp) Coconut Aminos (0.1 oz/3 g)"
+    },
+    {
+        "id": 249,
+        "recipe_id": 29,
+        "food_ingredient_id": 216,
+        "recipe_ingredient_id": null,
+        "ordinal": 0,
+        "servings": 4.0,
+        "summary": "4 x (1.5 wings) Chicken Wings (16.0 oz/452 g)"
+    },
+    {
+        "id": 250,
+        "recipe_id": 29,
+        "food_ingredient_id": 368,
+        "recipe_ingredient_id": null,
+        "ordinal": 1,
+        "servings": 10.0,
+        "summary": "10 x (1/8 tsp) Baking Powder (0.2 oz/10 g)"
+    },
+    {
+        "id": 251,
+        "recipe_id": 29,
+        "food_ingredient_id": 184,
+        "recipe_ingredient_id": null,
+        "ordinal": 2,
+        "servings": 3.0,
+        "summary": "3 x (1/4 tsp) MySalt (0.1 oz/3 g)"
+    },
+    {
+        "id": 252,
+        "recipe_id": 29,
+        "food_ingredient_id": 181,
+        "recipe_ingredient_id": null,
+        "ordinal": 3,
+        "servings": 0.25,
+        "summary": "0.25 x (1 tsp) Peppercorns, Whole (0.0 oz/0 g)"
+    },
+    {
+        "id": 253,
+        "recipe_id": 29,
+        "food_ingredient_id": 49,
+        "recipe_ingredient_id": null,
+        "ordinal": 4,
+        "servings": 1.0,
+        "summary": "1 x (1 tbsp) Butter, Unsalted (0.5 oz/14 g)"
+    },
+    {
+        "id": 254,
+        "recipe_id": 29,
+        "food_ingredient_id": 20,
+        "recipe_ingredient_id": null,
+        "ordinal": 5,
+        "servings": 0.33,
+        "summary": "0.33 x (1 tbsp) Lemon Juice, Fresh Squeezed (0.2 oz/5 g)"
+    },
+    {
+        "id": 255,
+        "recipe_id": 29,
+        "food_ingredient_id": 393,
+        "recipe_ingredient_id": null,
+        "ordinal": 6,
+        "servings": 0.33,
+        "summary": "0.33 x (1 tbsp) Honey, Clover (0.2 oz/7 g)"
+    },
+    {
+        "id": 256,
+        "recipe_id": 29,
+        "food_ingredient_id": 34,
+        "recipe_ingredient_id": null,
+        "ordinal": 7,
+        "servings": 1.0,
+        "summary": "1 x (1 tsp) Sriracha Sauce (0.2 oz/5 g)"
+    },
+    {
+        "id": 257,
+        "recipe_id": 29,
+        "food_ingredient_id": 464,
+        "recipe_ingredient_id": null,
+        "ordinal": 8,
+        "servings": 1.0,
+        "summary": "1 x (1 tsp) Tabasco Pepper Sauce (0.2 oz/5 g)"
+    },
+    {
+        "id": 276,
+        "recipe_id": 16,
+        "food_ingredient_id": 457,
+        "recipe_ingredient_id": null,
+        "ordinal": 0,
+        "servings": 1.0,
+        "summary": "1 x (1 burger) Quarter Pounder, With Cheese (9.0 oz/256 g)"
+    },
+    {
+        "id": 285,
+        "recipe_id": 32,
+        "food_ingredient_id": 78,
+        "recipe_ingredient_id": null,
+        "ordinal": 0,
+        "servings": 1.0,
+        "summary": "1 x (1 cup) Milk, Oat, Chocolate  (8.0 oz/240 g)"
+    },
+    {
+        "id": 294,
+        "recipe_id": 30,
+        "food_ingredient_id": 100,
+        "recipe_ingredient_id": null,
+        "ordinal": 0,
+        "servings": 3.0,
+        "summary": "3 x (1 tbsp) Oil, Olive (1.5 oz/45 g)"
+    },
+    {
+        "id": 295,
+        "recipe_id": 30,
+        "food_ingredient_id": 466,
+        "recipe_ingredient_id": null,
+        "ordinal": 1,
+        "servings": 14.0,
+        "summary": "14 x (1 tomatillo ~ 1/2 cup) Tomatillos (32.2 oz/924 g)"
+    },
+    {
+        "id": 296,
+        "recipe_id": 30,
+        "food_ingredient_id": 329,
+        "recipe_ingredient_id": null,
+        "ordinal": 2,
+        "servings": 12.0,
+        "summary": "12 x (1 pepper) Peppers, Serrano, Fresh (18.0 oz/540 g)"
+    },
+    {
+        "id": 297,
+        "recipe_id": 30,
+        "food_ingredient_id": 320,
+        "recipe_ingredient_id": null,
+        "ordinal": 3,
+        "servings": 0.5,
+        "summary": "0.5 x (1 onion) Onion, Yellow (2.6 oz/74 g)"
+    },
+    {
+        "id": 298,
+        "recipe_id": 30,
+        "food_ingredient_id": 165,
+        "recipe_ingredient_id": null,
+        "ordinal": 4,
+        "servings": 2.0,
+        "summary": "2 x (1 clove) Garlic, Fresh (0.2 oz/6 g)"
+    },
+    {
+        "id": 299,
+        "recipe_id": 30,
+        "food_ingredient_id": 158,
+        "recipe_ingredient_id": null,
+        "ordinal": 5,
+        "servings": 6.0,
+        "summary": "6 x (1 tbsp) Cilantro, Fresh (0.2 oz/6 g)"
+    },
+    {
+        "id": 300,
+        "recipe_id": 30,
+        "food_ingredient_id": 21,
+        "recipe_ingredient_id": null,
+        "ordinal": 6,
+        "servings": 1.0,
+        "summary": "1 x (1 tbsp) Lime Juice, Fresh Squeezed (0.5 oz/15 g)"
+    },
+    {
+        "id": 301,
+        "recipe_id": 30,
+        "food_ingredient_id": 184,
+        "recipe_ingredient_id": null,
+        "ordinal": 7,
+        "servings": 1.0,
+        "summary": "1 x (1/4 tsp) MySalt (0.0 oz/1 g)"
+    },
+    {
+        "id": 302,
+        "recipe_id": 31,
+        "food_ingredient_id": 98,
+        "recipe_ingredient_id": null,
+        "ordinal": 0,
+        "servings": 1.0,
+        "summary": "1 x (1 tbsp) Oil, Canola (0.5 oz/15 g)"
+    },
+    {
+        "id": 303,
+        "recipe_id": 31,
+        "food_ingredient_id": 467,
+        "recipe_ingredient_id": null,
+        "ordinal": 1,
+        "servings": 2.0,
+        "summary": "2 x (1 pepper ~ 1 cup sliced) Pepper, Poblano, Fresh (6.4 oz/180 g)"
+    },
+    {
+        "id": 304,
+        "recipe_id": 31,
+        "food_ingredient_id": 278,
+        "recipe_ingredient_id": null,
+        "ordinal": 2,
+        "servings": 7.0,
+        "summary": "7 x (1/2 cup) Pinto Beans, Canned (30.1 oz/854 g)"
+    },
+    {
+        "id": 305,
+        "recipe_id": 31,
+        "food_ingredient_id": null,
+        "recipe_ingredient_id": 30,
+        "ordinal": 3,
+        "servings": 4.0,
+        "summary": "4 x Salsa Verde (0.0 oz/0 g)"
+    },
+    {
+        "id": 306,
+        "recipe_id": 31,
+        "food_ingredient_id": 158,
+        "recipe_ingredient_id": null,
+        "ordinal": 4,
+        "servings": 4.0,
+        "summary": "4 x (1 tbsp) Cilantro, Fresh (0.2 oz/4 g)"
+    },
+    {
+        "id": 307,
+        "recipe_id": 31,
+        "food_ingredient_id": 465,
+        "recipe_ingredient_id": null,
+        "ordinal": 5,
+        "servings": 8.0,
+        "summary": "8 x (1 oz ~ 1/4 cup shredded) Cheese, Monterey Jack, Block (8.0 oz/224 g)"
+    },
+    {
+        "id": 308,
+        "recipe_id": 31,
+        "food_ingredient_id": 184,
+        "recipe_ingredient_id": null,
+        "ordinal": 6,
+        "servings": 1.0,
+        "summary": "1 x (1/4 tsp) MySalt (0.0 oz/1 g)"
+    },
+    {
+        "id": 309,
+        "recipe_id": 31,
+        "food_ingredient_id": 181,
+        "recipe_ingredient_id": null,
+        "ordinal": 7,
+        "servings": 0.5,
+        "summary": "0.5 x (1 tsp) Peppercorns, Whole (0.0 oz/1 g)"
+    },
+    {
+        "id": 310,
+        "recipe_id": 3,
+        "food_ingredient_id": 106,
+        "recipe_ingredient_id": null,
+        "ordinal": 0,
+        "servings": 1.0,
+        "summary": "1 x (1 bagel) Bagel, Mixed Frozen (5.0 oz/136 g)"
+    },
+    {
+        "id": 311,
+        "recipe_id": 3,
+        "food_ingredient_id": 221,
+        "recipe_ingredient_id": null,
+        "ordinal": 1,
+        "servings": 2.0,
+        "summary": "2 x (1 large egg white) Egg White, Large Brown (2.4 oz/66 g)"
+    },
+    {
+        "id": 312,
+        "recipe_id": 3,
+        "food_ingredient_id": 33,
+        "recipe_ingredient_id": null,
+        "ordinal": 3,
+        "servings": 2.0,
+        "summary": "2 x (1 tsp) Sriracha Sauce (0.4 oz/10 g)"
+    },
+    {
+        "id": 313,
+        "recipe_id": 3,
+        "food_ingredient_id": 59,
+        "recipe_ingredient_id": null,
+        "ordinal": 4,
+        "servings": 1.0,
+        "summary": "1 x (1/4 cup grated) Cheese, Parmesan, Block (1.0 oz/28 g)"
+    },
+    {
+        "id": 314,
+        "recipe_id": 3,
+        "food_ingredient_id": 181,
+        "recipe_ingredient_id": null,
+        "ordinal": 5,
+        "servings": 0.25,
+        "summary": "0.25 x (1 tsp) Peppercorns, Whole (0.0 oz/0 g)"
+    },
+    {
+        "id": 315,
+        "recipe_id": 3,
+        "food_ingredient_id": 184,
+        "recipe_ingredient_id": null,
+        "ordinal": 6,
+        "servings": 1.0,
+        "summary": "1 x (1/4 tsp) MySalt (0.0 oz/1 g)"
+    },
+    {
+        "id": 316,
+        "recipe_id": 3,
+        "food_ingredient_id": 259,
+        "recipe_ingredient_id": null,
+        "ordinal": 2,
+        "servings": 0.67,
+        "summary": "0.67 x (3 links) Sausage, Breakfast Links (1.3 oz/40 g)"
+    },
+    {
+        "id": 317,
+        "recipe_id": 27,
+        "food_ingredient_id": 106,
+        "recipe_ingredient_id": null,
+        "ordinal": 0,
+        "servings": 1.0,
+        "summary": "1 x (1 bagel) Bagel, Mixed Frozen (5.0 oz/136 g)"
+    },
+    {
+        "id": 318,
+        "recipe_id": 27,
+        "food_ingredient_id": 49,
+        "recipe_ingredient_id": null,
+        "ordinal": 1,
+        "servings": 0.67,
+        "summary": "0.67 x (1 tbsp) Butter, Unsalted (0.3 oz/9 g)"
+    },
+    {
+        "id": 319,
+        "recipe_id": 27,
+        "food_ingredient_id": 390,
+        "recipe_ingredient_id": null,
+        "ordinal": 2,
+        "servings": 1.0,
+        "summary": "1 x (1 tbsp) Jelly, Wild Blueberry Preserves (0.7 oz/20 g)"
     }
 ]
