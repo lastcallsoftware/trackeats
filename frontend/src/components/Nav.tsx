@@ -46,17 +46,23 @@ function Nav() {
         setAuthenticated(false)
     }
 
+    const handleAboutMeClick = () => {
+        window.location.href = "../../portfolio/index.html";
+        return null;
+    }
+
     return (
         <>
             <Header />
             <nav id="navbar" className="navbar">
-                               {/*<Link to="/" className="nav-item">Home</Link>*/}
+                {/*<Link to="/" className="nav-item">Home</Link>*/}
                 { isAuthenticated ? <Link to="/foods" className="nav-item">Foods</Link> : ""}
                 { isAuthenticated ? <Link to="/recipes" className="nav-item">Recipes</Link> : ""}
                 {/*}
                 { isAuthenticated ? <Link to="/dailylog" className="nav-item">Daily Log</Link> : ""}
                  */}
                 <Link to="/about" className="nav-item">About</Link>
+                <Link to="/aboutme2" className="nav-item" onClick={handleAboutMeClick}>About Me</Link>
                 { isAuthenticated ? <Link to="/login" className="nav-item" onClick={removeToken}>Log Out</Link>
                                : <Link to="/login" className="nav-item">Log In</Link>}
                 { !isAuthenticated ? <Link to="/register" className="nav-item">Register</Link>
