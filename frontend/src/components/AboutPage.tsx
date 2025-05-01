@@ -1,7 +1,7 @@
 function AboutPage() {
     return (
         <section className="about-page">
-            <section className="about-box">
+            <section className="about-content">
                 <p>The nominal purpose of this app is to track the nutritional content of one's
                     diet.  I chose this goal because it's something I wanted myself.  None of the 
                     nutrition-tracking apps I found out there did quite what I wanted -- so I decided 
