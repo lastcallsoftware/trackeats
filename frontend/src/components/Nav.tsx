@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Routes, Route, Link } from 'react-router-dom';
 import Header from './Header';
-import Homepage from './Home';
+import HomePage from './HomePage';
 import AboutPage from './AboutPage';
 import FoodsPage from './FoodsPage';
 import RecipesPage from './RecipesPage';
@@ -57,13 +57,14 @@ function Nav() {
         <>
             <Header />
             <nav id="navbar" className="navbar">
+                <Link to="/" className="nav-item">Home</Link>
                 {/*<Link to="/" className="nav-item">Home</Link>*/}
                 { isAuthenticated ? <Link to="/foods" className="nav-item">Foods</Link> : ""}
                 { isAuthenticated ? <Link to="/recipes" className="nav-item">Recipes</Link> : ""}
                 {/*}
                 { isAuthenticated ? <Link to="/dailylog" className="nav-item">Daily Log</Link> : ""}
                  */}
-                <Link to="/about" className="nav-item">About</Link>
+                <Link to="/about" className="nav-item">About TrackEats</Link>
                 <Link to="/aboutme2" className="nav-item" onClick={handleAboutMeClick}>About Me</Link>
                 { isAuthenticated ? <Link to="/login" className="nav-item" onClick={removeToken}>Log Out</Link>
                                : <Link to="/login" className="nav-item">Log In</Link>}
@@ -72,7 +73,8 @@ function Nav() {
             </nav>
 
             <Routes>
-                <Route path="/" element={<Homepage />} />
+                <Route path="/" element={<HomePage />} />
+                <Route path="/home" element={<HomePage />} />
                 <Route path="/foods" element={<FoodsPage />} />
                 <Route path="/recipes" element={<RecipesPage />} />
                 <Route path="/dailylog" element={<DailyLogPage />} />
