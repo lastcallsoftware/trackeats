@@ -48,7 +48,7 @@ function AboutPage() {
                     <li>Jenkins or GitHub Actions - for CI/CD</li>
                 </ul>
                 <br/>
-                <p>In addition, an alternate pluggable a pluggable alternate back end is in the works using:</p>
+                <p>In addition, an alternate pluggable back end is in the works using:</p>
                 <ul>
                     <li>Java</li>
                     <li>Spring Boot</li>

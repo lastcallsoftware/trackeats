@@ -5,7 +5,7 @@ const HomePage: React.FC = () => {
         <div className="home-page">
             <section className="home-content">
             <section className="new-guests">
-                    <p>A NOTE FOR NEW GUESTS: Trackeats is my portfolio app, intended to showcase my tech
+                    <p>A NOTE FOR NEW GUESTS: TrackEats is my portfolio app, intended to showcase my tech
                         skills.</p>
                         <br/>
                         <p>To use the app you can Register your own new account, but it's a lot more
@@ -17,6 +17,7 @@ const HomePage: React.FC = () => {
                         <p>Feel free to play around -- all the data (including user accounts) is reset to 
                         a snapshot regularly.  Also note that Trackeats is more of a technology demo than 
                         a real application, so flashy user interface design was not stressed.</p>
+                        <p>See the About TrackEats page for more info about the app's technical design.</p>
                 </section>
                 <h1>Welcome to TrackEats</h1>
                 <p className="centered-text">Your ultimate app for tracking recipes, meals, and nutrition!</p>
