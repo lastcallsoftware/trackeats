@@ -88,6 +88,7 @@ export type DataContextType = {
     removeIngredients: (recipe_id: number) => Promise<void>;
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const DataContext = createContext<DataContextType|null>(null);
 
 export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) => {
