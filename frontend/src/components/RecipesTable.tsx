@@ -48,101 +48,123 @@ const columns = [
         cell: info => info.getValue(),
         size: 100
     }),
-    columnHelper.accessor("nutrition.calories", {
-        header: () => <span className="header-text">Calories</span>,
-        cell: info => (info.getValue()/info.row.original.servings).toFixed(0),
-        sortingFn: sortingFunction,
-        size: 65
+    columnHelper.group({
+        id: "nutrition_info",
+        header: () => <span className="header-text">Nutrition Per Serving</span>,
+        columns: [
+            columnHelper.accessor("nutrition.calories", {
+                header: () => <span className="header-text">Calories</span>,
+                cell: info => (info.getValue()/info.row.original.servings).toFixed(0),
+                sortingFn: sortingFunction,
+                size: 65
+            }),
+            columnHelper.accessor("nutrition.total_fat_g", {
+                header: () => <span className="header-text">Total Fat (g)<br/>&lt;78 g</span>,
+                cell: info => (info.getValue()/info.row.original.servings).toFixed(1),
+                sortingFn: sortingFunction,
+                size: 65
+            }),
+            columnHelper.accessor("nutrition.saturated_fat_g", {
+                header: () => <span className="header-text">Satu- rated Fat (g)<br/>&lt;20 g</span>,
+                cell: info => (info.getValue()/info.row.original.servings).toFixed(1),
+                sortingFn: sortingFunction,
+                size: 65
+            }),
+            columnHelper.accessor("nutrition.trans_fat_g", {
+                header: () => <span className="header-text">Trans Fat (g)</span>,
+                cell: info => (info.getValue()/info.row.original.servings).toFixed(0),
+                sortingFn: sortingFunction,
+                size: 65
+            }),
+            columnHelper.accessor("nutrition.cholesterol_mg", {
+                header: () => <span className="header-text">Choles- terol (mg)<br/>&lt;300 mg</span>,
+                cell: info => (info.getValue()/info.row.original.servings).toFixed(0),
+                sortingFn: sortingFunction,
+                size: 65
+            }),
+            columnHelper.accessor("nutrition.sodium_mg", {
+                header: () => <span className="header-text">Sodium (mg)<br/>&lt;2300 mg</span>,
+                cell: info => (info.getValue()/info.row.original.servings).toFixed(0),
+                sortingFn: sortingFunction,
+                size: 65
+            }),
+            columnHelper.accessor("nutrition.total_carbs_g", {
+                header: () => <span className="header-text">Total Carbs (g)<br/>&gt;275 g</span>,
+                cell: info => (info.getValue()/info.row.original.servings).toFixed(0),
+                sortingFn: sortingFunction,
+                size: 65
+            }),
+            columnHelper.accessor("nutrition.fiber_g", {
+                header: () => <span className="header-text">Fiber (g)<br/>&gt;28 g</span>,
+                cell: info => (info.getValue()/info.row.original.servings).toFixed(0),
+                sortingFn: sortingFunction,
+                size: 65
+            }),
+            columnHelper.accessor("nutrition.total_sugar_g", {
+                header: () => <span className="header-text">Total Sugar (g)</span>,
+                cell: info => (info.getValue()/info.row.original.servings).toFixed(0),
+                sortingFn: sortingFunction,
+                size: 65
+            }),
+            columnHelper.accessor("nutrition.added_sugar_g", {
+                header: () => <span className="header-text">Added Sugar (g)<br/>&lt;50 g</span>,
+                cell: info => (info.getValue()/info.row.original.servings).toFixed(0),
+                sortingFn: sortingFunction,
+                size: 65
+            }),
+            columnHelper.accessor("nutrition.protein_g", {
+                header: () => <span className="header-text">Protein (g)<br/>&gt;50 g</span>,
+                cell: info => (info.getValue()/info.row.original.servings).toFixed(0),
+                sortingFn: sortingFunction,
+                size: 65
+            }),
+            columnHelper.accessor("nutrition.vitamin_d_mcg", {
+                header: () => <span className="header-text">Vitamin D (mcg)<br/>&gt;20 mcg</span>,
+                cell: info => (info.getValue()/info.row.original.servings).toFixed(0),
+                sortingFn: sortingFunction,
+                size: 65
+            }),
+            columnHelper.accessor("nutrition.calcium_mg", {
+                header: () => <span className="header-text">Calcium (mg)<br/>&gt;1300 mg</span>,
+                cell: info => (info.getValue()/info.row.original.servings).toFixed(0),
+                sortingFn: sortingFunction,
+                size: 65
+            }),
+            columnHelper.accessor("nutrition.iron_mg", {
+                header: () => <span className="header-text">Iron (mg)<br/>&gt;18 mg</span>,
+                cell: info => (info.getValue()/info.row.original.servings).toFixed(1),
+                sortingFn: sortingFunction,
+                size: 65
+            }),
+            columnHelper.accessor("nutrition.potassium_mg", {
+                header: () => <span className="header-text">Potas. (mg)<br/>&gt;4700 mg</span>,
+                cell: info => (info.getValue()/info.row.original.servings).toFixed(0),
+                sortingFn: sortingFunction,
+                size: 65
+            }),
+        ]
     }),
-    columnHelper.accessor("nutrition.total_fat_g", {
-        header: () => <span className="header-text">Total Fat (g)<br/>&lt;78 g</span>,
-        cell: info => (info.getValue()/info.row.original.servings).toFixed(1),
-        sortingFn: sortingFunction,
-        size: 65
-    }),
-    columnHelper.accessor("nutrition.saturated_fat_g", {
-        header: () => <span className="header-text">Satu- rated Fat (g)<br/>&lt;20 g</span>,
-        cell: info => (info.getValue()/info.row.original.servings).toFixed(1),
-        sortingFn: sortingFunction,
-        size: 65
-    }),
-    columnHelper.accessor("nutrition.trans_fat_g", {
-        header: () => <span className="header-text">Trans Fat (g)</span>,
-        cell: info => (info.getValue()/info.row.original.servings).toFixed(0),
-        sortingFn: sortingFunction,
-        size: 65
-    }),
-    columnHelper.accessor("nutrition.cholesterol_mg", {
-        header: () => <span className="header-text">Choles- terol (mg)<br/>&lt;300 mg</span>,
-        cell: info => (info.getValue()/info.row.original.servings).toFixed(0),
-        sortingFn: sortingFunction,
-        size: 65
-    }),
-    columnHelper.accessor("nutrition.sodium_mg", {
-        header: () => <span className="header-text">Sodium (mg)<br/>&lt;2300 mg</span>,
-        cell: info => (info.getValue()/info.row.original.servings).toFixed(0),
-        sortingFn: sortingFunction,
-        size: 65
-    }),
-    columnHelper.accessor("nutrition.total_carbs_g", {
-        header: () => <span className="header-text">Total Carbs (g)<br/>&gt;275 g</span>,
-        cell: info => (info.getValue()/info.row.original.servings).toFixed(0),
-        sortingFn: sortingFunction,
-        size: 65
-    }),
-    columnHelper.accessor("nutrition.fiber_g", {
-        header: () => <span className="header-text">Fiber (g)<br/>&gt;28 g</span>,
-        cell: info => (info.getValue()/info.row.original.servings).toFixed(0),
-        sortingFn: sortingFunction,
-        size: 65
-    }),
-    columnHelper.accessor("nutrition.total_sugar_g", {
-        header: () => <span className="header-text">Total Sugar (g)</span>,
-        cell: info => (info.getValue()/info.row.original.servings).toFixed(0),
-        sortingFn: sortingFunction,
-        size: 65
-    }),
-    columnHelper.accessor("nutrition.added_sugar_g", {
-        header: () => <span className="header-text">Added Sugar (g)<br/>&lt;50 g</span>,
-        cell: info => (info.getValue()/info.row.original.servings).toFixed(0),
-        sortingFn: sortingFunction,
-        size: 65
-    }),
-    columnHelper.accessor("nutrition.protein_g", {
-        header: () => <span className="header-text">Protein (g)<br/>&gt;50 g</span>,
-        cell: info => (info.getValue()/info.row.original.servings).toFixed(0),
-        sortingFn: sortingFunction,
-        size: 65
-    }),
-    columnHelper.accessor("nutrition.vitamin_d_mcg", {
-        header: () => <span className="header-text">Vitamin D (mcg)<br/>&gt;20 mcg</span>,
-        cell: info => (info.getValue()/info.row.original.servings).toFixed(0),
-        sortingFn: sortingFunction,
-        size: 65
-    }),
-    columnHelper.accessor("nutrition.calcium_mg", {
-        header: () => <span className="header-text">Calcium (mg)<br/>&gt;1300 mg</span>,
-        cell: info => (info.getValue()/info.row.original.servings).toFixed(0),
-        sortingFn: sortingFunction,
-        size: 65
-    }),
-    columnHelper.accessor("nutrition.iron_mg", {
-        header: () => <span className="header-text">Iron (mg)<br/>&gt;18 mg</span>,
-        cell: info => (info.getValue()/info.row.original.servings).toFixed(1),
-        sortingFn: sortingFunction,
-        size: 65
-    }),
-    columnHelper.accessor("nutrition.potassium_mg", {
-        header: () => <span className="header-text">Potas. (mg)<br/>&gt;4700 mg</span>,
-        cell: info => (info.getValue()/info.row.original.servings).toFixed(0),
-        sortingFn: sortingFunction,
-        size: 65
-    }),
-    columnHelper.accessor("price", {
-        header: () => <span className="header-text">Price / serving ($)</span>,
-        cell: info => (info.getValue()/info.row.original.servings).toFixed(2),
-        sortingFn: sortingFunction,
-        size: 65
+    columnHelper.group({
+        id: "price_info",
+        header: () => <span className="header-text">Price Info</span>,
+        columns: [
+            columnHelper.accessor("price", {
+                header: () => <span className="header-text">Price / serving ($)</span>,
+                cell: info => (info.getValue()/info.row.original.servings).toFixed(2),
+                sortingFn: sortingFunction,
+                size: 65
+            }),
+            columnHelper.accessor("price_per_calorie", {
+                header: () => <span className="header-text">Price / 100 calories ($)</span>,
+                cell: info => (info.row.original.price*100/info.row.original.nutrition.calories).toFixed(2),
+                sortingFn: (rowA, rowB) => {
+                    const val1 = rowA.original.price/rowA.original.nutrition.calories
+                    const val2 = rowB.original.price/rowB.original.nutrition.calories
+                    return val1 < val2 ? -1 : (val1 > val2 ? 1 : 0);
+                },
+                size: 65
+            }),
+        ]
     }),
 ]
 
