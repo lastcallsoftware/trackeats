@@ -1,17 +1,17 @@
 package com.lastcallsw.trackeats.entities;
 
 public enum Status {
-    PENDING(1),
-    CONFIRMED(2),
-    CANCELLED(3),
-    BANNED(4);
+    PENDING("pending"),
+    CONFIRMED("confirmed"),
+    CANCELLED("cancelled"),
+    BANNED("banned");
 
-    private final int value;
+    private final String value;
 
-    private Status(int value) {
+    private Status(String value) {
         this.value = value;
     }
-    public int getValue() {
+    public String getValue() {
         return value;
     }
 }
