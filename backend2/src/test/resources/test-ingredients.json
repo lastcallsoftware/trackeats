@@ -1,0 +1,40 @@
+[
+    {
+        "recipe_id": 1,
+        "food_ingredient_id": 1,
+        "ordinal": 1,
+        "servings": 4.0,
+        "summary": "4 apples, peeled and sliced"
+    },
+    {
+        "recipe_id": 1,
+        "ordinal": 2,
+        "servings": 1.0,
+        "summary": "1 cup sugar"
+    },
+    {
+        "recipe_id": 1,
+        "ordinal": 3,
+        "servings": 1.0,
+        "summary": "1 pie crust"
+    },
+    {
+        "recipe_id": 2,
+        "food_ingredient_id": 2,
+        "ordinal": 1,
+        "servings": 0.2,
+        "summary": "2 slices of bread"
+    },
+    {
+        "recipe_id": 2,
+        "ordinal": 2,
+        "servings": 1.0,
+        "summary": "2 slices of cheese"
+    },
+    {
+        "recipe_id": 2,
+        "ordinal": 3,
+        "servings": 1.0,
+        "summary": "2 slices of ham"
+    }
+]

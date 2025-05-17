@@ -32,7 +32,10 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers("/api/users/register").permitAll()
+                .requestMatchers("/confirm").permitAll() // Allow access to confirmation endpoint
                 .requestMatchers("/h2-console/**").permitAll() // Allow H2 Console access
+                .requestMatchers("/api/db/load/**").permitAll() // Allow access to DB load endpoints
+                .requestMatchers("/api/db/export/**").permitAll() // Allow access to DB export endpoints
                 .anyRequest().authenticated()
             )
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

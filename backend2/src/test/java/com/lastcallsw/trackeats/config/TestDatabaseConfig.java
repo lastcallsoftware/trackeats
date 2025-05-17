@@ -1,11 +1,9 @@
 package com.lastcallsw.trackeats.config;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Profile;
-import org.springframework.core.env.Environment;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
@@ -13,36 +11,21 @@ import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.springframework.transaction.PlatformTransactionManager;
 
 import javax.sql.DataSource;
-//import java.util.HashMap;
-//import java.util.Map;
+import java.util.HashMap;
+import java.util.Map;
 
 @Configuration
-@Profile("!test")
-public class DatabaseConfig {
-
-    @Autowired
-    private Environment env;
+@Profile("test")
+public class TestDatabaseConfig {
 
     @Bean
     @Primary
     public DataSource dataSource() {
         DriverManagerDataSource dataSource = new DriverManagerDataSource();
-        
-        // Configure MySQL connection
-        dataSource.setDriverClassName("com.mysql.cj.jdbc.Driver");
-        
-        // Process environment variables in the URL
-        String url = env.getProperty("spring.datasource.url");
-        if (url != null && url.contains("$DB_HOSTNAME")) {
-            String dbHostname = env.getProperty("DB_HOSTNAME", "localhost");
-            url = url.replace("$DB_HOSTNAME", dbHostname);
-        }
-        
-        dataSource.setUrl(url);
-        dataSource.setUsername(env.getProperty("spring.datasource.username"));
-        dataSource.setPassword(env.getProperty("spring.datasource.password"));
-        
-        System.out.println("Configured MySQL database connection");
+        dataSource.setDriverClassName("org.h2.Driver");
+        dataSource.setUrl("jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1");
+        dataSource.setUsername("sa");
+        dataSource.setPassword("");
         return dataSource;
     }
 
@@ -56,11 +39,12 @@ public class DatabaseConfig {
         HibernateJpaVendorAdapter vendorAdapter = new HibernateJpaVendorAdapter();
         em.setJpaVendorAdapter(vendorAdapter);
         
-        //Map<String, Object> properties = new HashMap<>();
-        //properties.put("hibernate.hbm2ddl.auto", "validate");
-        //properties.put("hibernate.show_sql", "false");
-        //properties.put("hibernate.format_sql", "false");
-        //em.setJpaPropertyMap(properties);
+        Map<String, Object> properties = new HashMap<>();
+        properties.put("hibernate.hbm2ddl.auto", "create-drop");
+        properties.put("hibernate.show_sql", "false");
+        properties.put("hibernate.format_sql", "false");
+        properties.put("hibernate.dialect", "org.hibernate.dialect.H2Dialect");
+        em.setJpaPropertyMap(properties);
         
         return em;
     }

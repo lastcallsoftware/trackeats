@@ -11,6 +11,10 @@ import org.springframework.web.bind.annotation.*;
 import com.lastcallsw.trackeats.entities.User;
 import com.lastcallsw.trackeats.entities.Status;
 import com.lastcallsw.trackeats.repositories.UserRepository;
+import com.lastcallsw.trackeats.services.EmailService;
+import com.lastcallsw.trackeats.utils.TokenGenerator;
+
+import jakarta.mail.MessagingException;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -23,6 +27,9 @@ public class UserController {
     
     @Autowired
     private PasswordEncoder passwordEncoder;
+    
+    @Autowired
+    private EmailService emailService;
 
     // Get all users (admin only in a real app)
     @GetMapping
@@ -49,24 +56,42 @@ public class UserController {
     
     // Register a new user
     @PostMapping("/register")
-    public ResponseEntity<User> registerUser(@RequestBody RegisterRequest registerRequest) {
-        // Check if username already exists
-        if (userRepository.findByUsername(registerRequest.getUsername()).isPresent()) {
-            return ResponseEntity.badRequest().build();
+    public ResponseEntity<?> registerUser(@RequestBody RegisterRequest registerRequest) {
+        try {
+            // Check if username already exists
+            if (userRepository.findByUsername(registerRequest.getUsername()).isPresent()) {
+                return ResponseEntity.badRequest().body("Username already exists");
+            }
+            
+            // Generate a confirmation token
+            String confirmationToken = TokenGenerator.generateToken();
+            
+            User newUser = new User();
+            newUser.setUsername(registerRequest.getUsername());
+            newUser.setPasswordHash(passwordEncoder.encode(registerRequest.getPassword()));
+            newUser.setStatus(Status.pending); // New users start as pending until confirmed
+            newUser.setCreatedAt(LocalDateTime.now());
+            newUser.setConfirmationToken(confirmationToken);
+            newUser.setConfirmationSentAt(LocalDateTime.now());
+            
+            // In a real app, you would handle email encryption here
+            // For now, we'll just store the email in a variable to use for sending the confirmation
+            String userEmail = registerRequest.getEmail();
+            // newUser.setEmail(encryptedEmail);
+            
+            User savedUser = userRepository.save(newUser);
+            
+            // Send confirmation email
+            emailService.sendRegistrationConfirmationEmail(userEmail, savedUser.getUsername(), confirmationToken);
+            
+            return ResponseEntity.status(HttpStatus.CREATED).body(savedUser);
+        } catch (MessagingException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("User created but failed to send confirmation email: " + e.getMessage());
         }
-        
-        User newUser = new User();
-        newUser.setUsername(registerRequest.getUsername());
-        newUser.setPasswordHash(passwordEncoder.encode(registerRequest.getPassword()));
-        newUser.setStatus(Status.pending); // New users start as pending until confirmed
-        newUser.setCreatedAt(LocalDateTime.now());
-        
-        // In a real app, you would handle email encryption here
-        // newUser.setEmail(encryptedEmail);
-        
-        User savedUser = userRepository.save(newUser);
-        return ResponseEntity.status(HttpStatus.CREATED).body(savedUser);
     }
+    
+    // The confirmation endpoint has been moved to ConfirmationController
     
     // Request class for user registration
     public static class RegisterRequest {
