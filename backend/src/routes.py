@@ -395,9 +395,12 @@ def add_food():
         logging.error(msg)
         return jsonify({"msg": msg}), 400
     else:
-        msg = "Food record added"
+        food_id = new_food["id"]
+        msg = f"Food record {food_id} added"
         logging.info(msg)
-        return jsonify(new_food), 200
+        resp = make_response(jsonify(new_food), 201)
+        resp.headers["Location"] = f"/food/{food_id}"
+        return resp
 
 # Update Food
 @bp.route("/food", methods = ["PUT"])
@@ -530,11 +533,12 @@ def add_recipe():
         logging.error(msg)
         return jsonify({"msg": msg}), 400
     else:
-        msg = f"Recipe record {new_recipe.id} added"
+        recipe_id = new_recipe["id"]
+        msg = f"Recipe record {recipe_id} added"
         logging.info(msg)
         resp = make_response(jsonify(new_recipe), 201)
         #resp.headers["Access-Control-Expose-Headers"] = f"Location"
-        resp.headers["Location"] = f"/recipe/{new_recipe.id}"
+        resp.headers["Location"] = f"/recipe/{recipe_id}"
         return resp
 
 # Update Recipe
