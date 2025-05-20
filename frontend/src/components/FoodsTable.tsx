@@ -207,6 +207,16 @@ const foodColumns = [
                 },
                 size: 65
             }),
+            columnHelper.accessor("price_per_calorie", {
+                header: () => <span className="header-text">Price / 100 cal</span>,
+                cell: info => (info.row.original.nutrition.calories == 0 ? Infinity : info.row.original.price*100/info.row.original.servings/info.row.original.nutrition.calories).toFixed(2),
+                sortingFn: (rowA, rowB) => {
+                    const val1 = rowA.original.price/rowA.original.servings/rowA.original.nutrition.calories
+                    const val2 = rowB.original.price/rowB.original.servings/rowB.original.nutrition.calories
+                    return val1 < val2 ? -1 : (val1 > val2 ? 1 : 0);
+                },
+                size: 65
+            }),
             columnHelper.accessor("price_date", {
                 header: () => <span className="header-text">Price Date</span>,
                 cell: info => {
