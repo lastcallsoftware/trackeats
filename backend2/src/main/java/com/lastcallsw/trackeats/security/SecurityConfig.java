@@ -45,10 +45,14 @@ public class SecurityConfig {
         return http.build();
     }
 
+    @SuppressWarnings("deprecation")
     @Bean
     public DaoAuthenticationProvider authenticationProvider() {
+        // NOTE: The constructor and setUserDetailsService() are deprecated as of Spring Security 6+.
+        // There is currently NO non-deprecated alternative for using a custom UserDetailsService.
+        // This is the only way to wire a custom UserDetailsService until Spring Security provides a new API.
         DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
-        authProvider.setUserDetailsService(userDetailsService);
+        authProvider.setUserDetailsService(userDetailsService); // Deprecated, but required for compatibility
         authProvider.setPasswordEncoder(passwordEncoder());
         return authProvider;
     }
