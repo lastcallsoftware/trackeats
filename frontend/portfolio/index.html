@@ -281,34 +281,16 @@
         <section id="portfolio" class="portfolio section light-background">
 
             <!-- Section Title -->
-            <div class="container section-title pt-5" data-aos="fade-up">
+            <div class="container section-title pt-0 pb-2" data-aos="fade-up">
                 <h2>Portfolio</h2>
-                <p>My portfolio currently consists of one project, <b>TrackEats</b>.
-                </p>
-                <br>
-                <p>
-                    TrackEats is a full-stack web application that allows users to accurately track the 
-                    nutritional content of their diet.
-                    <ul>
-                        <li>Deployed in Docker containers on an AWS EC2 instance</li>
-                        <li>Front end is built with TypeScript, React, Tanstack Table and Axios</li>
-                        <li>Back end is built with Python, Flask, and SQLAlchemy</li>
-                        <li>Alternate pluggable back end in Java, Spring Boot, and Hibernate</li>
-                        <li>Database is MySQL</li>
-                        <li>Secured with JWT tokens</li>
-                    </ul>
-                    More information can be found in the app's About page.  Use the link below!
-                </p>
             </div><!-- End Section Title -->
 
             <div class="container">
-
-                <div class="isotope-layout" data-default-filter="*" data-layout="masonry" data-sort="original-order">
-
-                    <div class="row gy-4 isotope-container" data-aos="fade-up" data-aos-delay="200">
-
-                        <div class="col-lg-4 col-md-6 portfolio-item isotope-item filter-app">
-                            <div class="portfolio-content h-100">
+                <div class="row gy-4" data-aos="fade-up" data-aos-delay="200">
+                    <!-- Box 1: TrackEats -->
+                    <div class="col-lg-6">
+                        <div class="card h-100 shadow-sm">
+                            <div class="portfolio-content" style="min-height: 354px; border: 1px solid #000;">
                                 <img src="assets/img/trackeats-screenshot.png" class="img-fluid" alt="">
                                 <div class="portfolio-info">
                                     <h4>TrackEats</h4>
@@ -316,19 +298,64 @@
                                     <a href="assets/img/trackeats-screenshot.png" title="TrackEats screenshot" data-gallery="portfolio-gallery-app" class="glightbox preview-link"><i class="bi bi-zoom-in"></i></a>
                                 </div>
                             </div>
-                            <a href="https://trackeats.lastcallsw.com" class="text-center d-block pt-2">TrackEats</a>
-                        </div><!-- End Portfolio Item -->
-
-                    </div><!-- End Portfolio Container -->
-
-                </div>
-
+                            <a href="https://trackeats.lastcallsw.com" class="text-center d-block pt-2" target="_blank" rel="noopener noreferrer">
+                                TrackEats <i class="bi bi-box-arrow-up-right" aria-label="Opens in new window"></i>
+                            </a>
+                            <div class="pt-3 px-3 pb-2">
+                                <p>
+                                    TrackEats is a full-stack web application that allows users to accurately track the 
+                                    nutritional content of their diet.
+                                    <ul>
+                                        <li>Deployed in Docker containers on an AWS EC2 instance</li>
+                                        <li>Front end is built with TypeScript, React, Tanstack Table and Axios</li>
+                                        <li>Back end is built with Python, Flask, and SQLAlchemy</li>
+                                        <li>Alternate pluggable back end in Java, Spring Boot, and Hibernate</li>
+                                        <li>Database is MySQL</li>
+                                        <li>Secured with JWT tokens</li>
+                                    </ul>
+                                    More information can be found on the app's About page.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Box 2: CrossCracker -->
+                    <div class="col-lg-6">
+                        <div class="card h-100 shadow-sm">
+                            <div class="portfolio-content" style="border: 1px solid #000;">
+                                <img src="assets/img/crosscracker-screenshot.png" class="img-fluid" alt="CrossCracker Screenshot">
+                                <div class="portfolio-info">
+                                    <h4>CrossCracker</h4>
+                                    <p>A prototype crossword puzzle solver.</p>
+                                    <a href="assets/video/crosscracker-0.8.mp4" title="CrossCracker demo video" data-gallery="portfolio-gallery-app" class="glightbox preview-link"><i class="bi bi-zoom-in"></i></a>
+                                </div>
+                            </div>
+                            <a href="assets/video/crosscracker-0.8.mp4" class="text-center d-block pt-2 glightbox preview-link" title="CrossCracker demo video" data-gallery="portfolio-gallery-app">
+                                CrossCracker (play demo video)
+                            </a>
+                            <div class="pt-3 px-3 pb-2">
+                                <p>
+                                    CrossCracker is a prototype crossword puzzle solving app.<br>
+                                    <ul>
+                                        <li>Ultimately it will use AI to solve the clues at runtime, but for now this demo 
+                                            uses hardcoded answers previously obtained using an AI command-line interface.
+                                            (I'm currently using Google's Gemma3 (27B) if you're curious.)</li>
+                                        <li>The reason the app isn't using AI to guess the answers in real time is NOT that 
+                                            it's too hard to do.  The necessary code is trivial -- literally just a handful 
+                                            of lines.  The reason is that it's painfully sloooooow.  I'm working on it!</li>
+                                        <li>Unfortunatly, it's too expensive to put an AI-enabled app on the Internet for personal
+                                            use like this.  But here you can see the video of it running, and the 
+                                            code is available on my GitHub (see the link to the left).
+                                        </li>
+                                    </ul>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div><!-- End Portfolio Container -->
             </div>
-
             <!-- Spacer -->
             <p class="py-5"></p>
             <p class="py-4"></p>
-
         </section><!-- /Portfolio Section -->
 
         <!-- Contact Section -->
