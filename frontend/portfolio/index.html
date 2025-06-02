@@ -350,14 +350,28 @@
                                 <p>
                                     CrossCracker is a prototype crossword puzzle solving app.<br>
                                     <ul>
-                                        <li>Ultimately it will use AI to solve the clues at runtime, but for now this demo 
-                                            uses hardcoded answers previously obtained using an AI command-line interface.
-                                            (I'm currently using Google's Gemma3 (27B) if you're curious.)</li>
-                                        <li>The reason the app isn't using AI to guess the answers in real time is NOT that 
-                                            it's too hard to do.  The necessary code is trivial -- literally just a handful 
-                                            of lines.  The reason is that it's painfully sloooooow.  I'm working on it!</li>
-                                        <li>Unfortunatly, it's too expensive to put an AI-enabled app on the Internet for personal
-                                            use like this.  But here you can see the video of it running, and the 
+                                        <li>Uses AI to solve crossword puzzles.  No, really!</li>
+                                        <li>Currently uses the Llama 3.1 (8b) model running on Ollama.  I tried a bunch
+                                            of different models, and that one was the best compromise between size, speed,
+                                            and effectiveness.  (The DeepSeek model that caused such an uproar in the news
+                                            was total garbage, BTW.)
+                                        </li>
+                                        <li>The code required to integrate an AI model into an app is trivial.  The tricky part
+                                            is getting the "prompt" just right.  Unlike any other coding API, your app
+                                            interacts with an AI using natural language, just like when you use ChatGPT's web
+                                            interface.  But for its responses to be useful to your app, you have to "convince" 
+                                            it to respond in a very specific, structured way, and it doesn't always listen.  
+                                            It's really more like training a dog than writing code!
+                                        </li>
+                                        <li>
+                                            In terms of the coding, the algorithm for selecting which clues to ask and
+                                            which answers to use was orders of magnitude more difficult than integrating 
+                                            the AI.  Trickier still was deciding when an answer that was previously placed 
+                                            was wrong and should be removed.  I'm still improving that, and probably will
+                                            be forever.
+                                        </li>
+                                        <li>Unfortunatly, it's too expensive to put an AI-enabled app on the Internet just 
+                                            for personal use.  But you can see the video of it running here, and the 
                                             code is available on my GitHub (see the link to the left).
                                         </li>
                                     </ul>
