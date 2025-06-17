@@ -305,11 +305,11 @@
                     <div class="col-lg-6">
                         <div class="card h-100 shadow-sm">
                             <div class="portfolio-content" style="min-height: 354px; border: 1px solid #000;">
-                                <img src="assets/img/trackeats-screenshot.png" class="img-fluid" alt="">
+                                <img src="assets/img/trackeats-thumbnail.png" class="img-fluid" alt="">
                                 <div class="portfolio-info">
                                     <h4>TrackEats</h4>
                                     <p>My labor of love.</p>
-                                    <a href="assets/img/trackeats-screenshot.png" title="TrackEats screenshot" data-gallery="portfolio-gallery-app" class="glightbox preview-link"><i class="bi bi-zoom-in"></i></a>
+                                    <a href="assets/img/trackeats-thumbnail.png" title="TrackEats thumbnail" data-gallery="portfolio-gallery-app" class="glightbox preview-link"><i class="bi bi-zoom-in"></i></a>
                                 </div>
                             </div>
                             <a href="https://trackeats.lastcallsw.com" class="text-center d-block pt-2" target="_blank" rel="noopener noreferrer">
@@ -335,11 +335,11 @@
                     <!-- Box 2: CrossCracker -->
                     <div class="col-lg-6">
                         <div class="card h-100 shadow-sm">
-                            <div class="portfolio-content" style="border: 1px solid #000;">
-                                <img src="assets/img/crosscracker-screenshot.png" class="img-fluid" alt="CrossCracker Screenshot">
+                            <div class="portfolio-content" style="min-height: 354px; border: 1px solid #000;">
+                                <img src="assets/img/crosscracker-thumbnail.png" class="img-fluid" alt="CrossCracker thumbnail">
                                 <div class="portfolio-info">
                                     <h4>CrossCracker</h4>
-                                    <p>A prototype crossword puzzle solver.</p>
+                                    <p>A crossword puzzle solver.</p>
                                     <a href="assets/video/crosscracker-0.8.mp4" title="CrossCracker demo video" data-gallery="portfolio-gallery-app" class="glightbox preview-link"><i class="bi bi-zoom-in"></i></a>
                                 </div>
                             </div>
@@ -348,39 +348,56 @@
                             </a>
                             <div class="pt-3 px-3 pb-2">
                                 <p>
-                                    CrossCracker is a prototype crossword puzzle solving app.<br>
+                                    CrossCracker is a crossword puzzle solving app.<br>
                                     <ul>
                                         <li>Uses AI to solve crossword puzzles.  No, really!</li>
-                                        <li>Currently uses the Llama 3.1 (8b) model running on Ollama.  I tried a bunch
-                                            of different models, and that one was the best compromise between size, speed,
-                                            and effectiveness.  (The DeepSeek model that caused such an uproar in the news
-                                            was total garbage, BTW.)
-                                        </li>
-                                        <li>The code required to integrate an AI model into an app is trivial.  The tricky part
-                                            is getting the "prompt" just right.  Unlike any other coding API, your app
-                                            interacts with an AI using natural language, just like when you use ChatGPT's web
-                                            interface.  But for its responses to be useful to your app, you have to "convince" 
-                                            it to respond in a very specific, structured way, and it doesn't always listen.  
-                                            It's really more like training a dog than writing code!
-                                        </li>
-                                        <li>
-                                            In terms of the coding, the algorithm for selecting which clues to ask and
-                                            which answers to use was orders of magnitude more difficult than integrating 
-                                            the AI.  Trickier still was deciding when an answer that was previously placed 
-                                            was wrong and should be removed.  I'm still improving that, and probably will
-                                            be forever.
-                                        </li>
-                                        <li>Unfortunatly, it's too expensive to put an AI-enabled app on the Internet just 
-                                            for personal use.  But you can see the video of it running here, and the 
-                                            code is available on my GitHub (see the link to the left).
-                                        </li>
+                                        <li>Currently uses the Llama 3.1 (8b) model.  I tried several models, and that was the best compromise between size, speed, and effectiveness.</li>
+                                    </ul>
+                                    <button class="btn btn-link p-0" type="button" data-bs-toggle="collapse" data-bs-target="#crosscrackerMoreInfo" aria-expanded="false" aria-controls="crosscrackerMoreInfo">
+                                        More Info <i class="bi bi-chevron-down"></i>
+                                    </button>
+                                    <div class="collapse mt-2" id="crosscrackerMoreInfo">
+                                        <ul>
+                                            <li>I had to stick to a small, a simple crossword because the AIs I can feasibly use for this purpose just aren't very smart, and they never will be.  The big models you use on the Internet (e.g., GPT-4o) are far more capable, but you can't download and run a model like that for free, and even if you could it would never run on a single moderately-powered development PC like mine.</li>
+                                            <li>Thanks to Ollama, the code required to integrate an AI model into an app is trivial.  The tricky part is getting the prompt just right.  You have to "convince" the model to respond in a very specific, structured way, and it doesn't always obey.  It's really more like training a dog than writing code!</li>
+                                            <li>The algorithm for selecting which clue to ask at any given moment and which answers to use was far more difficult than integrating the AI.  Trickier still was deciding when an answer that was previously placed was wrong and should be removed.  I'm still improving that code, and could probably continue to do so forever.</li>
+                                            <li>Unfortunatly, it's too expensive to put an AI-enabled app on the Internet just for personal use.  But you can see the video of it running here, and the code is available on my GitHub (see the link to the left).</li>
+                                        </ul>
+                                    </div>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div><!-- End Portfolio Row 1 -->
+                <div class="row gy-4 mt-2" data-aos="fade-up" data-aos-delay="250">
+                    <!-- Box 3: New App Example -->
+                    <div class="col-lg-6 mx-auto">
+                        <div class="card h-100 shadow-sm">
+                            <div class="portfolio-content" style="min-height: 354px; border: 1px solid #000;">
+                                <img src="assets/img/nonologic-thumbnail.png" class="img-fluid" alt="NonoLogic thumbnail">
+                                <div class="portfolio-info">
+                                    <h4>NonoLogic</h4>
+                                    <p>A nonogram solver.</p>
+                                    <a href="assets/video/nonologic-0.8.mp4" title="NonoLogic demo video" data-gallery="portfolio-gallery-app" class="glightbox preview-link"><i class="bi bi-zoom-in"></i></a>
+                                </div>
+                            </div>
+                            <a href="assets/video/nonologic-0.8.mp4" class="text-center d-block pt-2 glightbox preview-link" title="NonoLogic demo video" data-gallery="portfolio-gallery-app">
+                                NonoLogic (play demo video)
+                            </a>
+                            <div class="pt-3 px-3 pb-2">
+                                <p>
+                                    NonoLogic is a nonogram solver.<br>
+                                    <ul>
+                                        <li>Doesn't guess -- it proceeds entirely by deductive logic.</li>
+                                        <li>If further progress on a puzzle cannot be made without guessing, it stops.</li>
+                                        <li>I could potentially put this app on my website but I just haven't gotten around to it.  In the mean time, the code is available on my GitHub (see the link to the left).</li>
                                     </ul>
                                 </p>
                             </div>
                         </div>
                     </div>
-                </div><!-- End Portfolio Container -->
-            </div>
+                </div><!-- End Portfolio Row 2 -->
+            </div><!-- End Portfolio Container -->
             <!-- Spacer -->
             <p class="py-5"></p>
             <p class="py-4"></p>
