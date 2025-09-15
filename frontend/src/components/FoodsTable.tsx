@@ -141,6 +141,11 @@ const foodColumns = [
                 cell: info => info.getValue(),
                 size: 65
             }),
+            columnHelper.accessor("nutrition.fiber_g", {
+                header: () => <span className="header-text">Total Fiber (g)</span>,
+                cell: info => info.getValue(),
+                size: 65
+            }),
             columnHelper.accessor("nutrition.total_sugar_g", {
                 header: () => <span className="header-text">Total Sugar (g)</span>,
                 cell: info => info.getValue(),
