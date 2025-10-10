@@ -1,0 +1,4 @@
+[console_scripts]
+awscliv2=awscliv2.main:main_cli
+awsv2=awscliv2.main:main_cli
+
