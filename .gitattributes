@@ -1,2 +1,6 @@
 # Auto detect text files and perform LF normalization
 * text=auto
+
+# Maven wrapper and Windows batch files (moved from backend2/.gitattributes)
+mvnw text eol=lf
+*.cmd text eol=crlf

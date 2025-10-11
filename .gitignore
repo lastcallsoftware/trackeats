@@ -23,11 +23,11 @@ dist-ssr
 *.sln
 *.sw?
 
-# Python virtual environment
-backend/.venv
-
 # Compiled Python files
 __pycache__
+
+# Python virtual environment
+.venv/
 
 # Generated Typescript files meant to speed compilation
 *.tsbuildinfo
@@ -35,3 +35,37 @@ __pycache__
 # Config and secret files
 .env*
 *.key
+
+# ---- backend-java / Java & IDE ----
+HELP.md
+application.properties
+
+# Maven/Java build outputs
+target/
+build/
+dist/
+
+# Preserve maven wrapper jar if present in any module
+!**/.mvn/wrapper/maven-wrapper.jar
+
+# Negative rules from backend2 to preserve behavior
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+# STS / Eclipse / Spring tooling
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+
+# NetBeans
+nbproject/private/
+nbbuild/
+dist/
+.nb-gradle/
+
+### VS Code ###
+.vscode/
