@@ -35,6 +35,7 @@ __pycache__
 # Config and secret files
 .env*
 *.key
+certs/
 
 # ---- backend-java / Java & IDE ----
 HELP.md
