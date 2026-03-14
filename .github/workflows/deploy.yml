@@ -43,9 +43,9 @@ jobs:
           context: ./frontend
           file: ./frontend/Dockerfile
           push: true
-          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/trackeats-frontend:latest,${{ secrets.DOCKER_HUB_USERNAME }}/trackeats-frontend:${{ github.sha }}
-          cache-from: type=registry,ref=${{ secrets.DOCKER_HUB_USERNAME }}/trackeats-frontend:buildcache
-          cache-to: type=registry,ref=${{ secrets.DOCKER_HUB_USERNAME }}/trackeats-frontend:buildcache,mode=max
+          tags: lastcallsoftware/trackeats-frontend:latest,lastcallsoftware/trackeats-frontend:${{ github.sha }}
+          cache-from: type=registry,ref=lastcallsoftware/trackeats-frontend:buildcache
+          cache-to: type=registry,ref=lastcallsoftware/trackeats-frontend:buildcache,mode=max
 
       - name: Build and push backend image
         uses: docker/build-push-action@v7
@@ -53,9 +53,9 @@ jobs:
           context: ./backend-python
           file: ./backend-python/Dockerfile
           push: true
-          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/trackeats-backend:latest,${{ secrets.DOCKER_HUB_USERNAME }}/trackeats-backend:${{ github.sha }}
-          cache-from: type=registry,ref=${{ secrets.DOCKER_HUB_USERNAME }}/trackeats-backend:buildcache
-          cache-to: type=registry,ref=${{ secrets.DOCKER_HUB_USERNAME }}/trackeats-backend:buildcache,mode=max
+          tags: lastcallsoftware/trackeats-backend:latest,lastcallsoftware/trackeats-backend:${{ github.sha }}
+          cache-from: type=registry,ref=lastcallsoftware/trackeats-backend:buildcache
+          cache-to: type=registry,ref=lastcallsoftware/trackeats-backend:buildcache,mode=max
 
       - name: Deploy to Trackeats server via SSH
         uses: appleboy/ssh-action@master
