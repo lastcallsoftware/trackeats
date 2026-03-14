@@ -43,10 +43,9 @@ jobs:
           context: ./frontend
           file: ./frontend/Dockerfile
           push: true
-          no-cache: true
           tags: ${{ secrets.DOCKER_HUB_USERNAME }}/trackeats-frontend:latest,${{ secrets.DOCKER_HUB_USERNAME }}/trackeats-frontend:${{ github.sha }}
-          #cache-from: type=registry,ref=${{ secrets.DOCKER_HUB_USERNAME }}/trackeats-frontend:buildcache
-          #cache-to: type=registry,ref=${{ secrets.DOCKER_HUB_USERNAME }}/trackeats-frontend:buildcache,mode=max
+          cache-from: type=registry,ref=${{ secrets.DOCKER_HUB_USERNAME }}/trackeats-frontend:buildcache
+          cache-to: type=registry,ref=${{ secrets.DOCKER_HUB_USERNAME }}/trackeats-frontend:buildcache,mode=max
 
       - name: Build and push backend image
         uses: docker/build-push-action@v7
