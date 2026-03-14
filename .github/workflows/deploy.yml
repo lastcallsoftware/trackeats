@@ -22,6 +22,9 @@ jobs:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_PASSWORD }}
 
+      - name: Verify cert files exist
+        run: ls -la ./frontend/certs/
+
       - name: Build and push frontend image
         uses: docker/build-push-action@v5
         with:
