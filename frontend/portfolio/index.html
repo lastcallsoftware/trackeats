@@ -102,9 +102,9 @@
                 </p>
                 <br>
                 <p>
-                    After a period of personal exploration and skill renewal -- including earning
-                    professional certifications and developing a new portfolio app -- I'm excited to 
-                    return to the field with fresh perspective and renewed focus.
+                    After a period of personal exploration and skill renewal -- including learning many
+                    new skills, earning professional certifications, and developing a new portfolio app --
+                    I'm excited to return to the field with fresh perspective and renewed focus.
                 </p>
             </div><!-- End Section Title -->
 
@@ -305,11 +305,11 @@
                     <div class="col-lg-6">
                         <div class="card h-100 shadow-sm">
                             <div class="portfolio-content" style="min-height: 354px; border: 1px solid #000;">
-                                <img src="assets/img/trackeats-thumbnail.png" class="img-fluid" alt="">
+                                <img src="assets/img/trackeats-preview.png" class="img-fluid" alt="">
                                 <div class="portfolio-info">
                                     <h4>TrackEats</h4>
                                     <p>My labor of love.</p>
-                                    <a href="assets/img/trackeats-thumbnail.png" title="TrackEats thumbnail" data-gallery="portfolio-gallery-app" class="glightbox preview-link"><i class="bi bi-zoom-in"></i></a>
+                                    <a href="assets/img/trackeats-preview.png" title="TrackEats preview" data-gallery="portfolio-gallery-app" class="glightbox preview-link"><i class="bi bi-zoom-in"></i></a>
                                 </div>
                             </div>
                             <a href="https://trackeats.lastcallsw.com" class="text-center d-block pt-2" target="_blank" rel="noopener noreferrer">
@@ -336,33 +336,56 @@
                     <div class="col-lg-6">
                         <div class="card h-100 shadow-sm">
                             <div class="portfolio-content" style="min-height: 354px; border: 1px solid #000;">
-                                <img src="assets/img/crosscracker-thumbnail.png" class="img-fluid" alt="CrossCracker thumbnail">
+                                <img src="assets/img/crosscracker-2.0-preview.jpg" class="img-fluid" alt="CrossCracker preview">
                                 <div class="portfolio-info">
                                     <h4>CrossCracker</h4>
                                     <p>A crossword puzzle solver.</p>
-                                    <a href="assets/video/crosscracker-0.8.mp4" title="CrossCracker demo video" data-gallery="portfolio-gallery-app" class="glightbox preview-link"><i class="bi bi-zoom-in"></i></a>
+                                    <a href="assets/video/crosscracker-2.0.mp4" title="CrossCracker demo video" data-gallery="portfolio-gallery-app" class="glightbox preview-link"><i class="bi bi-zoom-in"></i></a>
                                 </div>
                             </div>
-                            <a href="assets/video/crosscracker-0.8.mp4" class="text-center d-block pt-2 glightbox preview-link" title="CrossCracker demo video" data-gallery="portfolio-gallery-app">
+                            <a href="assets/video/crosscracker-2.0.mp4" class="text-center d-block pt-2 glightbox preview-link" title="CrossCracker demo video" data-gallery="portfolio-gallery-app">
                                 CrossCracker (play demo video)
                             </a>
                             <div class="pt-3 px-3 pb-2">
                                 <p>
                                     CrossCracker is a crossword puzzle solving app.<br>
                                     <ul>
-                                        <li>Uses AI to solve crossword puzzles.  No, really!</li>
-                                        <li>Back end is Python, front end is HTML/JavaScript/CSS, connected by Flask-hosted web service</li>
-                                        <li>Currently uses the Llama 3.1 (8b) model.  I tried several models, and that was the best compromise between size, speed, and effectiveness.</li>
+                                        <li>Uses AI to solve crossword puzzles.  The latest version can solve a New York Times Tuesday puzzle 
+                                            with no errors (watch the video!).</li>
+                                        <li>Back end is Python, front end is HTML/JavaScript/CSS, connected by FastAPI-hosted REST and 
+                                            websocket APIs.</li>
+                                        <li>Uses an LLM for candidate answer generation, evaluation, and validation.</li>
+                                        <li>Capable of using any Ollama-hosted LLM locally, or any Anthropic LLM over the Internet.</li>
+                                        <li>Uses a ChromaDB database of crossword hints for Retrieveal-Augmented Generation (RAG),
+                                            substantially improving solution accuracy.</li>
                                     </ul>
                                     <button class="btn btn-link p-0" type="button" data-bs-toggle="collapse" data-bs-target="#crosscrackerMoreInfo" aria-expanded="false" aria-controls="crosscrackerMoreInfo">
                                         More Info <i class="bi bi-chevron-down"></i>
                                     </button>
                                     <div class="collapse mt-2" id="crosscrackerMoreInfo">
                                         <ul>
-                                            <li>I had to stick to a small, a simple crossword because the AIs I can feasibly use for this purpose just aren't very smart, and they never will be.  The big models you use on the Internet (e.g., GPT-4o) are far more capable, but you can't download and run a model like that for free, and even if you could it would never run on a single moderately-powered development PC like mine.</li>
-                                            <li>Thanks to Ollama, the code required to integrate an AI model into an app is trivial.  The tricky part is getting the prompt just right.  You have to "convince" the model to respond in a very specific, structured way, and it doesn't always obey.  It's really more like training a dog than writing code!</li>
-                                            <li>The algorithm for selecting which clue to ask at any given moment and which answers to use was far more difficult than integrating the AI.  Trickier still was deciding when an answer that was previously placed was wrong and should be removed.  I'm still improving that code, and could probably continue to do so forever.</li>
-                                            <li>Unfortunatly, it's too expensive to put an AI-enabled app on the Internet just for personal use.  But you can see the video of it running here, and the code is available on my GitHub (see the link to the left).</li>
+                                            <li>When running a local LLM, I prefer the Llama 3.1 (8b) model.  It provides the best compromise
+                                                between size, speed, and effectiveness.  And it's free!</li>
+                                            <li>When using one of the big LLMs available over the Internet, Claude Opus 4.5 is the current 
+                                                state of the art.  It is MUCH more effective than anything I could ever run locally -- but it
+                                                isn't free.  Each puzzle solution costs $0.50-1.00 in token usage, so... best saved for demo
+                                                videos and special occasions.</li>
+                                            <li>CrossCracker 2.0 is vastly more capable than version 1.0.  Partly that's due to much-improved 
+                                                program logic, and partly due to the use of a ChromaDB "hint" database.  Retrieval-Augmented
+                                                Geneation (RAG) using vector databases is the new normal for AI apps, and for good reason.
+                                                It made a huge difference in the app's accuracy.
+                                            <li>Puzzle aficionados will know that the New York Times crossword is the gold standard, and that
+                                                it is easiest on Monday and gets harder throughout the week.  With the Llama LLM, CrossCracker 2
+                                                can reliably solve a Monday NYT puzzle.  With Opus it can reliably solve a Tuesday puzzle and
+                                                could probably solve even a Sunday puzzle if it just had to answer the clues, but the later 
+                                                puzzles have all kinds of gimmicks like rebuses and self-referential clues that my solver is 
+                                                not equipped to handle. Maybe some day.</li>
+                                            <li>The algorithm and heuristics for selecting which answer to place, and more importantly, which 
+                                                one to backtrack when stuck, was actually far more difficult than integrating the AI.  I'm 
+                                                confident that no AI in the world could design and write the code that I did for this solver.
+                                                At least, not yet.  Claude Opus sure couldn't, and I know that because I tried that!  So yes,
+                                                there's still a place in software engineering for us puny humans.</li>
+                                            </li>
                                         </ul>
                                     </div>
                                 </p>
@@ -375,7 +398,7 @@
                     <div class="col-lg-6 mx-auto">
                         <div class="card h-100 shadow-sm">
                             <div class="portfolio-content" style="min-height: 354px; border: 1px solid #000;">
-                                <img src="assets/img/nonologic-thumbnail-v2.png" class="img-fluid" alt="NonoLogic thumbnail">
+                                <img src="assets/img/nonologic-0.9-preview.png" class="img-fluid" alt="NonoLogic preview">
                                 <div class="portfolio-info">
                                     <h4>NonoLogic</h4>
                                     <p>A nonogram solver.</p>
