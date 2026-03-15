@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.lang.NonNull;
 
 import java.util.Optional;
 
@@ -24,21 +25,21 @@ public class RecipeController {
 
     // Get a single recipe by ID
     @GetMapping("/{id}")
-    public ResponseEntity<Recipe> getRecipeById(@PathVariable Integer id) {
+    public ResponseEntity<Recipe> getRecipeById(@NonNull @PathVariable Integer id) {
         Optional<Recipe> recipe = recipeRepository.findById(id);
         return recipe.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     // Add a new recipe
     @PostMapping
-    public ResponseEntity<Recipe> addRecipe(@RequestBody Recipe recipe) {
+    public ResponseEntity<Recipe> addRecipe(@NonNull @RequestBody Recipe recipe) {
         Recipe savedRecipe = recipeRepository.save(recipe);
         return ResponseEntity.status(HttpStatus.CREATED).body(savedRecipe);
     }
 
     // Update an existing recipe
     @PutMapping("/{id}")
-    public ResponseEntity<Recipe> updateRecipe(@PathVariable Integer id, @RequestBody Recipe recipeDetails) {
+    public ResponseEntity<Recipe> updateRecipe(@NonNull @PathVariable Integer id, @RequestBody Recipe recipeDetails) {
         Optional<Recipe> optionalRecipe = recipeRepository.findById(id);
         if (optionalRecipe.isPresent()) {
             Recipe existingRecipe = optionalRecipe.get();
@@ -60,7 +61,7 @@ public class RecipeController {
 
     // Delete a recipe
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteRecipe(@PathVariable Integer id) {
+    public ResponseEntity<Void> deleteRecipe(@NonNull @PathVariable Integer id) {
         if (recipeRepository.existsById(id)) {
             recipeRepository.deleteById(id);
             return ResponseEntity.noContent().build();

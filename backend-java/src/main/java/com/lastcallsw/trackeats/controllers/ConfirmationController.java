@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import com.lastcallsw.trackeats.entities.Status;
 import com.lastcallsw.trackeats.entities.User;
 import com.lastcallsw.trackeats.repositories.UserRepository;
+import org.springframework.lang.NonNull;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -28,7 +29,7 @@ public class ConfirmationController {
      * @return The name of the Thymeleaf template to render
      */
     @GetMapping("/confirm")
-    public String confirmRegistration(@RequestParam String token, Model model) {
+    public String confirmRegistration(@NonNull @RequestParam String token, Model model) {
         Optional<User> userOpt = userRepository.findByConfirmationToken(token);
         
         if (userOpt.isEmpty()) {

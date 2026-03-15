@@ -4,6 +4,7 @@ import com.lastcallsw.trackeats.services.DataLoadService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.lang.NonNull;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -100,7 +101,7 @@ public class DbLoadController {
      */
     @PostMapping("/load")
     public ResponseEntity<?> loadData(
-            @RequestParam String type,
+            @NonNull @RequestParam String type,
             @RequestParam(required = false) String filePath) {
         
         try {
@@ -224,7 +225,7 @@ public class DbLoadController {
      */
     @PostMapping("/export")
     public ResponseEntity<?> exportData(
-            @RequestParam String type,
+            @NonNull @RequestParam String type,
             @RequestParam(required = false) String filePath) {
         
         try {

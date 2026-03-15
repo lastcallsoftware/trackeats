@@ -16,6 +16,7 @@ import com.lastcallsw.trackeats.repositories.RecipeRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.lang.NonNull;
 
 import java.io.File;
 import java.io.IOException;
@@ -108,7 +109,7 @@ public class DataLoadService {
      * @throws IOException If there's an error reading or parsing the file
      */
     @Transactional
-    public Map<String, Object> loadFoodsFromJson(String filePath) throws IOException {
+    public Map<String, Object> loadFoodsFromJson(@NonNull String filePath) throws IOException {
         // Resolve the file path relative to the current directory
         File file = resolveFilePath(filePath);
         
@@ -322,7 +323,7 @@ public class DataLoadService {
      * @throws IOException If there's an error reading or parsing the file
      */
     @Transactional
-    public Map<String, Object> loadIngredientsFromJson(String filePath) throws IOException {
+    public Map<String, Object> loadIngredientsFromJson(@NonNull String filePath) throws IOException {
         // Resolve the file path relative to the current directory
         File file = resolveFilePath(filePath);
         
@@ -416,7 +417,7 @@ public class DataLoadService {
      * @throws IOException If there's an error reading or parsing the file
      */
     @Transactional
-    public Map<String, Object> loadRecipesFromJson(String filePath) throws IOException {
+    public Map<String, Object> loadRecipesFromJson(@NonNull String filePath) throws IOException {
         // Resolve the file path relative to the current directory
         File file = resolveFilePath(filePath);
         
@@ -498,7 +499,7 @@ public class DataLoadService {
      * @throws IOException If there's an error writing to the file
      */
     @Transactional(readOnly = true)
-    public Map<String, Object> exportFoodsToJson(String filePath) throws IOException {
+    public Map<String, Object> exportFoodsToJson(@NonNull String filePath) throws IOException {
         // Get all foods from the database
         Iterable<Food> foodsIterable = foodRepository.findAll();
         
@@ -584,7 +585,7 @@ public class DataLoadService {
      * @throws IOException If there's an error writing to the file
      */
     @Transactional(readOnly = true)
-    public Map<String, Object> exportIngredientsToJson(String filePath) throws IOException {
+    public Map<String, Object> exportIngredientsToJson(@NonNull String filePath) throws IOException {
         // Get all ingredients from the database
         Iterable<Ingredient> ingredientsIterable = ingredientRepository.findAll();
         
@@ -633,7 +634,7 @@ public class DataLoadService {
      * @throws IOException If there's an error writing to the file
      */
     @Transactional(readOnly = true)
-    public Map<String, Object> exportRecipesToJson(String filePath) throws IOException {
+    public Map<String, Object> exportRecipesToJson(@NonNull String filePath) throws IOException {
         // Get all recipes from the database
         Iterable<Recipe> recipesIterable = recipeRepository.findAll();
         

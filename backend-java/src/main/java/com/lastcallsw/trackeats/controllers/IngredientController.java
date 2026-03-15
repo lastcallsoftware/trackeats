@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.lang.NonNull;
 
 import java.util.Optional;
 
@@ -24,21 +25,21 @@ public class IngredientController {
 
     // Get a single ingredient by ID
     @GetMapping("/{id}")
-    public ResponseEntity<Ingredient> getIngredientById(@PathVariable Integer id) {
+    public ResponseEntity<Ingredient> getIngredientById(@NonNull @PathVariable Integer id) {
         Optional<Ingredient> ingredient = ingredientRepository.findById(id);
         return ingredient.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     // Add a new ingredient
     @PostMapping
-    public ResponseEntity<Ingredient> addIngredient(@RequestBody Ingredient ingredient) {
+    public ResponseEntity<Ingredient> addIngredient(@NonNull @RequestBody Ingredient ingredient) {
         Ingredient savedIngredient = ingredientRepository.save(ingredient);
         return ResponseEntity.status(HttpStatus.CREATED).body(savedIngredient);
     }
 
     // Update an existing ingredient
     @PutMapping("/{id}")
-    public ResponseEntity<Ingredient> updateIngredient(@PathVariable Integer id, @RequestBody Ingredient ingredientDetails) {
+    public ResponseEntity<Ingredient> updateIngredient(@NonNull @PathVariable Integer id, @RequestBody Ingredient ingredientDetails) {
         Optional<Ingredient> optionalIngredient = ingredientRepository.findById(id);
         if (optionalIngredient.isPresent()) {
             Ingredient existingIngredient = optionalIngredient.get();
@@ -59,7 +60,7 @@ public class IngredientController {
 
     // Delete an ingredient
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteIngredient(@PathVariable Integer id) {
+    public ResponseEntity<Void> deleteIngredient(@NonNull @PathVariable Integer id) {
         if (ingredientRepository.existsById(id)) {
             ingredientRepository.deleteById(id);
             return ResponseEntity.noContent().build();

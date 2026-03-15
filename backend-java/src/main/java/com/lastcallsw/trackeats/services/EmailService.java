@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
+import org.springframework.lang.NonNull;
 
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
@@ -29,7 +30,7 @@ public class EmailService {
      * @param content The email content (HTML is supported)
      * @throws MessagingException If there's an error sending the email
      */
-    public void sendEmail(String to, String subject, String content) throws MessagingException {
+    public void sendEmail(@NonNull String to, @NonNull String subject, @NonNull String content) throws MessagingException {
         MimeMessage message = mailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
         
@@ -49,7 +50,7 @@ public class EmailService {
      * @param token The confirmation token
      * @throws MessagingException If there's an error sending the email
      */
-    public void sendRegistrationConfirmationEmail(String to, String username, String token) throws MessagingException {
+    public void sendRegistrationConfirmationEmail(@NonNull String to, @NonNull String username, @NonNull String token) throws MessagingException {
         String confirmationLink = appUrl + "/confirm?token=" + token;
         
         String subject = "TrackEats - Confirm Your Registration";

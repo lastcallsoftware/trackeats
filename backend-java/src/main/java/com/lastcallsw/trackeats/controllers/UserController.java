@@ -14,6 +14,8 @@ import com.lastcallsw.trackeats.repositories.UserRepository;
 import com.lastcallsw.trackeats.services.EmailService;
 import com.lastcallsw.trackeats.utils.TokenGenerator;
 
+import org.springframework.lang.NonNull;
+
 import jakarta.mail.MessagingException;
 
 import java.time.LocalDateTime;
@@ -39,7 +41,7 @@ public class UserController {
     
     // Get user by ID
     @GetMapping("/{id}")
-    public ResponseEntity<User> getUserById(@PathVariable Integer id) {
+    public ResponseEntity<User> getUserById(@NonNull @PathVariable Integer id) {
         Optional<User> user = userRepository.findById(id);
         return user.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
@@ -56,7 +58,7 @@ public class UserController {
     
     // Register a new user
     @PostMapping("/register")
-    public ResponseEntity<?> registerUser(@RequestBody RegisterRequest registerRequest) {
+    public ResponseEntity<?> registerUser(@NonNull @RequestBody RegisterRequest registerRequest) {
         try {
             // Check if username already exists
             if (userRepository.findByUsername(registerRequest.getUsername()).isPresent()) {
@@ -95,12 +97,25 @@ public class UserController {
     
     // Request class for user registration
     public static class RegisterRequest {
+        @NonNull
         private String username;
+        @NonNull
         private String password;
+        @NonNull
         private String email;
         
         // Default constructor for JSON deserialization
         public RegisterRequest() {
+            this.username = "";
+            this.password = "";
+            this.email = "";
+        }
+        
+        // Constructor with all required fields
+        public RegisterRequest(String username, String password, String email) {
+            this.username = username;
+            this.password = password;
+            this.email = email;
         }
         
         public String getUsername() {
@@ -119,7 +134,7 @@ public class UserController {
             this.password = password;
         }
         
-        public String getEmail() {
+        public @NonNull String getEmail() {
             return email;
         }
         

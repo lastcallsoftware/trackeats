@@ -7,6 +7,7 @@ import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
+import org.springframework.lang.NonNull;
 
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
@@ -31,23 +32,23 @@ public class JwtUtil {
     }
 
     // Extract username from token
-    public String extractUsername(String token) {
+    public String extractUsername(@NonNull String token) {
         return extractClaim(token, Claims::getSubject);
     }
 
     // Extract expiration date from token
-    public Date extractExpiration(String token) {
+    public Date extractExpiration(@NonNull String token) {
         return extractClaim(token, Claims::getExpiration);
     }
 
     // Extract a specific claim from token
-    public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
+    public <T> T extractClaim(@NonNull String token, @NonNull Function<Claims, T> claimsResolver) {
         final Claims claims = extractAllClaims(token);
         return claimsResolver.apply(claims);
     }
 
     // Extract all claims from token
-    private Claims extractAllClaims(String token) {
+    private Claims extractAllClaims(@NonNull String token) {
         return Jwts.parserBuilder()
                 .setSigningKey(getSigningKey())
                 .build()
@@ -56,19 +57,19 @@ public class JwtUtil {
     }
 
     // Check if token is expired
-    private Boolean isTokenExpired(String token) {
+    private Boolean isTokenExpired(@NonNull String token) {
         final Date expiration = extractExpiration(token);
         return expiration.before(new Date());
     }
 
     // Generate token for user
-    public String generateToken(UserDetails userDetails) {
+    public String generateToken(@NonNull UserDetails userDetails) {
         Map<String, Object> claims = new HashMap<>();
         return createToken(claims, userDetails.getUsername());
     }
 
     // Create token with claims and subject
-    private String createToken(Map<String, Object> claims, String subject) {
+    private String createToken(@NonNull Map<String, Object> claims, @NonNull String subject) {
         return Jwts.builder()
                 .setClaims(claims)
                 .setSubject(subject)
@@ -79,7 +80,7 @@ public class JwtUtil {
     }
 
     // Validate token
-    public Boolean validateToken(String token, UserDetails userDetails) {
+    public Boolean validateToken(@NonNull String token, @NonNull UserDetails userDetails) {
         final String username = extractUsername(token);
         return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
     }
