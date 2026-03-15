@@ -4,7 +4,7 @@ FROM python:3.11-slim AS builder
 WORKDIR /tmp
 
 COPY requirements.txt .
-RUN pip install --user --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir --prefix=/install -r requirements.txt
 
 
 # EXECUTION STAGE
@@ -16,10 +16,7 @@ ENV PYTHONUNBUFFERED=1
 WORKDIR /app
 
 # Copy Python dependencies from builder
-COPY --from=builder /root/.local /root/.local
-
-# Set PATH to use user-installed packages
-ENV PATH=/root/.local/bin:$PATH
+COPY --from=builder /install /usr/local
 
 # Create non-root user
 RUN adduser --uid 5678 --disabled-password --gecos "" appuser && chown -R appuser /app

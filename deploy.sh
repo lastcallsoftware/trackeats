@@ -9,6 +9,12 @@ echo "Pulling latest images from Docker Hub..."
 docker pull lastcallsoftware/trackeats-frontend:latest
 docker pull lastcallsoftware/trackeats-backend:latest
 
+# The backend decodes this value into an in-container key file at startup.
+if [ -z "${BACKEND_ENCRYPTION_KEY_B64:-}" ]; then
+  echo "✗ BACKEND_ENCRYPTION_KEY_B64 is not set"
+  exit 1
+fi
+
 # Update and restart containers
 echo "Updating containers with new images..."
 docker compose up -d

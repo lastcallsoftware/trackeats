@@ -33,6 +33,19 @@ services:
       DB_PASSWORD: ${DB_PASSWORD}
       DB_USER: ${DB_USER}
       DB_NAME: ${DB_NAME}
+      BACKEND_ENCRYPTION_KEY_B64: ${BACKEND_ENCRYPTION_KEY_B64}
+      BACKEND_ENCRYPTION_KEY: /run/secrets/trackeats-backend-encryption.key
+    tmpfs:
+      - /run/secrets
+    command:
+      - /bin/sh
+      - -c
+      - |
+        umask 077
+        mkdir -p /run/secrets
+        echo "$$BACKEND_ENCRYPTION_KEY_B64" | base64 -d > "$$BACKEND_ENCRYPTION_KEY"
+        unset BACKEND_ENCRYPTION_KEY_B64
+        exec python src/app.py
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5000/health')"]
@@ -53,7 +66,7 @@ services:
     ports:
       - "3306:3306"
     volumes:
-      - db_data:/var/lib/mysql
+      - db-data:/var/lib/mysql
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
@@ -63,8 +76,9 @@ services:
       start_period: 30s
 
 volumes:
-  db_data:
+  db-data:
+    name: trackeats-db-data
 
 networks:
   default:
-    name: trackeats-network
+    name: trackeats-net
