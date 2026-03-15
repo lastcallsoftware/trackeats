@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>3.5.6</version>
+		<version>3.5.11</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.lastcallsw</groupId>
@@ -13,18 +13,26 @@
 	<version>0.0.1-SNAPSHOT</version>
 	<name>trackeats</name>
 	<description>Demo project for Spring Boot</description>
-	<url/>
+	<url>https://github.com/lastcallsoftware/trackeats</url>
 	<licenses>
-		<license/>
+		<license>
+			<name>MIT License</name>
+			<url>https://opensource.org/licenses/MIT</url>
+		</license>
 	</licenses>
 	<developers>
-		<developer/>
+		<developer>
+			<name>Last Call Software</name>
+			<email>info@lastcallsw.com</email>
+			<organization>Last Call Software</organization>
+			<organizationUrl>https://lastcallsw.com</organizationUrl>
+		</developer>
 	</developers>
 	<scm>
-		<connection/>
-		<developerConnection/>
-		<tag/>
-		<url/>
+		<connection>scm:git:git://github.com/lastcallsoftware/trackeats.git</connection>
+		<developerConnection>scm:git:ssh://github.com/lastcallsoftware/trackeats.git</developerConnection>
+		<tag>HEAD</tag>
+		<url>https://github.com/lastcallsoftware/trackeats</url>
 	</scm>
 	<properties>
 		<java.version>21</java.version>
