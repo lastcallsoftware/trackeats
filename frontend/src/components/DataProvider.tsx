@@ -1,3 +1,4 @@
+import { generateIngredientSummary } from "../utils/generateIngredientSummary";
 import React, { createContext, useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
@@ -81,8 +82,8 @@ export type DataContextType = {
     addFood: (food: IFood) => Promise<void>;
     updateFood: (food: IFood) => Promise<void>;
     deleteFood: (food_id: number) => Promise<void>;
-    addRecipe: (recipe: IRecipe) => Promise<number|undefined>;
-    updateRecipe: (recipe: IRecipe) => Promise<void>;
+    addRecipe: (recipe: IRecipe, ingredients: IIngredient[]) => Promise<number|undefined>;
+    updateRecipe: (recipe: IRecipe, ingredients: IIngredient[]) => Promise<void>;
     deleteRecipe: (recipe_id: number) => Promise<void>;
     getIngredients: (recipe_id: number) => Promise<void>;
     addIngredients: (recipe_id: number, ingredients: IIngredient[]) => Promise<void>;
@@ -227,21 +228,15 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
     }
 
     // Add Recipe
-    const addRecipe = async (recipe: IRecipe): Promise<number|undefined> => {
+    const addRecipe = async (recipe: IRecipe, ingredients: IIngredient[]): Promise<number|undefined> => {
         let recipe_id = undefined
         setErrorMessage("");
         try {
-            // Save the new recipe to the back end.
-            const response = await axios.post("/recipe", recipe, {headers: { "Authorization": "Bearer " + access_token}})
+            // Save the new recipe and its ingredients to the back end atomically.
+            const payload = { ...recipe, ingredients };
+            const response = await axios.post("/recipe", payload, {headers: { "Authorization": "Bearer " + access_token}})
             const new_recipe = response.data
             recipe_id = new_recipe.id
-
-            // Retrieve the newly created Recipe using the URL provided in 
-            // the Location header in the response to the previous call.
-            //const response2 = await axios.get(response1.headers["location"], {headers: { "Authorization": "Bearer " + access_token}})
-            //recipe_id = response2.data.id
-
-            // Add the new Recipe to the recipes list state varaible.
             setRecipes((prev_recipes) => [...prev_recipes, new_recipe])
         } catch (error) {
             handleError(error)
@@ -250,16 +245,15 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
     }
 
     // Update Recipe
-    const updateRecipe = async (recipe: IRecipe): Promise<void> => {
+    const updateRecipe = async (recipe: IRecipe, ingredients: IIngredient[]): Promise<void> => {
         setErrorMessage("");
         try {
-            // Update the Recipe on the back end.
-            await axios.put("/recipe", recipe, {headers: { "Authorization": "Bearer " + access_token}})
-
-            // Update it in the Recipes list state variable.
+            // Update the Recipe and its ingredients on the back end atomically.
+            const payload = { ...recipe, ingredients };
+            await axios.put("/recipe", payload, {headers: { "Authorization": "Bearer " + access_token}})
             setRecipes(prevItems => prevItems.map(item => {
                 if (item.id === recipe.id) {
-                    return recipe;
+                    return { ...recipe, ingredients };
                 } else {
                     return item;
                 }
@@ -290,10 +284,27 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
             // Get the Ingredient records from the back end
             const response = await axios.get("/recipe/" + recipe_id + "/ingredient", {headers: { "Authorization": "Bearer " + access_token}})
 
-            // Put the return value the Ingredients list state variable
-            setIngredients(response.data);
+            // Populate the summary field, error if nutrition is missing
+            const ingredientsWithSummary: IIngredient[] = response.data.map((ing: IIngredient) => {
+                let food, recipe, nutrition;
+                if (ing.food_ingredient_id) {
+                    food = foods.find(f => f.id === ing.food_ingredient_id);
+                    nutrition = food?.nutrition;
+                } else if (ing.recipe_ingredient_id) {
+                    recipe = recipes.find(r => r.id === ing.recipe_ingredient_id);
+                    nutrition = recipe?.nutrition;
+                }
+                if (!nutrition) {
+                    throw new Error(`Nutrition record not found for ingredient (id: ${ing.id ?? 'unknown'})`);
+                }
+                return {
+                    ...ing,
+                    summary: generateIngredientSummary(nutrition, food, recipe, ing.servings)
+                };
+            });
+            setIngredients(ingredientsWithSummary);
         } catch (error) {
-             handleError(error)
+            handleError(error);
         }
     }
 

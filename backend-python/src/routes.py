@@ -1,10 +1,11 @@
 import os
 import logging
 from datetime import datetime, timedelta
+from typing import Any
 from flask import Blueprint, jsonify, make_response, request
-from flask_jwt_extended import jwt_required, create_access_token, get_jwt_identity
+from flask_jwt_extended import jwt_required, create_access_token, get_jwt_identity # type:ignore
 from sendmail import send_confirmation_email
-from models import db, User, UserStatus, Nutrition, Food, Recipe, Ingredient
+from models import db, User, UserStatus, Food, Recipe, Ingredient
 from crypto import generate_url_token
 from data import load_db, export_db
 from sqlalchemy.sql import text
@@ -15,9 +16,11 @@ bp = Blueprint("auth", __name__)
 ##############################
 # HEALTH
 ##############################
-# Check the app's health.
 @bp.route("/health", methods = ["GET"])
 def health():
+    """
+    Check the app's health.
+    """
     logging.info("/health")
     try:
         db.session.execute(text("SELECT 1"))
@@ -34,10 +37,12 @@ def health():
 ##############################
 # DATABASE ACTIONS
 ##############################
-# INIT - Wipe the database and recreate all the tables using the ORM classes in 
-# models.py.  Note that the tables will be EMPTY!
 @bp.route("/db/init", methods=["GET"])
 def db_init():
+    """
+    INIT - Wipe the database and recreate all the tables using the ORM classes in 
+    models.py.  Note that the tables will be EMPTY!
+    """
     logging.info("/db/init")
     try:
         # To execute this function, the app needs to be running with a DB_USERID
@@ -53,10 +58,13 @@ def db_init():
         logging.info(msg)
         return {"msg": msg}, 200
 
-# LOAD - Populate the (presumably newly created) database with test data.
-# Be aware that this API first deletes the contents of tables it populates!
+
 @bp.route("/db/load", methods=["GET"])
 def db_load():
+    """
+    LOAD - Populate the (presumably newly created) database with test data.
+    Be aware that this API first deletes the contents of tables it populates!
+    """
     logging.info("/db/load")
     try:
         load_db()
@@ -70,10 +78,12 @@ def db_load():
         return {"msg": msg}, 200
 
 
-# EXPORT - Export selected data to JSON files for long-term storage and reloading purposes.
 @bp.route("/db/export", methods=["GET"])
 @jwt_required()
 def db_export():
+    """
+    EXPORT - Export selected data to JSON files for long-term storage and reloading purposes.
+    """
     logging.info("/db/export")
     try:
         export_db()
@@ -90,11 +100,13 @@ def db_export():
 ##############################
 # REGISTER
 ##############################
-# Begin the user registeration process by retrieving the user's credentials from
-# the request body, validating them, adding a record to the database, and sending
-# an email to their specified email address.
 @bp.route("/register", methods=["POST"])
 def register():
+    """
+    Begin the user registeration process by retrieving the user's credentials from
+    the request body, validating them, adding a record to the database, and sending
+    an email to their specified email address.
+    """
     logging.info("/register")
     try:
         # If it's not even JSON, don't bother checking anything else
@@ -110,7 +122,12 @@ def register():
         token = generate_url_token()
 
         # Add the user to the database in "pending" state
-        User.add(username, password, email_addr, UserStatus.pending, token)
+        User.add({
+            "username": username,
+            "password": password,
+            "email": email_addr, 
+            "status": UserStatus.pending, 
+            "token": token})
         logging.info(f"New user added to database: {username} at {email_addr}")
 
         # Send the confirmation email
@@ -132,11 +149,16 @@ def register():
 ##############################
 # SENDMAIL
 ##############################
-# Sends a verification email to the specified user.
 @bp.route("/sendmail", methods=["GET"])
 @jwt_required()
 def mymail():
+    """
+    Sends a verification email to the specified user.
+    """    
     logging.info("/sendmail")
+    username = None
+    email_addr = None
+    token = None
     try:
         # Get request parameters from URL
         username = request.args.get("username")
@@ -153,7 +175,7 @@ def mymail():
         # Send the confirmation email.
         send_confirmation_email(username, token, email_addr)
     except Exception as e:
-        if email_addr is not None:
+        if email_addr:
             msg = f"Couldn't send email to {email_addr}: {repr(e)}"
         else:
             msg = f"Couldn't send email: {repr(e)}"
@@ -168,10 +190,12 @@ def mymail():
 ##############################
 # CONFIRM
 ##############################
-# Confirm the user by matching the token in the confirmation email with
-# stored the token in the user's User record.
 @bp.route("/confirm", methods = ["GET"])
 def confirm():
+    """
+    Confirm the user by matching the token in the confirmation email with
+    stored the token in the user's User record.
+    """
     logging.info("/confirm")
     try:
         # Retrieve request parameters from the confirmation URL.
@@ -219,11 +243,13 @@ def confirm():
 ##############################
 # LOGIN
 ##############################
-# Log in the user by retrieving their credentials from the request body, 
-# verfifying them against the database, and if valid, generating and
-# returning a JWT token.
 @bp.route("/login", methods = ["POST"])
 def login():
+    """
+    Log in the user by retrieving their credentials from the request body, 
+    verfifying them against the database, and if valid, generating and
+    returning a JWT token.
+    """    
     logging.info("/login")
     try:
         # If it's not even JSON, don't bother checking anything else
@@ -253,17 +279,19 @@ def login():
 ##############################
 # USER
 ##############################
-# Return the list of all Users.
 @bp.route("/user", methods = ["GET"])
 @jwt_required()
 def get_users():
+    """
+    Return the list of all Users
+    """
     logging.info("/user")
     try:
         longform = False
         if (request.args.get("long") is not None):
             longform = True
-        users = User.query.all()
-        data = []
+        users = User.get_all()
+        data: list[Any] = []
         for user in users:
             if longform:
                 data.append(repr(user))
@@ -278,17 +306,20 @@ def get_users():
         logging.info(msg)
         return jsonify(data),200
 
-# Get a particular User record.
+
 @bp.route("/user/<string:username>", methods = ["GET"])
 @jwt_required()
 def get_user(username: str):
+    """
+    Get a particular User
+    """
     logging.info("/user/" + username)
     try:
         longform = False
         if (request.args.get("long") is not None):
             longform = True
-        user = User.query.filter_by(username=username).first()
-        if user is None:
+        user = User.get(username)
+        if not user:
             raise ValueError(f"User {username} not found")
         if longform:
             data = repr(user)
@@ -307,12 +338,14 @@ def get_user(username: str):
 ##############################
 # WHOAMI
 ##############################
-# This is a test API call intended to test token protection without involving 
-# any database or other API calls.
-# It retrieves the identity of the current user from the JWT token.
 @bp.route('/whoami', methods=['GET'])
 @jwt_required()
-def protected():
+def whoami():
+    """
+    # This is a test API call intended to test token protection without involving 
+    # any database or other API calls.
+    # It retrieves the identity of the current user from the JWT token.
+    """
     logging.info("/whoami")
     try:
         username = get_jwt_identity()
@@ -329,10 +362,12 @@ def protected():
 ##############################
 # FOOD
 ##############################
-# Get all Foods
 @bp.route("/food", methods = ["GET"])
 @jwt_required()
 def get_foods():
+    """
+    Get all Foods for this user
+    """
     logging.info("/food GET")
     try:
         # Get the user_id for the user identified by the token
@@ -340,8 +375,8 @@ def get_foods():
         user_id = User.get_id(username)
 
         # Get all the Foods associated with that user_id
-        foods = Food.query.filter_by(user_id=user_id).order_by(Food.group, Food.name, Food.subtype).all()
-        data = []
+        foods = Food.get_by_user(user_id)
+        data: list[Any] = []
         for food in foods:
             data.append(food.json())
     except Exception as e:
@@ -353,20 +388,21 @@ def get_foods():
         logging.info(msg)
         return jsonify(data), 200
     
-# Get Food
 @bp.route("/food/<int:food_id>", methods = ["GET"])
 @jwt_required()
 def get_food(food_id:int):
+    """
+    Get one particular Food
+    """
     logging.info(f"/food GET {food_id}")
     try:
         # Get the user_id for the user identified by the token
         username = get_jwt_identity()
         user_id = User.get_id(username)
 
-        # Get all the Foods associated with that user_id
-        food = Food.query.filter_by(user_id=user_id, id=food_id).first()
-        if food is None:
-            raise ValueError(f"Food {food_id} not found.")
+        food = Food.get(user_id, food_id)
+        if not food:
+            raise ValueError(f"Food record {food_id} not found")
         data = food.json()
     except Exception as e:
         msg = f"Food record could not be retrieved: {repr(e)}"
@@ -377,10 +413,12 @@ def get_food(food_id:int):
         logging.info(msg)
         return jsonify(data), 200
 
-# Add Food
 @bp.route("/food", methods = ["POST"])
 @jwt_required()
 def add_food():
+    """
+    Add a new Food
+    """
     logging.info("/food POST")
     try:
         # Get the user_id for the user identified by the token
@@ -402,10 +440,12 @@ def add_food():
         resp.headers["Location"] = f"/food/{food_id}"
         return resp
 
-# Update Food
 @bp.route("/food", methods = ["PUT"])
 @jwt_required()
 def update_food():
+    """
+    Update an existing Food
+    """
     logging.info("/food PUT")
     try:
         # Get the user_id for the user identified by the token
@@ -424,10 +464,12 @@ def update_food():
         logging.info(msg)
         return jsonify(updated_food), 200
 
-# Delete Food
 @bp.route("/food/<int:food_id>", methods = ["DELETE"])
 @jwt_required()
 def delete_food(food_id:int):
+    """
+    Delete a Food
+    """
     logging.info(f"/food/{food_id} DELETE")
     try:
         # Get the user_id for the user identified by the token
@@ -435,9 +477,9 @@ def delete_food(food_id:int):
         user_id = User.get_id(username)
 
         # Get the specified Food record
-        food = Food.query.filter_by(user_id=user_id, id=food_id).first()
+        food = Food.get(user_id, food_id)
         if food is None:
-            raise RuntimeError(f"Food record {food_id} not found.")
+            raise ValueError(f"Food record {food_id} not found.")
 
         # Delete the Food record
         db.session.delete(food)
@@ -455,10 +497,12 @@ def delete_food(food_id:int):
 ##############################
 # RECIPE
 ##############################
-# Get all Recipes
 @bp.route("/recipe", methods = ["GET"])
 @jwt_required()
 def get_recipes():
+    """
+    Get all Recipes for this user
+    """
     logging.info("/recipe GET")
     try:
         # Get the user_id for the user identified by the token
@@ -466,8 +510,8 @@ def get_recipes():
         user_id = User.get_id(username)
 
         # Get all the Recipes associated with that user_id
-        recipes = Recipe.query.filter_by(user_id=user_id).order_by(Recipe.cuisine, Recipe.name).all()
-        data = []
+        recipes = Recipe.get_all_for_user(user_id)
+        data: list[Any] = []
         for recipe in recipes:
             data.append(recipe.json())
     except Exception as e:
@@ -479,10 +523,13 @@ def get_recipes():
         logging.info(msg)
         return jsonify(data), 200
     
-# Get Recipe
+
 @bp.route("/recipe/<int:recipe_id>", methods = ["GET"])
 @jwt_required()
 def get_recipe(recipe_id: int):
+    """
+    Get one Recipe
+    """
     logging.info("/recipe GET")
     try:
         # Get the user_id for the user identified by the token
@@ -490,7 +537,9 @@ def get_recipe(recipe_id: int):
         user_id = User.get_id(username)
 
         # Get the Recipe for the given user_id and recipe_id
-        recipe = Recipe.query.filter_by(user_id=user_id, id=recipe_id).first()
+        recipe = Recipe.get(user_id, recipe_id)
+        if not recipe:
+            raise ValueError(f"Recipe record {recipe_id} not found.")
         data = recipe.json()
     except Exception as e:
         msg = f"Recipe record could not be retrieved: {repr(e)}"
@@ -501,33 +550,24 @@ def get_recipe(recipe_id: int):
         logging.info(msg)
         return jsonify(data), 200
 
-# Add Recipe
+
 @bp.route("/recipe", methods = ["POST"])
 @jwt_required()
 def add_recipe():
+    """
+    Add a new Recipe (including its Ingredients)
+    """
     logging.info("/recipe POST")
     try:
         # Get the user_id for the user identified by the token
         username = get_jwt_identity()
         user_id = User.get_id(username)
 
-        recipe: list[dict] = request.json
-
-        # Pull the serving size description from the Nutrition child record and
-        # make it a separate parameter.  It will be added back to the Nutrition
-        # record when the Recipe is saved.  We just do it this way to make the
-        # .add() API call easier.
-        serving_size_description = recipe["nutrition"]["serving_size_description"]
+        # Get the recipe data from the request
+        recipe: dict[str,Any] = request.json
 
         # Add the recipe to the database
-        new_recipe = Recipe.add(
-            user_id, 
-            recipe["cuisine"],
-            recipe["name"], 
-            recipe["total_yield"],
-            recipe["servings"],
-            serving_size_description,
-            recipe.get("id", None))
+        new_recipe = Recipe.add(user_id, recipe)
     except Exception as e:
         msg = f"Recipe record could not be added: {repr(e)}"
         logging.error(msg)
@@ -541,10 +581,13 @@ def add_recipe():
         resp.headers["Location"] = f"/recipe/{recipe_id}"
         return resp
 
-# Update Recipe
+
 @bp.route("/recipe", methods = ["PUT"])
 @jwt_required()
 def update_recipe():
+    """
+    Update an existing Recipe (including its Ingredients)
+    """
     logging.info("/recipe PUT")
     try:
         # Get the user_id for the user identified by the token
@@ -563,10 +606,13 @@ def update_recipe():
         logging.info(msg)
         return jsonify(updated_recipe), 200
 
-# Delete Recipe
+
 @bp.route("/recipe/<int:recipe_id>", methods = ["DELETE"])
 @jwt_required()
 def delete_recipe(recipe_id: int):
+    """
+    Delete a Recipe
+    """
     logging.info(f"/recipe/{recipe_id} DELETE")
     try:
         # Get the user_id for the user identified by the token
@@ -574,7 +620,7 @@ def delete_recipe(recipe_id: int):
         user_id = User.get_id(username)
 
         # Get the specified Recipe record
-        recipe = Recipe.query.filter_by(user_id=user_id, id=recipe_id).first()
+        recipe = Recipe.get(user_id, recipe_id)
         if recipe is None:
             raise ValueError(f"Recipe {recipe_id} not found")
 
@@ -598,10 +644,12 @@ def delete_recipe(recipe_id: int):
 ##############################
 # INGREDIENT
 ##############################
-# Get all Ingredients for a Recipe
 @bp.route("/recipe/<int:recipe_id>/ingredient", methods = ["GET"])
 @jwt_required()
 def get_ingredients(recipe_id:int):
+    """
+    Get all Ingredients for a Recipe
+    """
     logging.info(f"/recipe/{recipe_id}/ingredient GET")
     try:
         # Get the user_id for the user identified by the token
@@ -609,8 +657,8 @@ def get_ingredients(recipe_id:int):
         user_id = User.get_id(username)
 
         # Get all the Ingredient records with that recipe_id
-        ingredients:list[Ingredient] = Ingredient.query.filter_by(recipe_id=recipe_id).all()
-        data = []
+        ingredients: list[Ingredient] = Ingredient.get_all_for_recipe(user_id, recipe_id)
+        data: list[Any] = []
         for ingredient in ingredients:
             data.append(ingredient.json())
     except Exception as e:
@@ -621,167 +669,3 @@ def get_ingredients(recipe_id:int):
         msg = f"{len(data)} Ingredient records retrieved"
         logging.info(msg)
         return jsonify(data), 200
-
-# Add multiple Ingredients (either Food or Recipe) to a Recipe
-@bp.route("/recipe/<int:recipe_id>/ingredient", methods = ["POST"])
-@jwt_required()
-def add_ingredients(recipe_id:int):
-    logging.info(f"/recipe/{recipe_id}/ingredient POST")
-    try:
-        # Get the user_id for the user identified by the token
-        username = get_jwt_identity()
-        user_id = User.get_id(username)
-
-        # Add the Ingredients to the database
-        ingredients: list[dict[str,any]] = request.json
-        added_inrgedients = []
-        for ingredient in ingredients:
-            food_ingredient_id = ingredient.get("food_ingredient_id")
-            recipe_ingredient_id = ingredient.get("recipe_ingredient_id")
-            ordinal = ingredient.get("ordinal")
-            servings = ingredient.get("servings")
-            summary = ingredient.get("summary")
-            new_ingredient = Ingredient.add(recipe_id, food_ingredient_id, recipe_ingredient_id, servings, summary, ordinal, False)
-            added_inrgedients.append(new_ingredient)
-        db.session.commit()
-    except Exception as e:
-        msg = f"Ingredient record(s) could not be added to Recipe {recipe_id}: {repr(e)}"
-        logging.error(msg)
-        return jsonify({"msg": msg}), 400
-    else:
-        msg = f"{len(ingredients)} Ingredient records added to Recipe {recipe_id}"
-        logging.info(msg)
-        return jsonify(added_inrgedients), 200
-
-# Update a Food Ingredient for a Recipe
-@bp.route("/recipe/<int:recipe_id>/food_ingredient/<int:food_id>/<float:servings>", methods = ["PUT"])
-@jwt_required()
-def update_food_ingredient(recipe_id:int, food_id:int, servings:float):
-    logging.info(f"/recipe/{recipe_id}/food_ingredient/{food_id}/{servings} PUT")
-    try:
-        # Get the user_id for the user identified by the token
-        username = get_jwt_identity()
-        user_id = User.get_id(username)
-
-        # Get the recipe referenced by the ID
-        recipe:Recipe = Recipe.query.filter_by(user_id=user_id, id=recipe_id).first()
-
-        # Update the Ingredient record (this just means updating its servings 
-        # field), and alter the Recipe's Nutrition data accordingly
-        updated_ingredient = recipe.update_food_ingredient(food_id=food_id, servings=servings)
-    except Exception as e:
-        msg = f"Food Ingredient record {recipe_id}/{food_id} could not be updated: {repr(e)}"
-        logging.error(msg)
-        return jsonify({"msg": msg}), 400
-    else:
-        msg = f"Food Ingredent record {recipe_id}/{food_id} updated"
-        logging.info(msg)
-        return jsonify(updated_ingredient), 200
-    
-# Update a Recipe Ingredient for a Recipe
-@bp.route("/recipe/<int:recipe_id>/recipe_ingredient/<int:recipe_ingredient_id>/<float:servings>", methods = ["PUT"])
-@jwt_required()
-def update_recipe_ingredient(recipe_id:int, recipe_ingredient_id:int, servings:float):
-    logging.info(f"/recipe/{recipe_id}/recipe_ingredient/{recipe_ingredient_id}/{servings} PUT")
-    try:
-        # Get the user_id for the user identified by the token
-        username = get_jwt_identity()
-        user_id = User.get_id(username)
-
-        # Get the recipe referenced by the ID
-        recipe:Recipe = Recipe.query.filter_by(user_id=user_id, id=recipe_id).first()
-
-        # Update the Ingredient record (this just means updating its servings 
-        # field), and alter the Recipe's Nutrition data accordingly
-        updated_recipe_ingredient = recipe.update_recipe_ingredient(recipe_id=recipe_ingredient_id, servings=servings)
-    except Exception as e:
-        msg = f"Recipe Ingredient record {recipe_id}/{recipe_ingredient_id} could not be updated: {repr(e)}"
-        logging.error(msg)
-        return jsonify({"msg": msg}), 400
-    else:
-        msg = f"Recipe Ingredent record {recipe_id}/{recipe_ingredient_id} updated"
-        logging.info(msg)
-        return jsonify(updated_recipe_ingredient), 200
-
-# Remove all Ingredients for this Recipe
-@bp.route("/recipe/<int:recipe_id>/ingredient", methods = ["DELETE"])
-@jwt_required()
-def remove_ingredients(recipe_id:int):
-    logging.info(f"/recipe/{recipe_id}/ingredient DELETE")
-    try:
-        # Get the user_id for the user identified by the token
-        username = get_jwt_identity()
-        user_id = User.get_id(username)
-
-        # Get the Recipe record so we can get its Nutrition child record
-        recipe:Recipe = Recipe.query.filter_by(user_id=user_id, id=recipe_id).first()
-        if (recipe is None):
-            raise ValueError(f"Recipe {recipe_id} not found")
-
-        # Remove all the Ingredients from the Recipe
-        Ingredient.query.filter_by(recipe_id=recipe_id).delete()
-
-        # Reset the Nutrition data for the Recipe
-        nutrition = Nutrition.query.filter_by(id=recipe.nutrition_id).first()
-        nutrition.reset()
-
-        # Reset the price data for the Recipe
-        recipe.price = 0
-        
-        db.session.commit()
-    except Exception as e:
-        msg = f"Ingredients for Recipe {recipe_id} could not be removed: {repr(e)}"
-        logging.error(msg)
-        return jsonify({"msg": msg}), 400
-    else:
-        msg = f"Ingredients for Recipe {recipe_id} removed"
-        logging.info(msg)
-        return jsonify({"msg": msg}), 200
-
-# Remove a Food Ingredient for this Recipe
-@bp.route("/recipe/<int:recipe_id>/food_ingredient/<int:food_id>", methods = ["DELETE"])
-@jwt_required()
-def remove_food_ingredient(recipe_id:int, food_id:int):
-    logging.info(f"/recipe/{recipe_id}/food_ingredient/{food_id} DELETE")
-    try:
-        # Get the user_id for the user identified by the token
-        username = get_jwt_identity()
-        user_id = User.get_id(username)
-
-        # Get the associated Recipe
-        recipe = Recipe.query.filter_by(user_id=user_id, id=recipe_id).first()
-
-        # Remove the food ingredient from the recipe
-        recipe.remove_food_ingredient(food_id)
-    except Exception as e:
-        msg = f"Food Ingredient record {recipe_id}/{food_id} could not be removed: {repr(e)}"
-        logging.error(msg)
-        return jsonify({"msg": msg}), 400
-    else:
-        msg = f"Food Ingredient record {recipe_id}/{food_id} removed"
-        logging.info(msg)
-        return jsonify({"msg": msg}), 200
-
-# Remove a Recipe Ingredient for this Recipe
-@bp.route("/recipe/<int:recipe_id>/recipe_ingredient/<int:recipe_ingredient_id>", methods = ["DELETE"])
-@jwt_required()
-def remove_recipe_ingredient(recipe_id:int, recipe_ingredient_id:int):
-    logging.info(f"/recipe/{recipe_id}/recipe_ingredient/{recipe_ingredient_id} DELETE")
-    try:
-        # Get the user_id for the user identified by the token
-        username = get_jwt_identity()
-        user_id = User.get_id(username)
-
-        # Get the associated Recipe
-        recipe = Recipe.query.filter_by(user_id=user_id, id=recipe_id).first()
-
-        # Remove the food ingredient from the recipe
-        recipe.remove_recipe_ingredient(recipe_ingredient_id)
-    except Exception as e:
-        msg = f"Recipe Ingredient record {recipe_id}/{recipe_ingredient_id} could not be removed: {repr(e)}"
-        logging.error(msg)
-        return jsonify({"msg": msg}), 400
-    else:
-        msg = f"Recipe Ingredient record {recipe_id}/{recipe_ingredient_id} removed"
-        logging.info(msg)
-        return jsonify({"msg": msg}), 200

@@ -2,6 +2,7 @@ import os
 import nacl
 import nacl.secret
 import nacl.utils;
+from nacl.utils import EncryptedMessage
 from bcrypt import hashpw, checkpw, gensalt
 import secrets
 
@@ -10,11 +11,11 @@ import secrets
 # libraries and you would THINK that libraries specifically devoted to crypto 
 # would be especially secure, so we'll continue to use them for now.
 
-nacl_box: nacl.secret.SecretBox = None
+nacl_box: nacl.secret.SecretBox | None = None
 
 # Generate a token to use in verification emails
-def generate_url_token(num_bytes = 32) -> str:
-    return secrets.token_urlsafe(32)
+def generate_url_token(num_bytes: int = 32) -> str:
+    return secrets.token_urlsafe(num_bytes)
 
 # Create a new key file and store it into a file
 def create_key_file(keyfile: str) -> None:
@@ -40,13 +41,17 @@ def load_key(keyfile: str) -> bytes:
     return secret_key
 
 # Encrypted data will be exactly 40 bytes longer than the encoded data
-def encrypt(data: str) -> str:
+def encrypt(data: str) -> EncryptedMessage:
+    if not nacl_box:
+        raise ValueError("Encryption engine not initialized")
     byte_data = bytes(data, "utf-8")
     encrypted_data = nacl_box.encrypt(byte_data)
     return encrypted_data
 
 # Decrypt data
 def decrypt(encrypted_data: bytes) -> str:
+    if not nacl_box:
+        raise ValueError("Encryption engine not initialized")
     byte_data = nacl_box.decrypt(encrypted_data)
     return str(byte_data, "utf-8")
 

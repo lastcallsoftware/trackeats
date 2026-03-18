@@ -63,10 +63,17 @@ def send_confirmation_email(username: str, token:str, email_address: str) -> Non
 
 # Send an email using the standard Python SMTP library.
 # We use an Amazon SMTP server and credentials obtained from the AWS website.
-def sendmail_smtp(email_address: str, email_subject: str, email_body_text, email_body_html) -> None:
+def sendmail_smtp(email_address: str, email_subject: str, email_body_text: str, email_body_html: str) -> None:
     smtp_hostname = os.environ.get(SMTP_HOSTNAME_KEY)
     smtp_username = os.environ.get(SMTP_USERNAME_KEY)
     smtp_password = os.environ.get(SMTP_PASSWORD_KEY)
+
+    if (not smtp_hostname):
+        raise ValueError("SMTP Hostname may not be None")
+    if (not smtp_username):
+        raise ValueError("SMTP Username may not be None")
+    if (not smtp_password):
+        raise ValueError("SMTP Password may not be None")
 
     # Create message container - the correct MIME type is multipart/alternative.
     email_msg = MIMEMultipart('alternative')

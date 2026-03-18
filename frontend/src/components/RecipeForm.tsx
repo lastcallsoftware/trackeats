@@ -8,6 +8,7 @@ import FoodsTable from "./FoodsTable";
 import RecipesTable from "./RecipesTable";
 import IngredientsTable from "./IngredientsTable";
 import axios from 'axios';
+import { generateIngredientSummary } from "../utils/generateIngredientSummary";
 import { Tooltip } from "./ui/tooltip";
 
 function RecipeForm() {
@@ -79,24 +80,18 @@ function RecipeForm() {
         // Prevent default behavior for form submission (namely, sending the form to the server)
         e.preventDefault();
 
-        // Save the Recipe to the database
+        // Save the Recipe and its Ingredients atomically
         let recipe_id: number|undefined|void = -1;
         if (isEdit) {
-            await context.updateRecipe(formData);
+            await context.updateRecipe(formData, ingredients);
             recipe_id = formData.id;
         } else {
-            recipe_id = await context.addRecipe(formData);
+            recipe_id = await context.addRecipe(formData, ingredients);
         }
 
-        // We should ALWAYS have a recipe_id at this point
-        if (recipe_id) {
-            // Remove all previous ingredients for this Recipe
-            await context.removeIngredients(recipe_id);
-
-            // Add the new Ingredients
-            await context.addIngredients(recipe_id, ingredients);
-        } else {
+        if (!recipe_id) {
             setErrorMessage("Error saving Recipe: recipe_id is undefined")
+            return;
         }
 
         // Return to the Recipes page
@@ -111,27 +106,9 @@ function RecipeForm() {
     }
 
     // Generate a summary for the Ingredient
-    const generateSummary = (nutrition: INutrition, food: IFood|undefined = undefined, recipe: IRecipe|undefined = undefined): string|undefined => {
-        if (food) {
-            let summary = ingredientServings + " x (" + nutrition?.serving_size_description + ") "
-            summary += food.name
-            if (food.subtype) {
-                summary += ", " + food.subtype
-            }
-            summary += " (" + (nutrition.serving_size_oz * ingredientServings).toFixed(1) + " oz/" + 
-                                (nutrition.serving_size_g * ingredientServings).toFixed(1) + " g)"
-            return summary
-        } else if (recipe) {
-            // Generate a summary for the Ingredient
-            let summary = ingredientServings + " x (" + nutrition.serving_size_description + ") "
-            summary += recipe.name + " "
-            summary += "(" + (nutrition.serving_size_oz * ingredientServings).toFixed(1) + " oz/" + 
-                            (nutrition.serving_size_g * ingredientServings).toFixed(1) + " g)"
-            return summary
-        } else {
-            setErrorMessage("Neither a food nor a recipe was provided for ths Ingredient")
-            return undefined
-        }
+    // Wrapper to preserve old API for now
+    const generateSummary = (nutrition: INutrition, food?: IFood, recipe?: IRecipe) => {
+        return generateIngredientSummary(nutrition, food, recipe, ingredientServings);
     }
 
     // Update the Recipe's nutrition information

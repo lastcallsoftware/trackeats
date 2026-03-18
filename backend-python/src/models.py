@@ -1,6 +1,8 @@
+from __future__ import annotations
+from typing import Any
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import ForeignKey, func
-from sqlalchemy.orm import relationship
+from sqlalchemy import func
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from email_validator import validate_email, EmailNotValidError
 from crypto import check_password, encrypt, decrypt, hash_password
 import enum
@@ -85,9 +87,6 @@ db = SQLAlchemy()
 ##############################
 # USER
 ##############################
-# A user of this app.  This record contains their password hash and other
-# authentication data.  Any personal data (such as email address) is encrypted.
-# Each user owns their own app data.
 class UserStatus(enum.Enum):
     pending = 1
     confirmed = 2
@@ -95,16 +94,31 @@ class UserStatus(enum.Enum):
     banned = 4
 
 class User(db.Model):
+    """
+    A user of this app.  This record contains their password hash and other
+    authentication data.  Any personal data (such as email address) is encrypted.
+    Each user owns their own app data.
+    """
     __tablename__ = "user"
 
-    id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(100), index=True, unique=True, nullable=False)
-    status = db.Column(db.Enum(UserStatus), nullable=False)
-    email = db.Column(db.LargeBinary, nullable=True)
-    created_at = db.Column(db.DateTime, nullable=False)
-    password_hash = db.Column(db.String(64), nullable=False)
-    confirmation_sent_at = db.Column(db.DateTime, nullable=True)
-    confirmation_token = db.Column(db.String(64), nullable=True)
+    id: Mapped[int] = mapped_column(primary_key=True)
+    username: Mapped[str] = mapped_column(db.String(100), index=True, unique=True)
+    status: Mapped[UserStatus] = mapped_column(db.Enum(UserStatus), nullable=False)
+    email: Mapped[bytes|None] = mapped_column(db.LargeBinary, nullable=True)
+    created_at: Mapped[str] = mapped_column(db.DateTime, nullable=False)
+    password_hash: Mapped[str] = mapped_column(db.String(64), nullable=False)
+    confirmation_sent_at: Mapped[datetime.datetime | None] = mapped_column(db.DateTime, nullable=True)
+    confirmation_token: Mapped[str|None] = mapped_column(db.String(64), nullable=True)
+
+    def __init__(self, data: dict[str,Any]):
+        self.username = data["username"]
+        self.status = data["status"]
+        self.email = data.get("email")
+        self.created_at = data["created_at"]
+        self.password_hash = data["password_hash_str"]
+        self.confirmation_sent_at = data.get("confirmation_sent_at")
+        self.confirmation_token = data.get("confirmation_token")
+        return self
 
     def __str__(self):
         return f"<User {self.id} {self.username}, status: {self.status}, created_at: {self.created_at}, confirmation_sent_at: {self.confirmation_sent_at}>"
@@ -115,7 +129,7 @@ class User(db.Model):
             email = decrypt(self.email)
         return f"User({self.id}, \'{self.username}\', {self.status}, \'{email}\', {self.created_at}, \'{self.password_hash}\', {self.confirmation_sent_at}, \'{self.confirmation_token}\')"
 
-    def json(self):
+    def json(self) -> dict[str,Any]:
         return {
             "id": self.id,
             "username": self.username,
@@ -124,17 +138,42 @@ class User(db.Model):
             "confirmation_sent_at": self.confirmation_sent_at
             }
     
-    # Get the user_id for the given username
+
+    @staticmethod
+    def get_all() -> list[User]:
+        users = db.session.scalars(db.select(User)).all()
+        return list(users)
+
+
+    @staticmethod
+    def get(username: str) -> User|None:
+        user = db.session.scalars(db.select(User).filter_by(username=username)).first()
+        return user
+
+
+    @staticmethod
     def get_id(username: str) -> int:
-        #query = db.select(User).filter_by(username)
-        #users = db.session.execute(query).first()
-        user = User.query.filter_by(username=username).first()
+        """
+        Get the user_id for the given username
+        """
+        user = db.session.scalars(db.select(User).filter_by(username=username)).first()
+        if user is None:
+            raise ValueError(f"User {username} not found")
         return user.id
 
-    # Add a new User to the database.
-    # This function validates the data before adding it.
-    def add(username: str, password: str, email_addr: str, status=UserStatus.pending, confirmation_token: str=None) -> None:
-        errors = []
+    @staticmethod
+    def add(data: dict[str,Any]) -> None:
+        """
+        Add a new User to the database.
+        """
+        # Pull fields from dictionary
+        username: str = data["username"]
+        password: str = data["password"]
+        email_addr: str = data["email"]
+        status: UserStatus = data.get("status", UserStatus.pending)
+        confirmation_token: str|None = data.get("token")
+
+        errors: list[str] = []
         try:
             if not username:
                 errors.append("Username is required but missing.")
@@ -182,7 +221,7 @@ class User(db.Model):
                     password_hash_str = hash_password(password)
 
                     # Encrypt the user data.  Currently that is just the email address.
-                    encrypted_email = None
+                    encrypted_email_addr = None
                     if email_addr and len(email_addr) > 0:
                         encrypted_email_addr = encrypt(email_addr)
 
@@ -191,14 +230,15 @@ class User(db.Model):
                     confirmation_sent_at = None
                     if confirmation_token is not None:
                         confirmation_sent_at = now
-                    new_user = User(
-                        username=username, 
-                        status=status, 
-                        email=encrypted_email_addr, 
-                        created_at=now, 
-                        password_hash=password_hash_str,
-                        confirmation_sent_at=confirmation_sent_at, 
-                        confirmation_token=confirmation_token)
+                    new_user = User({
+                        "username": username, 
+                        "status": status, 
+                        "email": encrypted_email_addr, 
+                        "created_at": now, 
+                        "password_hash": password_hash_str,
+                        "confirmation_sent_at": confirmation_sent_at, 
+                        "confirmation_token": confirmation_token
+                        })
                     db.session.add(new_user)
                     db.session.commit()
         except Exception as e:
@@ -207,9 +247,13 @@ class User(db.Model):
             msg = "\n".join(errors)
             raise ValueError(f"User {username} could not be added: " + msg)
 
-    # Verify that the given user credentials are valid.
+
+    @staticmethod
     def verify(username: str, password: str) -> None:
-        errors = []
+        """
+        Verify that the given user credentials are valid.
+        """
+        errors: list[str] = []
         try:
             if not username:
                 errors.append("Username is required but missing.")
@@ -251,88 +295,93 @@ class User(db.Model):
 ##############################
 # NURITION
 ##############################
-# This is the nutrition data that this app is intended to track.  It's basically
-# the same data you see on a USDA nutrition label.
-#
-# Nutrition is a separate record because the same data fields are reused for 
-# the Food, Recipe, and DailyLog tables.
-#
-# When used with the Food record, it represents the nutrition for one 
-# serving of one food item.  It is then combined in the proper proportions to 
-# calculate the nutrition for Recipes and DailyLogs.
-#
-# The Nutrition data is technically denormalized for the Recipe and DailyLog
-# tables.  That is, we store it even though it's calculated from other records
-# that are already stored in the database.  We do this for efficiency.
-# It's more efficient to store it rather than load all the ingredient child
-# records and recalculate the totals every time a Recipe or DailyLog record is
-# viewed.  We just have to remember to recalculate and re-store the Nutrition
-# data when necessary, such as when a Recipe's ingredients change.
-# 
-# The Food, Recipe and DailyLog tables each have a 1-to-1 relationship with the
-# Nutrition table.  Note that technically, the Nutrition record is the parent
-# record in these relationships.  That is, instead of the Nutrition record having
-# the ID of an associated Food, Recipe, or DailyLog record, those records have the
-# ID of an associated Nutrition record.  This is because the Nutrition record is 
-# reused -- it can't have foreign key relationships on all three of those tables,
-# so we do it the other way around.
-#
-# This has one convenient side effect, which is that we can configure SQLAlchemy
-# for "cascade deletes".  So when we delete a Food, Recipe or DailyLog record,
-# the ORM layer also automatically deletes the associated Nutrition record
-# without any coding on our part.  It can do this because the "child" record in
-# these relationships (Food/Recipe/DailyLog) has the ID of the "parent"
-# Nutrition record.
-##############################
 class Nutrition(db.Model):
+    """
+    This is the nutrition data that this app is intended to track.  It's basically
+    the same data you see on a USDA nutrition label.
+
+    Nutrition is a separate record because the same data fields are reused for 
+    the Food, Recipe, and DailyLog tables.
+
+    When used with the Food record, it represents the nutrition for one 
+    serving of one food item.  It is then combined in the proper proportions to 
+    calculate the nutrition for Recipes and DailyLogs.
+
+    The Nutrition data is technically denormalized for the Recipe and DailyLog
+    tables.  That is, we store it even though it's calculated from other records
+    that are already stored in the database.  We do this for efficiency.
+    It's more efficient to store it rather than load all the ingredient child
+    records and recalculate the totals every time a Recipe or DailyLog record is
+    viewed.  We just have to remember to recalculate and re-store the Nutrition
+    data when necessary, such as when a Recipe's ingredients change.
+
+    The Food, Recipe and DailyLog tables each have a 1-to-1 relationship with the
+    Nutrition table.  Note that technically, the Nutrition record is the parent
+    record in these relationships.  That is, instead of the Nutrition record having
+    the ID of an associated Food, Recipe, or DailyLog record, those records have the
+    ID of an associated Nutrition record.  This is because the Nutrition record is 
+    reused -- it can't have foreign key relationships on all three of those tables,
+    so we do it the other way around.
+
+    This has one convenient side effect, which is that we can configure SQLAlchemy
+    for "cascade deletes".  So when we delete a Food, Recipe or DailyLog record,
+    the ORM layer also automatically deletes the associated Nutrition record
+    without any coding on our part.  It can do this because the "child" record in
+    these relationships (Food/Recipe/DailyLog) has the ID of the "parent"
+    Nutrition record.
+    """
     __tablename__ = "nutrition"
 
-    id = db.Column(db.Integer, primary_key=True)
-    serving_size_description = db.Column(db.String(50), nullable=False)
-    serving_size_g = db.Column(db.Integer)
-    serving_size_oz = db.Column(db.Float)
-    calories =  db.Column(db.Integer, nullable=False)
-    total_fat_g = db.Column(db.Float)
-    saturated_fat_g = db.Column(db.Float)
-    trans_fat_g = db.Column(db.Integer)
-    cholesterol_mg = db.Column(db.Integer)
-    sodium_mg = db.Column(db.Integer)
-    total_carbs_g = db.Column(db.Integer)
-    fiber_g = db.Column(db.Integer)
-    total_sugar_g = db.Column(db.Integer)
-    added_sugar_g = db.Column(db.Integer)
-    protein_g = db.Column(db.Integer)
-    vitamin_d_mcg = db.Column(db.Integer)
-    calcium_mg = db.Column(db.Integer)
-    iron_mg = db.Column(db.Float)
-    potassium_mg = db.Column(db.Integer)
+    id: Mapped[int] = mapped_column(primary_key=True)
+    serving_size_description: Mapped[str] = mapped_column(db.String(50), nullable=False)
+    serving_size_g: Mapped[int | None] = mapped_column(db.Integer, nullable=True)
+    serving_size_oz: Mapped[float | None] = mapped_column(db.Float, nullable=True)
+    calories: Mapped[int] = mapped_column(db.Integer, nullable=False)
+    total_fat_g: Mapped[float | None] = mapped_column(db.Float, nullable=True)
+    saturated_fat_g: Mapped[float | None] = mapped_column(db.Float, nullable=True)
+    trans_fat_g: Mapped[float | None] = mapped_column(db.Float, nullable=True)
+    cholesterol_mg: Mapped[int | None] = mapped_column(db.Integer, nullable=True)
+    sodium_mg: Mapped[int | None] = mapped_column(db.Integer, nullable=True)
+    total_carbs_g: Mapped[int | None] = mapped_column(db.Integer, nullable=True)
+    fiber_g: Mapped[int | None] = mapped_column(db.Integer, nullable=True)
+    total_sugar_g: Mapped[int | None] = mapped_column(db.Integer, nullable=True)
+    added_sugar_g: Mapped[int | None] = mapped_column(db.Integer, nullable=True)
+    protein_g: Mapped[int | None] = mapped_column(db.Integer, nullable=True)
+    vitamin_d_mcg: Mapped[int | None] = mapped_column(db.Integer, nullable=True)
+    calcium_mg: Mapped[int | None] = mapped_column(db.Integer, nullable=True)
+    iron_mg: Mapped[float | None] = mapped_column(db.Float, nullable=True)
+    potassium_mg: Mapped[int | None] = mapped_column(db.Integer, nullable=True)
 
-    def __init__(self, data: dict = None):
+    def __init__(self, data: dict[str,Any]|None = None):
         if data is not None:
-            self.id = data.get("id")
-            self.serving_size_description = data.get("serving_size_description", "")
-            self.serving_size_oz = data.get("serving_size_oz", 0)
-            self.serving_size_g = data.get("serving_size_g", 0)
-            self.calories = data.get("calories", 0)
-            self.total_fat_g = data.get("total_fat_g", 0)
-            self.saturated_fat_g = data.get("saturated_fat_g", 0)
-            self.trans_fat_g = data.get("trans_fat_g", 0)
-            self.cholesterol_mg = data.get("cholesterol_mg", 0)
-            self.sodium_mg = data.get("sodium_mg", 0)
-            self.total_carbs_g = data.get("total_carbs_g", 0)
-            self.fiber_g = data.get("fiber_g", 0)
-            self.total_sugar_g = data.get("total_sugar_g", 0)
-            self.added_sugar_g = data.get("added_sugar_g", 0)
-            self.protein_g = data.get("protein_g", 0)
-            self.vitamin_d_mcg = data.get("vitamin_d_mcg", 0)
-            self.calcium_mg = data.get("calcium_mg", 0)
-            self.iron_mg = data.get("iron_mg", 0)
-            self.potassium_mg = data.get("potassium_mg", 0)
+            self._update(data)
+
+    def _update(self, data: dict[str,Any]):
+        if data.get("id"):
+            self.id = data["id"]
+        self.serving_size_description = data["serving_size_description"]
+        self.serving_size_oz = data.get("serving_size_oz", 0)
+        self.serving_size_g = data.get("serving_size_g", 0)
+        self.calories = data.get("calories", 0)
+        self.total_fat_g = data.get("total_fat_g", 0)
+        self.saturated_fat_g = data.get("saturated_fat_g", 0)
+        self.trans_fat_g = data.get("trans_fat_g", 0)
+        self.cholesterol_mg = data.get("cholesterol_mg", 0)
+        self.sodium_mg = data.get("sodium_mg", 0)
+        self.total_carbs_g = data.get("total_carbs_g", 0)
+        self.fiber_g = data.get("fiber_g", 0)
+        self.total_sugar_g = data.get("total_sugar_g", 0)
+        self.added_sugar_g = data.get("added_sugar_g", 0)
+        self.protein_g = data.get("protein_g", 0)
+        self.vitamin_d_mcg = data.get("vitamin_d_mcg", 0)
+        self.calcium_mg = data.get("calcium_mg", 0)
+        self.iron_mg = data.get("iron_mg", 0)
+        self.potassium_mg = data.get("potassium_mg", 0)
 
     def __str__(self):
         return str(vars(self))
 
-    def json(self):
+    def json(self) -> dict[str,Any]:
         return {
             "id": self.id,
             "serving_size_description": self.serving_size_description,
@@ -355,31 +404,46 @@ class Nutrition(db.Model):
             "potassium_mg": self.potassium_mg
         }
     
-    # Add one Nutrition record to another.
-    def sum(self, nutrition2: "Nutrition", servings: float, modifier: float = 1) -> dict:
-        self.calories += round(nutrition2.calories * servings * modifier)
-        self.total_fat_g += round(nutrition2.total_fat_g * servings * modifier, 1)
-        self.saturated_fat_g += round(nutrition2.saturated_fat_g * servings * modifier, 1)
-        self.trans_fat_g += round(nutrition2.trans_fat_g * servings * modifier, 1)
-        self.cholesterol_mg += round(nutrition2.cholesterol_mg * servings * modifier)
-        self.sodium_mg += round(nutrition2.sodium_mg * servings * modifier)
-        self.total_carbs_g += round(nutrition2.total_carbs_g * servings * modifier)
-        self.fiber_g += round(nutrition2.fiber_g * servings * modifier)
-        self.total_sugar_g += round(nutrition2.total_sugar_g * servings * modifier)
-        self.added_sugar_g += round(nutrition2.added_sugar_g * servings * modifier)
-        self.protein_g += round(nutrition2.protein_g * servings * modifier)
-        self.vitamin_d_mcg += round(nutrition2.vitamin_d_mcg * servings * modifier)
-        self.calcium_mg += round(nutrition2.calcium_mg * servings * modifier)
-        self.iron_mg += round(nutrition2.iron_mg * servings * modifier, 1)
-        self.potassium_mg += round(nutrition2.potassium_mg * servings * modifier)
+
+    @staticmethod
+    def get(user_id: int, nutrition_id: int) -> Nutrition | None:
+        nutrition = db.session.get(Nutrition, nutrition_id)
+        return nutrition
+
+
+    def sum(self, nutrition2: Nutrition, servings: float, modifier: float = 1) -> Nutrition:
+        """
+        Add one Nutrition record to another.
+        """
+        self.calories = (self.calories or 0) + round((nutrition2.calories or 0) * servings * modifier)
+        self.total_fat_g = (self.total_fat_g or 0) + round((nutrition2.total_fat_g or 0) * servings * modifier, 1)
+        self.saturated_fat_g = (self.saturated_fat_g or 0) + round((nutrition2.saturated_fat_g or 0) * servings * modifier, 1)
+        self.trans_fat_g = (self.trans_fat_g or 0) + round((nutrition2.trans_fat_g or 0) * servings * modifier, 1)
+        self.cholesterol_mg = (self.cholesterol_mg or 0) + round((nutrition2.cholesterol_mg or 0) * servings * modifier)
+        self.sodium_mg = (self.sodium_mg or 0) + round((nutrition2.sodium_mg or 0) * servings * modifier)
+        self.total_carbs_g = (self.total_carbs_g or 0) + round((nutrition2.total_carbs_g or 0) * servings * modifier)
+        self.fiber_g = (self.fiber_g or 0) + round((nutrition2.fiber_g or 0) * servings * modifier)
+        self.total_sugar_g = (self.total_sugar_g or 0) + round((nutrition2.total_sugar_g or 0) * servings * modifier)
+        self.added_sugar_g = (self.added_sugar_g or 0) + round((nutrition2.added_sugar_g or 0) * servings * modifier)
+        self.protein_g = (self.protein_g or 0) + round((nutrition2.protein_g or 0) * servings * modifier)
+        self.vitamin_d_mcg = (self.vitamin_d_mcg or 0) + round((nutrition2.vitamin_d_mcg or 0) * servings * modifier)
+        self.calcium_mg = (self.calcium_mg or 0) + round((nutrition2.calcium_mg or 0) * servings * modifier)
+        self.iron_mg = (self.iron_mg or 0) + round((nutrition2.iron_mg or 0) * servings * modifier, 1)
+        self.potassium_mg = (self.potassium_mg or 0) + round((nutrition2.potassium_mg or 0) * servings * modifier)
         return self
 
-    # Subtract one Nutrition record from another.
-    def subtract(self, nutrition2: "Nutrition", servings: float, modifier: float = 1) -> dict:
-        return self.add(nutrition2, servings, modifier * -1)
+    
+    def subtract(self, nutrition2: Nutrition, servings: float, modifier: float = 1) -> Nutrition:
+        """
+        Subtract one Nutrition record from another.
+        """
+        return self.sum(nutrition2, servings, modifier * -1)
 
-    # Reset the Nutrition totals to zero (leave the ID and serving info intact).
-    def reset(self) -> dict:
+
+    def reset(self) -> Nutrition:
+        """
+        Reset the Nutrition totals to zero (leave the ID and serving info intact).
+        """
         self.calories = 0
         self.total_fat_g = 0
         self.saturated_fat_g = 0
@@ -397,12 +461,9 @@ class Nutrition(db.Model):
         self.potassium_mg = 0
         return self
 
+
 ##############################
 # FOOD
-##############################
-# This represents one "atomic" food item that you'd buy at the grocery store:
-# a loaf of bread, a box of cereal, an orange, a head of lettuce, etc.
-# This is the app's basic building-block record.
 ##############################
 class FoodGroup(enum.Enum):
     beverages = 1,
@@ -419,56 +480,64 @@ class FoodGroup(enum.Enum):
     other = 12
 
 class Food(db.Model):
+    """
+    This represents one "atomic" food item that you'd buy at the grocery store:
+    a loaf of bread, a box of cereal, an orange, a head of lettuce, etc.
+    This is the app's basic building-block record.
+    """
     __tablename__ = "food"
 
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
-    group = db.Column(db.Enum(FoodGroup), nullable=False)
-    name = db.Column(db.String(50), nullable=False)
-    subtype = db.Column(db.String(50), nullable=True)
-    description = db.Column(db.String(100), nullable=True)
-    vendor = db.Column(db.String(50), nullable=False)
-    size_description = db.Column(db.String(50))
-    size_oz = db.Column(db.Float)
-    size_g = db.Column(db.Integer)
-    servings = db.Column(db.Float, nullable=False)
-    nutrition_id = db.Column(db.Integer, db.ForeignKey('nutrition.id'))
-    nutrition = db.relationship(
-        "Nutrition", 
-        single_parent=True, 
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(db.Integer, db.ForeignKey("user.id"), nullable=False)
+    group: Mapped[FoodGroup] = mapped_column(db.Enum(FoodGroup), nullable=False)
+    name: Mapped[str] = mapped_column(db.String(50), nullable=False)
+    subtype: Mapped[str | None] = mapped_column(db.String(50), nullable=True)
+    description: Mapped[str | None] = mapped_column(db.String(100), nullable=True)
+    vendor: Mapped[str] = mapped_column(db.String(50), nullable=False)
+    size_description: Mapped[str | None] = mapped_column(db.String(50), nullable=True)
+    size_oz: Mapped[float | None] = mapped_column(db.Float, nullable=True)
+    size_g: Mapped[int | None] = mapped_column(db.Integer, nullable=True)
+    servings: Mapped[float] = mapped_column(db.Float, nullable=False)
+    nutrition_id: Mapped[int | None] = mapped_column(db.Integer, db.ForeignKey("nutrition.id"), nullable=True)
+    nutrition: Mapped[Nutrition] = relationship(
+        "Nutrition",
+        single_parent=True,
         cascade="all, delete-orphan")
-    price = db.Column(db.Float)
-    price_date = db.Column(db.Date, nullable=True)
-    shelf_life = db.Column(db.String(150))
+    price: Mapped[float | None] = mapped_column(db.Float, nullable=True)
+    price_date: Mapped[datetime.date | None] = mapped_column(db.Date, nullable=True)
+    shelf_life: Mapped[str | None] = mapped_column(db.String(150), nullable=True)
 
-    def __init__(self, data: dict = None):
+    def __init__(self, user_id: int, data: dict[str,Any]|None = None):
         if data is not None:
-            self.id = data.get("id")
-            self.user_id = data.get("user_id")
-            self.group = FoodGroup[data.get("group")]
-            self.name = data.get("name")
-            self.subtype = data.get("subtype")
-            self.description = data.get("description")
-            self.vendor = data.get("vendor")
-            self.size_description = data.get("size_description")
-            self.size_oz = data.get("size_oz")
-            self.size_g = data.get("size_g")
-            self.servings = data.get("servings")
-            self.nutrition = Nutrition(data.get("nutrition"))
-            self.price = data.get("price")
-            self.price_date = data.get("price_date")
-            self.shelf_life = data.get("shelf_life")
+            self._update(user_id, data)
         else:
             self.group = FoodGroup.other
             self.nutrition = Nutrition()
 
+    def _update(self, user_id: int, data: dict[str,Any]) -> None:
+        if data.get("id"):
+            self.id = data["id"]
+        self.user_id = user_id
+        self.group = FoodGroup[data["group"]]
+        self.name = data["name"]
+        self.subtype = data.get("subtype")
+        self.description = data.get("description")
+        self.vendor = data["vendor"]
+        self.size_description = data.get("size_description")
+        self.size_oz = data.get("size_oz")
+        self.size_g = data.get("size_g")
+        self.servings = data["servings"]
+        self.nutrition = Nutrition(data.get("nutrition"))
+        # This code sets the DAO field to None if the date string is None
+        # OR if its stripped length is 0 (e.g., if is's all spaces)
+        price_date = (data.get("price_date") or "").strip()
+        self.price_date = datetime.date.fromisoformat(price_date) if price_date else None
+        self.shelf_life = data.get("shelf_life")
+
     def __str__(self):
         return str(vars(self))
     
-    def json(self):
-        price_date = ""
-        if (self.price_date and type(self.price_date) == datetime.date):
-            price_date = datetime.datetime.strftime(self.price_date, "%Y-%m-%d")
+    def json(self) -> dict[str,Any]:
         return {
             "id": self.id,
             "user_id": self.user_id,
@@ -484,66 +553,77 @@ class Food(db.Model):
             "nutrition_id": self.nutrition_id,
             "nutrition": self.nutrition.json(),
             "price": self.price,
-            "price_date": price_date,
+            "price_date": self.price_date.strftime("%Y-%m-%d") if self.price_date else None,
             "shelf_life": self.shelf_life
             }
 
-    # Add a new Food record to the database.
-    # food is expected to be a JSON-like dictionary object with the same 
-    #   fields as the Food record itself (including its child Nutrition 
-    #   object), with the exception of the user_id field, which gets assigned here.
-    # commit is a boolean indicating whether the record should be committed to
-    #   the database.  Set it to false when you want to add a bunch of records
-    #   at once (calling this function multiple times), in which case the caller
-    #   is required to commit the records afterwards (via db.session.commit()).
+    
+
+    @staticmethod
+    def get_all() -> list[Food]:
+        foods = db.session.scalars(db.select(Food)).all()
+        return list(foods)
+
+
+    @staticmethod
+    def get_by_user(user_id: int) -> list[Food]:
+        foods = db.session.scalars(db.select(Food).where(Food.user_id == user_id).order_by("group", "name", "subtype")).all()
+        return list(foods)
+
+
+    @staticmethod
+    def get(user_id: int, food_id: int) -> Food | None:
+        food = db.session.scalars(db.select(Food).where(Food.user_id == user_id).where(Food.id == food_id).order_by("group", "name", "subtype")).first()
+        return food
+
+
+    @staticmethod
     def add(user_id: int, food: dict[str, str|int|float], commit: bool) -> dict[str, str|int|float]:
+        """
+        Add a new Food record to the database.
+        commit is a boolean indicating whether the record should be committed to
+            the database.  Set it to false when you want to add a bunch of records
+            at once (calling this function multiple times), in which case the caller
+            is required to commit the records afterwards (via db.session.commit()).
+        """
         try: 
-            # Add the user_id field.
-            food["user_id"] = user_id
-
-            # Remove the price_date field if it's empty.
-            if (len(food["price_date"].strip()) == 0):
-                del food["price_date"]
-
             # Construct the new Food database record.
-            f = Food(food)
+            new_food_dao = Food(user_id, food)
 
             # Add the new record to the database!
-            db.session.add(f)
+            db.session.add(new_food_dao)
 
             if commit:
                 db.session.commit()
 
-            return f.json()
+            return new_food_dao.json()
         except Exception as e:
             raise ValueError("Food record could not be added: " + repr(e)) from e
 
-    # Update an existing Food record.
+
+    @staticmethod
     def update(user_id: int, food: dict[str, str|int|float]) -> dict[str, str|int|float]:
+        """
+        Update an existing Food record.
+        """
         try:
+            # Get the Food record
+            food_id = food["id"]
+            food_dao = db.session.get(Food, food_id)
+            if not food_dao:
+                raise ValueError(f"Food record {food_id} not found.")
+
+            # Get the Nutrition child record
+            nutrition_id = food_dao.nutrition_id
+            nutrition_dao = db.session.get(Nutrition, nutrition_id)
+            if not nutrition_dao:
+                raise ValueError(f"Nutrition record {food_id}/{nutrition_id} not found.")
+
             # Add the user_id field.
             food["user_id"] = user_id
 
-            # Remove the Nutrition object from the dictionary.
-            nutrition = food["nutrition"]
-            del food["nutrition"]
-
-            # Remove the price_date field if it's empty.
-            if (len(food["price_date"].strip()) == 0):
-                del food["price_date"]
-
-            # Get the ID fields so we can update the proper records.
-            food_id = food["id"]
-            nutrition_id = food["nutrition_id"]
-
-            # Update the Nutrition and Food records.
-            num_updates = Nutrition.query.filter_by(id=nutrition_id).update(nutrition)
-            if (num_updates != 1):
-                raise ValueError(f"Expected to update 1 Nutrition record but found {num_updates}.")
-
-            num_updates = Food.query.filter_by(user_id=user_id, id=food_id).update(food)
-            if (num_updates != 1):
-                raise ValueError(f"Expected to update 1 Food record but found {num_updates}.")
+            # Update the data fields
+            food_dao._update(user_id, food)
 
             db.session.commit()
 
@@ -555,31 +635,43 @@ class Food(db.Model):
 ##############################
 # INGREDIENT
 ##############################
-# This is a many-to-many association table that links Recipes to their
-# constituent Food and Recipe items.  It also stores the number of servings of 
-# each Ingredient used in the Recipe.
-# Note that SQLAlchemy relationships CANNOT be used with this table since
-# SQLAlchemy relationships are by definition between two tables, and this table
-# associates THREE tables (though only two tables in any given record),
-# That is, either the food_ingredient_id or the recipe_ingredient_id is set
-# in any given record, but never both.
-##############################
-# This allows us to reference Recipe before we actually define it.
-class Recipe:
-    pass
-
 class Ingredient(db.Model):
+    """
+    This is a many-to-many association table that links Recipes to their
+    constituent Food and Recipe items.  It also stores the number of servings of 
+    each Ingredient used in the Recipe.
+
+    Note that SQLAlchemy relationships CANNOT be used with this table since
+    SQLAlchemy relationships are by definition between two tables, and this table
+    associates THREE tables (though only two in any given record).
+
+    That is, either the recipe_id AND either the food_ingredient_id or the 
+    recipe_ingredient_id is set in any given record, but never both.
+    """
     __tablename__ = "ingredient"
 
-    id = db.Column(db.Integer, primary_key=True)
-    recipe_id = db.Column(db.Integer, db.ForeignKey("recipe.id"))
-    food_ingredient_id = db.Column(db.Integer, db.ForeignKey("food.id"), nullable=True)
-    recipe_ingredient_id = db.Column(db.Integer, db.ForeignKey("recipe.id"), nullable=True)
-    ordinal = db.Column(db.Integer)
-    servings = db.Column(db.Float, nullable=False, default=0)
-    summary = db.Column(db.String(100))
+    id: Mapped[int] = mapped_column(primary_key=True)
+    recipe_id: Mapped[int] = mapped_column(db.Integer, db.ForeignKey("recipe.id"), nullable=True)
+    food_ingredient_id: Mapped[int | None] = mapped_column(db.Integer, db.ForeignKey("food.id"), nullable=True)
+    recipe_ingredient_id: Mapped[int | None] = mapped_column(db.Integer, db.ForeignKey("recipe.id"), nullable=True)
+    ordinal: Mapped[int] = mapped_column(db.Integer, nullable=False)
+    servings: Mapped[float] = mapped_column(db.Float, nullable=False, default=0)
+    summary: Mapped[str | None] = mapped_column(db.String(100), nullable=True)
 
-    def json(self):
+    def __init__(self, user_id: int, data: dict[str,Any]):
+        self._update(user_id, data)
+    
+    def _update(self, user_id: int, data: dict[str,Any]) -> None:
+        if data.get("id"):
+            self.id = data["id"]
+        self.recipe_id = data["recipe_id"]
+        self.food_ingredient_id = data.get("food_ingredient_id")
+        self.recipe_ingredient_id = data.get("recipe_ingredient_id")
+        self.ordinal = data["ordinal"]
+        self.servings = float(data["servings"])
+        self.summary = data.get("summary")
+
+    def json(self) -> dict[str,Any]:
         return {
             "id": self.id,
             "recipe_id": self.recipe_id,
@@ -590,46 +682,105 @@ class Ingredient(db.Model):
             "summary": self.summary
         }
     
-    # Generate a short summary of an Ingredient.
-    def generate_summary(ingredient: Food | Recipe, servings: float) -> str:
-        ss_oz:float = round(ingredient.nutrition.serving_size_oz * servings, 1)
-        ss_g:int = round(ingredient.nutrition.serving_size_g * servings)
-        if type(ingredient) == Food:
-            food:Food = ingredient
-            subtype = "" if (food.subtype is None or food.subtype == "") else f", {food.subtype}" 
-            return f"{servings} x ({food.nutrition.serving_size_description}) {food.name}{subtype} ({ss_oz} oz/{ss_g} g)"
-        else:
-            recipe:Recipe = ingredient
-            return f"{servings} x {recipe.name} ({ss_oz} oz/{ss_g} g)"
 
-    def add(recipe_id: int, food_ingredient_id: int, recipe_ingredient_id:int, servings: float, summary: str,  ordinal: int|None = None, commit: bool = True) -> dict[str, str|int|float]:
+    @staticmethod
+    def get_all() -> list[Ingredient]:
+        """
+        Get all Ingredients
+        """
+        ingredients = db.session.scalars(db.select(Ingredient)).all()
+        return list(ingredients)
+
+
+    @staticmethod
+    def get_all_for_user(user_id: int) -> list[Ingredient]:
+        """
+        Get all Ingredients for a particular User
+        """
+        raise NotImplementedError("This feature is not yet implemented.  Ingredient does not have a user_id column.")
+
+
+    @staticmethod
+    def get_all_for_recipe(user_id: int, recipe_id: int) -> list[Ingredient]:
+        """
+        Get all Ingredients for a Recipe
+        """
+        ingredients = db.session.scalars(db.select(Ingredient).where(Ingredient.recipe_id == recipe_id)).all()
+        return list(ingredients)
+
+
+    @staticmethod
+    def get(user_id: int, ingredient_id: int) -> Ingredient | None:
+        """
+        Get one specififc Ingredient
+        """
+        ingredient = db.session.get(Ingredient, ingredient_id)
+        return ingredient
+
+
+    @staticmethod
+    def add(user_id: int, data: dict[str,Any], commit: bool = True) -> dict[str, str|int|float]:
+        """
+        Create a new Ingredient record
+        """
+        # Pull values from dictionary
+        recipe_id = data["recipe_id"]
+        food_ingredient_id = data.get("food_ingredient_id")
+        recipe_ingredient_id = data.get("recipe_ingredient_id")
+        servings = float(data["servings"])
+        summary = str(data.get("summary"))
+        ordinal = data.get("ordinal")
+
         try:
             # Check whether a matching Ingredient record already exists
-            ingredient:Ingredient = Ingredient.query.filter_by(recipe_id=recipe_id, food_ingredient_id=food_ingredient_id, recipe_ingredient_id=recipe_ingredient_id).first()
-            if ingredient is not None:
-                raise ValueError(f"Food Ingredient record {recipe_id}/{food_ingredient_id}/{recipe_ingredient_id} already exists")
+            ingredient_dao = db.session.scalars(db.select(Ingredient).where(Ingredient.recipe_id == recipe_id).where(Ingredient.food_ingredient_id == food_ingredient_id).where(Ingredient.recipe_ingredient_id == recipe_ingredient_id)).first()
+            if not ingredient_dao:
+                raise ValueError(f"Ingredient record {recipe_id}/{food_ingredient_id}/{recipe_ingredient_id} already exists")
 
-            # Get the Recipe record.  We need to update its Nutrition record.
-            recipe:Recipe = Recipe.query.filter_by(id=recipe_id).first()
-            if recipe is None:
-                raise ValueError(f"Recipe {recipe_id} not found")
+            # Get the Recipe record
+            recipe_dao = db.session.get(Recipe, recipe_id)
+            if not recipe_dao:
+                raise ValueError(f"Recipe record {recipe_id} not found")
 
-            # Generate a summay for this Ingredient if one wasn't provided.
+            # Get its Nutrition child record
+            recipe_nutrition_dao = db.session.get(Nutrition, recipe_dao.nutrition_id)
+            if not recipe_nutrition_dao:
+                raise ValueError(f"Nutrition record {recipe_id}/{recipe_dao.nutrition_id} not found")
+
+            # Generate a summary for this Ingredient if one wasn't provided.
             # Also, sum the Nutrition data from the new Ingredient into the Recipe.
-            if food_ingredient_id is not None:
-                food_ingredient:Food = Food.query.filter_by(id=food_ingredient_id).first()
-                if food_ingredient is None:
-                    raise ValueError(f"Food Ingredient {food_ingredient_id} not found")
-                #if summary is None or summary == "":
-                summary = Ingredient.generate_summary(food_ingredient, servings)
-                recipe.nutrition.sum(food_ingredient.nutrition, servings)
-                recipe.price += round(food_ingredient.price * servings/food_ingredient.servings, 2)
-            elif recipe_ingredient_id is not None:
-                recipe_ingredient:Recipe = Recipe.query.filter_by(id=recipe_ingredient_id).first()
-                #if summary is None or summary == "":
-                summary = Ingredient.generate_summary(recipe_ingredient, servings)
-                recipe.nutrition.sum(recipe_ingredient.nutrition, servings, 1/recipe_ingredient.servings)
-                recipe.price += round(recipe_ingredient.price * servings/recipe_ingredient.servings, 2)
+            # Food Ingredient
+            if food_ingredient_id:
+                food_ingredient_dao = db.session.get(Food, food_ingredient_id)
+                if not food_ingredient_dao:
+                    raise ValueError(f"Food Ingredient record {food_ingredient_id} not found")
+                
+                ingredient_nutririon_dao = db.session.get(Nutrition, food_ingredient_dao.nutrition_id)
+                if not ingredient_nutririon_dao:
+                    raise ValueError(f"Ingredient record {food_ingredient_id}/{food_ingredient_dao.nutrition_id} not found")
+
+                summary = Ingredient.generate_summary(food_ingredient_dao, servings)
+                recipe_nutrition_dao.sum(ingredient_nutririon_dao, servings)
+                price_per_serving = (food_ingredient_dao.price or 0)/food_ingredient_dao.servings
+                recipe_dao.price = (recipe_dao.price or 0) + round(price_per_serving * servings, 2)
+
+            # Recipe Ingredient
+            elif recipe_ingredient_id:
+                recipe_ingredient_dao = db.session.get(Recipe, recipe_ingredient_id)
+                if not recipe_ingredient_dao:
+                    raise ValueError(f"Recipe Ingredient record {recipe_ingredient_id} not found")
+
+                ingredient_nutrition_dao = db.session.get(Nutrition, recipe_ingredient_dao.nutrition_id)
+                if not ingredient_nutrition_dao:
+                    raise ValueError(f"Ingredient record {recipe_ingredient_id}/{recipe_ingredient_dao.nutrition_id} not found")
+
+                summary = Ingredient.generate_summary(recipe_ingredient_dao, servings)
+                recipe_nutrition_dao.sum(ingredient_nutrition_dao, servings, 1/recipe_ingredient_dao.servings if recipe_ingredient_dao.servings else 0)
+                
+                price_per_serving = (recipe_ingredient_dao.price or 0)/recipe_ingredient_dao.servings if recipe_ingredient_dao.servings else 0
+                total_price = round(price_per_serving * servings, 2)
+                recipe_dao.price = recipe_dao.price + total_price if recipe_dao.price else total_price
+
             else:
                 raise ValueError("Either food_ingredient_id or recipe_ingredient_id must be provided.")
             
@@ -637,47 +788,99 @@ class Ingredient(db.Model):
                 ordinal = db.session.query(func.count(Ingredient.id)).filter_by(recipe_id=recipe_id).scalar()
             
             # Create a new Ingredient record and add it to the database.
-            ingredient:Ingredient = Ingredient(recipe_id=recipe_id, food_ingredient_id=food_ingredient_id, recipe_ingredient_id=recipe_ingredient_id, ordinal=ordinal, servings=servings, summary=summary)
-            db.session.add(ingredient)
+            ingred = Ingredient(user_id, {
+                "recipe_id": recipe_id, 
+                "food_ingredient_id": food_ingredient_id, 
+                "recipe_ingredient_id": recipe_ingredient_id, 
+                "ordinal": ordinal,
+                "servings": servings,
+                "summary": summary})
+            db.session.add(ingred)
 
             if True:
                 db.session.commit()
 
-            return ingredient.json()
+            return ingred.json()
         except Exception as e:
             raise ValueError(f"Ingredient record {recipe_id}/{food_ingredient_id}/{recipe_ingredient_id} could not be added: " + repr(e)) from e
+
+
+    @staticmethod
+    def generate_summary(ingredient: Food | Recipe, servings: float) -> str:
+        """
+        Generate a short text summary of an Ingredient for the Recipe list.
+        """
+        # Get the Nutrition record
+        nutrition_id = ingredient.nutrition_id
+        nutrition_dao = db.session.get(Nutrition, nutrition_id)
+        if not nutrition_dao:
+            raise ValueError(f"Nutrition record {nutrition_id} not found.")
+
+        ss_oz: float = round((nutrition_dao.serving_size_oz or 0) * servings, 1)
+        ss_g: int = round((nutrition_dao.serving_size_g or 0) * servings)
+
+        if type(ingredient) == Food:
+            food: Food = ingredient
+            subtype = "" if (food.subtype is None or food.subtype == "") else f", {food.subtype}" 
+            return f"{servings} x ({food.nutrition.serving_size_description}) {food.name}{subtype} ({ss_oz} oz/{ss_g} g)"
+        elif type(ingredient) == Recipe:
+            recipe: Recipe = ingredient
+            return f"{servings} x {recipe.name} ({ss_oz} oz/{ss_g} g)"
+        raise ValueError(f"Unknown ingredient type: {type(ingredient)}")
 
 
 ##############################
 # RECIPE
 ##############################
-# This represents a collection of Food and Recipe items that are combined to 
-# make a meal.
-# It includes a denormalized copy of the Nutrition data for the Recipe.
-# ("Denormalized" because it could be calculated from its ingredients.)
-# This is the app"s second-level building-block record.
-##############################
 class Recipe(db.Model):
+    """
+    Recipe represents a collection of Food and Recipe items that are combined to 
+    make a single "dish" or "meal".
+    
+    It includes a denormalized copy of the Nutrition data for the Recipe.
+    ("Denormalized" because it could be calculated from its ingredients.)
+    
+    This is the app"s second-level building-block record.
+    """
     __tablename__ = "recipe"
 
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
-    cuisine = db.Column(db.String(20))
-    name = db.Column(db.String(50), nullable=False)
-    total_yield = db.Column(db.String(50), nullable=False)
-    servings = db.Column(db.Float, nullable=False)
-    nutrition_id = db.Column(db.Integer, db.ForeignKey("nutrition.id"))
-    nutrition = db.relationship(
-        Nutrition, 
-        single_parent=True, 
-        cascade="all, delete-orphan") 
-    price = db.Column(db.Float, default=0)
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int | None] = mapped_column(db.Integer, db.ForeignKey("user.id"), nullable=True)
+    cuisine: Mapped[str | None] = mapped_column(db.String(20), nullable=True)
+    name: Mapped[str] = mapped_column(db.String(50), nullable=False)
+    total_yield: Mapped[str] = mapped_column(db.String(50), nullable=False)
+    servings: Mapped[float] = mapped_column(db.Float, nullable=False, default=0)
+    nutrition_id: Mapped[int | None] = mapped_column(db.Integer, db.ForeignKey("nutrition.id"), nullable=True)
+    nutrition: Mapped[Nutrition] = relationship(
+        "Nutrition",
+        single_parent=True,
+        cascade="all, delete-orphan")
+    price: Mapped[float | None] = mapped_column(db.Float, default=0, nullable=True)
+
+    def __init__(self, user_id: int, data: dict[str,Any]):
+        self.user_id = user_id
+        self._update(user_id, data)
+    
+    def _update(self, user_id: int, data: dict[str,Any]):
+        if data.get("id"):
+            self.id = data["id"]
+        self.cuisine = data.get("cuisine")
+        self.name = data["name"]
+        self.total_yield = data["total_yield"]
+        self.servings = data["servings"]
+        self.nutrition_id = data.get("nutrition_id")
+        #self.nutrition is set by recipe.add()
+        self.price = data.get("price")
 
     def __str__(self):
         return str(vars(self))
 
     # Return a JSON representation of this Recipe object
-    def json(self):
+    def json(self) -> dict[str,Any]:
+        nutrition_dao = db.session.get(Nutrition, self.nutrition_id)
+        if not nutrition_dao:
+            raise ValueError(f"Nutrition record {self.id}/{self.nutrition_id} not found")
+
         return {
             "id": self.id,
             "cuisine": self.cuisine,
@@ -685,186 +888,270 @@ class Recipe(db.Model):
             "total_yield": self.total_yield,
             "servings": self.servings,
             "nutrition_id": self.nutrition_id,
-            "nutrition": self.nutrition.json(),
+            "nutrition": nutrition_dao.json(),
             "price": self.price
             }
     
-    # Returns the new Recipe record.
-    def add(user_id: int, 
-            cuisine: str,
-            name: str,
-            total_yield: str, 
-            servings: int, 
-            serving_size_description: str, 
-            id: int = None) -> dict[str, str|int|float]:
-        try:
-            recipe = Recipe()
-            if id is not None:
-                recipe.id = id
-            recipe.user_id = user_id
-            recipe.cuisine = cuisine
-            recipe.name = name
-            recipe.total_yield = total_yield
-            recipe.servings = servings
 
-            # Create a new Nurition child record for the Recipe.  At the start the only field
-            # with a value is the serving_size_description.
-            recipe.nutrition = Nutrition({"serving_size_description": serving_size_description})
+    @staticmethod
+    def get_all() -> list[Recipe]:
+        """
+        Get all Recipe records
+        """
+        recipes = db.session.scalars(db.select(Recipe)).all()
+        return list(recipes)
 
-            # Add the Recipe record to the database WITH NO INGREDIENTS YET.
-            db.session.add(recipe)
-            db.session.commit()
 
-            # Return the new Recipe record.
-            return recipe.json()
-        except Exception as e:
-            raise ValueError("Recipe record could not be added: " + repr(e)) from e
+    @staticmethod
+    def get_all_for_user(user_id: int) -> list[Recipe]:
+        recipes = db.session.scalars(db.select(Recipe).where(Recipe.user_id == user_id)).all()
+        return list(recipes)
 
-    # Update an existing Recipe record.
-    # For now, I'm going with the rule that Nutrition data for a Recipe is 
-    # updated ONLY by adding/updating/removing its ingredients.
-    # In turn, a Recipe's ingredients are ONLY added/updated/removed via 
-    # their own separate API calls.
-    # Therefore this API call only affects the Recipe record's own data
-    # fields, not those of its child records.
-    def update(user_id: int, recipe: dict) -> dict[str, str|int|float]:
-        # Add the user_id field.
-        recipe["user_id"] = user_id
 
-        # Remove the Nutrition object from the dictionary.
-        nutrition = recipe["nutrition"]
-        del recipe["nutrition"]
-
-        # Get the ID fields so we can update the proper records.
-        recipe_id = recipe["id"]
-        nutrition_id = recipe["nutrition_id"]
-
-        # For the Nutrition record, we only want to update the serving_size_description field.
-        num_updates = Nutrition.query.filter_by(id=nutrition_id).update({Nutrition.serving_size_description: nutrition["serving_size_description"]})
-        if (num_updates != 1):
-            raise ValueError(f"Expected to update 1 Nutrition record but found {num_updates}.")
-
-        # Update the Recipe record.
-        num_updates = Recipe.query.filter_by(user_id=user_id, id=recipe_id).update(recipe)
-        if (num_updates != 1):
-            raise ValueError(f"Expected to update 1 Recipe record but found {num_updates}.")
-
-        db.session.commit()
-
+    @staticmethod
+    def get(user_id: int, recipe_id: int) -> Recipe | None:
+        recipe = db.session.scalars(db.select(Recipe).where(Recipe.user_id == user_id).where(Recipe.id == recipe_id)).first()
         return recipe
 
-    # Update a Food Ingredient.
-    def update_food_ingredient(self, food_id: int, servings: int) -> dict[str, str|int|float]:
-        logging.info(f"Updating Food Ingredient {self.id}/{food_id}")
 
-        # Find the Ingredient record that links the Recipe to the Food.
-        ingredient:Ingredient = Ingredient.query.filter_by(recipe_id=self.id, food_ingredient_id=food_id).first()
-        if ingredient is None:
-            raise ValueError(f"Food Ingredient {self.id}/{food_id} not found")
+    @staticmethod
+    def add(user_id: int, data: dict[str,Any]) -> dict[str,Any]:
+        """
+        Add a new Recipe record with a new blank Nutrition child record
+        """
+        with db.session.begin():
+            try:
+                recipe_dao = Recipe(user_id, data)
 
-        # Update the record
-        old_servings = ingredient.servings
-        ingredient.servings = servings
+                # Create a new Nurition child record for the Recipe.  At the start the only field
+                # with a value is the serving_size_description.
+                nutrition = data.get("nutrition")
+                serving_size_description = nutrition.get("serving_size_description") if nutrition else None
+                recipe_dao.nutrition = Nutrition({"serving_size_description": serving_size_description})
 
-        # Get the Food corresponding record
-        food = Food.query.filter_by(id=food_id).first()
-        if food is None:
-            raise ValueError(f"Food {food_id} not found")
+                # Add the Recipe record
+                db.session.add(recipe_dao)
 
-        # Subtract the Ingredient's old Nutrition data from the Recipe.
-        self.nutrition.subtract(food.nutrition, old_servings)
-        # Add the Ingredient's new Nutrition data to the Recipe.
-        self.nutrition.sum(food.nutrition, ingredient.servings)
+                # Flush the recent changes (but don't commit them yet)
+                # This is so Recipe's primary key gets generated
+                db.session.flush()
 
-        # Update the summary
-        ingredient.summary = Ingredient.generate_summary(food, servings)
+                # Add the ingredients
+                ingredients = data.get("ingredients", [])
+                for ingredient in ingredients:
+                    # Assign the recipe_id we just got for the new Recipe record
+                    ingredient["recipe_id"] = recipe_dao.id
+                    ingredient_dao = Ingredient(user_id, ingredient)
+                    db.session.add(ingredient_dao)
 
-        # Commit the changes.
-        db.session.commit()
-        logging.info(f"Food Ingredient {self.id}/{food_id} updated")
+                # Return the new Recipe record.
+                return recipe_dao.json()
+            except Exception as e:
+                raise ValueError("Recipe record could not be added: " + repr(e)) from e
 
-        return ingredient.json()
 
-    # Update a Recipe Ingredient.
-    def update_recipe_ingredient(self, recipe_id: int, servings: int) -> dict[str, str|int|float]:
-        logging.info(f"Updating Recipe Ingredient {self.id}/{recipe_id}")
+    @staticmethod
+    def update(user_id: int, data: dict[str, Any]) -> dict[str, Any]:
+        """
+        Update an existing Recipe record.
 
-        # Find the Ingredient record that links the Recipe to the Recipe.
-        ingredient:Ingredient = Ingredient.query.filter_by(recipe_id=self.id, recipe_ingredient_id=recipe_id).first()
-        if ingredient is None:
-            raise ValueError(f"Recipe Ingredient {self.id}/{recipe_id} not found")
+        Nutrition data for a Recipe is updated ONLY by adding/updating/removing its ingredients.
+        In turn, a Recipe's ingredients are ONLY added/updated/removed via their own separate 
+        API calls.
         
-        # Update the record
-        old_servings = ingredient.servings
-        ingredient.servings = servings
+        Therefore this API call only affects the Recipe record's own data fields, not those of
+        its child records.
+        """
+        with db.session.begin():
+            try:
+                recipe_id = data["recipe_id"]
+                nutrition_id = data["nutrition_id"]
+                nutrition = data["nutrition"]
 
-        # Get the corresponding Recipe record
-        recipe = Recipe.query.filter_by(id=recipe_id).first()
-        if recipe is None:
-            raise ValueError(f"Recipe {recipe_id} not found")
+                # Get the existing Recipe record
+                recipe_dao = Recipe.get(user_id, recipe_id)
+                if not recipe_dao:
+                    raise ValueError(f"Recipe record {recipe_id} not found")
 
-        # Subtract the Ingredient's old Nutrition data from the Recipe.
-        self.nutrition.subtract(recipe.nutrition, old_servings)
-        # Add the Ingredient's new Nutrition data to the Recipe.
-        self.nutrition.sum(recipe.nutrition, ingredient.servings)
+                # Get its child Nutrition record
+                recipe_nutrition_dao = Nutrition.get(user_id, nutrition_id)
+                if not recipe_nutrition_dao:
+                    raise ValueError(f"Nutrition record {recipe_id}/{nutrition_id} not found")
 
-        # Update the summary
-        ingredient.summary = Ingredient.generate_summary(recipe, servings)
+                # Update the Recipe DAO's fields with the data from the front end
+                recipe_dao.cuisine = data["cuisine"]
+                recipe_dao.name = data["name"]
+                recipe_dao.total_yield = data["total_yield"]
+                recipe_dao.servings = data["servings"]
+                recipe_dao.price = data["price"]
 
-        # Commit the changes.
-        db.session.commit()
-        logging.info(f"Recipe Ingredient {self.id}/{recipe_id} updated")
+                # Flush the session (but don't commit it yet) so Recipe's primary key gets generated
+                db.session.flush()
 
-        return ingredient.json()
+                # Remove the existing Ingredient records for this Recipe
+                ingredient_daos = Ingredient.get_all_for_recipe(user_id, recipe_id)
+                for ingredient_dao in ingredient_daos:
+                    db.session.delete(ingredient_dao)
 
-    # Remove a Food Ingredient from the Recipe.
-    def remove_food_ingredient(self, food_id: int) -> None:
-        logging.info(f"Removing Food Ingredient {self.id}/{food_id}")
+                # Reset the Recipe's Nutrition data zeroes
+                recipe_nutrition_dao.reset()
 
-        # Find the Ingredient record that links the Recipe to the Food.
-        #recipe_food = RecipeFood.query.filter_by(recipe_id=self.id, ingredient_id=food_id).first()
-        ingredient = Ingredient.query.filter_by(recipe_id=self.id, food_ingredient_id=food_id).first()
-        if ingredient is None:
-            raise ValueError(f"Food Ingredient {self.id}/{food_id} not found")
+                # Add the Ingredients that are in the data passed by the front end
+                ingredients = data.get("ingredients", [])
+                for ingredient in ingredients:
+                    # Assign the recipe_id we just got for the new Recipe record
+                    ingredient["recipe_id"] = recipe_id
+                    ingredient_dao = Ingredient(user_id, ingredient)
+                    db.session.add(ingredient_dao)
 
-        # Delete the Ingredient record.
-        db.session.delete(ingredient)
+                # Flush the recent changes (but don't commit them yet)
+                db.session.flush()
 
-        # Get the Food corresponding record
-        food = Food.query.filter_by(id=food_id).first()
-        if food is None:
-            # We'll treat this as non-fatal for now
-            logging.warning(f"Recipe {food_id} not found")
-        else:
-            # Subtract the Food's Nutrition data from the Recipe.
-            self.nutrition.subtract(food.nutrition, ingredient.servings)
+                # Update the Recipe's Nutrition data
+                recipe_dao = Recipe._recalculate_nutrition(user_id, recipe_id, recipe_dao, recipe_nutrition_dao)
 
-        # Commit the changes.
-        db.session.commit()
-        logging.info(f"Food Ingredient {self.id}/{food_id} removed")
+                # Update the Recipe Nutrition record's serving_size_description field.
+                # This is the only field for this record that comes from the UI, the rest
+                # are calculated.
+                recipe_nutrition_dao.serving_size_description = nutrition["serving_size_description"]
 
-    # Remove a Recipe Ingredient from the Recipe.
-    def remove_recipe_ingredient(self, recipe_id: int) -> None:
-        logging.info(f"Removing Recipe Ingredient {self.id}/{recipe_id}")
+                # Return the updated Recipe record.
+                return recipe_dao.json()
+            except Exception as e:
+                raise ValueError("Recipe record could not be updated: " + repr(e)) from e
+    
 
-        # Find the Ingredient record that links the Recipe to the Food.
-        ingredient = Ingredient.query.filter_by(recipe_id=self.id, recipe_ingredient_id=recipe_id).first()
-        if ingredient is None:
-            raise ValueError(f"Recipe Ingredient {self.id}/{recipe_id} not found")
+    @staticmethod
+    def update_ingredient(user_id: int, recipe_id: int, ingredient_id: int, servings: float) -> Recipe:
+        """
+        Update a Recipe's existing Ingredient record.
+        """
+        with db.session.begin():
+            logging.info(f"Updating Ingredient record {recipe_id}/{ingredient_id} with {servings} servings")
 
-        # Delete the Ingredient record.
-        db.session.delete(ingredient)
+            # Get the Ingredient record
+            ingredient_dao: Ingredient|None = Ingredient.get(user_id, ingredient_id)
+            if not ingredient_dao:
+                raise ValueError(f"Ingredient record {recipe_id}/{ingredient_id} not found")
 
-        # Get the Food corresponding record
-        recipe = Recipe.query.filter_by(id=recipe_id).first()
-        if recipe is None:
-            # We'll treat this as non-fatal for now
-            logging.warning(f"Recipe {recipe_id} not found")
-        else:
-            # Subtract the Food's Nutrition data from the Recipe.
-            self.nutrition.subtract(recipe.nutrition, ingredient.servings)
+            # Update it
+            ingredient_dao.servings = servings
 
-        # Commit the changes.
-        db.session.commit()
+            # Flush the change to the database server.  Not strictly necessary but it's nice
+            # to be explicit
+            db.session.flush()
 
-        logging.info(f"Recipe Ingredient {self.id}/{recipe_id} removed")
+            # Recompute the Recipe's Nutrition data
+            recipe_dao = Recipe._recalculate_nutrition(user_id, recipe_id)
+
+            # Commit the transaction
+            db.session.commit()
+
+            return recipe_dao
+
+
+    @staticmethod
+    def delete_ingredient(user_id: int, recipe_id: int, ingredient_id: int) -> Recipe:
+        """
+        Update a Recipe's existing Ingredient record.
+        """
+        with db.session.begin():
+            logging.info(f"Deleting Ingredient record {recipe_id}/{ingredient_id}")
+
+            # Get the Ingredient record
+            ingredient_dao: Ingredient|None = Ingredient.get(user_id, ingredient_id)
+            if not ingredient_dao:
+                raise ValueError(f"Ingredient record {recipe_id}/{ingredient_id} not found")
+
+            # Delete it
+            db.session.delete(ingredient_dao)
+
+            # Flush the change to the database server.  Not strictly necessary but it's nice
+            # to be explicit
+            db.session.flush()
+
+            # Recompute the Recipe's Nutrition data
+            recipe_dao = Recipe._recalculate_nutrition(user_id, recipe_id)
+
+            # Commit the transaction
+            db.session.commit()
+
+            return recipe_dao
+
+
+    @staticmethod
+    def delete(user_id: int, recipe_id: int) -> None:
+        with db.session.begin():
+            logging.info(f"Deleting Recipe record {recipe_id}")
+
+            # Get the Recipe record
+            recipe_dao: Recipe|None = Recipe.get(user_id, recipe_id)
+            if not recipe_dao:
+                raise ValueError(f"Recipe record {recipe_id} not found")
+
+            # Get its child Ingredient records
+            ingredient_daos: list[Ingredient] = Ingredient.get_all_for_recipe(user_id, recipe_id)
+            for ingredient_dao in ingredient_daos:
+                # Delete each one
+                db.session.delete(ingredient_dao)
+
+            # Delete the Recipe record
+            db.session.delete(recipe_dao)
+
+            # Commit the transaction
+            db.session.commit()
+
+
+    @staticmethod
+    def _recalculate_nutrition(user_id: int, recipe_id: int, recipe_dao: Recipe | None = None, recipe_nutrition_dao: Nutrition | None = None) -> Recipe:
+        """
+        Recompute a Recipe's Nutrition data.  Intended to be called after one or more
+        of the Recipe's Ingredients has been added, updated or deleted.
+        """
+        if not recipe_dao:
+            # Get the Recipe record
+            recipe_dao = db.session.get(Recipe, recipe_id)
+            if not recipe_dao:
+                raise ValueError(f"Recipe record {recipe_id} not found")
+
+        if not recipe_nutrition_dao:
+            # Get the Recipe's Nutrition child record
+            recipe_nutrition_dao = db.session.get(Nutrition, recipe_dao.nutrition_id)
+            if not recipe_nutrition_dao:
+                raise ValueError(f"Nutrition record {recipe_id}/{recipe_dao.nutrition_id} not found")
+
+        # Reset the nutrition totals
+        recipe_nutrition_dao.reset()
+
+        # Get the Recipe's Ingredients
+        ingredient_daos: list[Ingredient] = Ingredient.get_all_for_recipe(user_id, recipe_id)
+        for ingredient_dao in ingredient_daos:
+            # Get the corresponding Food or Recipe record
+            ingredient_nutrition_id = None
+            food_ingredient_dao = None
+            recipe_ingredient_dao = None
+            if ingredient_dao.food_ingredient_id and not ingredient_dao.recipe_ingredient_id:
+                food_ingredient_dao = Food.get(user_id, ingredient_dao.food_ingredient_id)
+                if not food_ingredient_dao:
+                    raise ValueError(f"Food Ingedient record {ingredient_dao.food_ingredient_id} not found")
+                ingredient_nutrition_id = food_ingredient_dao.nutrition_id
+            elif ingredient_dao.recipe_ingredient_id and not ingredient_dao.food_ingredient_id:
+                recipe_ingredient_dao = Recipe.get(user_id, ingredient_dao.recipe_ingredient_id)
+                if not recipe_ingredient_dao:
+                    raise ValueError(f"Recipe Ingedient record {ingredient_dao.recipe_ingredient_id} not found")
+                ingredient_nutrition_id = recipe_ingredient_dao.nutrition_id
+            else:
+                raise ValueError("Either food ID or recipe ID must be proviided for an ingredient, but not both")
+            if not ingredient_nutrition_id:
+                raise ValueError(f"Nutrition ID for Ingredient record {ingredient_dao.id} could not be determined")
+
+            # Get the Food or Recipe's Nutrition record
+            ingredient_nutrition_dao = Nutrition.get(user_id, ingredient_nutrition_id)
+            if not ingredient_nutrition_dao:
+                raise ValueError(f"Nutrition record {ingredient_nutrition_id} not found")
+
+            # Add its nutrition data to the total
+            recipe_nutrition_dao.sum(ingredient_nutrition_dao, ingredient_dao.servings)
+
+        return recipe_dao
+
