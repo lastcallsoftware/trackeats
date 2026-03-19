@@ -15,21 +15,25 @@ class Data:
         Initialize the database schema.
         WARNING: THIS DELETES ALL TABLES AND DATA
 
-        To execute this function, the app needs to be running with a DB_USERID
+        To execute this function, the app needs to be running with a DB_APP_USERNAME
         with DDL privileges
         """
         # Yes, I know this check could be done more concisely, but I wanted to have
         # to jump thruogh a few hoops to execute the init code.
         do_init = False
         if override_safety_check:
+            logging.debug("Database initialization safety check override engaged!")
             do_init = True
         else:
             inspector = inspect(db.engine)
             if 'user' not in inspector.get_table_names():
+                logging.debug("User table not found; initiating schema refresh")
                 do_init = True
 
         if do_init:
+            logging.debug("DROPPING ALL TABLES")
             db.drop_all()
+            logging.debug("RECREATING DATABASE SCHEMA")
             db.create_all()
             Data.add_users()
 
@@ -52,6 +56,7 @@ class Data:
         """
         Delete all previous data
         """
+        logging.debug("DELETING ALL DATA")
         db.session.execute(delete(Ingredient))
         db.session.execute(delete(Recipe))
         db.session.execute(delete(Food))
