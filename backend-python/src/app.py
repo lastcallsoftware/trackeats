@@ -4,14 +4,14 @@ from flask import Flask
 from flask_jwt_extended import JWTManager
 from flask_cors import CORS
 from sqlalchemy import text
-from sqlalchemy.exc import ProgrammingError
+from sqlalchemy.exc import SQLAlchemyError
 from waitress import serve
 from models import db
 from dotenv import load_dotenv
 from routes import bp
 import logging
-import click
 from crypto import load_key
+from data import Data
 
 
 # STARTUP
@@ -94,31 +94,37 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 # Instantiate the database connector.
 db.init_app(app)
 
-# Test the database.  Just calling "db.engine.connect()" is insufficient because
-# it only tests the network connection, it doesn't try to log on.  So we try to
-# run an actual query -- once which doesn't actually do anything, but finishes
+# Test the database connection.  Just calling "db.engine.connect()" is insufficient 
+# because it only tests the network connection, it doesn't try to log on.  So we try 
+# to run an actual query -- once which doesn't actually do anything, but finishes
 # quickly.
-# The most likely reason for a failure is that the password is invalid.  This 
-# results in a SQLAlchemy "ProgrammingError" exception -- rather than something 
-# informative, like, say, an "InvalidPasswordError".  It also gives an exception 
-# stack that doesn't even indicate this *file* as the source of the failure, let 
-# alone this function.
-# BAD CODING, SQLAlchemy nerds!
-def test_db_connection():
+def verify_database_connection():
     try:
         with app.app_context():
             with db.engine.connect() as conn:
                 conn.execute(text("SELECT 1 as test"))
-    except ProgrammingError:
-        return "Could not connect to database - Access denied."
-    except:
-        return "Could not connect to database - Internal server error."
+    except SQLAlchemyError as e:
+        return "Could not connect to database: " + repr(e)
     return None
 
-errmsg = test_db_connection()
+def initialize_database():
+    try:
+        with app.app_context():
+            Data.init_db()
+    except SQLAlchemyError as e:
+        return "Could not connect to database: " + repr(e)
+    return None
+
+errmsg = verify_database_connection()
 if (errmsg):
     logging.error(errmsg)
     sys.exit(0)
+
+errmsg = initialize_database()
+if (errmsg):
+    logging.error(errmsg)
+    sys.exit(0)
+
 logging.info("Database connection verified.")
 
 
@@ -156,15 +162,5 @@ except Exception as e:
 CORS(app, expose_headers=["Location"])
 
 
-@app.cli.command("init-db")
-def init_db():
-    # create tables, seed admin user etc.
-    click.echo("Database initialized")
-
-
-# When the boilerplate code was generated, this used Flask's built-in WSGI server:
-#   app.run(debug=True)
-#...but I have updated it to use the Waitress server.  It is also possible to run
-# Waitress directly from 
 if __name__ == "__main__":
     serve(app, listen="*:5000")

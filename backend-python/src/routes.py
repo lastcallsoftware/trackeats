@@ -7,7 +7,7 @@ from flask_jwt_extended import jwt_required, create_access_token, get_jwt_identi
 from sendmail import send_confirmation_email
 from models import db, User, UserStatus, Food, Recipe, Ingredient
 from crypto import generate_url_token
-from data import load_db, export_db
+from data import Data
 from sqlalchemy.sql import text
 
 bp = Blueprint("auth", __name__)
@@ -45,10 +45,7 @@ def db_init():
     """
     logging.info("/db/init")
     try:
-        # To execute this function, the app needs to be running with a DB_USERID
-        # with DDL privileges
-        db.drop_all()
-        db.create_all()
+        Data.init_db()
     except Exception as e:
         msg = "Initialization failed: " + repr(e)
         logging.error(msg)
@@ -67,7 +64,7 @@ def db_load():
     """
     logging.info("/db/load")
     try:
-        load_db()
+        Data.load_db()
     except Exception as e:
         msg = "Data load failed: " + repr(e)
         logging.error(msg)
@@ -86,7 +83,7 @@ def db_export():
     """
     logging.info("/db/export")
     try:
-        export_db()
+        Data.export_db()
     except Exception as e:
         msg = "Data export failed: " + repr(e)
         logging.error(msg)

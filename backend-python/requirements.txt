@@ -45,11 +45,6 @@ pynacl
 # MUUUUUUCH easier and more reliable than trying to do it myself.
 email-validator
 
-
-# click is a command line tool that prints text to the terminal, but "handles
-# redirection robustly", whatever that means.  Apparently it's popular.  Why not?
-click
-
 # waitress and gunicorn are production-level WSGI app servers for Python apps.
 # I'm currently using Waitress because (a) it's simple and (b) it allegedly
 # works on Windows.  But Gunicorn is much more popular so maybe I'll switch.
