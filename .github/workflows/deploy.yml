@@ -100,10 +100,10 @@ jobs:
             DB_GUEST_PASSWORD,
             SMTP_HOSTNAME,
             SMTP_USERNAME,
-            SMTP_PASSWORD
+            SMTP_PASSWORD,
             BACKEND_ENCRYPTION_KEY_B64, 
             BACKEND_BASE_URL,
-            PORTFOLIO_URL,
+            PORTFOLIO_URL
           script: |
             cd ~/trackeats
             bash deploy.sh
