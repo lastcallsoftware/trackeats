@@ -52,8 +52,6 @@ fatal_error = False
 env_file = ".env"
 load_dotenv(env_file)
 #env_values = dotenv_values(env_file)
-env = os.environ.get("ENV", "DEV")
-logging.info(f"Execution environment: {env}")
 
 # BACKEND_BASE_URL is the name of THIS server.  We need it to build the links
 # we put in confirmation emails.
