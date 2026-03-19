@@ -27,7 +27,8 @@ logging.basicConfig(level=logging.DEBUG,
 
 # LOAD CONFIG
 # -----------
-# We're using a library (python-dotenv) to assist with accessing config files.
+# We're using a standard Python library (python-dotenv) to assist with 
+# accessing config files.
 #
 # load_dotenv("filename") loads values from the specified filename, or the 
 # ".env" file is no filename is given, and stores them as environment variables.
@@ -40,11 +41,14 @@ logging.basicConfig(level=logging.DEBUG,
 # previously-defined environment variables using the ${VAR_NAME} syntax.
 #
 # Environment variables can be acccessed using os.environ or os.getenv().
-# os.environ can be read as a dictionary (i.e., os.environ["MY_VALUE"]),
-# or by calling os.environ.get("MY_VALUE").  The latter is usually preferable
-# because the former throws an exception if the value is not defined, whereas
-# .get() just returns None.  Also, .get() allows you to speecify a default
-# value to use if the value is not defined.
+# As with any dictionary, os.environ can be read using an index (e.g., 
+# os.environ["MY_VALUE"]), or by calling os.environ.get("MY_VALUE").
+
+# Use a flag to indicate a fatal error.  We don't call sys.exit() immediately
+# because I want to check ALL the environment variables first, so you don't
+# have to play whack-a-mole with missing vars.
+fatal_error = False
+
 env_file = ".env"
 load_dotenv(env_file)
 #env_values = dotenv_values(env_file)
@@ -56,7 +60,7 @@ logging.info(f"Execution environment: {env}")
 hostname = os.environ.get("BACKEND_BASE_URL")
 if (hostname is None):
     logging.error("BACKEND_BASE_URL not specified - exiting.")
-    exit_now = True
+    fatal_error = True
 else:
     logging.info("BACKEND_BASE_URL: " + hostname)
 
@@ -70,14 +74,13 @@ db_user = os.environ.get('DB_USER', 'trackeats-backend-mysql')
 db_password = os.environ.get('DB_PASSWORD')
 db_hostname = os.environ.get('DB_HOSTNAME')
 db_name = os.environ.get('DB_NAME', 'trackeats')
-exit_now = False
 if (db_hostname == None or len(db_hostname) == 0):
     logging.error("DB_HOSTNAME not specified - exiting.")
-    exit_now = True
+    fatal_error = True
 if (db_password == None or len(db_password) == 0):
     logging.error("DB_PASSWORD not specified - exiting.")
-    exit_now = True
-if (exit_now):
+    fatal_error = True
+if (fatal_error):
     sys.exit(0)
 db_connection_uri = f"{db_protocol}{db_user}:{db_password}@{db_hostname}/{db_name}"
 db_safe_connection_uri = f"{db_protocol}{db_user}:DB_PASSWORD@{db_hostname}/{db_name}"

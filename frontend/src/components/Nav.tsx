@@ -24,16 +24,22 @@ import RecipeForm from './RecipeForm';
 //    return JSON.parse(tokenString);
 //}
 
-// The only way I have found to pass config values to a Vite/React app is to use
-// .env files.  For a lengthy discussion about config management for this
-//  project, see the main project's README file.
 console.log("process.env.NODE_ENV:", process.env.NODE_ENV)
 console.log("import.meta.env.MODE:", import.meta.env.MODE)
-console.log("import.meta.env.VITE_BACKEND_BASE_URL:", import.meta.env.VITE_BACKEND_BASE_URL)
-axios.defaults.baseURL = import.meta.env.VITE_BACKEND_BASE_URL
+
+const backendBaseUrl: string = import.meta.env.VITE_BACKEND_BASE_URL
+if (!backendBaseUrl || !backendBaseUrl.trim()) {
+    throw new Error("VITE_BACKEND_BASE_URL not set")
+}
+console.log("import.meta.env.VITE_BACKEND_BASE_URL:", backendBaseUrl.trim())
+axios.defaults.baseURL = backendBaseUrl
 axios.defaults.timeout = 4000
-console.log("import.meta.env.VITE_PORTFOLIO_URL:", import.meta.env.VITE_PORTFOLIO_URL)
+
 const portfolioUrl = import.meta.env.VITE_PORTFOLIO_URL
+if (!portfolioUrl || !portfolioUrl.trim()) {
+    throw new Error("VITE_PORTFOLIO_URL not set")
+}
+console.log("import.meta.env.VITE_PORTFOLIO_URL:", portfolioUrl.trim())
 
 function Nav() {
     const [isAuthenticated, setAuthenticated] = useState(sessionStorage.getItem("access_token") != null);
