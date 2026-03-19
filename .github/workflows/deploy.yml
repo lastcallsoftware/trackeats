@@ -73,12 +73,23 @@ jobs:
       - name: Deploy to Trackeats server via SSH
         uses: appleboy/ssh-action@master
         env:
+          BACKEND_BASE_URL: ${{ vars.BACKEND_BASE_URL }}
+          PORTFOLIO_URL: ${{ vars.PORTFOLIO_URL }}
           BACKEND_ENCRYPTION_KEY_B64: ${{ secrets.BACKEND_ENCRYPTION_KEY_B64 }}
+          DB_HOSTNAME: ${{ secrets.DB_HOSTNAME }}
+          DB_NAME: ${{ secrets.DB_NAME }}
+          DB_USER: ${{ secrets.DB_USER }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          SMTP_HOSTNAME: ${{ secrets.SMTP_HOSTNAME }}
+          SMTP_USERNAME: ${{ secrets.MTP_USERNAME }}
+          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
         with:
           host: ${{ secrets.APP_SERVER_HOST }}
           username: ${{ secrets.APP_SERVER_USERNAME }}
           key: ${{ secrets.APP_SERVER_SSH_KEY }}
           envs: >-
+            BACKEND_BASE_URL,
+            PORTFOLIO_URL,
             BACKEND_ENCRYPTION_KEY_B64, 
             DB_HOSTNAME,
             DB_NAME,
