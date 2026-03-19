@@ -3,6 +3,7 @@ from models import db, User, UserStatus, Food, Recipe, Ingredient, Nutrition
 #from sqlalchemy import select
 import json
 import logging
+import os
 from typing import Any
 
 class Data:
@@ -35,7 +36,9 @@ class Data:
             db.drop_all()
             logging.debug("RECREATING DATABASE SCHEMA")
             db.create_all()
-            Data.add_users()
+
+        # Always make sure the key user logins have been created
+        Data.add_users()
 
     @staticmethod
     def load_db(add_users: bool = False):
@@ -72,11 +75,31 @@ class Data:
         Add basic User records
         """
         logging.info("Adding User records...")
-        #TODO: Find a way to do this that doesn't require me to put the credentials
-        # in this file!
-        User.add({"username": "admin", "password": "Test*123", "email": "admin@lastcallsw.com", "status": UserStatus.confirmed})
-        User.add({"username": "testuser", "password": "Test*123", "email": "testuser@lastcallsw.com", "status": UserStatus.confirmed})
-        User.add({"username": "guest", "password": "Guest*123", "email": "testuser@lastcallsw.com", "status": UserStatus.confirmed})
+        
+        admin_password = os.environ.get("DB_ADMIN_PASSWORD")
+        if not admin_password:
+            raise ValueError("DB_ADMIN_PASSWORD not set")
+
+        test_password = os.environ.get("DB_TEST_PASSWORD")
+        if not test_password:
+            raise ValueError("DB_TEST_PASSWORD not set")
+
+        guest_password = os.environ.get("DB_GUEST_PASSWORD")
+        if not guest_password:
+            raise ValueError("DB_GUEST_PASSWORD not set")
+
+        admin_user_dao = User.get("admin")
+        if not admin_user_dao:
+            User.add({"username": "admin", "password": admin_password, "email": "admin@lastcallsw.com", "status": UserStatus.confirmed})
+
+        test_user_dao = User.get("testuser")
+        if not test_user_dao:
+            User.add({"username": "testuser", "password": test_password, "email": "testuser@lastcallsw.com", "status": UserStatus.confirmed})
+
+        guest_user_dao = User.get("guest")
+        if not guest_user_dao:
+            User.add({"username": "guest", "password": guest_password, "email": "testuser@lastcallsw.com", "status": UserStatus.confirmed})
+
         db.session.commit()
         logging.info("User records added")
 
