@@ -5,6 +5,15 @@ on:
     branches:
       - main
   workflow_dispatch:
+    inputs:
+      target_env:
+        description: "Choose the target environment:"
+        required: true
+        default: 'production'
+        type: choice
+        options:
+          - test
+          - production
     
 concurrency:
   group: deploy-${{ github.ref }}
@@ -13,6 +22,7 @@ concurrency:
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
+    environment: ${{ inputs.target_env }}
 
     steps:
       - name: Checkout code
@@ -43,6 +53,8 @@ jobs:
           context: ./frontend
           file: ./frontend/Dockerfile
           push: true
+          build-args: |
+            VITE_BACKEND_BASE_URL=${{ vars.VITE_BACKEND_BASE_URL}}
           tags: lastcallsoftware/trackeats-frontend:latest,lastcallsoftware/trackeats-frontend:${{ github.sha }}
           cache-from: type=registry,ref=lastcallsoftware/trackeats-frontend:buildcache
           cache-to: type=registry,ref=lastcallsoftware/trackeats-frontend:buildcache,mode=max

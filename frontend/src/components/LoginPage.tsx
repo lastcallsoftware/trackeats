@@ -27,6 +27,7 @@ function LoginPage(props: any) {
                 navigate("/foods")
             })
             .catch((error) => {
+                console.log(error)
                 if (error.response)
                     setLoginMessage(error.response.data.msg)
                 else

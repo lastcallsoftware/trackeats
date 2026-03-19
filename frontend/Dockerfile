@@ -1,7 +1,10 @@
 # BUILD STAGE
 FROM node:lts-alpine AS build
 
+ARG VITE_BACKEND_BASE_URL
+
 ENV NODE_ENV=production
+ENV VITE_BACKEND_BASE_URL=${VITE_BACKEND_BASE_URL}
 WORKDIR /app
 
 COPY package*.json ./
