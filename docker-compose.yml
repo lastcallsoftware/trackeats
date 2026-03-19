@@ -28,7 +28,6 @@ services:
     ports:
       - "5000:5000"
     environment:
-      ENV: PROD
       DB_HOSTNAME: db
       DB_PASSWORD: ${DB_PASSWORD}
       DB_USER: ${DB_USER}
