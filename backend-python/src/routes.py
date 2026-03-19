@@ -21,7 +21,7 @@ def health():
     """
     Check the app's health.
     """
-    logging.info("/health")
+    #logging.info("/health")
     try:
         db.session.execute(text("SELECT 1"))
     except Exception as e:
@@ -30,7 +30,7 @@ def health():
         return {"msg": msg}, 500
     else:
         msg = "Server OK"
-        logging.info(msg)
+        #logging.info(msg)
         return {"msg": msg}, 200
 
 
