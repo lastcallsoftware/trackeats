@@ -68,20 +68,20 @@ else:
 # We're using a library (mysql-connector-python) that handles the MySQL database 
 # connection for us.  Initialize it here.
 db_protocol = os.environ.get('DB_PROTOCOL', 'mysql+mysqlconnector://')
-db_user = os.environ.get('DB_USER', 'trackeats-backend-mysql')
-db_password = os.environ.get('DB_PASSWORD')
+DB_APP_USERNAME = os.environ.get('DB_APP_USERNAME', 'trackeats-backend-mysql')
+DB_APP_PASSWORD = os.environ.get('DB_APP_PASSWORD')
 db_hostname = os.environ.get('DB_HOSTNAME')
-db_name = os.environ.get('DB_NAME', 'trackeats')
+DB_DATABASE_NAME = os.environ.get('DB_DATABASE_NAME', 'trackeats')
 if (db_hostname == None or len(db_hostname) == 0):
     logging.error("DB_HOSTNAME not specified - exiting.")
     fatal_error = True
-if (db_password == None or len(db_password) == 0):
-    logging.error("DB_PASSWORD not specified - exiting.")
+if (DB_APP_PASSWORD == None or len(DB_APP_PASSWORD) == 0):
+    logging.error("DB_APP_PASSWORD not specified - exiting.")
     fatal_error = True
 if (fatal_error):
     sys.exit(0)
-db_connection_uri = f"{db_protocol}{db_user}:{db_password}@{db_hostname}/{db_name}"
-db_safe_connection_uri = f"{db_protocol}{db_user}:DB_PASSWORD@{db_hostname}/{db_name}"
+db_connection_uri = f"{db_protocol}{DB_APP_USERNAME}:{DB_APP_PASSWORD}@{db_hostname}/{DB_DATABASE_NAME}"
+db_safe_connection_uri = f"{db_protocol}{DB_APP_USERNAME}:DB_APP_PASSWORD@{db_hostname}/{DB_DATABASE_NAME}"
 logging.info(f"Connecting to database: {db_safe_connection_uri}")
 
 # Configure Flask-SQLAlchemy.

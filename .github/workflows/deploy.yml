@@ -73,33 +73,37 @@ jobs:
       - name: Deploy to Trackeats server via SSH
         uses: appleboy/ssh-action@master
         env:
+          DB_HOSTNAME: ${{ secrets.DB_HOSTNAME }}
+          DB_DATABASE_NAME: ${{ secrets.DB_DATABASE_NAME }}
+          DB_ROOT_PASSWORD: ${{ secrets.DB_ROOT_PASSWORD }}
+          DB_APP_USERNAME: ${{ secrets.DB_APP_USERNAME }}
+          DB_APP_PASSWORD: ${{ secrets.DB_APP_PASSWORD }}
+          DB_TEST_PASSWORD: ${{ secrets.DB_TEST_PASSWORD }}
+          DB_GUEST_PASSWORD: ${{ secrets.DB_GUEST_PASSWORD }}
+          SMTP_HOSTNAME: ${{ secrets.SMTP_HOSTNAME }}
+          SMTP_USERNAME: ${{ secrets.SMTP_USERNAME }}
+          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+          BACKEND_ENCRYPTION_KEY_B64: ${{ secrets.BACKEND_ENCRYPTION_KEY_B64 }}
           BACKEND_BASE_URL: ${{ vars.BACKEND_BASE_URL }}
           PORTFOLIO_URL: ${{ vars.PORTFOLIO_URL }}
-          BACKEND_ENCRYPTION_KEY_B64: ${{ secrets.BACKEND_ENCRYPTION_KEY_B64 }}
-          DB_HOSTNAME: ${{ secrets.DB_HOSTNAME }}
-          DB_NAME: ${{ secrets.DB_NAME }}
-          DB_USER: ${{ secrets.DB_USER }}
-          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-          DB_ROOT_PASSWORD: ${{ secrets.DB_ROOT_PASSWORD }}
-          SMTP_HOSTNAME: ${{ secrets.SMTP_HOSTNAME }}
-          SMTP_USERNAME: ${{ secrets.MTP_USERNAME }}
-          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
         with:
           host: ${{ secrets.APP_SERVER_HOST }}
           username: ${{ secrets.APP_SERVER_USERNAME }}
           key: ${{ secrets.APP_SERVER_SSH_KEY }}
           envs: >-
-            BACKEND_BASE_URL,
-            PORTFOLIO_URL,
-            BACKEND_ENCRYPTION_KEY_B64, 
             DB_HOSTNAME,
-            DB_NAME,
-            DB_USER,
-            DB_PASSWORD,
+            DB_DATABASE_NAME,
             DB_ROOT_PASSWORD,
+            DB_APP_USERNAME,
+            DB_APP_PASSWORD,
+            DB_TEST_PASSWORD,
+            DB_GUEST_PASSWORD,
             SMTP_HOSTNAME,
             SMTP_USERNAME,
             SMTP_PASSWORD
+            BACKEND_ENCRYPTION_KEY_B64, 
+            BACKEND_BASE_URL,
+            PORTFOLIO_URL,
           script: |
             cd ~/trackeats
             bash deploy.sh
