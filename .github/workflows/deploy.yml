@@ -80,6 +80,7 @@ jobs:
           DB_NAME: ${{ secrets.DB_NAME }}
           DB_USER: ${{ secrets.DB_USER }}
           DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          DB_ROOT_PASSWORD: ${{ secrets.DB_ROOT_PASSWORD }}
           SMTP_HOSTNAME: ${{ secrets.SMTP_HOSTNAME }}
           SMTP_USERNAME: ${{ secrets.MTP_USERNAME }}
           SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
@@ -95,6 +96,7 @@ jobs:
             DB_NAME,
             DB_USER,
             DB_PASSWORD,
+            DB_ROOT_PASSWORD,
             SMTP_HOSTNAME,
             SMTP_USERNAME,
             SMTP_PASSWORD
