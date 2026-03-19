@@ -109,3 +109,14 @@ jobs:
           script: |
             cd ~/trackeats
             bash deploy.sh
+
+      - name: Fetch logs on failure
+        if: failure()
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.APP_SERVER_HOST }}
+          username: ${{ secrets.APP_SERVER_USERNAME }}
+          key: ${{ secrets.APP_SERVER_SSH_KEY }}
+          script: |
+            cd ~/trackeats
+            docker compose logs --tail=20 backend
