@@ -115,7 +115,7 @@ class User(db.Model):
         self.status = data["status"]
         self.email = data.get("email")
         self.created_at = data["created_at"]
-        self.password_hash = data["password_hash_str"]
+        self.password_hash = data["password_hash"]
         self.confirmation_sent_at = data.get("confirmation_sent_at")
         self.confirmation_token = data.get("confirmation_token")
         return self
@@ -160,6 +160,7 @@ class User(db.Model):
         if user is None:
             raise ValueError(f"User {username} not found")
         return user.id
+
 
     @staticmethod
     def add(data: dict[str,Any]) -> None:

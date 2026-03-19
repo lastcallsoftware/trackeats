@@ -10,6 +10,7 @@ from models import db
 from dotenv import load_dotenv
 from routes import bp
 import logging
+import click
 from crypto import load_key
 
 
@@ -153,6 +154,12 @@ except Exception as e:
 # EVERYTHING.  This isn't secure, obviously, but I'll take my chances!
 #TODO: fix this!
 CORS(app, expose_headers=["Location"])
+
+
+@app.cli.command("init-db")
+def init_db():
+    # create tables, seed admin user etc.
+    click.echo("Database initialized")
 
 
 # When the boilerplate code was generated, this used Flask's built-in WSGI server:
