@@ -28,6 +28,8 @@ services:
     ports:
       - "5000:5000"
     environment:
+      BACKEND_BASE_URL: ${BACKEND_BASE_URL}
+      PORTFOLIO_URL: ${PORTFOLIO_URL}
       DB_HOSTNAME: db
       DB_PASSWORD: ${DB_PASSWORD}
       DB_USER: ${DB_USER}
