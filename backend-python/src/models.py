@@ -735,7 +735,7 @@ class Ingredient(db.Model):
         try:
             # Check whether a matching Ingredient record already exists
             ingredient_dao = db.session.scalars(db.select(Ingredient).where(Ingredient.recipe_id == recipe_id).where(Ingredient.food_ingredient_id == food_ingredient_id).where(Ingredient.recipe_ingredient_id == recipe_ingredient_id)).first()
-            if not ingredient_dao:
+            if ingredient_dao:
                 raise ValueError(f"Ingredient record {recipe_id}/{food_ingredient_id}/{recipe_ingredient_id} already exists")
 
             # Get the Recipe record
