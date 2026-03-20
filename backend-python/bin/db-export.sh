@@ -6,5 +6,5 @@
 curl -s \
 -X GET \
 -H "Authorization: Bearer $ACCESS_TOKEN" \
-http://localhost:5000/db/export
-#https://trackeats.lastcallsw.com:5443/db/export
+https://trackeats.lastcallsw.com:5443/db/export
+#http://localhost:5000/db/export

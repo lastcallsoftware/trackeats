@@ -6,5 +6,5 @@
 curl -s \
 -X GET \
 -H "Authorization: Bearer $ACCESS_TOKEN" \
-http://localhost:5000/db/load
-#https://trackeats.lastcallsw.com:5443/db/load
+https://trackeats.lastcallsw.com:5443/db/load
+#http://localhost:5000/db/load
