@@ -1076,9 +1076,6 @@ class Recipe(db.Model):
             # Recompute the Recipe's Nutrition data
             recipe_dao = Recipe._recalculate_nutrition(user_id, recipe_id)
 
-            # Commit the transaction
-            db.session.commit()
-
             return recipe_dao
 
 
@@ -1104,9 +1101,6 @@ class Recipe(db.Model):
 
             # Recompute the Recipe's Nutrition data
             recipe_dao = Recipe._recalculate_nutrition(user_id, recipe_id)
-
-            # Commit the transaction
-            db.session.commit()
 
             return recipe_dao
 
