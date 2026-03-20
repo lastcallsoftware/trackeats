@@ -10,7 +10,7 @@ from models import db
 from dotenv import load_dotenv
 from routes import bp
 import logging
-from crypto import load_key
+from crypto import Crypto
 from data import Data
 
 
@@ -43,24 +43,37 @@ logging.basicConfig(level=logging.DEBUG,
 # Environment variables can be acccessed using os.environ or os.getenv().
 # As with any dictionary, os.environ can be read using an index (e.g., 
 # os.environ["MY_VALUE"]), or by calling os.environ.get("MY_VALUE").
-
-# Use a flag to indicate a fatal error.  We don't call sys.exit() immediately
-# because I want to check ALL the environment variables first, so you don't
-# have to play whack-a-mole with missing vars.
-fatal_error = False
-
-env_file = ".env"
-load_dotenv(env_file)
-#env_values = dotenv_values(env_file)
+load_dotenv( ".env")
 
 # BACKEND_BASE_URL is the name of THIS server.  We need it to build the links
 # we put in confirmation emails.
 hostname = os.environ.get("BACKEND_BASE_URL")
 if (hostname is None):
-    logging.error("BACKEND_BASE_URL not specified - exiting.")
-    fatal_error = True
-else:
-    logging.info("BACKEND_BASE_URL: " + hostname)
+    logging.error("BACKEND_BASE_URL is missing -- exiting.")
+    exit(0)
+logging.info("BACKEND_BASE_URL: " + hostname)
+
+
+# INITIALIZE JWT LIB
+# ------------------
+# We're using a library (flask-jwt-extended) that handles JWT token management.
+# It requires a key to be in the app context.  It should already be in the environment,
+# just copy it over.
+jwt_secret_key = os.environ.get("JWT_SECRET_KEY")
+if not jwt_secret_key:
+    logging.error("JWT_SECRET_KEY is missing -- exiting.")
+    exit(0)
+app.config['JWT_SECRET_KEY'] = jwt_secret_key
+jwt = JWTManager(app)
+
+
+# INITIALIZE CRYPTO LIB
+# ---------------------
+symmetric_key_b64 = os.environ.get("BACKEND_ENCRYPTION_KEY_B64")
+if not symmetric_key_b64:
+    logging.error("BACKEND_ENCRYPTION_KEY_B64 is missing -- exiting.")
+    exit(0)
+Crypto.initialize(symmetric_key_b64)
 
 
 # INITIALIZE DATABASE CONNECTION
@@ -68,20 +81,21 @@ else:
 # We're using a library (mysql-connector-python) that handles the MySQL database 
 # connection for us.  Initialize it here.
 db_protocol = os.environ.get('DB_PROTOCOL', 'mysql+mysqlconnector://')
-DB_APP_USERNAME = os.environ.get('DB_APP_USERNAME', 'trackeats-backend-mysql')
-DB_APP_PASSWORD = os.environ.get('DB_APP_PASSWORD')
+db_database_name = os.environ.get('DB_DATABASE_NAME', 'trackeats')
+db_app_username = os.environ.get('DB_APP_USERNAME', 'trackeats-backend-mysql')
+
 db_hostname = os.environ.get('DB_HOSTNAME')
-DB_DATABASE_NAME = os.environ.get('DB_DATABASE_NAME', 'trackeats')
-if (db_hostname == None or len(db_hostname) == 0):
-    logging.error("DB_HOSTNAME not specified - exiting.")
-    fatal_error = True
-if (DB_APP_PASSWORD == None or len(DB_APP_PASSWORD) == 0):
-    logging.error("DB_APP_PASSWORD not specified - exiting.")
-    fatal_error = True
-if (fatal_error):
+if not db_hostname:
+    logging.error("DB_HOSTNAME is missing -- exiting.")
     sys.exit(0)
-db_connection_uri = f"{db_protocol}{DB_APP_USERNAME}:{DB_APP_PASSWORD}@{db_hostname}/{DB_DATABASE_NAME}"
-db_safe_connection_uri = f"{db_protocol}{DB_APP_USERNAME}:DB_APP_PASSWORD@{db_hostname}/{DB_DATABASE_NAME}"
+
+db_app_password = os.environ.get('DB_APP_PASSWORD')
+if not db_app_password:
+    logging.error("DB_APP_PASSWORD is missing -- exiting.")
+    sys.exit(0)
+
+db_connection_uri = f"{db_protocol}{db_app_username}:{db_app_password}@{db_hostname}/{db_database_name}"
+db_safe_connection_uri = f"{db_protocol}{db_app_username}:DB_APP_PASSWORD@{db_hostname}/{db_database_name}"
 logging.info(f"Connecting to database: {db_safe_connection_uri}")
 
 # Configure Flask-SQLAlchemy.
@@ -127,25 +141,6 @@ if (errmsg):
     sys.exit(0)
 
 logging.info("Database connection verified.")
-
-
-# INITIALIZE JWT MANAGER
-# ----------------------
-# We're using a library (flask-jwt-extended) that handles token management for
-# us.  Intialize it here.
-# The key can be anything ("Secret_key" works, for example), but of course you'd
-# prefer it to be something rather harder to guess!
-try:
-    keyfile = os.environ.get("BACKEND_ENCRYPTION_KEY", "trackeats-backend-encryption.key")
-    
-    # The key file MUST be stored in the "JWT_SECRET_KEY" app.config value.
-    app.config['JWT_SECRET_KEY'] = load_key(keyfile)
-
-    # With that value properly stored, we can now initialize the token manager.
-    jwt = JWTManager(app)
-except Exception as e:
-    logging.error(f"Error iniitializing token manager: " + repr(e))
-    sys.exit(0)
 
 
 # SET CORS POLICY

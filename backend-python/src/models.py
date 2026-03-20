@@ -4,7 +4,7 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from email_validator import validate_email, EmailNotValidError
-from crypto import check_password, encrypt, decrypt, hash_password
+from crypto import Crypto
 import enum
 import datetime
 import re
@@ -126,7 +126,7 @@ class User(db.Model):
     def __repr__(self):
         email = ""
         if self.email and len(self.email) > 0:
-            email = decrypt(self.email)
+            email = Crypto.decrypt(self.email)
         return f"User({self.id}, \'{self.username}\', {self.status}, \'{email}\', {self.created_at}, \'{self.password_hash}\', {self.confirmation_sent_at}, \'{self.confirmation_token}\')"
 
     def json(self) -> dict[str,Any]:
@@ -219,12 +219,12 @@ class User(db.Model):
                     errors.append(f"User {username} already exists.")
                 else:
                     # Salt and hash the password
-                    password_hash_str = hash_password(password)
+                    password_hash_str = Crypto.hash_password(password)
 
                     # Encrypt the user data.  Currently that is just the email address.
                     encrypted_email_addr = None
                     if email_addr and len(email_addr) > 0:
-                        encrypted_email_addr = encrypt(email_addr)
+                        encrypted_email_addr = Crypto.encrypt(email_addr)
 
                     # Store the user record in the database
                     now = datetime.datetime.now()
@@ -284,7 +284,7 @@ class User(db.Model):
                         # separarte value.  The bcrypt API knows how to separate them.
                         password_hash_bytes = bytes(user.password_hash, "utf-8")
                         password_bytes = bytes(password, "utf-8")
-                        if (not check_password(password_bytes, password_hash_bytes)):
+                        if not Crypto.check_password(password_bytes, password_hash_bytes):
                             errors.append(f"Invalid password for username {username}.")
         except Exception as e:
             errors.append(repr(e))

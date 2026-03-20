@@ -6,7 +6,7 @@ from flask import Blueprint, jsonify, make_response, request
 from flask_jwt_extended import jwt_required, create_access_token, get_jwt_identity # type:ignore
 from sendmail import send_confirmation_email
 from models import db, User, UserStatus, Food, Recipe, Ingredient
-from crypto import generate_url_token
+from crypto import Crypto
 from data import Data
 from sqlalchemy.sql import text
 
@@ -116,7 +116,7 @@ def register():
         email_addr = request.json.get('email', None)
 
         # Generate a verification token
-        token = generate_url_token()
+        token = Crypto.generate_url_token()
 
         # Add the user to the database in "pending" state
         User.add({
@@ -167,7 +167,7 @@ def mymail():
             raise ValueError("Missing required parameter 'addr'.")
 
         # Generate an auth token
-        token = generate_url_token(32)
+        token = Crypto.generate_url_token(32)
 
         # Send the confirmation email.
         send_confirmation_email(username, token, email_addr)
