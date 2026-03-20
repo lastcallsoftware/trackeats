@@ -1,0 +1,37 @@
+services:
+  frontend:
+    image: lastcallsoftware/trackeats-frontend:dev
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    volumes:
+      - ./frontend:/app
+      - ./frontend/nginx.conf:/etc/nginx/conf.d/default.conf
+    ports:
+      - "8080:8080"
+      - "8443:8443"
+      - "5443:5443"
+    environment:
+      - NODE_ENV=development
+
+  backend:
+    image: lastcallsoftware/trackeats-backend:dev
+    build:
+      context: ./backend-python
+      dockerfile: Dockerfile
+    volumes:
+      - ./backend-python:/app
+    ports:
+      - "5000:5000"
+    environment:
+      - FLASK_ENV=development
+
+  db:
+    ports:
+      - "3306:3306"
+    volumes:
+      - db-data:/var/lib/mysql
+      - ./backend-python/data:/docker-entrypoint-initdb.d:ro
+
+volumes:
+  db-data:
