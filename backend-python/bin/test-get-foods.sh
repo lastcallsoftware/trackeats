@@ -6,5 +6,5 @@
 curl -s \
 -X GET \
 -H "Authorization: Bearer $ACCESS_TOKEN" \
-http://localhost:5000/food | jq
-#https://trackeats.lastcallsw.com:5443/food
+https://trackeats.lastcallsw.com:5443/food
+#http://localhost:5000/food | jq
