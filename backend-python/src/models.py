@@ -655,13 +655,15 @@ class Food(db.Model):
         """
         Delete all Food records for a particular User
         """
+        logging.info(f"Deleting Food records for user {user_id}")
         try:
             # If we've configured this correctly, the Nutrition records for the Foods
             # will also be deleted.
             db.session.execute(delete(Food).where(Food.user_id == user_id))
             db.session.commit()
         except Exception as e:
-            raise ValueError("Food records could not be deleted: " + repr(e)) from e
+            raise ValueError(f"Food records could not be deleted for user {user_id}: {repr(e)}")
+        logging.info("Food records deleted")
 
 
 ##############################
@@ -1134,18 +1136,22 @@ class Recipe(db.Model):
         Delete all Recipes for a partiular user
         """
         logging.info(f"Deleting Recipe records for User {user_id}")
-        with db.session.begin():
-            # Get all the Recipe records
-            recipe_daos = db.session.scalars(db.select(Recipe).where(Recipe.user_id == user_id)).all()
-            for recipe_dao in recipe_daos:
-                # Get its child Ingredient records
-                ingredient_daos: list[Ingredient] = Ingredient.get_all_for_recipe(user_id, recipe_dao.id)
-                for ingredient_dao in ingredient_daos:
-                    # Delete each one
-                    db.session.delete(ingredient_dao)
+        try:
+            with db.session.begin():
+                # Get all the Recipe records
+                recipe_daos = db.session.scalars(db.select(Recipe).where(Recipe.user_id == user_id)).all()
+                for recipe_dao in recipe_daos:
+                    # Get its child Ingredient records
+                    ingredient_daos: list[Ingredient] = Ingredient.get_all_for_recipe(user_id, recipe_dao.id)
+                    for ingredient_dao in ingredient_daos:
+                        # Delete each one
+                        db.session.delete(ingredient_dao)
 
-                # Delete the Recipe record
-                db.session.delete(recipe_dao)
+                    # Delete the Recipe record
+                    db.session.delete(recipe_dao)
+        except Exception as e:
+            logging.error(f"Recipe records could not be deleted for user {user_id}: {repr(e)}")
+        logging.info("Recipe records deleted")
 
 
     @staticmethod
