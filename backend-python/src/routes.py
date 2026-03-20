@@ -38,6 +38,7 @@ def health():
 # DATABASE ACTIONS
 ##############################
 @bp.route("/db/init", methods=["GET"])
+@jwt_required()
 def db_init():
     """
     INIT - Wipe the database and recreate all the tables using the ORM classes in 
@@ -57,6 +58,7 @@ def db_init():
 
 
 @bp.route("/db/load", methods=["GET"])
+@jwt_required()
 def db_load():
     """
     LOAD - Populate the (presumably newly created) database with test data.
@@ -64,7 +66,11 @@ def db_load():
     """
     logging.info("/db/load")
     try:
-        Data.load_db()
+        # Get the user_id for the user identified by the token
+        username = get_jwt_identity()
+        user_id = User.get_id(username)
+        
+        Data.load_db(user_id)
     except Exception as e:
         msg = "Data load failed: " + repr(e)
         logging.error(msg)

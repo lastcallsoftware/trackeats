@@ -7,6 +7,13 @@ import os
 from typing import Any
 
 class Data:
+    ADMIN_USER_NAME = "admin"
+    ADMIN_USER_EMAIL = "admin@lastcallsw.com"
+    TEST_USER_NAME = "testuser"
+    TEST_USER_EMAIL = "testuser@lastcallsw.com"
+    GUEST_USER_NAME = "guest"
+    GUEST_USER_EMAIL = "testuser@lastcallsw.com"
+
     ###################
     # INITIALIZATION
     ###################
@@ -41,14 +48,11 @@ class Data:
         Data.add_users()
 
     @staticmethod
-    def load_db(add_users: bool = False):
+    def load_db(user_id: int):
         """
         Add some seed data to the database: user records for the admin and the 
         """
         Data.purge_data()
-        if add_users:
-            Data.add_users()
-        user_id = User.get_id("guest")
         Data.import_foods(user_id)
         Data.import_recipes(user_id)
         Data.import_ingredients(user_id)
@@ -90,15 +94,15 @@ class Data:
 
         admin_user_dao = User.get("admin")
         if not admin_user_dao:
-            User.add({"username": "admin", "password": admin_password, "email": "admin@lastcallsw.com", "status": UserStatus.confirmed})
+            User.add({"username": Data.ADMIN_USER_NAME, "password": admin_password, "email": Data.ADMIN_USER_EMAIL, "status": UserStatus.confirmed})
 
         test_user_dao = User.get("testuser")
         if not test_user_dao:
-            User.add({"username": "testuser", "password": test_password, "email": "testuser@lastcallsw.com", "status": UserStatus.confirmed})
+            User.add({"username": Data.TEST_USER_NAME, "password": test_password, "email": Data.TEST_USER_EMAIL, "status": UserStatus.confirmed})
 
         guest_user_dao = User.get("guest")
         if not guest_user_dao:
-            User.add({"username": "guest", "password": guest_password, "email": "testuser@lastcallsw.com", "status": UserStatus.confirmed})
+            User.add({"username": Data.GUEST_USER_NAME, "password": guest_password, "email": Data.GUEST_USER_EMAIL, "status": UserStatus.confirmed})
 
         db.session.commit()
         logging.info("User records added")
