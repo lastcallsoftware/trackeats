@@ -59,7 +59,7 @@ class Data:
         
 
     @staticmethod
-    def purge_data(user_id: int, delete_users: bool = False):
+    def purge_data(user_id: int, for_user_id: int):
         """
         Delete all previous data
         """
@@ -68,8 +68,6 @@ class Data:
         db.session.execute(delete(Recipe))
         db.session.execute(delete(Food))
         db.session.execute(delete(Nutrition))
-        if delete_users:
-            db.session.execute(delete(Nutrition))
         db.session.commit()
 
 
