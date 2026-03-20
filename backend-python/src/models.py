@@ -657,12 +657,11 @@ class Food(db.Model):
         """
         logging.info(f"Deleting Food records for user {user_id}")
         try:
-            # If we've configured this correctly, the Nutrition records for the Foods
-            # will also be deleted.
+            # The Nutrition records for the Foods will also be "chain deleted".
             db.session.execute(delete(Food).where(Food.user_id == user_id))
             db.session.commit()
         except Exception as e:
-            raise ValueError(f"Food records could not be deleted for user {user_id}: {repr(e)}")
+            raise ValueError(f"Food records could not be deleted for user {user_id}: {repr(e)}") from e
         logging.info("Food records deleted")
 
 
@@ -953,35 +952,37 @@ class Recipe(db.Model):
         """
         Add a new Recipe record with a new blank Nutrition child record
         """
-        with db.session.begin():
-            try:
-                recipe_dao = Recipe(user_id, data)
+        try:
+            recipe_dao = Recipe(user_id, data)
 
-                # Create a new Nurition child record for the Recipe.  At the start the only field
-                # with a value is the serving_size_description.
-                nutrition = data.get("nutrition")
-                serving_size_description = nutrition.get("serving_size_description") if nutrition else None
-                recipe_dao.nutrition = Nutrition({"serving_size_description": serving_size_description})
+            # Create a new Nurition child record for the Recipe.  At the start the only field
+            # with a value is the serving_size_description.
+            nutrition = data.get("nutrition")
+            serving_size_description = nutrition.get("serving_size_description") if nutrition else None
+            recipe_dao.nutrition = Nutrition({"serving_size_description": serving_size_description})
 
-                # Add the Recipe record
-                db.session.add(recipe_dao)
+            # Add the Recipe record
+            db.session.add(recipe_dao)
 
-                # Flush the recent changes (but don't commit them yet)
-                # This is so Recipe's primary key gets generated
-                db.session.flush()
+            # Flush the recent changes (but don't commit them yet)
+            # This is so Recipe's primary key gets generated
+            db.session.flush()
 
-                # Add the ingredients
-                ingredients = data.get("ingredients", [])
-                for ingredient in ingredients:
-                    # Assign the recipe_id we just got for the new Recipe record
-                    ingredient["recipe_id"] = recipe_dao.id
-                    ingredient_dao = Ingredient(user_id, ingredient)
-                    db.session.add(ingredient_dao)
+            # Add the ingredients
+            ingredients = data.get("ingredients", [])
+            for ingredient in ingredients:
+                # Assign the recipe_id we just got for the new Recipe record
+                ingredient["recipe_id"] = recipe_dao.id
+                ingredient_dao = Ingredient(user_id, ingredient)
+                db.session.add(ingredient_dao)
 
-                # Return the new Recipe record.
-                return recipe_dao.json()
-            except Exception as e:
-                raise ValueError("Recipe record could not be added: " + repr(e)) from e
+            db.session.commit()
+
+            # Return the new Recipe record.
+            return recipe_dao.json()
+        except Exception as e:
+            db.session.rollback()
+            raise ValueError("Recipe record could not be added: " + repr(e)) from e
 
 
     @staticmethod
@@ -996,63 +997,65 @@ class Recipe(db.Model):
         Therefore this API call only affects the Recipe record's own data fields, not those of
         its child records.
         """
-        with db.session.begin():
-            try:
-                recipe_id = data["recipe_id"]
-                nutrition_id = data["nutrition_id"]
-                nutrition = data["nutrition"]
+        try:
+            recipe_id = data["recipe_id"]
+            nutrition_id = data["nutrition_id"]
+            nutrition = data["nutrition"]
 
-                # Get the existing Recipe record
-                recipe_dao = Recipe.get(user_id, recipe_id)
-                if not recipe_dao:
-                    raise ValueError(f"Recipe record {recipe_id} not found")
+            # Get the existing Recipe record
+            recipe_dao = Recipe.get(user_id, recipe_id)
+            if not recipe_dao:
+                raise ValueError(f"Recipe record {recipe_id} not found")
 
-                # Get its child Nutrition record
-                recipe_nutrition_dao = Nutrition.get(user_id, nutrition_id)
-                if not recipe_nutrition_dao:
-                    raise ValueError(f"Nutrition record {recipe_id}/{nutrition_id} not found")
+            # Get its child Nutrition record
+            recipe_nutrition_dao = Nutrition.get(user_id, nutrition_id)
+            if not recipe_nutrition_dao:
+                raise ValueError(f"Nutrition record {recipe_id}/{nutrition_id} not found")
 
-                # Update the Recipe DAO's fields with the data from the front end
-                recipe_dao.cuisine = data["cuisine"]
-                recipe_dao.name = data["name"]
-                recipe_dao.total_yield = data["total_yield"]
-                recipe_dao.servings = data["servings"]
-                recipe_dao.price = data["price"]
+            # Update the Recipe DAO's fields with the data from the front end
+            recipe_dao.cuisine = data["cuisine"]
+            recipe_dao.name = data["name"]
+            recipe_dao.total_yield = data["total_yield"]
+            recipe_dao.servings = data["servings"]
+            recipe_dao.price = data["price"]
 
-                # Flush the session (but don't commit it yet) so Recipe's primary key gets generated
-                db.session.flush()
+            # Flush the session (but don't commit it yet) so Recipe's primary key gets generated
+            db.session.flush()
 
-                # Remove the existing Ingredient records for this Recipe
-                ingredient_daos = Ingredient.get_all_for_recipe(user_id, recipe_id)
-                for ingredient_dao in ingredient_daos:
-                    db.session.delete(ingredient_dao)
+            # Remove the existing Ingredient records for this Recipe
+            ingredient_daos = Ingredient.get_all_for_recipe(user_id, recipe_id)
+            for ingredient_dao in ingredient_daos:
+                db.session.delete(ingredient_dao)
 
-                # Reset the Recipe's Nutrition data zeroes
-                recipe_nutrition_dao.reset()
+            # Reset the Recipe's Nutrition data zeroes
+            recipe_nutrition_dao.reset()
 
-                # Add the Ingredients that are in the data passed by the front end
-                ingredients = data.get("ingredients", [])
-                for ingredient in ingredients:
-                    # Assign the recipe_id we just got for the new Recipe record
-                    ingredient["recipe_id"] = recipe_id
-                    ingredient_dao = Ingredient(user_id, ingredient)
-                    db.session.add(ingredient_dao)
+            # Add the Ingredients that are in the data passed by the front end
+            ingredients = data.get("ingredients", [])
+            for ingredient in ingredients:
+                # Assign the recipe_id we just got for the new Recipe record
+                ingredient["recipe_id"] = recipe_id
+                ingredient_dao = Ingredient(user_id, ingredient)
+                db.session.add(ingredient_dao)
 
-                # Flush the recent changes (but don't commit them yet)
-                db.session.flush()
+            # Flush the recent changes (but don't commit them yet)
+            db.session.flush()
 
-                # Update the Recipe's Nutrition data
-                recipe_dao = Recipe._recalculate_nutrition(user_id, recipe_id, recipe_dao, recipe_nutrition_dao)
+            # Update the Recipe's Nutrition data
+            recipe_dao = Recipe._recalculate_nutrition(user_id, recipe_id, recipe_dao, recipe_nutrition_dao)
 
-                # Update the Recipe Nutrition record's serving_size_description field.
-                # This is the only field for this record that comes from the UI, the rest
-                # are calculated.
-                recipe_nutrition_dao.serving_size_description = nutrition["serving_size_description"]
+            # Update the Recipe Nutrition record's serving_size_description field.
+            # This is the only field for this record that comes from the UI, the rest
+            # are calculated.
+            recipe_nutrition_dao.serving_size_description = nutrition["serving_size_description"]
 
-                # Return the updated Recipe record.
-                return recipe_dao.json()
-            except Exception as e:
-                raise ValueError("Recipe record could not be updated: " + repr(e)) from e
+            db.session.commit()
+
+            # Return the updated Recipe record.
+            return recipe_dao.json()
+        except Exception as e:
+            db.session.rollback()
+            raise ValueError("Recipe record could not be updated: " + repr(e)) from e
     
 
     @staticmethod
@@ -1060,8 +1063,8 @@ class Recipe(db.Model):
         """
         Update a Recipe's existing Ingredient record.
         """
-        with db.session.begin():
-            logging.info(f"Updating Ingredient record {recipe_id}/{ingredient_id} with {servings} servings")
+        try:
+            #logging.info(f"Updating Ingredient record {recipe_id}/{ingredient_id} with {servings} servings")
 
             # Get the Ingredient record
             ingredient_dao: Ingredient|None = Ingredient.get(user_id, ingredient_id)
@@ -1078,7 +1081,12 @@ class Recipe(db.Model):
             # Recompute the Recipe's Nutrition data
             recipe_dao = Recipe._recalculate_nutrition(user_id, recipe_id)
 
+            db.session.commit()
+
             return recipe_dao
+        except Exception as e:
+            db.session.rollback()
+            raise ValueError(f"Ingredient record {ingredient_id} could not be updated: {repr(e)}") from e
 
 
     @staticmethod
@@ -1086,8 +1094,8 @@ class Recipe(db.Model):
         """
         Update a Recipe's existing Ingredient record.
         """
-        with db.session.begin():
-            logging.info(f"Deleting Ingredient record {recipe_id}/{ingredient_id}")
+        try:
+            #logging.info(f"Deleting Ingredient record {recipe_id}/{ingredient_id}")
 
             # Get the Ingredient record
             ingredient_dao: Ingredient|None = Ingredient.get(user_id, ingredient_id)
@@ -1104,7 +1112,12 @@ class Recipe(db.Model):
             # Recompute the Recipe's Nutrition data
             recipe_dao = Recipe._recalculate_nutrition(user_id, recipe_id)
 
+            db.session.commit()
+
             return recipe_dao
+        except Exception as e:
+            db.session.rollback()
+            raise ValueError(f"Ingredient record {ingredient_id} could not be deleted: {repr(e)}") from e
 
 
     @staticmethod
@@ -1112,8 +1125,8 @@ class Recipe(db.Model):
         """
         Delete a particular Recipe record
         """
-        with db.session.begin():
-            logging.info(f"Deleting Recipe record {recipe_id}")
+        try:
+            #logging.info(f"Deleting Recipe record {recipe_id}")
 
             # Get the Recipe record
             recipe_dao: Recipe|None = Recipe.get(user_id, recipe_id)
@@ -1129,6 +1142,11 @@ class Recipe(db.Model):
             # Delete the Recipe record
             db.session.delete(recipe_dao)
 
+            db.session.commit()
+        except Exception as e:
+            db.session.rollback()
+            raise ValueError(f"Recipe record {recipe_id} could not be deleted: {repr(e)}") from e
+
 
     @staticmethod
     def delete_all_for_user(user_id: int) -> None:
@@ -1137,20 +1155,21 @@ class Recipe(db.Model):
         """
         logging.info(f"Deleting Recipe records for User {user_id}")
         try:
-            with db.session.begin():
-                # Get all the Recipe records
-                recipe_daos = db.session.scalars(db.select(Recipe).where(Recipe.user_id == user_id)).all()
-                for recipe_dao in recipe_daos:
-                    # Get its child Ingredient records
-                    ingredient_daos: list[Ingredient] = Ingredient.get_all_for_recipe(user_id, recipe_dao.id)
-                    for ingredient_dao in ingredient_daos:
-                        # Delete each one
-                        db.session.delete(ingredient_dao)
+            # Get all the Recipe records
+            recipe_daos = db.session.scalars(db.select(Recipe).where(Recipe.user_id == user_id)).all()
+            for recipe_dao in recipe_daos:
+                # Get its child Ingredient records
+                ingredient_daos: list[Ingredient] = Ingredient.get_all_for_recipe(user_id, recipe_dao.id)
+                for ingredient_dao in ingredient_daos:
+                    # Delete each one
+                    db.session.delete(ingredient_dao)
 
-                    # Delete the Recipe record
-                    db.session.delete(recipe_dao)
+                # Delete the Recipe record
+                db.session.delete(recipe_dao)
+            db.session.commit()
         except Exception as e:
-            raise ValueError(f"Recipe records could not be deleted for user {user_id}: {repr(e)}")
+            db.session.rollback()
+            raise ValueError(f"Recipe records could not be deleted for user {user_id}: {repr(e)}") from e
         logging.info("Recipe records deleted")
 
 
@@ -1160,50 +1179,56 @@ class Recipe(db.Model):
         Recompute a Recipe's Nutrition data.  Intended to be called after one or more
         of the Recipe's Ingredients has been added, updated or deleted.
         """
-        if not recipe_dao:
-            # Get the Recipe record
-            recipe_dao = db.session.get(Recipe, recipe_id)
+        try:
             if not recipe_dao:
-                raise ValueError(f"Recipe record {recipe_id} not found")
+                # Get the Recipe record
+                recipe_dao = db.session.get(Recipe, recipe_id)
+                if not recipe_dao:
+                    raise ValueError(f"Recipe record {recipe_id} not found")
 
-        if not recipe_nutrition_dao:
-            # Get the Recipe's Nutrition child record
-            recipe_nutrition_dao = db.session.get(Nutrition, recipe_dao.nutrition_id)
             if not recipe_nutrition_dao:
-                raise ValueError(f"Nutrition record {recipe_id}/{recipe_dao.nutrition_id} not found")
+                # Get the Recipe's Nutrition child record
+                recipe_nutrition_dao = db.session.get(Nutrition, recipe_dao.nutrition_id)
+                if not recipe_nutrition_dao:
+                    raise ValueError(f"Nutrition record {recipe_id}/{recipe_dao.nutrition_id} not found")
 
-        # Reset the nutrition totals
-        recipe_nutrition_dao.reset()
+            # Reset the nutrition totals
+            recipe_nutrition_dao.reset()
 
-        # Get the Recipe's Ingredients
-        ingredient_daos: list[Ingredient] = Ingredient.get_all_for_recipe(user_id, recipe_id)
-        for ingredient_dao in ingredient_daos:
-            # Get the corresponding Food or Recipe record
-            ingredient_nutrition_id = None
-            food_ingredient_dao = None
-            recipe_ingredient_dao = None
-            if ingredient_dao.food_ingredient_id and not ingredient_dao.recipe_ingredient_id:
-                food_ingredient_dao = Food.get(user_id, ingredient_dao.food_ingredient_id)
-                if not food_ingredient_dao:
-                    raise ValueError(f"Food Ingedient record {ingredient_dao.food_ingredient_id} not found")
-                ingredient_nutrition_id = food_ingredient_dao.nutrition_id
-            elif ingredient_dao.recipe_ingredient_id and not ingredient_dao.food_ingredient_id:
-                recipe_ingredient_dao = Recipe.get(user_id, ingredient_dao.recipe_ingredient_id)
-                if not recipe_ingredient_dao:
-                    raise ValueError(f"Recipe Ingedient record {ingredient_dao.recipe_ingredient_id} not found")
-                ingredient_nutrition_id = recipe_ingredient_dao.nutrition_id
-            else:
-                raise ValueError("Either food ID or recipe ID must be proviided for an ingredient, but not both")
-            if not ingredient_nutrition_id:
-                raise ValueError(f"Nutrition ID for Ingredient record {ingredient_dao.id} could not be determined")
+            # Get the Recipe's Ingredients
+            ingredient_daos: list[Ingredient] = Ingredient.get_all_for_recipe(user_id, recipe_id)
+            for ingredient_dao in ingredient_daos:
+                # Get the corresponding Food or Recipe record
+                ingredient_nutrition_id = None
+                food_ingredient_dao = None
+                recipe_ingredient_dao = None
+                if ingredient_dao.food_ingredient_id and not ingredient_dao.recipe_ingredient_id:
+                    food_ingredient_dao = Food.get(user_id, ingredient_dao.food_ingredient_id)
+                    if not food_ingredient_dao:
+                        raise ValueError(f"Food Ingedient record {ingredient_dao.food_ingredient_id} not found")
+                    ingredient_nutrition_id = food_ingredient_dao.nutrition_id
+                elif ingredient_dao.recipe_ingredient_id and not ingredient_dao.food_ingredient_id:
+                    recipe_ingredient_dao = Recipe.get(user_id, ingredient_dao.recipe_ingredient_id)
+                    if not recipe_ingredient_dao:
+                        raise ValueError(f"Recipe Ingedient record {ingredient_dao.recipe_ingredient_id} not found")
+                    ingredient_nutrition_id = recipe_ingredient_dao.nutrition_id
+                else:
+                    raise ValueError("Either food ID or recipe ID must be proviided for an ingredient, but not both")
+                if not ingredient_nutrition_id:
+                    raise ValueError(f"Nutrition ID for Ingredient record {ingredient_dao.id} could not be determined")
 
-            # Get the Food or Recipe's Nutrition record
-            ingredient_nutrition_dao = Nutrition.get(user_id, ingredient_nutrition_id)
-            if not ingredient_nutrition_dao:
-                raise ValueError(f"Nutrition record {ingredient_nutrition_id} not found")
+                # Get the Food or Recipe's Nutrition record
+                ingredient_nutrition_dao = Nutrition.get(user_id, ingredient_nutrition_id)
+                if not ingredient_nutrition_dao:
+                    raise ValueError(f"Nutrition record {ingredient_nutrition_id} not found")
 
-            # Add its nutrition data to the total
-            recipe_nutrition_dao.sum(ingredient_nutrition_dao, ingredient_dao.servings)
+                # Add its nutrition data to the total
+                recipe_nutrition_dao.sum(ingredient_nutrition_dao, ingredient_dao.servings)
 
-        return recipe_dao
+            db.session.commit()
+
+            return recipe_dao
+        except Exception as e:
+            db.session.rollback()
+            raise ValueError(f"Unable to recalculate Nutrition for recipe {recipe_id}: {repr(e)}") from e
 
