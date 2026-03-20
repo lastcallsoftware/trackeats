@@ -568,7 +568,9 @@ class Food(db.Model):
 
     @staticmethod
     def get_by_user(user_id: int) -> list[Food]:
+        logging.debug(f"Getting foods for user {user_id}")
         foods = db.session.scalars(db.select(Food).where(Food.user_id == user_id).order_by("group", "name", "subtype")).all()
+        logging.debug(f"Foods retrieved: {len(foods)}")
         return list(foods)
 
 
