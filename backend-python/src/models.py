@@ -1133,9 +1133,6 @@ class Recipe(db.Model):
             # Delete the Recipe record
             db.session.delete(recipe_dao)
 
-            # Commit the transaction
-            db.session.commit()
-
 
     @staticmethod
     def delete_all_for_user(user_id: int) -> None:
@@ -1155,9 +1152,6 @@ class Recipe(db.Model):
 
                 # Delete the Recipe record
                 db.session.delete(recipe_dao)
-
-            # Commit the transaction
-            db.session.commit()
 
 
     @staticmethod
