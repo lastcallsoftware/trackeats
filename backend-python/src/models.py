@@ -1,7 +1,7 @@
 from __future__ import annotations
 from typing import Any
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import func, delete
+from sqlalchemy import func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from email_validator import validate_email, EmailNotValidError
 from crypto import Crypto
@@ -500,10 +500,7 @@ class Food(db.Model):
     size_g: Mapped[int | None] = mapped_column(db.Integer, nullable=True)
     servings: Mapped[float] = mapped_column(db.Float, nullable=False)
     nutrition_id: Mapped[int | None] = mapped_column(db.Integer, db.ForeignKey("nutrition.id"), nullable=True)
-    nutrition: Mapped[Nutrition] = relationship(
-        "Nutrition",
-        single_parent=True,
-        cascade="all, delete-orphan")
+    nutrition: Mapped[Nutrition] = relationship("Nutrition")
     price: Mapped[float | None] = mapped_column(db.Float, nullable=True)
     price_date: Mapped[datetime.date | None] = mapped_column(db.Date, nullable=True)
     shelf_life: Mapped[str | None] = mapped_column(db.String(150), nullable=True)
@@ -643,8 +640,18 @@ class Food(db.Model):
             # Get the Food record
             food_dao = db.session.get(Food, food_id)
             if not food_dao:
-                raise ValueError(f"Food record {food_id} not found.")
+                raise ValueError(f"Food record {food_id} not found")
+
+            # Food has a foreign key on Nutrition so it must be deleted first
+            nutrition_id = food_dao.nutrition_id
             db.session.delete(food_dao)
+
+            # Delete its associated Nutrition record qif it exists
+            if nutrition_id:
+                nutrition_dao = db.session.get(Nutrition, food_dao.nutrition_id)
+                if nutrition_dao:
+                    db.session.delete(nutrition_dao)
+
             db.session.commit()
         except Exception as e:
             raise ValueError("Food record could not be deleted: " + repr(e)) from e
@@ -657,8 +664,18 @@ class Food(db.Model):
         """
         logging.info(f"Deleting Food records for user {user_id}")
         try:
-            # The Nutrition records for the Foods will also be "chain deleted".
-            db.session.execute(delete(Food).where(Food.user_id == user_id))
+            food_daos = db.session.scalars(db.select(Food).where(Food.user_id == user_id)).all()
+            for food_dao in food_daos:
+                # Food has a foreign key on Nutrition so it must be deleted first
+                nutrition_id = food_dao.nutrition_id
+                db.session.delete(food_dao)
+
+                # Delete its associated Nutrition record if it exists
+                if nutrition_id:
+                    nutrition_dao = db.session.get(Nutrition, nutrition_id)
+                    if nutrition_dao:
+                        db.session.delete(nutrition_dao)
+                
             db.session.commit()
         except Exception as e:
             raise ValueError(f"Food records could not be deleted for user {user_id}: {repr(e)}") from e
@@ -884,10 +901,7 @@ class Recipe(db.Model):
     total_yield: Mapped[str] = mapped_column(db.String(50), nullable=False)
     servings: Mapped[float] = mapped_column(db.Float, nullable=False, default=0)
     nutrition_id: Mapped[int | None] = mapped_column(db.Integer, db.ForeignKey("nutrition.id"), nullable=True)
-    nutrition: Mapped[Nutrition] = relationship(
-        "Nutrition",
-        single_parent=True,
-        cascade="all, delete-orphan")
+    nutrition: Mapped[Nutrition] = relationship("Nutrition")
     price: Mapped[float | None] = mapped_column(db.Float, default=0, nullable=True)
 
     def __init__(self, user_id: int, data: dict[str,Any]):
@@ -1140,7 +1154,14 @@ class Recipe(db.Model):
                 db.session.delete(ingredient_dao)
 
             # Delete the Recipe record
+            nutrition_id = recipe_dao.nutrition_id
             db.session.delete(recipe_dao)
+
+            # Delete the associated Nutrition record
+            if nutrition_id:
+                nutrition_dao = db.session.get(Nutrition, nutrition_id)
+                if nutrition_dao:
+                    db.session.delete(nutrition_dao)
 
             db.session.commit()
         except Exception as e:
@@ -1168,13 +1189,22 @@ class Recipe(db.Model):
                 ingredient_daos: list[Ingredient] = Ingredient.get_all_for_recipe(user_id, recipe_dao.id)
                 for ingredient_dao in ingredient_daos:
                     db.session.delete(ingredient_dao)
-            
+
             # Flush so referential integrity won't be violated
             db.session.flush()
 
-            # Now loop through the Recipes again and delete THEM this time
-            for recipe_dao in recipe_daos:            
+            # Now loop through the Recipes again and delete THEM this time, along 
+            # with their associated Nutrition record
+            for recipe_dao in recipe_daos:
+                # Recipe has a foreign key on Nutrition so it must be deleted first
+                nutrition_id = recipe_dao.nutrition_id
                 db.session.delete(recipe_dao)
+
+                # Delete its associated Nutrition record if it exists
+                if nutrition_id:
+                    nutrition_dao = db.session.get(Nutrition, nutrition_id)
+                    if nutrition_dao:
+                        db.session.delete(nutrition_dao)
 
             db.session.commit()
         except Exception as e:
