@@ -1152,20 +1152,30 @@ class Recipe(db.Model):
     def delete_all_for_user(user_id: int) -> None:
         """
         Delete all Recipes for a partiular user
+
+        This is a little tricky because an Ingredient in one Recipe can reference
+        another Recipe, so we can't necessarilyy delete a Recipeeven when all its 
+        own Ingredients have been removed.  So first we loop through all a User's
+        Recipes and delete their Ingredients, and THEN we loop through the Recipes
+        and delete them in a second pass.
         """
         logging.info(f"Deleting Recipe records for User {user_id}")
         try:
             # Get all the Recipe records
             recipe_daos = db.session.scalars(db.select(Recipe).where(Recipe.user_id == user_id)).all()
             for recipe_dao in recipe_daos:
-                # Get its child Ingredient records
+                # Delete its child Ingredient records
                 ingredient_daos: list[Ingredient] = Ingredient.get_all_for_recipe(user_id, recipe_dao.id)
                 for ingredient_dao in ingredient_daos:
-                    # Delete each one
                     db.session.delete(ingredient_dao)
+            
+            # Flush so referential integrity won't be violated
+            db.session.flush()
 
-                # Delete the Recipe record
+            # Now loop through the Recipes again and delete THEM this time
+            for recipe_dao in recipe_daos:            
                 db.session.delete(recipe_dao)
+
             db.session.commit()
         except Exception as e:
             db.session.rollback()
