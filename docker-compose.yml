@@ -29,30 +29,19 @@ services:
       - "5000:5000"
     environment:
       DB_HOSTNAME: db
-      DB_DATABASE_NAME: ${DB_DATABASE_NAME}
-      DB_APP_USERNAME: ${DB_APP_USERNAME}
-      DB_APP_PASSWORD: ${DB_APP_PASSWORD}
-      DB_ADMIN_PASSWORD: ${DB_ADMIN_PASSWORD}
-      DB_TEST_PASSWORD: ${DB_TEST_PASSWORD}
-      DB_GUEST_PASSWORD: ${DB_GUEST_PASSWORD}
-      SMTP_HOSTNAME: ${SMTP_HOSTNAME}
-      SMTP_USERNAME: ${SMTP_USERNAME}
-      SMTP_PASSWORD: ${SMTP_PASSWORD}
-      BACKEND_ENCRYPTION_KEY_B64: ${BACKEND_ENCRYPTION_KEY_B64}
-      BACKEND_ENCRYPTION_KEY: /run/secrets/trackeats-backend-encryption.key
-      BACKEND_BASE_URL: ${BACKEND_BASE_URL}
-      PORTFOLIO_URL: ${PORTFOLIO_URL}
-    tmpfs:
-      - /run/secrets
-    command:
-      - /bin/sh
-      - -c
-      - |
-        umask 077
-        mkdir -p /run/secrets
-        echo "$$BACKEND_ENCRYPTION_KEY_B64" | base64 -d > "$$BACKEND_ENCRYPTION_KEY"
-        unset BACKEND_ENCRYPTION_KEY_B64
-        exec python src/app.py
+      DB_DATABASE_NAME: ${DB_DATABASE_NAME:?DB_DATABASE_NAME is missing}
+      DB_APP_USERNAME: ${DB_APP_USERNAME:?DB_APP_USERNAME is missing}
+      DB_APP_PASSWORD: ${DB_APP_PASSWORD:?DB_APP_PASSWORD is missing}
+      DB_ADMIN_PASSWORD: ${DB_ADMIN_PASSWORD:?DB_ADMIN_PASSWORD is missing}
+      DB_TEST_PASSWORD: ${DB_TEST_PASSWORD:?DB_TEST_PASSWORD is missing}
+      DB_GUEST_PASSWORD: ${DB_GUEST_PASSWORD:?DB_GUEST_PASSWORD is missing}
+      SMTP_HOSTNAME: ${SMTP_HOSTNAME:?SMTP_HOSTNAME is missing}
+      SMTP_USERNAME: ${SMTP_USERNAME:?SMTP_USERNAME is missing}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:?SMTP_PASSWORD is missing}
+      BACKEND_ENCRYPTION_KEY_B64: ${BACKEND_ENCRYPTION_KEY_B64:?BACKEND_ENCRYPTION_KEY_B64 is missing}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:?JWT_SECRET_KEY is missing}
+      BACKEND_BASE_URL: ${BACKEND_BASE_URL:?BACKEND_BASE_URL is missing}
+      PORTFOLIO_URL: ${PORTFOLIO_URL:?PORTFOLIO_URL is missing}
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5000/health')"]
@@ -71,10 +60,10 @@ services:
     image: mysql:8
     pull_policy: if_not_present
     environment:
-      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
-      MYSQL_DATABASE: ${DB_DATABASE_NAME}
-      MYSQL_USER: ${DB_APP_USERNAME}
-      MYSQL_PASSWORD: ${DB_APP_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:?DB_ROOT_PASSWORD is missing}
+      MYSQL_DATABASE: ${DB_DATABASE_NAME:?DB_DATABASE_NAME is missing}
+      MYSQL_USER: ${DB_APP_USERNAME:?DB_APP_USERNAME is missing}
+      MYSQL_PASSWORD: ${DB_APP_PASSWORD:?DB_APP_PASSWORD is missing}
     ports:
       - "3306:3306"
     volumes:
