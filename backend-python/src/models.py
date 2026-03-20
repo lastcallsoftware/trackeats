@@ -1,7 +1,7 @@
 from __future__ import annotations
 from typing import Any
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import func
+from sqlalchemy import func, delete
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from email_validator import validate_email, EmailNotValidError
 from crypto import Crypto
@@ -634,6 +634,36 @@ class Food(db.Model):
             raise ValueError("Food record could not be updated: " + repr(e)) from e
 
 
+    @staticmethod
+    def delete(user_id: int, food_id: int):
+        """
+        Delete a particular Food record
+        """
+        try:
+            # Get the Food record
+            food_dao = db.session.get(Food, food_id)
+            if not food_dao:
+                raise ValueError(f"Food record {food_id} not found.")
+            db.session.delete(food_dao)
+            db.session.commit()
+        except Exception as e:
+            raise ValueError("Food record could not be deleted: " + repr(e)) from e
+
+
+    @staticmethod
+    def delete_all_for_user(user_id: int):
+        """
+        Delete all Food records for a particular User
+        """
+        try:
+            # If we've configured this correctly, the Nutrition records for the Foods
+            # will also be deleted.
+            db.session.execute(delete(Food).where(Food.user_id == user_id))
+            db.session.commit()
+        except Exception as e:
+            raise ValueError("Food records could not be deleted: " + repr(e)) from e
+
+
 ##############################
 # INGREDIENT
 ##############################
@@ -1083,6 +1113,9 @@ class Recipe(db.Model):
 
     @staticmethod
     def delete(user_id: int, recipe_id: int) -> None:
+        """
+        Delete a particular Recipe record
+        """
         with db.session.begin():
             logging.info(f"Deleting Recipe record {recipe_id}")
 
@@ -1099,6 +1132,29 @@ class Recipe(db.Model):
 
             # Delete the Recipe record
             db.session.delete(recipe_dao)
+
+            # Commit the transaction
+            db.session.commit()
+
+
+    @staticmethod
+    def delete_all_for_user(user_id: int) -> None:
+        """
+        Delete all Recipes for a partiular user
+        """
+        logging.info(f"Deleting Recipe records for User {user_id}")
+        with db.session.begin():
+            # Get all the Recipe records
+            recipe_daos = db.session.scalars(db.select(Recipe).where(Recipe.user_id == user_id)).all()
+            for recipe_dao in recipe_daos:
+                # Get its child Ingredient records
+                ingredient_daos: list[Ingredient] = Ingredient.get_all_for_recipe(user_id, recipe_dao.id)
+                for ingredient_dao in ingredient_daos:
+                    # Delete each one
+                    db.session.delete(ingredient_dao)
+
+                # Delete the Recipe record
+                db.session.delete(recipe_dao)
 
             # Commit the transaction
             db.session.commit()

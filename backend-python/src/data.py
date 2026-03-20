@@ -51,9 +51,17 @@ class Data:
     @staticmethod
     def load_db(user_id: int):
         """
-        Add some seed data to the database: user records for the admin and the 
+        Load all the data in the /data subdirectory, overwriting the user_id fields 
+        in the raw data so the stored data will be for this user only.
         """
-        #Data.purge_data()
+        # Delete all Food and Recipe records for this User.
+        # The Recipe deletion code also deletes the associated Ingrdient records,
+        # and the child Nutrition records of the Foods and Recipes are deleted 
+        # automatically by SQLAlchemy as a result of the record setup.
+        Recipe.delete_all_for_user(user_id)
+        Food.delete_all_for_user(user_id)
+
+        # Now add all the data
         Data.import_foods(user_id)
         Data.import_recipes(user_id)
         Data.import_ingredients(user_id)
