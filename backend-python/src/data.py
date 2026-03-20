@@ -47,6 +47,7 @@ class Data:
         # Always make sure the key user logins have been created
         Data.add_users()
 
+
     @staticmethod
     def load_db(user_id: int):
         """
@@ -59,9 +60,10 @@ class Data:
         
 
     @staticmethod
-    def purge_data(user_id: int, for_user_id: int):
+    def purge_data(user_id: int, for_user_id: int|None):
         """
         Delete all previous data
+        TODO: Delete data per user
         """
         logging.debug("DELETING ALL DATA")
         db.session.execute(delete(Ingredient))

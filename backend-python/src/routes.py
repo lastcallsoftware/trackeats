@@ -57,19 +57,21 @@ def db_init():
         return {"msg": msg}, 200
 
 
-@bp.route("/db/purge/<int:for_user_id>", methods=["GET"])
+@bp.route("/db/purge", methods=["GET"])
 @jwt_required()
-def db_purge(for_user_id: int):
+def db_purge():
     """
     LOAD - Populate the (presumably newly created) database with test data.
     Be aware that this API first deletes the contents of tables it populates!
     """
-    logging.info(f"/db/purge/{for_user_id}")
+    logging.info(f"/db/purge")
     try:
         # Get the user_id for the user identified by the token
         username = get_jwt_identity()
         user_id = User.get_id(username)
-        
+
+        for_user_id_str = request.args.get("for_user_id")
+        for_user_id = int(for_user_id_str) if for_user_id_str else None
         Data.purge_data(user_id, for_user_id)
     except Exception as e:
         msg = "Data purge failed: " + repr(e)
