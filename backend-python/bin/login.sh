@@ -18,4 +18,4 @@ https://trackeats.lastcallsw.com:5443/login`
 
 ACCESS_TOKEN=`echo $OUTPUT | grep -o '"access_token":"[^"]*' | grep -o '[^"]*$'`
 export ACCESS_TOKEN=$ACCESS_TOKEN
-echo "Logged in with ACCESS_TOKEN: " $ACCESS_TOKEN
+echo "Logged in as user " $USERNAME " with ACCESS_TOKEN: " $ACCESS_TOKEN

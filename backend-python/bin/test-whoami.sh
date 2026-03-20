@@ -6,5 +6,5 @@
 curl \
 -X GET \
 -H "Authorization: Bearer $ACCESS_TOKEN" \
-http://localhost:5000/whoami
-#https://trackeats.lastcallsw.com:5443/whoami
+https://trackeats.lastcallsw.com:5443/whoami
+#http://localhost:5000/whoami
