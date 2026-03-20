@@ -189,12 +189,12 @@ const foodColumns = [
         columns: [
             columnHelper.accessor("price", {
                 header: () => <span className="header-text">Price</span>,
-                cell: info => info.getValue().toFixed(2),
+                cell: info => (info.getValue() ?? 0).toFixed(2),
                 size: 65
             }),
             columnHelper.accessor("price_per_serving", {
                 header: () => <span className="header-text">Price / serving</span>,
-                cell: info => (info.row.original.price/info.row.original.servings).toFixed(2),
+                cell: info => ((info.row.original.price ?? 0)/info.row.original.servings).toFixed(2),
                 sortingFn: (rowA, rowB) => {
                     const val1 = rowA.original.price/rowA.original.servings
                     const val2 = rowB.original.price/rowB.original.servings
@@ -204,7 +204,7 @@ const foodColumns = [
             }),
             columnHelper.accessor("price_per_oz", {
                 header: () => <span className="header-text">Price / oz</span>,
-                cell: info => (info.row.original.price/info.row.original.size_oz).toFixed(2),
+                cell: info => ((info.row.original.price ?? 0)/info.row.original.size_oz).toFixed(2),
                 sortingFn: (rowA, rowB) => {
                     const val1 = rowA.original.price/rowA.original.size_oz
                     const val2 = rowB.original.price/rowB.original.size_oz
