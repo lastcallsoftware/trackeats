@@ -57,8 +57,8 @@ def db_init():
         return {"msg": msg}, 200
 
 
-@bp.route("/db/purge/", defauts={"all_users": "false"}, methods=["GET"])
-@bp.route("/db/purge/<all_users>", methods=["GET"])
+@bp.route("/db/purge/", defaults={"all_users": "false"}, methods=["GET"])
+@bp.route("/db/purge/<string:all_users>", methods=["GET"])
 @jwt_required()
 def db_purge(all_users: str):
     """
