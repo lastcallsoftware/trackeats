@@ -10,13 +10,20 @@ services:
       - "80:8080"
       - "443:8443"
       - "5443:5443"
-    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+    restart: on-failure
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 20s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   backend:
     container_name: trackeats-backend
@@ -28,6 +35,7 @@ services:
     ports:
       - "5000:5000"
     environment:
+      FLASK_ENV: production
       DB_HOSTNAME: db
       DB_DATABASE_NAME: ${DB_DATABASE_NAME:?DB_DATABASE_NAME is missing}
       DB_APP_USERNAME: ${DB_APP_USERNAME:?DB_APP_USERNAME is missing}
@@ -42,7 +50,7 @@ services:
       JWT_SECRET_KEY: ${JWT_SECRET_KEY:?JWT_SECRET_KEY is missing}
       BACKEND_BASE_URL: ${BACKEND_BASE_URL:?BACKEND_BASE_URL is missing}
       PORTFOLIO_URL: ${PORTFOLIO_URL:?PORTFOLIO_URL is missing}
-    restart: unless-stopped
+    restart: on-failure
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5000/health')"]
       interval: 30s
