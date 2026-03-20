@@ -52,14 +52,14 @@ class Data:
         """
         Add some seed data to the database: user records for the admin and the 
         """
-        Data.purge_data()
+        #Data.purge_data()
         Data.import_foods(user_id)
         Data.import_recipes(user_id)
         Data.import_ingredients(user_id)
         
 
     @staticmethod
-    def purge_data(delete_users: bool = False):
+    def purge_data(user_id: int, delete_users: bool = False):
         """
         Delete all previous data
         """
