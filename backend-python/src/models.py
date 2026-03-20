@@ -1150,7 +1150,7 @@ class Recipe(db.Model):
                     # Delete the Recipe record
                     db.session.delete(recipe_dao)
         except Exception as e:
-            logging.error(f"Recipe records could not be deleted for user {user_id}: {repr(e)}")
+            raise ValueError(f"Recipe records could not be deleted for user {user_id}: {repr(e)}")
         logging.info("Recipe records deleted")
 
 
