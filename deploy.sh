@@ -39,4 +39,7 @@ else
   exit 1
 fi
 
+# Clean up the "dangling" images left behind by the update
+docker image prune -f
+
 echo "=== Deployment completed successfully at $(date) ==="
