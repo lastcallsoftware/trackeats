@@ -3,7 +3,7 @@ import React, { useContext, useEffect } from 'react';
 import { IRecipe, DataContext } from "./DataProvider";
 import { getCuisineLabel } from './Cuisines';
 import { useNavigate } from 'react-router-dom';
-import Pagination from './Pagination';
+
 import FilterWidget from './FilterWidget';
 
 
@@ -169,11 +169,12 @@ const columns = [
 ]
 
 interface IRecipesTableProps {
-    setSelectedRowId: React.Dispatch<React.SetStateAction<number | null>>
+    setSelectedRowId: React.Dispatch<React.SetStateAction<number | null>>,
+    pagination: { pageIndex: number, pageSize: number };
 }
 
 // Declare the Recipes table itself
-const RecipesTable: React.FC<IRecipesTableProps> = ({setSelectedRowId}) => {
+const RecipesTable: React.FC<IRecipesTableProps> = ({setSelectedRowId, pagination}) => {
     const navigate = useNavigate()
     const [sorting, setSorting] = React.useState<SortingState>([])
     const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
@@ -200,8 +201,6 @@ const RecipesTable: React.FC<IRecipesTableProps> = ({setSelectedRowId}) => {
     const table = useReactTable(tableOptions)
 
     // Pagination state for the table
-    const [pagination, setPagination] = React.useState({ pageIndex: 0, pageSize: 10 });
-
     // Sync Tanstack Table's pagination with local state
     React.useEffect(() => {
         table.setPageIndex(pagination.pageIndex);
@@ -337,11 +336,7 @@ const RecipesTable: React.FC<IRecipesTableProps> = ({setSelectedRowId}) => {
                     ))}
                 </tfoot>
             </table>
-            <Pagination 
-                pagination={pagination} 
-                setPagination={setPagination} 
-                totalCount={table.getFilteredRowModel().rows.length}
-            />
+            {/* Pagination is now handled by the parent page */}
         </>
     )
 }

@@ -3,11 +3,13 @@ import { DataContext, IRecipe } from "./DataProvider";
 import { IconContext } from "react-icons";
 import { MdAddCircleOutline, MdEdit, MdRemoveCircleOutline } from "react-icons/md";
 import RecipesTable from "./RecipesTable"
+import Pagination from "./Pagination"
 import { useNavigate } from "react-router-dom";
 
-function MealsPage() {
+function RecipesPage() {
     const navigate = useNavigate();
     const [selectedRowId, setSelectedRowId] = useState<number|null>(null)
+    const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
     const context = useContext(DataContext)
     if (!context)
         throw Error("useDataContext can only be used inside a DataProvider")
@@ -43,7 +45,8 @@ function MealsPage() {
     return (
         <section className="recipePage">
             <section className="recipeTableBox">
-                <RecipesTable setSelectedRowId={setSelectedRowId} />
+                <RecipesTable setSelectedRowId={setSelectedRowId} pagination={pagination} />
+                <Pagination pagination={pagination} setPagination={setPagination} totalCount={recipes.length} />
             </section>
 
             <section className="buttonBar">
@@ -67,7 +70,6 @@ function MealsPage() {
             <p>{errorMessage}</p>
         </section>
     )
-
 }
 
-export default MealsPage;
+export default RecipesPage;

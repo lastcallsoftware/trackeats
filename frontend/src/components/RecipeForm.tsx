@@ -15,6 +15,8 @@ import { Tooltip } from "./ui/tooltip";
 function RecipeForm() {
     // Pagination state for FoodsTable in RecipeForm
     const [foodsPagination, setFoodsPagination] = useState({ pageIndex: 0, pageSize: 10 });
+    // Pagination state for RecipesTable in RecipeForm
+    const [recipesPagination, setRecipesPagination] = useState({ pageIndex: 0, pageSize: 10 });
     const location = useLocation();
     const navigate = useNavigate()
 
@@ -648,7 +650,17 @@ function RecipeForm() {
                             />
                         </>
                     ) : (
-                        <RecipesTable setSelectedRowId={setSelectedFoodOrRecipeRowId} />
+                        <>
+                            <RecipesTable
+                                setSelectedRowId={setSelectedFoodOrRecipeRowId}
+                                pagination={recipesPagination}
+                            />
+                            <Pagination
+                                pagination={recipesPagination}
+                                setPagination={setRecipesPagination}
+                                totalCount={context.recipes.length}
+                            />
+                        </>
                     )}
                 </section>
             </section>
