@@ -7,6 +7,7 @@ import { MdKeyboardDoubleArrowLeft, MdKeyboardDoubleArrowRight, MdEdit, MdKeyboa
 import FoodsTable from "./FoodsTable";
 import RecipesTable from "./RecipesTable";
 import IngredientsTable from "./IngredientsTable";
+import Pagination from "./Pagination";
 import axios from 'axios';
 import { generateIngredientSummary } from "../utils/generateIngredientSummary";
 import { Tooltip } from "./ui/tooltip";
@@ -633,12 +634,19 @@ function RecipeForm() {
 
                 <section className="foodsOrRecipesListBox">
                     {selectedIngredientList === IngredientTypes.FOOD_INGREDIENTS ? (
-                        <FoodsTable
-                            setSelectedRowId={setSelectedFoodOrRecipeRowId}
-                            isRecipesForm={true}
-                            pagination={foodsPagination}
-                            setPagination={setFoodsPagination}
-                        />
+                        <>
+                            <FoodsTable
+                                setSelectedRowId={setSelectedFoodOrRecipeRowId}
+                                isRecipesForm={true}
+                                pagination={foodsPagination}
+                                setPagination={setFoodsPagination}
+                            />
+                            <Pagination
+                                pagination={foodsPagination}
+                                setPagination={setFoodsPagination}
+                                totalCount={context.foods.length}
+                            />
+                        </>
                     ) : (
                         <RecipesTable setSelectedRowId={setSelectedFoodOrRecipeRowId} />
                     )}
