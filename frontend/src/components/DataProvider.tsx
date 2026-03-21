@@ -119,7 +119,7 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
     const handleError = useCallback((error: any) => {
         console.log(error)
         setLoading(false)
-        if (error.status == 401) {
+        if (error.response?.status == 401) {
             removeToken()
             navigate("/login", { state: { message: "Your token has expired and you have been logged out." } });
         }
@@ -139,6 +139,14 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
         }, [navigate]);
 
     useEffect(() => {
+        if (!access_token) {
+            setFoods([])
+            setRecipes([])
+            setIngredients([])
+            setLoading(false)
+            return;
+        }
+
         // Get Foods
         const getFoods = async (): Promise<void> => {
             setErrorMessage("");
