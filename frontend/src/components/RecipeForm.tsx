@@ -12,6 +12,8 @@ import { generateIngredientSummary } from "../utils/generateIngredientSummary";
 import { Tooltip } from "./ui/tooltip";
 
 function RecipeForm() {
+    // Pagination state for FoodsTable in RecipeForm
+    const [foodsPagination, setFoodsPagination] = useState({ pageIndex: 0, pageSize: 10 });
     const location = useLocation();
     const navigate = useNavigate()
 
@@ -630,9 +632,16 @@ function RecipeForm() {
                 </section>
 
                 <section className="foodsOrRecipesListBox">
-                    {(selectedIngredientList === IngredientTypes.FOOD_INGREDIENTS) ? 
-                        <FoodsTable setSelectedRowId={setSelectedFoodOrRecipeRowId} isRecipesForm={true}/> : 
-                        <RecipesTable setSelectedRowId={setSelectedFoodOrRecipeRowId}/>}
+                    {selectedIngredientList === IngredientTypes.FOOD_INGREDIENTS ? (
+                        <FoodsTable
+                            setSelectedRowId={setSelectedFoodOrRecipeRowId}
+                            isRecipesForm={true}
+                            pagination={foodsPagination}
+                            setPagination={setFoodsPagination}
+                        />
+                    ) : (
+                        <RecipesTable setSelectedRowId={setSelectedFoodOrRecipeRowId} />
+                    )}
                 </section>
             </section>
 

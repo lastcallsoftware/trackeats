@@ -199,6 +199,15 @@ const RecipesTable: React.FC<IRecipesTableProps> = ({setSelectedRowId}) => {
     }
     const table = useReactTable(tableOptions)
 
+    // Pagination state for the table
+    const [pagination, setPagination] = React.useState({ pageIndex: 0, pageSize: 10 });
+
+    // Sync Tanstack Table's pagination with local state
+    React.useEffect(() => {
+        table.setPageIndex(pagination.pageIndex);
+        table.setPageSize(pagination.pageSize);
+    }, [pagination.pageIndex, pagination.pageSize, table]);
+
     const handleClick = (row: Row<IRecipe>) => {
         // Toggle the row's state (selected/unselected).
         row.toggleSelected()
@@ -328,7 +337,11 @@ const RecipesTable: React.FC<IRecipesTableProps> = ({setSelectedRowId}) => {
                     ))}
                 </tfoot>
             </table>
-            <Pagination table={table}/>
+            <Pagination 
+                pagination={pagination} 
+                setPagination={setPagination} 
+                totalCount={table.getFilteredRowModel().rows.length}
+            />
         </>
     )
 }
