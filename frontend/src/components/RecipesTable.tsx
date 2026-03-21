@@ -250,7 +250,7 @@ const RecipesTable: React.FC<IRecipesTableProps> = ({setSelectedRowId, paginatio
       };
 
     return (
-        <>
+        <div style={{ overflowX: 'auto' }}>
             <table className="foodTable table-bordered">
                 {/* The thead, tbody, and tfooter elements are the functional components of the Tanstack Table. 
                     The basic skeleton is boilerplate code, but with loads of additional stuff thrown in to add
@@ -336,8 +336,7 @@ const RecipesTable: React.FC<IRecipesTableProps> = ({setSelectedRowId, paginatio
                     ))}
                 </tfoot>
             </table>
-            {/* Pagination is now handled by the parent page */}
-        </>
+        </div>
     )
 }
 
