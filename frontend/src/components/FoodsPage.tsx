@@ -1,6 +1,7 @@
 import { IconContext } from "react-icons";
 import { MdAddCircleOutline, MdEdit, MdRemoveCircleOutline } from "react-icons/md";
 import FoodsTable from "./FoodsTable";
+import Pagination from "./Pagination";
 import { useContext, useState } from "react";
 import { useNavigate } from 'react-router-dom';
 import { IFood, DataContext } from "./DataProvider";
@@ -12,6 +13,9 @@ const FoodsPage = () => {
     if (!context)
         throw Error("useDataContext can only be used inside a DataProvider")
     const foods = context.foods;
+
+    // Pagination state is now managed here
+    const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
 
     const addRecord = () => {
         // Go to the edit form
@@ -43,9 +47,11 @@ const FoodsPage = () => {
     }
     return (
         <section className="foodPage">
+
             <section className="foodTableBox">
-                <FoodsTable setSelectedRowId={setSelectedRowId} />
+                <FoodsTable setSelectedRowId={setSelectedRowId} pagination={pagination} setPagination={setPagination} />
             </section>
+            <Pagination pagination={pagination} setPagination={setPagination} totalCount={foods.length} />
 
             <section className="buttonBar">
                 <button style={{width: "150px"}} onClick={addRecord}>

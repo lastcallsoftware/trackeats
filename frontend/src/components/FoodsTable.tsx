@@ -15,7 +15,7 @@ import React, { useContext, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { IFood, DataContext } from "./DataProvider";
 import { getFoodGroupLabel } from './FoodGroups';
-import Pagination from './Pagination';
+// Pagination will be handled in FoodsPage
 import FilterWidget from './FilterWidget';
 
 // Define the table's columns
@@ -243,15 +243,16 @@ const foodColumns = [
 
 interface FoodsTableProps {
     setSelectedRowId: React.Dispatch<React.SetStateAction<number | null>>,
+    pagination: { pageIndex: number, pageSize: number },
+    setPagination: React.Dispatch<React.SetStateAction<{ pageIndex: number, pageSize: number }>>,
     isRecipesForm?: boolean
 }
 
 // Now declare the foods table itself
-const FoodsTable: React.FC<FoodsTableProps> = ({setSelectedRowId, isRecipesForm = false}) => {
+const FoodsTable: React.FC<FoodsTableProps> = ({setSelectedRowId, pagination, setPagination, isRecipesForm = false}) => {
     const navigate = useNavigate()
     const [sorting, setSorting] = React.useState<SortingState>([])
     const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
-    const [pagination, setPagination] = React.useState({pageIndex: 0, pageSize: 10});
     const context = useContext(DataContext)
     if (!context)
         throw Error("useDataContext can only be used inside a DataProvider")
@@ -333,7 +334,7 @@ const FoodsTable: React.FC<FoodsTableProps> = ({setSelectedRowId, isRecipesForm 
       };
     
     return (
-        <>
+        <div style={{ overflowX: 'auto' }}>
             <table className="foodTable">
                 {/* The thead, tbody, and tfooter elements are the functional components of the Tanstack Table. 
                     The basic skeleton is boilerplate code, but with loads of additional stuff thrown in to add
@@ -419,8 +420,7 @@ const FoodsTable: React.FC<FoodsTableProps> = ({setSelectedRowId, isRecipesForm 
                     ))}
                 </tfoot>
             </table>
-            <Pagination table={table}/>
-        </>
+        </div>
     )
 }
 
