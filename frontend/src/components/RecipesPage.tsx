@@ -46,8 +46,8 @@ function RecipesPage() {
         <section className="recipePage">
             <section className="recipeTableBox">
                 <RecipesTable setSelectedRowId={setSelectedRowId} pagination={pagination} />
-                <Pagination pagination={pagination} setPagination={setPagination} totalCount={recipes.length} />
             </section>
+            <Pagination pagination={pagination} setPagination={setPagination} totalCount={recipes.length} />
 
             <section className="buttonBar">
                 <button style={{width: "150px"}} onClick={addRecord}>
