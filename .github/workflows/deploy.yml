@@ -78,9 +78,9 @@ jobs:
           DB_ROOT_PASSWORD: ${{ secrets.DB_ROOT_PASSWORD }}
           DB_APP_USERNAME: ${{ secrets.DB_APP_USERNAME }}
           DB_APP_PASSWORD: ${{ secrets.DB_APP_PASSWORD }}
-          DB_ADMIN_PASSWORD: ${{ secrets.DB_ADMIN_PASSWORD }}
-          DB_TEST_PASSWORD: ${{ secrets.DB_TEST_PASSWORD }}
-          DB_GUEST_PASSWORD: ${{ secrets.DB_GUEST_PASSWORD }}
+          APP_ADMIN_PASSWORD: ${{ secrets.APP_ADMIN_PASSWORD }}
+          APP_TEST_PASSWORD: ${{ secrets.APP_TEST_PASSWORD }}
+          APP_GUEST_PASSWORD: ${{ secrets.APP_GUEST_PASSWORD }}
           SMTP_HOSTNAME: ${{ secrets.SMTP_HOSTNAME }}
           SMTP_USERNAME: ${{ secrets.SMTP_USERNAME }}
           SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
@@ -98,9 +98,9 @@ jobs:
             DB_ROOT_PASSWORD,
             DB_APP_USERNAME,
             DB_APP_PASSWORD,
-            DB_ADMIN_PASSWORD,
-            DB_TEST_PASSWORD,
-            DB_GUEST_PASSWORD,
+            APP_ADMIN_PASSWORD,
+            APP_TEST_PASSWORD,
+            APP_GUEST_PASSWORD,
             SMTP_HOSTNAME,
             SMTP_USERNAME,
             SMTP_PASSWORD,

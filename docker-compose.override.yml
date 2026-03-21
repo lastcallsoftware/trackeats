@@ -30,8 +30,35 @@ services:
     ports:
       - "3306:3306"
     volumes:
+      # The right side of the volume name is where MySQL looks for its data.  That cannot
+      # (or at least, should not) be changed.  The left side is what we map it to.  
+      # If the left side is a label, we MUST define that label separately in the volumes:
+      # service below.  If the left side is a path name (it starts with a . or / or ~),
+      # it stores daat in that path.
+      # Crucially, explicitly specifying a path puts it outside Docker's "jurisdiction", 
+      # and it won't be deleted if you run one of the MANY commands which delete 
+      # Docker-managed volumes:
+      #    docker compose down -v
+      #    docker volume prune
+      #    docker volume rm <container>
+      #    docker rm -v <container>
       - db-data:/var/lib/mysql
+      
+      # The right side of this volume definition maps another special MySQL directory to a 
+      # directory on the local file system.  Any .sql or .sh file in the mapped directory
+      # is executed on database startup.  You could, for example, use this to load some new 
+      # data, or run a one-time data migration if you changed the database format.
       - ./backend-python/data:/docker-entrypoint-initdb.d:ro
 
+# Here we MUST define any volume we named in the services above (i.e., if we gave the volume
+# a label instead of specifying an explicit path).  If we omit the name:, Docker generates 
+# its own name, which takes the form:
+#    <project folder name>_<volume name>
+# Either way, Docker manages the volume and puts it somewhere in its own storage.  The name
+# is only for display purposes when we do a "docker volume list" or similar.
+# However, note that if you use the default name but rename the project folder, Docker will
+# auto-generate a new name using the new folder name and "forget" your old data.  There
+# are circumstances where using the default name is useful, but it's usually a bad idea.
 volumes:
   db-data:
+     name: trackeats-db-data

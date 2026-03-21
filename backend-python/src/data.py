@@ -90,17 +90,17 @@ class Data:
         """
         logging.info("Adding User records...")
         
-        admin_password = os.environ.get("DB_ADMIN_PASSWORD")
+        admin_password = os.environ.get("APP_ADMIN_PASSWORD")
         if not admin_password:
-            raise ValueError("DB_ADMIN_PASSWORD not set")
+            raise ValueError("APP_ADMIN_PASSWORD not set")
 
-        test_password = os.environ.get("DB_TEST_PASSWORD")
+        test_password = os.environ.get("APP_TEST_PASSWORD")
         if not test_password:
-            raise ValueError("DB_TEST_PASSWORD not set")
+            raise ValueError("APP_TEST_PASSWORD not set")
 
-        guest_password = os.environ.get("DB_GUEST_PASSWORD")
+        guest_password = os.environ.get("APP_GUEST_PASSWORD")
         if not guest_password:
-            raise ValueError("DB_GUEST_PASSWORD not set")
+            raise ValueError("APP_GUEST_PASSWORD not set")
 
         admin_user_dao = User.get("admin")
         if not admin_user_dao:

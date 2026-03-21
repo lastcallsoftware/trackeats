@@ -35,21 +35,34 @@ services:
     ports:
       - "5000:5000"
     environment:
+      # This maps environment variables that will be visible to the app inside the Docker
+      # container (the left side of the :) to values (the right side).
+      # You may specify literals and/or environment variables taken from the system at 
+      # the time the build runs.  These environment variables may be pulled from an .env 
+      # file (typical when the app runs locally), or injected into the environment by GitHub 
+      # Secrets or some other secrets manager (typical when the app runs on an app server).
+      # Injected values take preference over .env values, BTW.
+      # The :? after an env variable name specifies that the value is required.  Docker 
+      # compose will throw an error if that value is not present in the environment.  Docker
+      # Compose provides a decent error message ("XXX is missing a value"), but you may 
+      # provide an additional error message after the ? if you wish.
+      # A :- after an env variable name specifies a default value if the value is missing
+      # from the environment.  Put it right after the :-
       FLASK_ENV: production
       DB_HOSTNAME: db
-      DB_DATABASE_NAME: ${DB_DATABASE_NAME:?DB_DATABASE_NAME is missing}
-      DB_APP_USERNAME: ${DB_APP_USERNAME:?DB_APP_USERNAME is missing}
-      DB_APP_PASSWORD: ${DB_APP_PASSWORD:?DB_APP_PASSWORD is missing}
-      DB_ADMIN_PASSWORD: ${DB_ADMIN_PASSWORD:?DB_ADMIN_PASSWORD is missing}
-      DB_TEST_PASSWORD: ${DB_TEST_PASSWORD:?DB_TEST_PASSWORD is missing}
-      DB_GUEST_PASSWORD: ${DB_GUEST_PASSWORD:?DB_GUEST_PASSWORD is missing}
-      SMTP_HOSTNAME: ${SMTP_HOSTNAME:?SMTP_HOSTNAME is missing}
-      SMTP_USERNAME: ${SMTP_USERNAME:?SMTP_USERNAME is missing}
-      SMTP_PASSWORD: ${SMTP_PASSWORD:?SMTP_PASSWORD is missing}
-      BACKEND_ENCRYPTION_KEY_B64: ${BACKEND_ENCRYPTION_KEY_B64:?BACKEND_ENCRYPTION_KEY_B64 is missing}
-      JWT_SECRET_KEY: ${JWT_SECRET_KEY:?JWT_SECRET_KEY is missing}
-      BACKEND_BASE_URL: ${BACKEND_BASE_URL:?BACKEND_BASE_URL is missing}
-      PORTFOLIO_URL: ${PORTFOLIO_URL:?PORTFOLIO_URL is missing}
+      DB_DATABASE_NAME: ${DB_DATABASE_NAME:-trackeats}
+      DB_APP_USERNAME: ${DB_APP_USERNAME:?}
+      DB_APP_PASSWORD: ${DB_APP_PASSWORD:?}
+      APP_ADMIN_PASSWORD: ${APP_ADMIN_PASSWORD:?}
+      APP_TEST_PASSWORD: ${APP_TEST_PASSWORD:?}
+      APP_GUEST_PASSWORD: ${APP_GUEST_PASSWORD:?}
+      SMTP_HOSTNAME: ${SMTP_HOSTNAME:?}
+      SMTP_USERNAME: ${SMTP_USERNAME:?}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:?}
+      BACKEND_ENCRYPTION_KEY_B64: ${BACKEND_ENCRYPTION_KEY_B64:?}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:?}
+      BACKEND_BASE_URL: ${BACKEND_BASE_URL:?}
+      PORTFOLIO_URL: ${PORTFOLIO_URL:?}
     restart: on-failure
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5000/health')"]
