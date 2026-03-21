@@ -3,15 +3,28 @@
 #   export ACCESS_TOKEN="tokendata"
 # A token can be obtained and exported automatically using:
 #   source ./bin/test-login.sh
+
+
+# Usage: ./test-add-recipe.sh
+# Reads BACKEND_BASE_URL from .env
+set -a
+[ -f .env ] && . .env
+set +a
+
+if [ -z "$BACKEND_BASE_URL" ]; then
+  echo "BACKEND_BASE_URL is not set. Please set it in your .env file."
+  exit 1
+fi
+
 curl \
--H "Authorization: Bearer $ACCESS_TOKEN" \
--H "Content-Type: application/json" \
--d '{
+curl \
+    -H "Authorization: Bearer $ACCESS_TOKEN" \
+    -H "Content-Type: application/json" \
+    -d '{
 "cuisine": "chinese",
 "name": "Cup of Rice",
 "total_yield": "4 cups",
 "servings": 4,
 "nutrition": {"serving_size_description": "1 cup"}
 }' \
-http://localhost:5000/recipe
-#https://trackeats.lastcallsw.com:54443/recipe
+    "$BACKEND_BASE_URL/recipe"

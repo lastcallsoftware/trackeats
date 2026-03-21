@@ -7,14 +7,25 @@
 #   source login.sh <username> <password>
 # Or use . as a shorthand:
 #  . login.sh <username> <password>
-USERNAME="${1:-testuser}"
-PASSWORD="${2:-Test*123}"
+
+# Usage: source login.sh [username] [password]
+USERNAME="${1:-guest}"
+PASSWORD="${2:-Guest*123}"
+
+# Load BACKEND_BASE_URL from .env if present
+set -a
+[ -f .env ] && . .env
+set +a
+
+if [ -z "$BACKEND_BASE_URL" ]; then
+  echo "BACKEND_BASE_URL is not set. Please set it in your .env file."
+  return 1
+fi
 
 OUTPUT=`curl --no-progress-meter \
 -H "Content-Type: application/json" \
 -d "{\"username\": \"$USERNAME\", \"password\": \"$PASSWORD\" }" \
-https://trackeats.lastcallsw.com:5443/login`
-#http://localhost:5000/login`
+"$BACKEND_BASE_URL/login"`
 
 ACCESS_TOKEN=`echo $OUTPUT | grep -o '"access_token":"[^"]*' | grep -o '[^"]*$'`
 export ACCESS_TOKEN=$ACCESS_TOKEN
