@@ -634,36 +634,34 @@ function RecipeForm() {
                     </Tooltip>
                 </section>
 
-                <div style={{ display: 'flex', flexDirection: 'column' }}>
-                    <section className="foodsOrRecipesListBox">
-                        {selectedIngredientList === IngredientTypes.FOOD_INGREDIENTS ? (
-                            <FoodsTable
-                                setSelectedRowId={setSelectedFoodOrRecipeRowId}
-                                isRecipesForm={true}
-                                pagination={foodsPagination}
-                                setPagination={setFoodsPagination}
-                            />
-                        ) : (
-                            <RecipesTable
-                                setSelectedRowId={setSelectedFoodOrRecipeRowId}
-                                pagination={recipesPagination}
-                            />
-                        )}
-                    </section>
+                <section className="foodsOrRecipesListBox">
                     {selectedIngredientList === IngredientTypes.FOOD_INGREDIENTS ? (
-                        <Pagination
+                        <FoodsTable
+                            setSelectedRowId={setSelectedFoodOrRecipeRowId}
+                            isRecipesForm={true}
                             pagination={foodsPagination}
                             setPagination={setFoodsPagination}
-                            totalCount={context.foods.length}
                         />
                     ) : (
-                        <Pagination
+                        <RecipesTable
+                            setSelectedRowId={setSelectedFoodOrRecipeRowId}
                             pagination={recipesPagination}
-                            setPagination={setRecipesPagination}
-                            totalCount={context.recipes.length}
                         />
                     )}
-                </div>
+                </section>
+                {selectedIngredientList === IngredientTypes.FOOD_INGREDIENTS ? (
+                    <Pagination
+                        pagination={foodsPagination}
+                        setPagination={setFoodsPagination}
+                        totalCount={context.foods.length}
+                    />
+                ) : (
+                    <Pagination
+                        pagination={recipesPagination}
+                        setPagination={setRecipesPagination}
+                        totalCount={context.recipes.length}
+                    />
+                )}
             </section>
 
             <section className="recipeFormButtonBox">
