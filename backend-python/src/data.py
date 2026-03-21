@@ -30,18 +30,20 @@ class Data:
         # to jump thruogh a few hoops to execute the init code.
         do_init = False
         if override_safety_check:
-            logging.debug("Database initialization safety check override engaged!")
+            logging.info("Database initialization safety check override engaged!")
             do_init = True
         else:
             inspector = inspect(db.engine)
-            if 'user' not in inspector.get_table_names():
-                logging.debug("User table not found; initiating schema refresh")
+            if 'user' in inspector.get_table_names():
+                logging.info("User table found and overrride not engaged; NOT initiating schema refresh")
+            else:
+                logging.info("User table not found; initiating schema refresh")
                 do_init = True
 
         if do_init:
-            logging.debug("DROPPING ALL TABLES")
+            logging.warning("DROPPING ALL TABLES")
             db.drop_all()
-            logging.debug("RECREATING DATABASE SCHEMA")
+            logging.warning("RECREATING DATABASE SCHEMA")
             db.create_all()
 
         # Always make sure the key user logins have been created

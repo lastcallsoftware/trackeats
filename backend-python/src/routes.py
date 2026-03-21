@@ -46,7 +46,9 @@ def db_init():
     """
     logging.info("/db/init")
     try:
-        Data.init_db()
+        override_str = str(request.args.get("override", "false"))
+        override = override_str.lower() == 'true'
+        Data.init_db(override)
     except Exception as e:
         msg = "Initialization failed: " + repr(e)
         logging.error(msg)

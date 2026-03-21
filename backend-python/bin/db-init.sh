@@ -6,5 +6,5 @@
 curl -s \
 -X GET \
 -H "Authorization: Bearer $ACCESS_TOKEN" \
-https://trackeats.lastcallsw.com:5443/db/init
+https://trackeats.lastcallsw.com:5443/db/init?override=true
 #http://localhost:5000/db/init
