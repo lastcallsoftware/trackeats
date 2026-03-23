@@ -115,7 +115,7 @@ function RecipeForm() {
         e.preventDefault();
         if (!selectedFoodOrRecipeRowId) return
 
-        let nutrition: INutrition|null = null;
+        let nutrition: INutrition;
         let modifier: number = 1;
         let ingredient_serving_price = 0;
 
@@ -186,7 +186,7 @@ function RecipeForm() {
         const ingredient: IIngredient|undefined = ingredients.find((item: IIngredient) => item.food_ingredient_id === selectedIngredientRowId[0] && item.recipe_ingredient_id === selectedIngredientRowId[1]);
         if (!ingredient) { setErrorMessage("Unable to find Ingredient " + selectedIngredientRowId[0] + "/" + selectedIngredientRowId[1]); return }
 
-        let nutrition: INutrition|null = null;
+        let nutrition: INutrition;
         if (ingredient.food_ingredient_id) {
             const food: IFood|undefined = context.foods.find((item: IFood) => item.id === ingredient.food_ingredient_id);
             if (!food) { setErrorMessage("Food " + ingredient.food_ingredient_id + " not found."); return }
