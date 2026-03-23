@@ -1,10 +1,10 @@
 import { useContext, useState } from "react";
 import { DataContext, IRecipe } from "./DataProvider";
-import { IconContext } from "react-icons";
 import { MdAddCircleOutline, MdEdit, MdRemoveCircleOutline } from "react-icons/md";
-import RecipesTable from "./RecipesTable"
-import Pagination from "./Pagination"
+import RecipesTable from "./RecipesTable";
+import Pagination from "./Pagination";
 import { useNavigate } from "react-router-dom";
+import Button from '@mui/material/Button';
 
 function RecipesPage() {
     const navigate = useNavigate();
@@ -43,31 +43,53 @@ function RecipesPage() {
     }
 
     return (
-        <section className="recipePage">
-            <section className="recipeTableBox">
-                <RecipesTable setSelectedRowId={setSelectedRowId} pagination={pagination} />
-            </section>
-            <Pagination pagination={pagination} setPagination={setPagination} totalCount={recipes.length} />
+        <section className="foodPageModern">
+            <div className="foodPageHeader">
+                <span className="foodPageTitle">Recipes</span>
+                <span className="foodPageSubtitle">Manage your recipes and instructions</span>
+            </div>
+            <div className="foodPageCard">
+                <section className="recipeTableBox">
+                    <RecipesTable setSelectedRowId={setSelectedRowId} pagination={pagination} />
+                </section>
+                <Pagination pagination={pagination} setPagination={setPagination} totalCount={recipes.length} />
 
-            <section className="buttonBar">
-                <button style={{width: "150px"}} onClick={addRecord}>
-                    <IconContext.Provider value={{ size: "30px", color: "green"}}>
-                        <p>Add</p><MdAddCircleOutline/>
-                    </IconContext.Provider>
-                </button>
-                <button style={{width: "150px"}} onClick={editRecord}>
-                    <IconContext.Provider value={{ size: "30px", color: "orange"}}>
-                        <p>Edit</p><MdEdit/>
-                    </IconContext.Provider>
-                </button>
-                <button style={{width: "150px"}} onClick={deleteRecord}>
-                    <IconContext.Provider value={{ size: "30px", color: "red"}}>
-                        <p>Delete</p><MdRemoveCircleOutline/>
-                    </IconContext.Provider>
-                </button>
-            </section>
+                <section className="buttonBarModern" style={{ display: 'flex', gap: 16, justifyContent: 'center', marginTop: 24 }}>
+                    <Button
+                        variant="contained"
+                        color="success"
+                        startIcon={<MdAddCircleOutline />}
+                        onClick={addRecord}
+                        title="Add Recipe"
+                    >
+                        Add
+                    </Button>
+                    <Button
+                        variant="contained"
+                        color="warning"
+                        startIcon={<MdEdit />}
+                        onClick={editRecord}
+                        title="Edit Selected"
+                        disabled={!selectedRowId}
+                    >
+                        Edit
+                    </Button>
+                    <Button
+                        variant="contained"
+                        color="error"
+                        startIcon={<MdRemoveCircleOutline />}
+                        onClick={deleteRecord}
+                        title="Delete Selected"
+                        disabled={!selectedRowId}
+                    >
+                        Delete
+                    </Button>
+                </section>
 
-            <p>{errorMessage}</p>
+                {errorMessage && (
+                    <div className="modernErrorMsg" role="alert">{errorMessage}</div>
+                )}
+            </div>
         </section>
     )
 }

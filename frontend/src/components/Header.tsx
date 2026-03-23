@@ -1,9 +1,15 @@
-import { Image } from '@chakra-ui/react';
+import Box from '@mui/material/Box';
 import logo from '../assets/trackeats-1280x873.png';
 
 function Header() {
     return (
-            <Image className="logo" src={logo} alt="TrackEats logo" />
+        <Box
+            component="img"
+            className="logo"
+            src={logo}
+            alt="TrackEats logo"
+            sx={{ height: 'auto', maxWidth: '100%' }}
+        />
     );
 }
 

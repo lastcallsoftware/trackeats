@@ -65,6 +65,7 @@ const IngredientsTable: React.FC<IRecipesTableProps> = ({setSelectedRowId, ingre
             ]
         }
     }
+    // eslint-disable-next-line react-hooks/incompatible-library
     const table = useReactTable(tableOptions)
 
     const handleClick = (row: Row<IIngredient>) => {

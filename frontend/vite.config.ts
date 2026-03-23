@@ -1,6 +1,5 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react-swc'
-import tsconfigPaths from "vite-tsconfig-paths"
 
 // This file configures how the app runs in Vite's built-in dev server.
 //
@@ -10,9 +9,8 @@ import tsconfigPaths from "vite-tsconfig-paths"
 // the usual HTTP port 80.  So instead I'm specifying port 8080, which is
 // commonly used for dev purposes.
 // In production, we'll use Docker to redirect incoming requests on the
-// usual port 80 (or 443, if I ever get the SSL certificate sorted out)
-// to port 8080 in the Vite dev server or NGINX web server, so there's no
-// need to change it here.
+// usual port 80 (or 443) to port 8080 in the Vite dev server or NGINX 
+// web server, so there's no need to change it here.
 //
 // In addition to the port numbers, I had to add the strictPort and host
 // properties.  I just scraped that out of a post somewhere I can't remember
@@ -27,7 +25,7 @@ import tsconfigPaths from "vite-tsconfig-paths"
 // https://vitejs.dev/config/
 export default defineConfig({
   base: "/",
-  plugins: [react(), tsconfigPaths()],
+  plugins: [react()],
   preview: {
     port: 8080,
     strictPort: true,

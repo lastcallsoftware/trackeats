@@ -1,5 +1,5 @@
 import { generateIngredientSummary } from "../utils/generateIngredientSummary";
-import React, { createContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useState, useEffect, useCallback, useRef } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
@@ -98,11 +98,14 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
     const [recipes, setRecipes] = useState<IRecipe[]>([])
     const [ingredients, setIngredients] = useState<IIngredient[]>([])
     const [errorMessage, setErrorMessage] = useState<string|null>(null)
-    const navigate = useNavigate()
+
+    // Store navigate in a ref so it never triggers re-renders or stale
+    // dependency issues in useCallback/useEffect.
+    const navigateRef = useRef(useNavigate())
 
     // Token management
-	const tok = sessionStorage.getItem("access_token")
-	const access_token = tok ? JSON.parse(tok) : ""
+    const tok = sessionStorage.getItem("access_token")
+    const access_token = tok ? JSON.parse(tok) : ""
 
     const removeToken = () => {
         sessionStorage.removeItem("access_token")
@@ -112,38 +115,23 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
     const [isLoading, setLoading] = useState(false)
 
     // Handle errors that occur when calling the back end.
-    // Not sure if the navigate() call is kosher here.
-    // Actually I'm not even sure if having this separate error handler function
-    // is kosher.  We'll see!
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const handleError = useCallback((error: any) => {
         console.log(error)
         setLoading(false)
         if (error.response?.status == 401) {
             removeToken()
-            navigate("/login", { state: { message: "Your token has expired and you have been logged out." } });
+            navigateRef.current("/login", { state: { message: "Your token has expired and you have been logged out." } });
         }
         else if (error.response)
             setErrorMessage(error.response.data.msg)
         else
             setErrorMessage(error.message)
-
-        // NOTE: CONSIDER OMTTING NAVIGATE FROM THE DEPENDENCY LIST!
-        // This is technically incorrect.  However, keeping it in the list causes a re-render of
-        // the component -- and a subsequent refresh of the entire dataset -- EVERY TIME
-        // you navigate() to a different page, a colossal waste of bandwidth and time.
-        // Plus, from what I understand, navigate's dependncies change only in certain very
-        // specific circumstances, which I don't THINK apply here.
-        // UPDATE: Seems the page doesn't update when the user adds a record if you omit the
-        // dependency, so I guess it stays in... for now. :/  Further research required.
-        }, [navigate]);
+    }, []); // navigateRef is a ref, so it's stable and doesn't need to be a dependency
 
     useEffect(() => {
+        // If there's no token, state is already initialized to empty defaults — just return.
         if (!access_token) {
-            setFoods([])
-            setRecipes([])
-            setIngredients([])
-            setLoading(false)
             return;
         }
 
@@ -151,10 +139,7 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
         const getFoods = async (): Promise<void> => {
             setErrorMessage("");
             try {
-                // Get the Food record from the back end.
                 const response = await axios.get("/food", {headers: { "Authorization": "Bearer " + access_token}})
-
-                // Add the response data to the Foods list state variable.
                 setFoods(response.data);
             } catch(error) {
                 handleError(error)
@@ -165,10 +150,7 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
         const getRecipes = async (): Promise<void> => {
             setErrorMessage("");
             try {
-                // Get the Recipe record from the back end.
                 const response = await axios.get("/recipe", {headers: { "Authorization": "Bearer " + access_token}})
-
-                // Add the response data to the Recipes list state variable.
                 setRecipes(response.data);
             } catch(error) {
                 handleError(error)
@@ -176,7 +158,6 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
         };
 
         const fetchData = async () => {
-            // Calling setLoading makes it so the state changes on every load, so it ALWAYS re-loads.
             setLoading(true)
             await getFoods();
             await getRecipes();
@@ -190,11 +171,8 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
     const addFood = async (food: IFood): Promise<void> => {
         setErrorMessage("");
         try {
-            // Add the Food record to the back end.
             const response = await axios.post("/food", food, {headers: { "Authorization": "Bearer " + access_token}})
             const newFood = response.data
-
-            // Add it to the Foods list state variable.
             setFoods((prev_foods) => [...prev_foods, newFood])
         } catch (error) {
             handleError(error)
@@ -205,10 +183,7 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
     const updateFood = async (food: IFood): Promise<void> => {
         setErrorMessage("");
         try {
-            // Update the Food record on the back end.
             await axios.put("/food", food, {headers: { "Authorization": "Bearer " + access_token}})
-
-            // Update it in the Foods list state variable.
             setFoods(prevItems => prevItems.map(item => {
                 if (item.id === food.id) {
                     return food;
@@ -225,10 +200,7 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
     const deleteFood = async (id: number): Promise<void> => {
         setErrorMessage("");
         try {
-            // Delete the Food record from the back end.
             await axios.delete("/food/" + id, {headers: { "Authorization": "Bearer " + access_token}})
-
-            // Remove it from the Foods list state variable.
             setFoods(prevItems => prevItems.filter(_item => _item.id != id));
         } catch(error) {
             handleError(error)
@@ -240,7 +212,6 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
         let recipe_id = undefined
         setErrorMessage("");
         try {
-            // Save the new recipe and its ingredients to the back end atomically.
             const payload = { ...recipe, ingredients };
             const response = await axios.post("/recipe", payload, {headers: { "Authorization": "Bearer " + access_token}})
             const new_recipe = response.data
@@ -256,7 +227,6 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
     const updateRecipe = async (recipe: IRecipe, ingredients: IIngredient[]): Promise<void> => {
         setErrorMessage("");
         try {
-            // Update the Recipe and its ingredients on the back end atomically.
             const payload = { ...recipe, ingredients };
             await axios.put("/recipe", payload, {headers: { "Authorization": "Bearer " + access_token}})
             setRecipes(prevItems => prevItems.map(item => {
@@ -275,10 +245,7 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
     const deleteRecipe = async (id: number): Promise<void> => {
         setErrorMessage("");
         try {
-            // Delete the Recipe from the back end.
             await axios.delete("/recipe/" + id, {headers: { "Authorization": "Bearer " + access_token}})
-
-            // Remove it from the Recipes list state variable.
             setRecipes(prevItems => prevItems.filter(_item => _item.id != id));
         } catch(error) {
             handleError(error)
@@ -289,10 +256,7 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
     const getIngredients = async (recipe_id: number): Promise<void> => {
         setErrorMessage("");
         try {
-            // Get the Ingredient records from the back end
             const response = await axios.get("/recipe/" + recipe_id + "/ingredient", {headers: { "Authorization": "Bearer " + access_token}})
-
-            // Populate the summary field, error if nutrition is missing
             const ingredientsWithSummary: IIngredient[] = response.data.map((ing: IIngredient) => {
                 let food, recipe, nutrition;
                 if (ing.food_ingredient_id) {
@@ -320,12 +284,7 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
     const addIngredients = async (recipe_id: number, ingredients: IIngredient[]): Promise<void> => {
         setErrorMessage("");
         try {
-            // Add Ingredient records to the back end.
             await axios.post("/recipe/" + recipe_id + "/ingredient", ingredients, {headers: { "Authorization": "Bearer " + access_token}})
-
-            // Add them to the Ingredients list state variable.
-            // NOTE: It's assumed that the state variable is where we got the data we just sent,
-            // so this step isn't necessary in this one case.
         } catch(error) {
             handleError(error)
         }
@@ -335,10 +294,7 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
     const removeIngredients = async (recipe_id: number): Promise<void> => {
         setErrorMessage("");
         try {
-            // Delete the Inggredients from the back end.
-            await axios.delete("/recipe/" + recipe_id + "/ingredient", {headers:  { "Authorization": "Bearer " + access_token}})
-
-            // Delete them from the Ingredients state variable.
+            await axios.delete("/recipe/" + recipe_id + "/ingredient", {headers: { "Authorization": "Bearer " + access_token}})
             setIngredients([])
         } catch(error) {
             handleError(error)

@@ -1,7 +1,11 @@
 import { useState } from "react";
 import { useLocation, useNavigate } from 'react-router-dom';
 import axios from "axios";
-import { Button, Container, Field, Input, Text } from "@chakra-ui/react";
+import Button from '@mui/material/Button';
+import Container from '@mui/material/Container';
+import TextField from '@mui/material/TextField';
+import Typography from '@mui/material/Typography';
+import Box from '@mui/material/Box';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function LoginPage(props: any) {
@@ -36,28 +40,41 @@ function LoginPage(props: any) {
     }
 
     return (
-        <form onSubmit={handleSubmit}>
-            <Container marginLeft={"30%"} width={"40%"} border={"1px solid"} padding={5}>
-                <Field.Root orientation={"horizontal"} marginTop={2}>
-                    <Field.Label minWidth={100}>Username:</Field.Label>
-                    <Input type="text" placeholder="Username" value={formData.username} height={6}
-                        onChange={(e) => setFormData(prevState => ({...prevState, username: e.target.value}))} />
-                </Field.Root>
-
-                <Field.Root orientation={"horizontal"} marginTop={2}>
-                    <Field.Label textAlign={"right"} minWidth={100}>Password:</Field.Label>
-                    <Input type="password" placeholder="Password" value={formData.password} height={6}
-                        onChange={(e) => setFormData(prevState => ({...prevState, password: e.target.value}))} />
-                </Field.Root>
-
-                {isConfirm ? <><p>Check your inbox for an email from Trackeats.</p><p>Click on the link in that email
-                    (or paste it into a browser) to complete registration and activate your account.</p><p>Then you will be able to log in.</p></> : ""}
-
-                <Button h={8} color={"black"} type="submit" disabled={loginIsDisabled}>Login</Button><br/>
-
-                <Text className="errorText">{loginMessage}</Text>
-            </Container>
-        </form>
+        <Container maxWidth="sm" sx={{ mt: 8, p: 4, border: '1px solid #ccc', borderRadius: 2 }}>
+            <Typography variant="h5" align="center" gutterBottom>Login</Typography>
+            <form onSubmit={handleSubmit}>
+                <Box display="flex" flexDirection="column" gap={3}>
+                    <TextField
+                        label="Username"
+                        variant="outlined"
+                        value={formData.username}
+                        onChange={(e) => setFormData(prevState => ({...prevState, username: e.target.value}))}
+                        required
+                        autoFocus
+                    />
+                    <TextField
+                        label="Password"
+                        variant="outlined"
+                        type="password"
+                        value={formData.password}
+                        onChange={(e) => setFormData(prevState => ({...prevState, password: e.target.value}))}
+                        required
+                    />
+                    {isConfirm && (
+                        <Box>
+                            <Typography variant="body2" color="primary">Check your inbox for an email from Trackeats.</Typography>
+                            <Typography variant="body2">Click on the link in that email (or paste it into a browser) to complete registration and activate your account. Then you will be able to log in.</Typography>
+                        </Box>
+                    )}
+                    <Button variant="contained" color="primary" type="submit" disabled={loginIsDisabled} sx={{ height: 48 }}>
+                        Login
+                    </Button>
+                    {loginMessage && (
+                        <Typography className="errorText" color="error">{loginMessage}</Typography>
+                    )}
+                </Box>
+            </form>
+        </Container>
     );
 }
 

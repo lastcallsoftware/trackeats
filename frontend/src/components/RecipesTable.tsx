@@ -198,6 +198,7 @@ const RecipesTable: React.FC<IRecipesTableProps> = ({setSelectedRowId, paginatio
         filterFns: {},
         state: { sorting, columnFilters }
     }
+    // eslint-disable-next-line react-hooks/incompatible-library
     const table = useReactTable(tableOptions)
 
     // Pagination state for the table

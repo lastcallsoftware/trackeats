@@ -1,5 +1,5 @@
-import { IconContext } from "react-icons";
 import { MdAddCircleOutline, MdEdit, MdRemoveCircleOutline } from "react-icons/md";
+import Button from '@mui/material/Button';
 import FoodsTable from "./FoodsTable";
 import Pagination from "./Pagination";
 import { useContext, useState } from "react";
@@ -46,34 +46,55 @@ const FoodsPage = () => {
         return (<p>Loading...</p>)
     }
     return (
-        <section className="foodPage">
+        <section className="foodPageModern">
+            <div className="foodPageHeader">
+                {/* Removed AddCircle icon from header as this is a browse page */}
+                <span className="foodPageTitle">Foods</span>
+                <span className="foodPageSubtitle">Manage your ingredients and nutrition data</span>
+            </div>
 
-            <section className="foodTableBox">
-                <FoodsTable setSelectedRowId={setSelectedRowId} pagination={pagination} setPagination={setPagination} />
-            </section>
-            <Pagination pagination={pagination} setPagination={setPagination} totalCount={foods.length} />
+            <div className="foodPageCard">
+                <section className="foodTableBox">
+                    <FoodsTable setSelectedRowId={setSelectedRowId} pagination={pagination} setPagination={setPagination} />
+                </section>
+                <Pagination pagination={pagination} setPagination={setPagination} totalCount={foods.length} />
 
-            <section className="buttonBar">
-                <button style={{width: "150px"}} onClick={addRecord}>
-                    <IconContext.Provider value={{ size: "30px", color: "green"}}>
-                        <p>Add</p><MdAddCircleOutline/>
-                    </IconContext.Provider>
-                </button>
+                    <section className="buttonBarModern" style={{ display: 'flex', gap: 16, justifyContent: 'center', marginTop: 24 }}>
+                        <Button
+                            variant="contained"
+                            color="success"
+                            startIcon={<MdAddCircleOutline />}
+                            onClick={addRecord}
+                            title="Add Food"
+                        >
+                            Add
+                        </Button>
+                        <Button
+                            variant="contained"
+                            color="warning"
+                            startIcon={<MdEdit />}
+                            onClick={editRecord}
+                            title="Edit Selected"
+                            disabled={!selectedRowId}
+                        >
+                            Edit
+                        </Button>
+                        <Button
+                            variant="contained"
+                            color="error"
+                            startIcon={<MdRemoveCircleOutline />}
+                            onClick={deleteRecord}
+                            title="Delete Selected"
+                            disabled={!selectedRowId}
+                        >
+                            Delete
+                        </Button>
+                    </section>
 
-                <button style={{width: "150px"}} onClick={editRecord}>
-                    <IconContext.Provider value={{ size: "30px", color: "orange"}}>
-                        <p>Edit</p><MdEdit/>
-                    </IconContext.Provider>
-                </button>
-
-                <button style={{width: "150px"}} onClick={deleteRecord}>
-                    <IconContext.Provider value={{ size: "30px", color: "red"}}>
-                        <p>Delete</p><MdRemoveCircleOutline/>
-                    </IconContext.Provider>
-                </button>
-            </section>
-
-            <p>{context.errorMessage}</p>
+                {context.errorMessage && (
+                    <div className="modernErrorMsg" role="alert">{context.errorMessage}</div>
+                )}
+            </div>
         </section>
     )
 }

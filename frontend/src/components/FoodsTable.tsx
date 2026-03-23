@@ -280,6 +280,7 @@ const FoodsTable: React.FC<FoodsTableProps> = ({setSelectedRowId, pagination, se
             }
         }
     }
+    // eslint-disable-next-line react-hooks/incompatible-library
     const table = useReactTable(tableOptions)
 
     // If a column filter causes the list to shrink such that the current page
@@ -291,7 +292,7 @@ const FoodsTable: React.FC<FoodsTableProps> = ({setSelectedRowId, pagination, se
         if (pagination.pageIndex >= totalPages) {
             setPagination((prev) => ({...prev, pageIndex: Math.max(0, totalPages - 1)}))
         }
-    }, [totalPages, pagination.pageIndex])
+    }, [totalPages, pagination.pageIndex, setPagination])
 
     const handleClick = (row: Row<IFood>) => {
         // Toggle the row's state (selected/unselected).
