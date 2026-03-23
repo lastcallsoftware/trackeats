@@ -70,7 +70,16 @@ jobs:
           cache-from: type=registry,ref=lastcallsoftware/trackeats-backend:buildcache
           cache-to: type=registry,ref=lastcallsoftware/trackeats-backend:buildcache,mode=max
 
-      - name: Deploy to Trackeats server via SSH
+      - name: Copy deployment files to app server
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.APP_SERVER_HOST }}
+          username: ${{ secrets.APP_SERVER_USERNAME }}
+          key: ${{ secrets.APP_SERVER_SSH_KEY }}
+          source: "deploy.sh,docker-compose.yml"
+          target: ~/trackeats/
+    
+      - name: Deploy to app server via SSH
         uses: appleboy/ssh-action@master
         env:
           DB_HOSTNAME: ${{ secrets.DB_HOSTNAME }}
