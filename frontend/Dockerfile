@@ -10,7 +10,7 @@ ENV VITE_PORTFOLIO_URL=${VITE_PORTFOLIO_URL}
 WORKDIR /app
 
 COPY package*.json ./
-RUN npm install --frozen-lockfile
+RUN npm ci --legacy-peer-deps
 
 COPY . .
 RUN npm run build
