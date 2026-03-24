@@ -1,3 +1,23 @@
+// Augment the Palette type to include 'table'
+
+type TablePalette = {
+    headerBg: string;
+    headerColor: string;
+    headerBorder: string;
+    rowSelectedBg: string;
+    rowBorder: string;
+}
+
+declare module '@mui/material/styles' {
+    interface Palette {
+        table: TablePalette;
+        tableAlt: TablePalette;
+    }
+    interface PaletteOptions {
+        table?: Partial<TablePalette>;
+        tableAlt?: Partial<TablePalette>;
+    }
+}
 import { createTheme } from '@mui/material/styles';
 
 const theme = createTheme({
@@ -11,6 +31,20 @@ const theme = createTheme({
         background: {
             default: '#f5f7fb',
             paper: '#ffffff',
+        },
+        table: {
+            headerBg: '#66C2E0',
+            headerColor: '#000',
+            headerBorder: 'black',
+            rowSelectedBg: 'lightblue',
+            rowBorder: 'black',
+        },
+        tableAlt: {
+            headerBg: '#42A5F5',
+            headerColor: '#FFF',
+            headerBorder: '#1976D2',
+            rowSelectedBg: '#E3F2FD',
+            rowBorder: '#EEE',
         },
     },
     shape: {
