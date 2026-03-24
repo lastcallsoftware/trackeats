@@ -21,7 +21,7 @@ const FilterWidget: React.FC<FilterWidgetProps> = ({column, updateFilterFunction
             {column.getFilterValue() ? (
                 <button
                     onClick={() => updateFilterFunction(column.id, "")}
-                    style={{ position: 'absolute', right: 2, top: 2, background: 'none', border: 'none', cursor: 'pointer', fontSize: 16, padding: 0, lineHeight: 1 }}
+                    style={{ position: 'absolute', right: 2, top: 6, background: 'none', border: 'none', cursor: 'pointer', fontSize: 16, padding: 0, lineHeight: 1 }}
                     aria-label="Clear filter"
                 >
                     ❌
