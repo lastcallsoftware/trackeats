@@ -15,11 +15,7 @@ import {
     Button,
     Divider,
     Typography,
-    RadioGroup,
-    FormControlLabel,
-    Radio,
-    FormControl,
-    FormLabel,
+    Switch,
     Stack,
     Tooltip,
     Box,
@@ -460,38 +456,13 @@ function RecipeForm() {
                         {/* Left: Ingredients list (the recipe) */}
                         <Box sx={{ flex: 1, minWidth: 0 }}>
                             <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>Selected Ingredients</Typography>
-                            <Box sx={{ maxHeight: 680, minHeight: 680, overflowY: 'auto', border: '1px solid', borderColor: 'divider', borderRadius: 1 }}>
+                            <Box sx={{ maxHeight: 400, minHeight: 400, overflowY: 'auto', border: '1px solid', borderColor: 'divider', borderRadius: 1 }}>
                                 <IngredientsTable data={ingredients} setSelectedRowId={setSelectedIngredientRowId} selectedRowId={selectedIngredientRowId} />
                             </Box>
                         </Box>
 
                         {/* Center: Action buttons */}
                         <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1, pt: 4, minWidth: 130 }}>
-
-                            {/* Ingredient type selector */}
-                            <FormControl size="small" sx={{ mb: 1 }}>
-                                <FormLabel sx={{ fontSize: '0.75rem', mb: 0.5 }}>Add from</FormLabel>
-                                <RadioGroup
-                                    value={selectedIngredientList}
-                                    onChange={(e) => setSelectedIngredientList(e.target.value)}
-                                >
-                                    <Tooltip title="Select Foods to add to this Recipe" placement="right" arrow>
-                                        <FormControlLabel
-                                            value={IngredientTypes.FOOD_INGREDIENTS}
-                                            control={<Radio size="small" />}
-                                            label={<Typography variant="body2">Foods</Typography>}
-                                        />
-                                    </Tooltip>
-                                    <Tooltip title="Select other Recipes to add to this Recipe" placement="right" arrow>
-                                        <FormControlLabel
-                                            value={IngredientTypes.RECIPE_INGREDENTS}
-                                            control={<Radio size="small" />}
-                                            label={<Typography variant="body2">Recipes</Typography>}
-                                        />
-                                    </Tooltip>
-                                </RadioGroup>
-                            </FormControl>
-
                             {/* Servings input */}
                             <Tooltip title="Number of servings of the selected Food or Recipe to add" placement="right" arrow>
                                 <TextField
@@ -588,9 +559,23 @@ function RecipeForm() {
 
                         {/* Right: Foods or Recipes to pick from */}
                         <Box sx={{ flex: 1, minWidth: 0 }}>
-                            <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>
-                                {selectedIngredientList === IngredientTypes.FOOD_INGREDIENTS ? 'Available Ingredients (Foods)' : 'Available Ingredients (Other Recipes)'}
-                            </Typography>
+                            <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                                <Typography variant="subtitle2" sx={{ fontWeight: 600, flex: 1 }}>
+                                    {selectedIngredientList === IngredientTypes.FOOD_INGREDIENTS ? 'Available Ingredients (Foods)' : 'Available Ingredients (Other Recipes)'}
+                                </Typography>
+                                <Box sx={{ display: 'flex', alignItems: 'center', ml: 1 }}>
+                                        <Typography variant="caption">Foods</Typography>
+                                        <Switch
+                                            size="small"
+                                            checked={selectedIngredientList === IngredientTypes.RECIPE_INGREDENTS}
+                                            onChange={(e) => setSelectedIngredientList(
+                                                e.target.checked ? IngredientTypes.RECIPE_INGREDENTS : IngredientTypes.FOOD_INGREDIENTS
+                                            )}
+                                            sx={{ mx: 0.5 }}
+                                        />
+                                        <Typography variant="caption">Recipes</Typography>
+                                    </Box>
+                            </Box>
                             {selectedIngredientList === IngredientTypes.FOOD_INGREDIENTS ? (
                                 <FoodPickerTable setSelectedRowId={setSelectedFoodOrRecipeRowId} />
                             ) : (
