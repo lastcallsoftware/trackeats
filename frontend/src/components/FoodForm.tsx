@@ -3,6 +3,7 @@ import { useContext, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { IFood, DataContext } from "./DataProvider";
 import { foodGroups } from "./FoodGroups";
+import TitleCard from "./TitleCard";
 import {
     Grid,
     Paper,
@@ -10,7 +11,8 @@ import {
     TextField,
     MenuItem,
     Button,
-    Divider
+    Divider,
+    Box
 } from '@mui/material';
 
 function FoodForm() {
@@ -75,12 +77,19 @@ function FoodForm() {
     }
 
     return (
-        <Paper elevation={3} sx={{ maxWidth: 700, margin: '32px auto', p: 4 }}>
+        <Box
+            sx={{
+                minHeight: '100vh',
+                background: 'linear-gradient(135deg, #e3f2fd 0%, #fce4ec 100%)',
+                py: { xs: 3, sm: 5 },
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+            }}
+        >
+            <TitleCard title={isEdit ? 'Edit Food' : 'Add Food'} subtitle="Enter food and nutrition details" />
+            <Paper elevation={3} sx={{ maxWidth: 700, width: '100%', p: 4 }}>
             <form onSubmit={handleSubmit} autoComplete="off">
-                <Typography variant="h5" sx={{ mb: 2, fontWeight: 600 }}>
-                    {isEdit ? 'Edit Food' : 'Add Food'}
-                </Typography>
-                <Divider sx={{ mb: 3 }} />
                 <Grid container spacing={2}>
                     <Grid size={{ xs: 12, sm: 6 }}>
                         <TextField
@@ -408,12 +417,14 @@ function FoodForm() {
                             />
                         </Grid>
                     </Grid>
-                    <Grid>
+                    <Grid size={{ xs: 12 }}>
+                        <Divider sx={{ my: 1.5 }} />
+                    </Grid>
+                    <Grid size={{ xs: 12 }} sx={{ display: 'flex', justifyContent: 'center', gap: 2 }}>
                         <Button
                             type="submit"
                             variant="contained"
                             color="primary"
-                            sx={{ mr: 2 }}
                         >
                             Save
                         </Button>
@@ -428,7 +439,8 @@ function FoodForm() {
                     </Typography>
                 )}
             </form>
-        </Paper>
+            </Paper>
+        </Box>
     );
 }
 

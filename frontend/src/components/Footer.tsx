@@ -1,18 +1,27 @@
 import logo from '../assets/lcs-1280x501.png';
 import Box from '@mui/material/Box';
+import Typography from '@mui/material/Typography';
+import { styled } from '@mui/material/styles';
+
+const FooterRoot = styled(Box)(({ theme }) => ({
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: theme.spacing(2),
+    padding: theme.spacing(2, 1),
+}));
+
+const FooterLogo = styled('img')({
+    height: 60,
+    width: 'auto',
+});
 
 function Footer() {
     return (
-        <section className="footerContainer">
-            <Box
-                component="img"
-                className="lcsLogo"
-                src={logo}
-                alt="LCS Logo"
-                sx={{ height: '60px', width: 'auto' }}
-            />
-            <p>Copyright: © 2024 Last Call Software.  All rights reserved.</p>
-        </section>
+        <FooterRoot>
+            <FooterLogo src={logo} alt="LCS Logo" />
+            <Typography variant="body2">Copyright: © 2024 Last Call Software.  All rights reserved.</Typography>
+        </FooterRoot>
     );
 }
 

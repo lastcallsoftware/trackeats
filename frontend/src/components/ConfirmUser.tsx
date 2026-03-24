@@ -59,7 +59,7 @@ function ConfirmUser() {
 			) : (
                 <>
                     <p>{message}</p>
-                    <p className="errorText">{errorMessage}</p>
+                    <p style={{ color: 'red' }}>{errorMessage}</p>
                 </>
 			)}
             <p>Don't see the email?  Click here to re-send the confirmation email to {email}</p>

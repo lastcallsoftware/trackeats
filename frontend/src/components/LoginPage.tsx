@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate, Link as RouterLink } from 'react-router-dom';
 import axios from "axios";
 import Button from '@mui/material/Button';
 import Container from '@mui/material/Container';
@@ -69,6 +69,7 @@ function LoginPage(props: any) {
                     <Button variant="contained" color="primary" type="submit" disabled={loginIsDisabled} sx={{ height: 48 }}>
                         Login
                     </Button>
+                    <Typography variant="body2">Not a TrackEats user yet? <RouterLink to="/register">Register here</RouterLink>.</Typography>
                     {loginMessage && (
                         <Typography className="errorText" color="error">{loginMessage}</Typography>
                     )}

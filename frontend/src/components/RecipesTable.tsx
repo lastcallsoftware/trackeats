@@ -3,166 +3,166 @@ import React, { useContext, useEffect } from 'react';
 import { IRecipe, DataContext } from "./DataProvider";
 import { getCuisineLabel } from './Cuisines';
 import { useNavigate } from 'react-router-dom';
-
-import FilterWidget from './FilterWidget';
-
-
-const sortingFunction = (rowA: Row<IRecipe>, rowB: Row<IRecipe>, columnId: string): number => {
-    const val1 = rowA.getValue(columnId) ? rowA.getValue(columnId) as number / rowA.original.servings : 0
-    const val2 = rowB.getValue(columnId) ? rowB.getValue(columnId) as number / rowB.original.servings : 0
-    return val1 < val2 ? -1 : (val1 > val2 ? 1 : 0);
-}
+import Table from '@mui/material/Table';
+import TableBody from '@mui/material/TableBody';
+import TableCell from '@mui/material/TableCell';
+import TableContainer from '@mui/material/TableContainer';
+import TableHead from '@mui/material/TableHead';
+import TableRow from '@mui/material/TableRow';
+import Paper from '@mui/material/Paper';
+import Box from '@mui/material/Box';
+import { TABLE_HEADER_BG, TABLE_HEADER_COLOR, TABLE_HEADER_BORDER, TABLE_ROW_SELECTED_BG, TABLE_ROW_BORDER } from './tableStyles';
 
 // Define the table's columns
 const columnHelper = createColumnHelper<IRecipe>()
 const columns = [
-    columnHelper.accessor("id", {
-        header: () => <span className="header-text">ID</span>,
-        cell: info => info.getValue(),
-        size: 55
-    }),
-    columnHelper.accessor("cuisine", {
-        header: () => <span className="header-text">Cuisine</span>,
-        cell: info => getCuisineLabel(info.getValue()),
-        size: 150,
-        meta: { filterVariant: "text" }
-    }),
-    columnHelper.accessor("name", {
-        header: () => <span className="header-text">Name</span>,
-        cell: info => info.getValue(),
-        size: 150,
-        meta: { filterVariant: "text" }
-    }),
-    columnHelper.accessor("total_yield", {
-        header: () => <span className="header-text">Yield</span>,
-        cell: info => info.getValue(),
-        size: 150,
-    }),
-    columnHelper.accessor("servings", {
-        header: () => <span className="header-text">Servings</span>,
-        cell: info => info.getValue(),
-        size: 65,
-    }),
-    columnHelper.accessor("nutrition.serving_size_description", {
-        header: () => <span className="header-text">Serving Size</span>,
-        cell: info => info.getValue(),
-        size: 100
+    columnHelper.group({
+        id: "general_info",
+        header: () => <span>General Info</span>,
+        columns: [
+            columnHelper.accessor("id", {
+                header: () => <span>ID</span>,
+                cell: info => info.getValue(),
+                size: 55
+            }),
+            columnHelper.accessor("cuisine", {
+                header: () => <span>Cuisine</span>,
+                cell: info => getCuisineLabel(info.getValue()),
+                size: 150,
+                meta: { filterVariant: "text" }
+            }),
+            columnHelper.accessor("name", {
+                header: () => <span>Name</span>,
+                cell: info => info.getValue(),
+                size: 150,
+                meta: { filterVariant: "text" }
+            }),
+            columnHelper.accessor("total_yield", {
+                header: () => <span>Yield</span>,
+                cell: info => info.getValue(),
+                size: 120,
+            }),
+            columnHelper.accessor("servings", {
+                header: () => <span>Servings</span>,
+                cell: info => info.getValue(),
+                size: 80,
+            }),
+        ]
     }),
     columnHelper.group({
-        id: "nutrition_info",
-        header: () => <span className="header-text">Nutrition Per Serving</span>,
+        id: "nutrition_data",
+        header: () => <span>Nutrition Info</span>,
         columns: [
+            columnHelper.accessor("nutrition.serving_size_description", {
+                header: () => <span>Serving Size Desc</span>,
+                cell: info => info.getValue(),
+                size: 120
+            }),
+            columnHelper.accessor("nutrition.serving_size_oz", {
+                header: () => <span>Serving Size (oz)</span>,
+                cell: info => info.getValue(),
+                size: 80
+            }),
+            columnHelper.accessor("nutrition.serving_size_g", {
+                header: () => <span>Serving Size (g)</span>,
+                cell: info => info.getValue(),
+                size: 80
+            }),
             columnHelper.accessor("nutrition.calories", {
-                header: () => <span className="header-text">Calories</span>,
-                cell: info => (info.getValue()/info.row.original.servings).toFixed(0),
-                sortingFn: sortingFunction,
-                size: 65
+                header: () => <span>Calories</span>,
+                cell: info => info.getValue(),
+                size: 80
             }),
             columnHelper.accessor("nutrition.total_fat_g", {
-                header: () => <span className="header-text">Total Fat (g)<br/>&lt;78 g</span>,
-                cell: info => (info.getValue()/info.row.original.servings).toFixed(1),
-                sortingFn: sortingFunction,
-                size: 65
+                header: () => <span>Total Fat (g)</span>,
+                cell: info => info.getValue(),
+                size: 80
             }),
             columnHelper.accessor("nutrition.saturated_fat_g", {
-                header: () => <span className="header-text">Satu- rated Fat (g)<br/>&lt;20 g</span>,
-                cell: info => (info.getValue()/info.row.original.servings).toFixed(1),
-                sortingFn: sortingFunction,
-                size: 65
+                header: () => <span>Sat. Fat (g)</span>,
+                cell: info => info.getValue(),
+                size: 80
             }),
             columnHelper.accessor("nutrition.trans_fat_g", {
-                header: () => <span className="header-text">Trans Fat (g)</span>,
-                cell: info => (info.getValue()/info.row.original.servings).toFixed(0),
-                sortingFn: sortingFunction,
-                size: 65
+                header: () => <span>Trans Fat (g)</span>,
+                cell: info => info.getValue(),
+                size: 80
             }),
             columnHelper.accessor("nutrition.cholesterol_mg", {
-                header: () => <span className="header-text">Choles- terol (mg)<br/>&lt;300 mg</span>,
-                cell: info => (info.getValue()/info.row.original.servings).toFixed(0),
-                sortingFn: sortingFunction,
-                size: 65
+                header: () => <span>Cholesterol (mg)</span>,
+                cell: info => info.getValue(),
+                size: 80
             }),
             columnHelper.accessor("nutrition.sodium_mg", {
-                header: () => <span className="header-text">Sodium (mg)<br/>&lt;2300 mg</span>,
-                cell: info => (info.getValue()/info.row.original.servings).toFixed(0),
-                sortingFn: sortingFunction,
-                size: 65
+                header: () => <span>Sodium (mg)</span>,
+                cell: info => info.getValue(),
+                size: 80
             }),
             columnHelper.accessor("nutrition.total_carbs_g", {
-                header: () => <span className="header-text">Total Carbs (g)<br/>&gt;275 g</span>,
-                cell: info => (info.getValue()/info.row.original.servings).toFixed(0),
-                sortingFn: sortingFunction,
-                size: 65
+                header: () => <span>Total Carbs (g)</span>,
+                cell: info => info.getValue(),
+                size: 80
             }),
             columnHelper.accessor("nutrition.fiber_g", {
-                header: () => <span className="header-text">Fiber (g)<br/>&gt;28 g</span>,
-                cell: info => (info.getValue()/info.row.original.servings).toFixed(0),
-                sortingFn: sortingFunction,
-                size: 65
+                header: () => <span>Fiber (g)</span>,
+                cell: info => info.getValue(),
+                size: 80
             }),
             columnHelper.accessor("nutrition.total_sugar_g", {
-                header: () => <span className="header-text">Total Sugar (g)</span>,
-                cell: info => (info.getValue()/info.row.original.servings).toFixed(0),
-                sortingFn: sortingFunction,
-                size: 65
+                header: () => <span>Total Sugar (g)</span>,
+                cell: info => info.getValue(),
+                size: 80
             }),
             columnHelper.accessor("nutrition.added_sugar_g", {
-                header: () => <span className="header-text">Added Sugar (g)<br/>&lt;50 g</span>,
-                cell: info => (info.getValue()/info.row.original.servings).toFixed(0),
-                sortingFn: sortingFunction,
-                size: 65
+                header: () => <span>Added Sugar (g)</span>,
+                cell: info => info.getValue(),
+                size: 80
             }),
             columnHelper.accessor("nutrition.protein_g", {
-                header: () => <span className="header-text">Protein (g)<br/>&gt;50 g</span>,
-                cell: info => (info.getValue()/info.row.original.servings).toFixed(0),
-                sortingFn: sortingFunction,
-                size: 65
+                header: () => <span>Protein (g)</span>,
+                cell: info => info.getValue(),
+                size: 80
             }),
             columnHelper.accessor("nutrition.vitamin_d_mcg", {
-                header: () => <span className="header-text">Vitamin D (mcg)<br/>&gt;20 mcg</span>,
-                cell: info => (info.getValue()/info.row.original.servings).toFixed(0),
-                sortingFn: sortingFunction,
-                size: 65
+                header: () => <span>Vitamin D (mcg)</span>,
+                cell: info => info.getValue(),
+                size: 80
             }),
             columnHelper.accessor("nutrition.calcium_mg", {
-                header: () => <span className="header-text">Calcium (mg)<br/>&gt;1300 mg</span>,
-                cell: info => (info.getValue()/info.row.original.servings).toFixed(0),
-                sortingFn: sortingFunction,
-                size: 65
+                header: () => <span>Calcium (mg)</span>,
+                cell: info => info.getValue(),
+                size: 80
             }),
             columnHelper.accessor("nutrition.iron_mg", {
-                header: () => <span className="header-text">Iron (mg)<br/>&gt;18 mg</span>,
-                cell: info => (info.getValue()/info.row.original.servings).toFixed(1),
-                sortingFn: sortingFunction,
-                size: 65
+                header: () => <span>Iron (mg)</span>,
+                cell: info => info.getValue(),
+                size: 80
             }),
             columnHelper.accessor("nutrition.potassium_mg", {
-                header: () => <span className="header-text">Potas. (mg)<br/>&gt;4700 mg</span>,
-                cell: info => (info.getValue()/info.row.original.servings).toFixed(0),
-                sortingFn: sortingFunction,
-                size: 65
+                header: () => <span>Potassium (mg)</span>,
+                cell: info => info.getValue(),
+                size: 80
             }),
         ]
     }),
     columnHelper.group({
         id: "price_info",
-        header: () => <span className="header-text">Price Info</span>,
+        header: () => <span>Price Info</span>,
         columns: [
             columnHelper.accessor("price", {
-                header: () => <span className="header-text">Price / serving ($)</span>,
-                cell: info => (info.getValue()/info.row.original.servings).toFixed(2),
-                sortingFn: sortingFunction,
-                size: 65
+                header: () => <span>Price</span>,
+                cell: info => info.getValue(),
+                size: 80
             }),
             columnHelper.accessor("price_per_calorie", {
-                header: () => <span className="header-text">Price / 100 calories ($)</span>,
-                cell: info => (info.row.original.price*100/info.row.original.nutrition.calories).toFixed(2),
+                header: () => <span>Price / 100 cal</span>,
+                cell: info => (info.row.original.nutrition.calories == 0 ? Infinity : info.row.original.price * 100 / info.row.original.servings / info.row.original.nutrition.calories).toFixed(2),
                 sortingFn: (rowA, rowB) => {
-                    const val1 = rowA.original.price/rowA.original.nutrition.calories
-                    const val2 = rowB.original.price/rowB.original.nutrition.calories
+                    const val1 = rowA.original.price / rowA.original.servings / rowA.original.nutrition.calories;
+                    const val2 = rowB.original.price / rowB.original.servings / rowB.original.nutrition.calories;
                     return val1 < val2 ? -1 : (val1 > val2 ? 1 : 0);
                 },
-                size: 65
+                size: 80
             }),
         ]
     }),
@@ -240,105 +240,94 @@ const RecipesTable: React.FC<IRecipesTableProps> = ({setSelectedRowId, paginatio
         }
     }, []);
 
-    const updateFilter = (id: string, value: string) => {
-        setColumnFilters((prev) => {
-            const updatedFilters = prev.filter((f) => f.id !== id);
-            if (value)
-                updatedFilters.push({ id, value });
-            sessionStorage.setItem(RECIPES_FILTERS_STORAGE, JSON.stringify(updatedFilters));
-            return updatedFilters;
-        });
-      };
-
     return (
-        <div style={{ overflowX: 'auto' }}>
-            <table className="foodTable table-bordered">
-                {/* The thead, tbody, and tfooter elements are the functional components of the Tanstack Table. 
-                    The basic skeleton is boilerplate code, but with loads of additional stuff thrown in to add
-                    functionality, like the onClick handler you see below adding the sorting functionality. */}
-                <thead>
+        <TableContainer component={Paper} sx={{ overflowX: 'auto', borderRadius: 2, boxShadow: 2 }}>
+            <Table size="small" sx={{ minWidth: 650, tableLayout: 'fixed', borderCollapse: 'separate', borderSpacing: 0 }}>
+                <colgroup>
+                    {table.getAllLeafColumns().map((col) => (
+                        <col key={col.id} style={{ width: col.getSize() }} />
+                    ))}
+                </colgroup>
+                <TableHead>
                     {table.getHeaderGroups().map((headerGroup) => (
-                        <tr key={headerGroup.id}>
-                            {headerGroup.headers.map((header) => (
-                                <th key={header.id}
-                                    // Do a little custom styling here
-                                    // For the width attribute, the getSize() call retrieves the size attribute
-                                    // in the column definitions above.
-                                    // Setting the userSelect attribute to none prevents the user from being able
-                                    // to select the header text.  We do this because clicking on the header is
-                                    // how we make sorting happen, and you have a tendency to double-click, which
-                                    // by default selects the text in the header cell -- and looks ugly!
-                                    style={{width: header.getSize(), userSelect: "none"}} 
-                                    colSpan={header.colSpan}
-                                    onClick={header.column.getToggleSortingHandler()}>
-                                    {header.isPlaceholder ? null : (
-                                        <section className='header_cell'>
-                                            <p {...{ className: header.column.getCanSort() ? 'cursor-pointer select-none' : '' }}>
-                                                {/* Add the appropriate header text */}
-                                                { flexRender(
-                                                    header.column.columnDef.header,
-                                                    header.getContext()
-                                                )}
-                                                {/* This is the clever magic that adds the appropriate directional arrows 
-                                                    to the header when a column is sorted. */}
-                                                {{asc: ' 🔼', desc: ' 🔽'}[header.column.getIsSorted() as string] ?? null}
-                                            </p>
-
-                                            {/* Add the header's appropriate Filter input widget */}
-                                            {/* The stopPropagation() call in the onClick handler prevents clicks on the Filter 
-                                                widget from passing through to its parent, the header div.  We need this because 
-                                                clicking on the header enacts the table's sorting functionality. */}
-                                            {header.column.getCanFilter() && header.column.columnDef.meta?.filterVariant === "text" ? (
-                                                <section className='filter_box' onClick={(e) => {e.stopPropagation()}}>
-                                                    <FilterWidget column={header.column} updateFilterFunction={updateFilter} />
-                                                </section>
-                                            ) : null}
-                                        </section>
-                                        )}
-                                </th>
-                            ))}
-                        </tr>
+                        <TableRow key={headerGroup.id}>
+                            {headerGroup.headers.map((header) =>
+                                header.isPlaceholder ? (
+                                    <TableCell
+                                        key={header.id}
+                                        colSpan={header.colSpan}
+                                        sx={{
+                                            background: TABLE_HEADER_BG,
+                                            borderRight: `1px solid ${TABLE_HEADER_BORDER}`,
+                                            borderBottom: `1px solid ${TABLE_HEADER_BORDER}`,
+                                            p: 1,
+                                        }}
+                                    />
+                                ) : (
+                                    <TableCell
+                                        key={header.id}
+                                        sx={{
+                                            width: header.getSize(),
+                                            userSelect: 'none',
+                                            fontWeight: 'bold',
+                                            fontSize: 14,
+                                            color: TABLE_HEADER_COLOR,
+                                            background: TABLE_HEADER_BG,
+                                            borderRight: `1px solid ${TABLE_HEADER_BORDER}`,
+                                            borderBottom: `1px solid ${TABLE_HEADER_BORDER}`,
+                                            p: 1,
+                                            cursor: 'pointer',
+                                            textAlign: 'center',
+                                            lineHeight: 1.2,
+                                        }}
+                                        colSpan={header.colSpan}
+                                        onClick={header.column.getToggleSortingHandler()}
+                                    >
+                                        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
+                                            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%' }}>
+                                                {flexRender(header.column.columnDef.header, header.getContext())}
+                                                <Box component="span" sx={{ ml: 1 }}>
+                                                    {({asc: '🔼', desc: '🔽'} as Record<string, string>)[header.column.getIsSorted() as string] ?? null}
+                                                </Box>
+                                            </Box>
+                                        </Box>
+                                    </TableCell>
+                                )
+                            )}
+                        </TableRow>
                     ))}
-                </thead>
-
-                <tbody>
+                </TableHead>
+                <TableBody>
                     {table.getRowModel().rows.map((row) => (
-                        <tr key={row.id} 
-                            className={row.getIsSelected() ? "selected" : undefined} 
+                        <TableRow
+                            key={row.id}
+                            hover
                             onClick={() => handleClick(row)}
-                            onDoubleClick={() => handleDoubleClick(row)}>
+                            onDoubleClick={() => handleDoubleClick(row)}
+                            sx={row.getIsSelected() ? { backgroundColor: `${TABLE_ROW_SELECTED_BG} !important` } : {}}
+                        >
                             {row.getVisibleCells().map((cell) => (
-                                <td key={cell.id}>
-                                    {flexRender(
-                                        cell.column.columnDef.cell, 
-                                        cell.getContext()
-                                    )}
-                                </td>
+                                <TableCell
+                                    key={cell.id}
+                                    sx={{
+                                        borderRight: `1px solid ${TABLE_ROW_BORDER}`,
+                                        borderBottom: `1px solid ${TABLE_ROW_BORDER}`,
+                                        fontSize: 14,
+                                        padding: '2px',
+                                        height: '2rem',
+                                        textAlign: 'center',
+                                    }}
+                                >
+                                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                                </TableCell>
                             ))}
-                        </tr>
+                        </TableRow>
                     ))}
-                </tbody>
-
-                <tfoot>
-                    {table.getFooterGroups().map(footerGroup => (
-                        <tr key={footerGroup.id}>
-                            {footerGroup.headers.map(header => (
-                                <th key={header.id}>
-                                    {header.isPlaceholder
-                                        ? null
-                                        : flexRender(
-                                            header.column.columnDef.footer,
-                                            header.getContext()
-                                        )
-                                    }
-                                </th>
-                            ))}
-                        </tr>
-                    ))}
-                </tfoot>
-            </table>
-        </div>
-    )
+                </TableBody>
+                {/* Optionally render footers if needed */}
+            </Table>
+        </TableContainer>
+    );
 }
 
 export default RecipesTable;

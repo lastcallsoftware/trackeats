@@ -1,6 +1,5 @@
 import { useState } from 'react';
-import { Routes, Route, Link } from 'react-router-dom';
-import Header from './Header';
+import { Routes, Route, Link as RouterLink, useNavigate } from 'react-router-dom';
 import HomePage from './HomePage';
 import AboutPage from './AboutPage';
 import FoodsPage from './FoodsPage';
@@ -13,16 +12,14 @@ import axios from "axios";
 import ConfirmUser from './ConfirmUser';
 import FoodForm from './FoodForm';
 import RecipeForm from './RecipeForm';
-
-// An unused function actually causes the build to FAIL!  Bizarre.
-// So -- for now! -- comment this out.
-//function getToken() {
-//    const tokenString = sessionStorage.getItem("access_token");
-//    if (tokenString == null || tokenString == undefined) {
-//        return null;
-//    }
-//    return JSON.parse(tokenString);
-//}
+import Header from './Header';
+import AppBar from '@mui/material/AppBar';
+import Toolbar from '@mui/material/Toolbar';
+import Button from '@mui/material/Button';
+import Box from '@mui/material/Box';
+import Menu from '@mui/material/Menu';
+import MenuItem from '@mui/material/MenuItem';
+import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 
 console.log("process.env.NODE_ENV:", process.env.NODE_ENV)
 console.log("import.meta.env.MODE:", import.meta.env.MODE)
@@ -41,8 +38,15 @@ if (!portfolioUrl || !portfolioUrl.trim()) {
 }
 console.log("import.meta.env.VITE_PORTFOLIO_URL:", portfolioUrl.trim())
 
+const buttonSx = {
+    fontSize: '1.1rem',
+    '&:hover': { backgroundColor: 'transparent', textDecoration: 'underline' }
+}
+
 function Nav() {
     const [isAuthenticated, setAuthenticated] = useState(sessionStorage.getItem("access_token") != null);
+    const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+    const navigate = useNavigate();
 
     const storeToken = (token: string): undefined => {
         sessionStorage.setItem("access_token", JSON.stringify(token))
@@ -52,45 +56,103 @@ function Nav() {
     const removeToken = () => {
         sessionStorage.removeItem("access_token")
         setAuthenticated(false)
+        navigate("/")
     }
 
-    const handleAboutMeClick = () => {
-        window.location.href = portfolioUrl;
-        return null;
-    }
+    const handleAboutOpen = (e: React.MouseEvent<HTMLElement>) => setAnchorEl(e.currentTarget);
+    const handleAboutClose = () => setAnchorEl(null);
+
+    const handleAboutItem = (path: string) => {
+        handleAboutClose();
+        if (path.startsWith('http') || path.endsWith('.html')) {
+            window.open(path, '_blank');
+        } else {
+            navigate(path);
+        }
+    };
 
     return (
         <>
             <Header />
-            <nav id="navbar" className="navbar">
-                <Link to="/" className="nav-item">Home</Link>
-                {/*<Link to="/" className="nav-item">Home</Link>*/}
-                { isAuthenticated ? <Link to="/foods" className="nav-item">Foods</Link> : ""}
-                { isAuthenticated ? <Link to="/recipes" className="nav-item">Recipes</Link> : ""}
-                {/*}
-                { isAuthenticated ? <Link to="/dailylog" className="nav-item">Daily Log</Link> : ""}
-                 */}
-                <Link to="/about" className="nav-item">About TrackEats</Link>
-                <Link to="/aboutme2" className="nav-item" onClick={handleAboutMeClick}>About Me</Link>
-                { isAuthenticated ? <Link to="/login" className="nav-item" onClick={removeToken}>Log Out</Link>
-                               : <Link to="/login" className="nav-item">Log In</Link>}
-                { !isAuthenticated ? <Link to="/register" className="nav-item">Register</Link>
-                                : ""}
-            </nav>
+            <AppBar
+                position="static"
+                color="transparent"
+                elevation={0}
+                sx={{ borderBottom: '1px solid', borderColor: 'divider', mb: 2 }}
+            >
+                <Toolbar sx={{ py: 1, maxWidth: 900, width: '100%', mx: 'auto' }}>
+                    {/* Logo icon + app name — links home */}
+                    <Button
+                        component={RouterLink}
+                        to="/"
+                        color="primary"
+                        sx={{ ...buttonSx, fontWeight: 700, mr: 2, gap: 1 }}
+                        disableRipple
+                    >
+                        <Box
+                            component="img"
+                            src="/src/assets/trackeats-icon-32x32.png"
+                            alt="TrackEats icon"
+                            sx={{ width: 28, height: 28, borderRadius: 1 }}
+                        />
+                        <span style={{ fontFamily: 'Outfit, sans-serif', fontSize: '1.4rem', fontWeight: 700 }}>TrackEats</span>
+                    </Button>
 
-            <Routes>
-                <Route path="/" element={<HomePage />} />
-                <Route path="/home" element={<HomePage />} />
-                <Route path="/foods" element={<FoodsPage />} />
-                <Route path="/recipes" element={<RecipesPage />} />
-                <Route path="/dailylog" element={<DailyLogPage />} />
-                <Route path="/about" element={<AboutPage />} />
-                <Route path="/login" element={<LoginPage storeTokenFunction={storeToken}/>} />
-                <Route path="/register" element={<RegisterPage />} />
-                <Route path="/confirm" element={<ConfirmUser/>} />
-                <Route path="/foodForm" element={<FoodForm />} />
-                <Route path="/recipeForm" element={<RecipeForm />} />
-            </Routes>
+                    {/* Main nav links */}
+                    {isAuthenticated && (
+                        <Button component={RouterLink} to="/foods" color="primary" sx={buttonSx}>
+                            Foods
+                        </Button>
+                    )}
+                    {isAuthenticated && (
+                        <Button component={RouterLink} to="/recipes" color="primary" sx={buttonSx}>
+                            Recipes
+                        </Button>
+                    )}
+
+                    {/* About dropdown */}
+                    <Button
+                        color="primary"
+                        onClick={handleAboutOpen}
+                        endIcon={<KeyboardArrowDownIcon />}
+                        sx={buttonSx}
+                    >
+                        About
+                    </Button>
+                    <Menu
+                        anchorEl={anchorEl}
+                        open={Boolean(anchorEl)}
+                        onClose={handleAboutClose}
+                    >
+                        <MenuItem onClick={() => handleAboutItem('/about')}>About TrackEats</MenuItem>
+                        <MenuItem onClick={() => handleAboutItem(portfolioUrl)}>About Me</MenuItem>
+                    </Menu>
+
+                    {/* Spacer pushes Log In / Log Out to the right */}
+                    <Box sx={{ flexGrow: 1 }} />
+
+                    {isAuthenticated
+                        ? <Button color="primary" sx={buttonSx} onClick={removeToken}>Log Out</Button>
+                        : <Button component={RouterLink} to="/login" color="primary" sx={buttonSx}>Log In</Button>
+                    }
+                </Toolbar>
+            </AppBar>
+
+            <Box sx={{ px: { xs: 1, sm: 2 } }}>
+                <Routes>
+                    <Route path="/" element={<HomePage />} />
+                    <Route path="/home" element={<HomePage />} />
+                    <Route path="/foods" element={<FoodsPage />} />
+                    <Route path="/recipes" element={<RecipesPage />} />
+                    <Route path="/dailylog" element={<DailyLogPage />} />
+                    <Route path="/about" element={<AboutPage />} />
+                    <Route path="/login" element={<LoginPage storeTokenFunction={storeToken}/>} />
+                    <Route path="/register" element={<RegisterPage />} />
+                    <Route path="/confirm" element={<ConfirmUser/>} />
+                    <Route path="/foodForm" element={<FoodForm />} />
+                    <Route path="/recipeForm" element={<RecipeForm />} />
+                </Routes>
+            </Box>
             <Footer />
         </>
     );

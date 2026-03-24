@@ -24,6 +24,7 @@ import {
     Stack,
     Tooltip,
     Box,
+    Paper,
 } from '@mui/material';
 
 function RecipeForm() {
@@ -60,7 +61,7 @@ function RecipeForm() {
 
     const [errorMessage, setErrorMessage] = useState(context.errorMessage)
 
-    const [selectedIngredientRowId, setSelectedIngredientRowId] = useState<number[]|null>(null)
+    const [selectedIngredientRowId, setSelectedIngredientRowId] = useState<number[] | null>(null)
     const [ingredientServings, setIngredientServings] = useState<number>(1)
 
     const IngredientTypes = {FOOD_INGREDIENTS: "foodIngredients", RECIPE_INGREDENTS: "recipeIngedients"}
@@ -280,13 +281,56 @@ function RecipeForm() {
     const noServings = ingredientServings === 0;
 
     return (
-        <section className="foodPageModern">
-            <div className="foodPageHeader">
-                <span className="foodPageTitle">{isEdit ? "Edit Recipe" : "New Recipe"}</span>
-                <span className="foodPageSubtitle">{isEdit ? "Update your recipe details and ingredients" : "Create a new recipe and add ingredients"}</span>
-            </div>
-            <div className="foodPageCard" style={{ border: 'none' }}>
-                <form className="input-form recipe-input-form" onSubmit={handleSubmit}>
+        <Box
+            sx={{
+                minHeight: '100vh',
+                background: 'linear-gradient(135deg, #e3f2fd 0%, #fce4ec 100%)',
+                py: { xs: 2, md: 4 },
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+            }}
+        >
+            <Paper
+                elevation={3}
+                sx={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: 1,
+                    mb: 3,
+                    background: 'rgba(255,255,255,0.85)',
+                    borderRadius: 3,
+                    boxShadow: 3,
+                    px: { xs: 2, md: 6 },
+                    py: { xs: 2, md: 3 },
+                    width: { xs: '98%', md: '90%' },
+                    maxWidth: 900,
+                    textAlign: 'left',
+                }}
+            >
+                <Typography variant="h4" sx={{ fontWeight: 700, color: 'primary.main', letterSpacing: 1, mb: 0.5 }}>
+                    {isEdit ? "Edit Recipe" : "New Recipe"}
+                </Typography>
+                <Typography variant="subtitle1" color="text.secondary">
+                    {isEdit ? "Update your recipe details and ingredients" : "Create a new recipe and add ingredients"}
+                </Typography>
+            </Paper>
+            <Paper
+                elevation={4}
+                sx={{
+                    background: '#fff',
+                    borderRadius: 3,
+                    boxShadow: 6,
+                    px: { xs: 2, md: 6 },
+                    py: { xs: 2, md: 3 },
+                    width: { xs: '98%', md: '95%' },
+                    maxWidth: 1600,
+                    display: 'flex',
+                    flexDirection: 'column',
+                }}
+            >
+                <Box component="form" onSubmit={handleSubmit} sx={{ width: '100%' }}>
 
                     {/* ── Basic Info ── */}
                     <Grid container spacing={2} sx={{ mb: 3 }}>
@@ -422,7 +466,7 @@ function RecipeForm() {
                         <Box sx={{ flex: 1, minWidth: 0 }}>
                             <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>Recipe Ingredients</Typography>
                             <Box sx={{ maxHeight: 300, overflowY: 'auto', border: '1px solid', borderColor: 'divider', borderRadius: 1 }}>
-                                <IngredientsTable ingredients={ingredients} setSelectedRowId={setSelectedIngredientRowId} />
+                                <IngredientsTable data={ingredients} setSelectedRowId={setSelectedIngredientRowId} />
                             </Box>
                         </Box>
 
@@ -589,7 +633,7 @@ function RecipeForm() {
 
                     {/* ── Save / Cancel ── */}
                     <Divider sx={{ my: 3 }} />
-                    <Stack direction="row" spacing={2}>
+                    <Stack direction="row" spacing={2} justifyContent="center">
                         <Button type="submit" variant="contained" color="primary" disabled={saveIsDisabled}>
                             Save
                         </Button>
@@ -597,15 +641,14 @@ function RecipeForm() {
                             Cancel
                         </Button>
                     </Stack>
-                </form>
-
+                </Box>
                 {errorMessage && (
                     <Typography color="error" sx={{ mt: 2 }}>
                         {errorMessage}
                     </Typography>
                 )}
-            </div>
-        </section>
+            </Paper>
+        </Box>
     );
 }
 

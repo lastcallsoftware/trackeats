@@ -1,162 +1,136 @@
-import { createColumnHelper, flexRender, getCoreRowModel, getSortedRowModel, Row, TableOptions, useReactTable } from '@tanstack/react-table';
+import React, { useState } from "react";
+import { createColumnHelper, flexRender, getCoreRowModel, Row, useReactTable } from '@tanstack/react-table';
 import { IIngredient } from "./DataProvider";
+import Table from '@mui/material/Table';
+import TableBody from '@mui/material/TableBody';
+import TableCell from '@mui/material/TableCell';
+import TableContainer from '@mui/material/TableContainer';
+import TableHead from '@mui/material/TableHead';
+import TableRow from '@mui/material/TableRow';
+import Paper from '@mui/material/Paper';
+import Box from '@mui/material/Box';
+import { TABLE_HEADER_BG, TABLE_HEADER_COLOR, TABLE_HEADER_BORDER, TABLE_ROW_SELECTED_BG, TABLE_ROW_BORDER } from './tableStyles';
 
-// Define the table's columns
-const columnHelper = createColumnHelper<IIngredient>()
+
+const columnHelper = createColumnHelper<IIngredient>();
 const columns = [
-    columnHelper.accessor("id", {
-        header: "ID",
-        cell: info => info.getValue(),
-        size: 10
-    }),
-    columnHelper.accessor("food_ingredient_id", {
-        header: "Food Ingredient ID",
-        cell: info => info.getValue(),
-        size: 10
-    }),
-    columnHelper.accessor("recipe_ingredient_id", {
-        header: "Recipe Ingredient ID",
-        cell: info => info.getValue(),
-        size: 10
-    }),
     columnHelper.accessor("ordinal", {
         header: "Ordinal",
-        cell: info => info.getValue(),
-        size: 19
-    }),
-    columnHelper.accessor("servings", {
-        header: "Servings",
-        cell: info => info.getValue(),
-        //size: 150,
+        cell: (info) => info.getValue(),
+        size: 60,
     }),
     columnHelper.accessor("summary", {
-        header: "Recipe Ingredients",
-        cell: info => info.getValue(),
-        //size: 150,
+        header: "Ingredient",
+        cell: (info) => info.getValue() ?? "",
+        size: 600,
     }),
-]
+];
 
-interface IRecipesTableProps {
-    setSelectedRowId: React.Dispatch<React.SetStateAction<number[] | null>>,
-    ingredients: IIngredient[]
+interface IngredientsTableProps {
+    data: IIngredient[];
+    setSelectedRowId?: React.Dispatch<React.SetStateAction<number[] | null>>;
 }
 
-// Now declare the Foods table itself
-const IngredientsTable: React.FC<IRecipesTableProps> = ({setSelectedRowId, ingredients}) => {
-    // Define the table's properties.
-    const tableOptions: TableOptions<IIngredient> = {
-        data: ingredients,
-        columns: columns,
-        getCoreRowModel: getCoreRowModel(),
-        enableMultiRowSelection: false,
-        getSortedRowModel: getSortedRowModel(),
-        initialState: {
-            columnVisibility: {
-                id: false,
-                servings: false,
-                food_ingredient_id: false,
-                recipe_ingredient_id: false
-            },
-            sorting: [
-                {
-                    id: "ordinal",
-                    desc: false
-                }
-            ]
-        }
-    }
+const IngredientsTable: React.FC<IngredientsTableProps> = ({ data, setSelectedRowId }) => {
+    const [selectedRowIdLocal, setSelectedRowIdLocal] = useState<number[] | null>(null);
+    const selectedRowId = setSelectedRowId ? undefined : selectedRowIdLocal;
+    const setRowId = setSelectedRowId || setSelectedRowIdLocal;
+
     // eslint-disable-next-line react-hooks/incompatible-library
-    const table = useReactTable(tableOptions)
+    const table = useReactTable({
+        data,
+        columns,
+        getCoreRowModel: getCoreRowModel(),
+        state: {
+            rowSelection: (setSelectedRowId ? undefined : (selectedRowId ? { [selectedRowId.join("-")]: true } : {})),
+        },
+        enableRowSelection: true,
+        getRowId: (row) => `${row.food_ingredient_id}-${row.recipe_ingredient_id}`,
+        onRowSelectionChange: () => {},
+    });
 
     const handleClick = (row: Row<IIngredient>) => {
-        // Toggle the row's state (selected/unselected).
-        row.toggleSelected()
-        // Inform our parent about which row was selected.
-        // toggleSelected() doesn't take effect until the page is re-rendered, which happens AFTER
-        // this function executes, so getIsSelected() actually returns the opposite of what you'd expect.
-        // So we invert the logic too.
-        if (row.getIsSelected())
-            setSelectedRowId(null)
-        else {
-            const tuple: number[] = [row.getValue("food_ingredient_id"), row.getValue("recipe_ingredient_id")]
-            setSelectedRowId(tuple)
+        const tuple: number[] = [
+            row.original.food_ingredient_id ?? 0,
+            row.original.recipe_ingredient_id ?? 0,
+        ];
+        if (!setRowId) return;
+        if (selectedRowId && selectedRowId[0] === tuple[0] && selectedRowId[1] === tuple[1]) {
+            setRowId(null);
+        } else {
+            setRowId(tuple);
         }
-    }
+    };
 
     return (
-        <>
-            <table className="ingredientTable">
-                {/* The thead, tbody, and tfooter elements are the functional components of the Tanstack Table. 
-                    The basic skeleton is boilerplate code, but with loads of additional stuff thrown in to add
-                    functionality, like the onClick handler you see below adding the sorting functionality. */}
-                <thead>
+        <TableContainer component={Paper} sx={{ overflowX: 'auto', borderRadius: 2, boxShadow: 2 }}>
+            <Table size="small" sx={{ tableLayout: 'fixed', borderCollapse: 'separate', borderSpacing: 0 }}>
+                <colgroup>
+                    {table.getAllLeafColumns().map((col) => (
+                        <col key={col.id} style={{ width: col.getSize() }} />
+                    ))}
+                </colgroup>
+                <TableHead>
                     {table.getHeaderGroups().map((headerGroup) => (
-                        <tr key={headerGroup.id}>
+                        <TableRow key={headerGroup.id}>
                             {headerGroup.headers.map((header) => (
-                                <th key={header.id} 
-                                    // Do a little custom styling here
-                                    // For the width attribute, the getSize() call retrieves the size attribute
-                                    // in the column definitions above.
-                                    // Setting the userSelect attribute to none prevents the user from being able
-                                    // to select the header text.  We do this because clicking on the header is
-                                    // how we make sorting happen, and you have a tendency to double-click, which
-                                    // by default selects the text in the header cell -- and looks ugly!
-                                    style={{width: header.getSize(), userSelect: "none"}} 
-                                    colSpan={header.colSpan}>
+                                <TableCell
+                                    key={header.id}
+                                    colSpan={header.colSpan}
+                                    sx={{
+                                        userSelect: "none",
+                                        fontWeight: "bold",
+                                        fontSize: 14,
+                                        color: TABLE_HEADER_COLOR,
+                                        background: TABLE_HEADER_BG,
+                                        borderBottom: `1px solid ${TABLE_HEADER_BORDER}`,
+                                        borderRight: `1px solid ${TABLE_HEADER_BORDER}`,
+                                        p: 1,
+                                    }}
+                                >
                                     {header.isPlaceholder ? null : (
-                                        <section className='header_cell'>
-                                            <p {...{ className: header.column.getCanSort() ? 'cursor-pointer select-none' : '' }}>
-                                                {/* Add the appropriate header text */}
-                                                { flexRender(
-                                                    header.column.columnDef.header,
-                                                    header.getContext()
-                                                )}
-                                            </p>
-                                        </section>
-                                        )}
-                                </th>
-                            ))}
-                        </tr>
-                    ))}
-                </thead>
-
-                <tbody>
-                    {table.getRowModel().rows.map((row) => (
-                        <tr key={row.id} 
-                            className={row.getIsSelected() ? "selected" : undefined} 
-                            onClick={() => handleClick(row)}>
-                            {row.getVisibleCells().map((cell) => (
-                                <td key={cell.id}>
-                                    {flexRender(
-                                        cell.column.columnDef.cell, 
-                                        cell.getContext()
+                                        <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
+                                            {flexRender(header.column.columnDef.header, header.getContext())}
+                                        </Box>
                                     )}
-                                </td>
+                                </TableCell>
                             ))}
-                        </tr>
+                        </TableRow>
                     ))}
-                </tbody>
-
-                <tfoot>
-                    {table.getFooterGroups().map(footerGroup => (
-                        <tr key={footerGroup.id}>
-                            {footerGroup.headers.map(header => (
-                                <th key={header.id}>
-                                    {header.isPlaceholder
-                                        ? null
-                                        : flexRender(
-                                            header.column.columnDef.footer,
-                                            header.getContext()
-                                        )
-                                    }
-                                </th>
-                            ))}
-                        </tr>
-                    ))}
-                </tfoot>
-            </table>
-        </>
-    )
-}
+                </TableHead>
+                <TableBody>
+                    {table.getRowModel().rows.map((row) => {
+                        const food_id = row.original.food_ingredient_id ?? 0;
+                        const recipe_id = row.original.recipe_ingredient_id ?? 0;
+                        const isSelected = !!(selectedRowId && selectedRowId[0] === food_id && selectedRowId[1] === recipe_id);
+                        return (
+                            <TableRow
+                                key={row.id}
+                                hover
+                                onClick={() => handleClick(row)}
+                                sx={isSelected ? { backgroundColor: `${TABLE_ROW_SELECTED_BG} !important` } : {}}
+                            >
+                                {row.getVisibleCells().map((cell) => (
+                                    <TableCell
+                                        key={cell.id}
+                                        sx={{
+                                            borderRight: `1px solid ${TABLE_ROW_BORDER}`,
+                                            borderBottom: `1px solid ${TABLE_ROW_BORDER}`,
+                                            fontSize: 14,
+                                            padding: '2px',
+                                            height: '2rem',
+                                        }}
+                                    >
+                                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                                    </TableCell>
+                                ))}
+                            </TableRow>
+                        );
+                    })}
+                </TableBody>
+            </Table>
+        </TableContainer>
+    );
+};
 
 export default IngredientsTable;

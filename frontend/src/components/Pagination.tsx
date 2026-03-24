@@ -1,5 +1,8 @@
 
 import { MdKeyboardDoubleArrowLeft, MdKeyboardArrowLeft, MdKeyboardArrowRight, MdKeyboardDoubleArrowRight } from "react-icons/md";
+import Stack from '@mui/material/Stack';
+import IconButton from '@mui/material/IconButton';
+import Typography from '@mui/material/Typography';
 
 interface PaginationProps {
     pagination: { pageIndex: number, pageSize: number },
@@ -20,13 +23,23 @@ const Pagination: React.FC<PaginationProps> = ({ pagination, setPagination, tota
     const lastPage = () => setPagination(p => ({ ...p, pageIndex: pageCount - 1 }));
 
     return (
-        <section className="paginationButtons">
-            <button disabled={!canPreviousPage} onClick={e => { e.preventDefault(); firstPage(); }}><MdKeyboardDoubleArrowLeft /></button>
-            <button disabled={!canPreviousPage} onClick={e => { e.preventDefault(); previousPage(); }}><MdKeyboardArrowLeft /></button>
-            {pageIndex + 1} of {pageCount}
-            <button disabled={!canNextPage} onClick={e => { e.preventDefault(); nextPage(); }}><MdKeyboardArrowRight /></button>
-            <button disabled={!canNextPage} onClick={e => { e.preventDefault(); lastPage(); }}><MdKeyboardDoubleArrowRight /></button>
-        </section>
+        <Stack direction="row" spacing={0.5} alignItems="center" justifyContent="center" sx={{ mt: 1.5 }}>
+            <IconButton size="small" disabled={!canPreviousPage} onClick={e => { e.preventDefault(); firstPage(); }}>
+                <MdKeyboardDoubleArrowLeft />
+            </IconButton>
+            <IconButton size="small" disabled={!canPreviousPage} onClick={e => { e.preventDefault(); previousPage(); }}>
+                <MdKeyboardArrowLeft />
+            </IconButton>
+            <Typography variant="body2" sx={{ minWidth: 72, textAlign: 'center' }}>
+                {pageIndex + 1} of {pageCount || 1}
+            </Typography>
+            <IconButton size="small" disabled={!canNextPage} onClick={e => { e.preventDefault(); nextPage(); }}>
+                <MdKeyboardArrowRight />
+            </IconButton>
+            <IconButton size="small" disabled={!canNextPage} onClick={e => { e.preventDefault(); lastPage(); }}>
+                <MdKeyboardDoubleArrowRight />
+            </IconButton>
+        </Stack>
     );
 };
 

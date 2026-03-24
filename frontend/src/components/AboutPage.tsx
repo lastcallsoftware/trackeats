@@ -1,65 +1,89 @@
+import Paper from '@mui/material/Paper';
+import Typography from '@mui/material/Typography';
+import List from '@mui/material/List';
+import ListItem from '@mui/material/ListItem';
+import { styled } from '@mui/material/styles';
+import Box from '@mui/material/Box';
+import { TABLE_HEADER_BG, TABLE_HEADER_COLOR, TABLE_HEADER_BORDER } from './tableStyles';
+import TitleCard from './TitleCard';
+
+const AboutShell = styled(Box)(() => ({
+    minHeight: '100vh',
+    background: 'linear-gradient(135deg, #e3f2fd 0%, #fce4ec 100%)',
+    paddingTop: 40,
+    paddingBottom: 40,
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+}));
+
+const AboutCard = styled(Paper)(({ theme }) => ({
+    width: '90%',
+    maxWidth: 980,
+    padding: theme.spacing(3),
+    background: TABLE_HEADER_BG,
+    color: TABLE_HEADER_COLOR,
+    border: `1px solid ${TABLE_HEADER_BORDER}`,
+    borderRadius: 16,
+}));
+
 function AboutPage() {
     return (
-        <section className="about-page">
-            <section className="about-content">
-                <p>The nominal purpose of this app is to track the nutritional content of one's
-                    diet.  I chose this goal because it's something I wanted myself.  None of the 
-                    nutrition-tracking apps I found out there did quite what I wanted -- so I decided 
-                    to make my own!</p>
-                <br/>
-                <p>But the app's functionality is secondary.  Its REAL purpose is to demonstrate 
-                    expertise in all the technologies necessary to design, develop, and deploy a 
-                    full-stack web app.</p>
-                <br/>
-                <p>At the time of this writing, that tech stack includes:</p>
-                <ul>
-                    <li>Vite + React + JavaScript/Typescript + HTML + CSS - for building the front end</li>
-                    <li>Flask + Python - for building the back end</li>
-                    <li>Docker - for deploying the frontend, backend and database in separate containers</li>
-                    <li>TanStack Table - for the tables which comprise the bulk of the UI</li>
-                    <li>Chakra UI - for its styling capabilities (I prefer it to Bootstrap)</li>
-                    <li>Axios - for communications between the front end and back end</li>
-                    <li>SQL Alchemy - for communications between the back end and the database (i.e., the ORM layer)</li>
-                    <li>MySQL - the database</li>
-                    <li>Nginx - the web server/reverse proxy that serves up the front end</li>
-                    <li>Waitress - the app server that serves up the back end</li>
-                    <li>Ubuntu - the OS on which it all runs</li>
-                    <li>TLS certificates - for providing HTTPS encryption</li>
-                    <li>SMTP - for the email-based authentication used during registration</li>
-                    <li>JWT tokens - for user authentication and authorization</li>
-                </ul>
-                <br/>
-                <p>In addition, an alternate pluggable back end is in the works using:</p>
-                <ul>
-                    <li>Java</li>
-                    <li>Spring Boot</li>
-                    <li>Hibernate</li>
-                </ul>
-                <br/>
-                <p>Add to that the various techs and services used on the development side of things:</p>
-                <ul>
-                    <li>Amazon Web Services (AWS) - for provisioning the server on which the app runs</li>
-                    <li>GoDaddy/Namecheap - for licensing and configuring the app's domain names</li>
-                    <li>SSL.com - for licensing the TLS certificates that secure the server</li>
-                    <li>VS Code - the code editor/development environment</li>
-                    <li>WSL - for developing a Linux app on a Windows PC</li>
-                    <li>GitHub - for version control</li>
-                    <li>GitHub Secrets - for configuration management</li>
-                    <li>GitHub Actons/Docker Compose - for CI/CD</li>
-                    <li>Figma - for designing and prototyping the UI</li>
-                    <li>Jira - for planning and defect tracking</li>
-                </ul>
-                <br/>
-                <p>Yes, even in this age of AI, you need to know a LOT of stuff to build a
-                    full-stack web app completely by yourself.</p>
-                <br/>
-                <p>Speaking of which, special thanks to Claude, Copilot, Gemini, ChatGPT, and Cline 
-                    (in that order) for thier frequently helpful and  occasionally infuriating advice.</p>
-                <br/>
-                <p>Paul Holmes</p>
-                <p>Nov 2024, updated Mar 2026</p>
-            </section>
-        </section>
+        <AboutShell>
+            <TitleCard title="About" subtitle="About this app and its tech stack" />
+            <AboutCard elevation={2}>
+                <Typography sx={{ mb: 2 }}>
+                    The nominal purpose of this app is to track the nutritional content of one's diet. I chose this goal because it is something I wanted myself. None of the nutrition-tracking apps I found out there did quite what I wanted -- so I decided to make my own!
+                </Typography>
+                <Typography sx={{ mb: 2 }}>
+                    But the app's functionality is secondary. Its REAL purpose is to demonstrate expertise in all the technologies necessary to design, develop, and deploy a full-stack web app.
+                </Typography>
+                <Typography sx={{ mb: 1 }}>At the time of this writing, that tech stack includes:</Typography>
+                <List sx={{ listStyleType: 'disc', pl: 3.5, mb: 2 }}>
+                    <ListItem sx={{ display: 'list-item', py: 0.25 }}>Vite + React + JavaScript/Typescript + HTML + CSS - for building the front end</ListItem>
+                    <ListItem sx={{ display: 'list-item', py: 0.25 }}>Flask + Python - for building the back end</ListItem>
+                    <ListItem sx={{ display: 'list-item', py: 0.25 }}>Docker - for deploying the frontend, backend and database in separate containers</ListItem>
+                    <ListItem sx={{ display: 'list-item', py: 0.25 }}>TanStack Table - for the tables which comprise the bulk of the UI</ListItem>
+                    <ListItem sx={{ display: 'list-item', py: 0.25 }}>Material UI - for styling the user interface</ListItem>
+                    <ListItem sx={{ display: 'list-item', py: 0.25 }}>Axios - for communications between the front end and back end</ListItem>
+                    <ListItem sx={{ display: 'list-item', py: 0.25 }}>SQL Alchemy - for communications between the back end and the database (i.e., the ORM layer)</ListItem>
+                    <ListItem sx={{ display: 'list-item', py: 0.25 }}>MySQL - the database</ListItem>
+                    <ListItem sx={{ display: 'list-item', py: 0.25 }}>Nginx - the web server/reverse proxy that serves up the front end</ListItem>
+                    <ListItem sx={{ display: 'list-item', py: 0.25 }}>Waitress - the app server that serves up the back end</ListItem>
+                    <ListItem sx={{ display: 'list-item', py: 0.25 }}>Ubuntu - the OS on which it all runs</ListItem>
+                    <ListItem sx={{ display: 'list-item', py: 0.25 }}>TLS certificates - for providing HTTPS encryption</ListItem>
+                    <ListItem sx={{ display: 'list-item', py: 0.25 }}>SMTP - for the email-based authentication used during registration</ListItem>
+                    <ListItem sx={{ display: 'list-item', py: 0.25 }}>JWT tokens - for user authentication and authorization</ListItem>
+                </List>
+                <Typography sx={{ mb: 1 }}>In addition, an alternate pluggable back end is in the works using:</Typography>
+                <List sx={{ listStyleType: 'disc', pl: 3.5, mb: 2 }}>
+                    <ListItem sx={{ display: 'list-item', py: 0.25 }}>Java</ListItem>
+                    <ListItem sx={{ display: 'list-item', py: 0.25 }}>Spring Boot</ListItem>
+                    <ListItem sx={{ display: 'list-item', py: 0.25 }}>Hibernate</ListItem>
+                </List>
+                <Typography sx={{ mb: 1 }}>Add to that the various techs and services used on the development side of things:</Typography>
+                <List sx={{ listStyleType: 'disc', pl: 3.5, mb: 2 }}>
+                    <ListItem sx={{ display: 'list-item', py: 0.25 }}>Amazon Web Services (AWS) - for provisioning the server on which the app runs</ListItem>
+                    <ListItem sx={{ display: 'list-item', py: 0.25 }}>GoDaddy/Namecheap - for licensing and configuring the app's domain names</ListItem>
+                    <ListItem sx={{ display: 'list-item', py: 0.25 }}>SSL.com - for licensing the TLS certificates that secure the server</ListItem>
+                    <ListItem sx={{ display: 'list-item', py: 0.25 }}>VS Code - the code editor/development environment</ListItem>
+                    <ListItem sx={{ display: 'list-item', py: 0.25 }}>WSL - for developing a Linux app on a Windows PC</ListItem>
+                    <ListItem sx={{ display: 'list-item', py: 0.25 }}>GitHub - for version control</ListItem>
+                    <ListItem sx={{ display: 'list-item', py: 0.25 }}>GitHub Secrets - for configuration management</ListItem>
+                    <ListItem sx={{ display: 'list-item', py: 0.25 }}>GitHub Actons/Docker Compose - for CI/CD</ListItem>
+                    <ListItem sx={{ display: 'list-item', py: 0.25 }}>Figma - for designing and prototyping the UI</ListItem>
+                    <ListItem sx={{ display: 'list-item', py: 0.25 }}>Jira - for planning and defect tracking</ListItem>
+                </List>
+                <Typography sx={{ mb: 2 }}>
+                    Yes, even in this age of AI, you need to know a LOT of stuff to build a full-stack web app completely by yourself!
+                </Typography>
+                <Typography sx={{ mb: 2 }}>
+                    Speaking of which, special thanks to Claude, Copilot, Gemini, ChatGPT, and Cline (in that order) for their generally helpful and occasionally infuriating advice and assistance.
+                </Typography>
+                <Typography>Paul Holmes</Typography>
+                <Typography variant="body2" color="text.secondary">Nov 2024, updated Mar 2026</Typography>
+            </AboutCard>
+        </AboutShell>
     );
 }
 
