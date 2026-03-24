@@ -419,7 +419,7 @@ const FoodsTable: React.FC<FoodsTableProps> = ({setSelectedRowId, pagination, se
                                         borderRight: `1px solid ${TABLE_ROW_BORDER}`,
                                         borderBottom: `1px solid ${TABLE_ROW_BORDER}`,
                                         fontSize: 14,
-                                        p: 1,
+                                        padding: '2px',
                                         height: '2rem',
                                         textAlign: 'center',
                                     }}
