@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Routes, Route, Link as RouterLink, useNavigate } from 'react-router-dom';
+import trackEatsIcon from '../assets/trackeats-icon-32x32.png';
 import HomePage from './HomePage';
 import AboutPage from './AboutPage';
 import FoodsPage from './FoodsPage';
@@ -91,7 +92,7 @@ function Nav() {
                     >
                         <Box
                             component="img"
-                            src="/src/assets/trackeats-icon-32x32.png"
+                            src={trackEatsIcon}
                             alt="TrackEats icon"
                             sx={{ width: 28, height: 28, borderRadius: 1 }}
                         />
