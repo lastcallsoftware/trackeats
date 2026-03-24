@@ -4,7 +4,7 @@ import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
 import { styled } from '@mui/material/styles';
 import Box from '@mui/material/Box';
-import { TABLE_HEADER_BG, TABLE_HEADER_COLOR, TABLE_HEADER_BORDER } from './tableStyles';
+
 import TitleCard from './TitleCard';
 
 const AboutShell = styled(Box)(() => ({
@@ -21,9 +21,9 @@ const AboutCard = styled(Paper)(({ theme }) => ({
     width: '90%',
     maxWidth: 980,
     padding: theme.spacing(3),
-    background: TABLE_HEADER_BG,
-    color: TABLE_HEADER_COLOR,
-    border: `1px solid ${TABLE_HEADER_BORDER}`,
+    background: theme.palette.table.headerBg,
+    color: theme.palette.table.headerColor,
+    border: `1px solid ${theme.palette.table.headerBorder}`,
     borderRadius: 16,
 }));
 

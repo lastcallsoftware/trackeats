@@ -24,7 +24,7 @@ import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import Paper from '@mui/material/Paper';
 import Box from '@mui/material/Box';
-import { TABLE_HEADER_BG, TABLE_HEADER_COLOR, TABLE_HEADER_BORDER, TABLE_ROW_SELECTED_BG, TABLE_ROW_BORDER } from './tableStyles';
+
 
 // Define the table's columns
 const columnHelper = createColumnHelper<IFood>()
@@ -358,29 +358,29 @@ const FoodsTable: React.FC<FoodsTableProps> = ({setSelectedRowId, pagination, se
                                     <TableCell
                                         key={header.id}
                                         colSpan={header.colSpan}
-                                        sx={{
-                                            background: TABLE_HEADER_BG,
-                                            borderRight: `1px solid ${TABLE_HEADER_BORDER}`,
-                                            borderBottom: `1px solid ${TABLE_HEADER_BORDER}`,
+                                        sx={theme => ({
+                                            background: theme.palette.table.headerBg,
+                                            borderRight: `1px solid ${theme.palette.table.headerBorder}`,
+                                            borderBottom: `1px solid ${theme.palette.table.headerBorder}`,
                                             p: 1,
-                                        }}
+                                        })}
                                     />
                                 ) : (
                                     <TableCell
                                         key={header.id}
-                                        sx={{
+                                        sx={theme => ({
                                             width: header.getSize(),
                                             userSelect: 'none',
                                             fontWeight: 'bold',
                                             fontSize: 14,
-                                            color: TABLE_HEADER_COLOR,
-                                            background: TABLE_HEADER_BG,
-                                            borderRight: `1px solid ${TABLE_HEADER_BORDER}`,
-                                            borderBottom: `1px solid ${TABLE_HEADER_BORDER}`,
+                                            color: theme.palette.table.headerColor,
+                                            background: theme.palette.table.headerBg,
+                                            borderRight: `1px solid ${theme.palette.table.headerBorder}`,
+                                            borderBottom: `1px solid ${theme.palette.table.headerBorder}`,
                                             p: 1,
                                             textAlign: 'center',
                                             lineHeight: 1.2,
-                                        }}
+                                        })}
                                         colSpan={header.colSpan}
                                         onClick={header.column.getToggleSortingHandler()}
                                     >
@@ -410,19 +410,19 @@ const FoodsTable: React.FC<FoodsTableProps> = ({setSelectedRowId, pagination, se
                             hover
                             onClick={() => handleClick(row)}
                             onDoubleClick={isRecipesForm ? undefined : () => handleDoubleClick(row)}
-                            sx={row.getIsSelected() ? { backgroundColor: `${TABLE_ROW_SELECTED_BG} !important` } : {}}
+                            sx={row.getIsSelected() ? (theme => ({ backgroundColor: `${theme.palette.table.rowSelectedBg} !important` })) : {}}
                         >
                             {row.getVisibleCells().map((cell) => (
                                 <TableCell
                                     key={cell.id}
-                                    sx={{
-                                        borderRight: `1px solid ${TABLE_ROW_BORDER}`,
-                                        borderBottom: `1px solid ${TABLE_ROW_BORDER}`,
+                                    sx={theme => ({
+                                        borderRight: `1px solid ${theme.palette.table.rowBorder}`,
+                                        borderBottom: `1px solid ${theme.palette.table.rowBorder}`,
                                         fontSize: 14,
                                         padding: '2px',
                                         height: '2rem',
                                         textAlign: 'center',
-                                    }}
+                                    })}
                                 >
                                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                                 </TableCell>

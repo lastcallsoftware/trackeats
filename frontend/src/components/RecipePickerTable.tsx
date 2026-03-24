@@ -10,14 +10,9 @@ import TableRow from "@mui/material/TableRow";
 import Paper from "@mui/material/Paper";
 
 import Box from "@mui/material/Box";
+import { Theme } from '@mui/material/styles';
 import MuiPagination from "@mui/material/Pagination";
-import {
-    TABLE_HEADER_BG,
-    TABLE_HEADER_COLOR,
-    TABLE_HEADER_BORDER,
-    TABLE_ROW_SELECTED_BG,
-    TABLE_ROW_BORDER,
-} from "./tableStyles";
+
 
 const PAGE_SIZE = 10;
 
@@ -86,10 +81,10 @@ const RecipePickerTable: React.FC<RecipePickerTableProps> = ({ setSelectedRowId,
     const headerSx = {
         fontWeight: "bold",
         fontSize: 13,
-        color: TABLE_HEADER_COLOR,
-        background: TABLE_HEADER_BG,
-        borderBottom: `1px solid ${TABLE_HEADER_BORDER}`,
-        borderRight: `1px solid ${TABLE_HEADER_BORDER}`,
+        color: (theme: Theme) => theme.palette.table.headerColor,
+        background: (theme: Theme) => theme.palette.table.headerBg,
+        borderBottom: (theme: Theme) => `1px solid ${theme.palette.table.headerBorder}`,
+        borderRight: (theme: Theme) => `1px solid ${theme.palette.table.headerBorder}`,
         p: "4px 8px",
         cursor: "pointer",
         userSelect: "none",
@@ -99,8 +94,8 @@ const RecipePickerTable: React.FC<RecipePickerTableProps> = ({ setSelectedRowId,
 
     const cellSx = {
         fontSize: 13,
-        borderRight: `1px solid ${TABLE_ROW_BORDER}`,
-        borderBottom: `1px solid ${TABLE_ROW_BORDER}`,
+        borderRight: (theme: Theme) => `1px solid ${theme.palette.table.rowBorder}`,
+        borderBottom: (theme: Theme) => `1px solid ${theme.palette.table.rowBorder}`,
         p: "3px 8px",
         whiteSpace: "nowrap",
         overflow: "hidden",
@@ -153,7 +148,7 @@ const RecipePickerTable: React.FC<RecipePickerTableProps> = ({ setSelectedRowId,
                                     onClick={() => handleClick(recipe)}
                                     sx={{
                                         cursor: "pointer",
-                                        ...(isSelected ? { backgroundColor: `${TABLE_ROW_SELECTED_BG} !important` } : {}),
+                                        ...(isSelected ? ((theme: Theme) => ({ backgroundColor: `${theme.palette.table.rowSelectedBg} !important` })) : {}),
                                     }}
                                 >
                                     <TableCell sx={cellSx} title={getCuisineLabel(recipe.cuisine) ?? ''}>{getCuisineLabel(recipe.cuisine)}</TableCell>
