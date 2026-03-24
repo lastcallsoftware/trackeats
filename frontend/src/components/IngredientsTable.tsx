@@ -22,18 +22,19 @@ const columns = [
     columnHelper.accessor("summary", {
         header: "Ingredient",
         cell: (info) => info.getValue() ?? "",
-        size: 600,
+        size: 380,
     }),
 ];
 
 interface IngredientsTableProps {
     data: IIngredient[];
     setSelectedRowId?: React.Dispatch<React.SetStateAction<number[] | null>>;
+    selectedRowId?: number[] | null;
 }
 
-const IngredientsTable: React.FC<IngredientsTableProps> = ({ data, setSelectedRowId }) => {
+const IngredientsTable: React.FC<IngredientsTableProps> = ({ data, setSelectedRowId, selectedRowId: selectedRowIdProp }) => {
     const [selectedRowIdLocal, setSelectedRowIdLocal] = useState<number[] | null>(null);
-    const selectedRowId = setSelectedRowId ? undefined : selectedRowIdLocal;
+    const selectedRowId = selectedRowIdProp !== undefined ? selectedRowIdProp : (setSelectedRowId ? null : selectedRowIdLocal);
     const setRowId = setSelectedRowId || setSelectedRowIdLocal;
 
     // eslint-disable-next-line react-hooks/incompatible-library

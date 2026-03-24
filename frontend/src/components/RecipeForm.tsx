@@ -465,8 +465,8 @@ function RecipeForm() {
                         {/* Left: Ingredients list (the recipe) */}
                         <Box sx={{ flex: 1, minWidth: 0 }}>
                             <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>Recipe Ingredients</Typography>
-                            <Box sx={{ maxHeight: 300, overflowY: 'auto', border: '1px solid', borderColor: 'divider', borderRadius: 1 }}>
-                                <IngredientsTable data={ingredients} setSelectedRowId={setSelectedIngredientRowId} />
+                            <Box sx={{ maxHeight: 680, minHeight: 680, overflowY: 'auto', border: '1px solid', borderColor: 'divider', borderRadius: 1 }}>
+                                <IngredientsTable data={ingredients} setSelectedRowId={setSelectedIngredientRowId} selectedRowId={selectedIngredientRowId} />
                             </Box>
                         </Box>
 
@@ -596,7 +596,7 @@ function RecipeForm() {
                             <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>
                                 {selectedIngredientList === IngredientTypes.FOOD_INGREDIENTS ? 'Available Foods' : 'Available Recipes'}
                             </Typography>
-                            <Box sx={{ maxHeight: 300, overflowY: 'auto', overflowX: 'auto', border: '1px solid', borderColor: 'divider', borderRadius: 1 }}>
+                            <Box sx={{ maxHeight: 680, overflowY: 'auto', overflowX: 'auto', border: '1px solid', borderColor: 'divider', borderRadius: 1 }}>
                                 {selectedIngredientList === IngredientTypes.FOOD_INGREDIENTS ? (
                                     <>
                                         <FoodsTable
