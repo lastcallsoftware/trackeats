@@ -1,6 +1,5 @@
 import React, { useContext, useState } from "react";
 import { DataContext, IFood } from "./DataProvider";
-import { getFoodGroupLabel } from "./FoodGroups";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
 import TableCell from "@mui/material/TableCell";
@@ -8,7 +7,7 @@ import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import Paper from "@mui/material/Paper";
-import TextField from "@mui/material/TextField";
+
 import Box from "@mui/material/Box";
 import MuiPagination from "@mui/material/Pagination";
 import {
@@ -56,7 +55,7 @@ const FoodPickerTable: React.FC<FoodPickerTableProps> = ({ setSelectedRowId }) =
         let valA: string | number = '';
         let valB: string | number = '';
         switch (sort.key) {
-            case 'group':    valA = getFoodGroupLabel(a.group) ?? '';               valB = getFoodGroupLabel(b.group) ?? '';               break;
+            case 'subtype':  valA = a.subtype ?? '';                               valB = b.subtype ?? '';                               break;
             case 'vendor':   valA = a.vendor ?? '';                                 valB = b.vendor ?? '';                                 break;
             case 'name':     valA = a.name;                                         valB = b.name;                                         break;
             case 'serving':  valA = a.nutrition?.serving_size_description ?? '';   valB = b.nutrition?.serving_size_description ?? '';    break;
@@ -108,28 +107,38 @@ const FoodPickerTable: React.FC<FoodPickerTableProps> = ({ setSelectedRowId }) =
 
     return (
         <Box>
-            <TextField
-                size="small"
-                placeholder="Filter by name, vendor, subtype…"
-                value={filter}
-                onChange={(e) => { setFilter(e.target.value); setPage(1); }}
-                fullWidth
-                sx={{ mb: 1 }}
-            />
+            <Box sx={{ position: 'relative', width: '100%', mb: 1 }}>
+                <input
+                    type="text"
+                    style={{ width: '100%', boxSizing: 'border-box', paddingRight: filter ? 28 : 8, borderRadius: 4, border: '1px solid #ccc', fontSize: 16, height: 36 }}
+                    placeholder="Filter by name, vendor, subtype…"
+                    value={filter}
+                    onChange={(e) => { setFilter(e.target.value); setPage(1); }}
+                />
+                {filter ? (
+                    <button
+                        onClick={() => { setFilter(""); setPage(1); }}
+                        style={{ position: 'absolute', right: 2, top: 10, background: 'none', border: 'none', cursor: 'pointer', fontSize: 16, padding: 0, lineHeight: 1 }}
+                        aria-label="Clear filter"
+                    >
+                        ❌
+                    </button>
+                ) : null}
+            </Box>
             <TableContainer component={Paper} sx={{ borderRadius: 1, boxShadow: 1 }}>
                 <Table size="small" sx={{ tableLayout: "fixed", borderCollapse: "separate", borderSpacing: 0 }}>
                     <colgroup>
-                        <col style={{ width: 90 }} />
                         <col style={{ width: 110 }} />
                         <col style={{ width: 140 }} />
+                        <col style={{ width: 90 }} />
                         <col style={{ width: 100 }} />
                         <col style={{ width: 80 }} />
                     </colgroup>
                     <TableHead>
                         <TableRow>
-                            <TableCell sx={headerSx} onClick={() => handleSort('group')}>Group{sortIcon('group')}</TableCell>
                             <TableCell sx={headerSx} onClick={() => handleSort('vendor')}>Vendor{sortIcon('vendor')}</TableCell>
                             <TableCell sx={headerSx} onClick={() => handleSort('name')}>Name{sortIcon('name')}</TableCell>
+                            <TableCell sx={headerSx} onClick={() => handleSort('subtype')}>Subtype{sortIcon('subtype')}</TableCell>
                             <TableCell sx={headerSx} onClick={() => handleSort('serving')}>Serving Size{sortIcon('serving')}</TableCell>
                             <TableCell sx={headerSx} onClick={() => handleSort('calories')}>Cal/Srv{sortIcon('calories')}</TableCell>
                         </TableRow>
@@ -147,10 +156,10 @@ const FoodPickerTable: React.FC<FoodPickerTableProps> = ({ setSelectedRowId }) =
                                         ...(isSelected ? { backgroundColor: `${TABLE_ROW_SELECTED_BG} !important` } : {}),
                                     }}
                                 >
-                                    <TableCell sx={cellSx}>{getFoodGroupLabel(food.group)}</TableCell>
-                                    <TableCell sx={cellSx}>{food.vendor}</TableCell>
-                                    <TableCell sx={cellSx}>{food.name}</TableCell>
-                                    <TableCell sx={cellSx}>{food.nutrition?.serving_size_description}</TableCell>
+                                    <TableCell sx={cellSx} title={food.vendor ?? ''}>{food.vendor}</TableCell>
+                                    <TableCell sx={cellSx} title={food.name}>{food.name}</TableCell>
+                                    <TableCell sx={cellSx} title={food.subtype ?? ''}>{food.subtype}</TableCell>
+                                    <TableCell sx={cellSx} title={food.nutrition?.serving_size_description ?? ''}>{food.nutrition?.serving_size_description}</TableCell>
                                     <TableCell sx={{ ...cellSx, textAlign: "right" }}>{food.nutrition?.calories ?? 0}</TableCell>
                                 </TableRow>
                             );

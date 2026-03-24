@@ -12,6 +12,7 @@ import TableRow from '@mui/material/TableRow';
 import Paper from '@mui/material/Paper';
 import Box from '@mui/material/Box';
 import { TABLE_HEADER_BG, TABLE_HEADER_COLOR, TABLE_HEADER_BORDER, TABLE_ROW_SELECTED_BG, TABLE_ROW_BORDER } from './tableStyles';
+import FilterWidget from './FilterWidget';
 
 // Define the table's columns
 const columnHelper = createColumnHelper<IRecipe>()
@@ -240,6 +241,16 @@ const RecipesTable: React.FC<IRecipesTableProps> = ({setSelectedRowId, paginatio
         }
     }, []);
 
+    const updateFilter = (id: string, value: string) => {
+        setColumnFilters((prev) => {
+            const updatedFilters = prev.filter((f) => f.id !== id);
+            if (value)
+                updatedFilters.push({ id, value });
+            sessionStorage.setItem(RECIPES_FILTERS_STORAGE, JSON.stringify(updatedFilters));
+            return updatedFilters;
+        });
+    };
+
     return (
         <TableContainer component={Paper} sx={{ overflowX: 'auto', borderRadius: 2, boxShadow: 2 }}>
             <Table size="small" sx={{ minWidth: 650, tableLayout: 'fixed', borderCollapse: 'separate', borderSpacing: 0 }}>
@@ -290,6 +301,11 @@ const RecipesTable: React.FC<IRecipesTableProps> = ({setSelectedRowId, paginatio
                                                     {({asc: '🔼', desc: '🔽'} as Record<string, string>)[header.column.getIsSorted() as string] ?? null}
                                                 </Box>
                                             </Box>
+                                            {header.column.getCanFilter() && header.column.columnDef.meta?.filterVariant === "text" ? (
+                                                <Box sx={{ mt: 0.5, width: '100%' }} onClick={e => e.stopPropagation()}>
+                                                    <FilterWidget column={header.column} updateFilterFunction={updateFilter} />
+                                                </Box>
+                                            ) : null}
                                         </Box>
                                     </TableCell>
                                 )

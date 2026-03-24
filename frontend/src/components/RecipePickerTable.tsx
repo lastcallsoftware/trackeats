@@ -8,7 +8,7 @@ import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import Paper from "@mui/material/Paper";
-import TextField from "@mui/material/TextField";
+
 import Box from "@mui/material/Box";
 import MuiPagination from "@mui/material/Pagination";
 import {
@@ -109,14 +109,24 @@ const RecipePickerTable: React.FC<RecipePickerTableProps> = ({ setSelectedRowId,
 
     return (
         <Box>
-            <TextField
-                size="small"
-                placeholder="Filter by name or cuisine…"
-                value={filter}
-                onChange={(e) => { setFilter(e.target.value); setPage(1); }}
-                fullWidth
-                sx={{ mb: 1 }}
-            />
+            <Box sx={{ position: 'relative', width: '100%', mb: 1 }}>
+                <input
+                    type="text"
+                    style={{ width: '100%', boxSizing: 'border-box', paddingRight: filter ? 28 : 8, borderRadius: 4, border: '1px solid #ccc', fontSize: 16, height: 36 }}
+                    placeholder="Filter by name or cuisine…"
+                    value={filter}
+                    onChange={(e) => { setFilter(e.target.value); setPage(1); }}
+                />
+                {filter ? (
+                    <button
+                        onClick={() => { setFilter(""); setPage(1); }}
+                        style={{ position: 'absolute', right: 2, top: 10, background: 'none', border: 'none', cursor: 'pointer', fontSize: 16, padding: 0, lineHeight: 1 }}
+                        aria-label="Clear filter"
+                    >
+                        ❌
+                    </button>
+                ) : null}
+            </Box>
             <TableContainer component={Paper} sx={{ borderRadius: 1, boxShadow: 1 }}>
                 <Table size="small" sx={{ tableLayout: "fixed", borderCollapse: "separate", borderSpacing: 0 }}>
                     <colgroup>
@@ -146,9 +156,9 @@ const RecipePickerTable: React.FC<RecipePickerTableProps> = ({ setSelectedRowId,
                                         ...(isSelected ? { backgroundColor: `${TABLE_ROW_SELECTED_BG} !important` } : {}),
                                     }}
                                 >
-                                    <TableCell sx={cellSx}>{getCuisineLabel(recipe.cuisine)}</TableCell>
-                                    <TableCell sx={cellSx}>{recipe.name}</TableCell>
-                                    <TableCell sx={cellSx}>{recipe.nutrition?.serving_size_description}</TableCell>
+                                    <TableCell sx={cellSx} title={getCuisineLabel(recipe.cuisine) ?? ''}>{getCuisineLabel(recipe.cuisine)}</TableCell>
+                                    <TableCell sx={cellSx} title={recipe.name}>{recipe.name}</TableCell>
+                                    <TableCell sx={cellSx} title={recipe.nutrition?.serving_size_description ?? ''}>{recipe.nutrition?.serving_size_description}</TableCell>
                                     <TableCell sx={{ ...cellSx, textAlign: "right" }}>
                                         {recipe.servings > 0 ? ((recipe.nutrition?.calories ?? 0) / recipe.servings).toFixed(0) : 0}
                                     </TableCell>
