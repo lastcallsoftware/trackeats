@@ -3,10 +3,9 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { IFood, IRecipe, DataContext, IIngredient, INutrition } from "./DataProvider";
 import { cuisines } from "./Cuisines";
 
-import FoodsTable from "./FoodsTable";
-import RecipesTable from "./RecipesTable";
 import IngredientsTable from "./IngredientsTable";
-import Pagination from "./Pagination";
+import FoodPickerTable from "./FoodPickerTable";
+import RecipePickerTable from "./RecipePickerTable";
 import axios from 'axios';
 import { generateIngredientSummary } from "../utils/generateIngredientSummary";
 import {
@@ -28,10 +27,6 @@ import {
 } from '@mui/material';
 
 function RecipeForm() {
-    // Pagination state for FoodsTable in RecipeForm
-    const [foodsPagination, setFoodsPagination] = useState({ pageIndex: 0, pageSize: 10 });
-    // Pagination state for RecipesTable in RecipeForm
-    const [recipesPagination, setRecipesPagination] = useState({ pageIndex: 0, pageSize: 10 });
     const location = useLocation();
     const navigate = useNavigate()
 
@@ -596,36 +591,12 @@ function RecipeForm() {
                             <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>
                                 {selectedIngredientList === IngredientTypes.FOOD_INGREDIENTS ? 'Available Ingredients (Foods)' : 'Available Ingredients (Other Recipes)'}
                             </Typography>
-                            <Box sx={{ maxHeight: 680, overflowY: 'auto', overflowX: 'auto', border: '1px solid', borderColor: 'divider', borderRadius: 1 }}>
-                                {selectedIngredientList === IngredientTypes.FOOD_INGREDIENTS ? (
-                                    <>
-                                        <FoodsTable
-                                            setSelectedRowId={setSelectedFoodOrRecipeRowId}
-                                            isRecipesForm={true}
-                                            pagination={foodsPagination}
-                                            setPagination={setFoodsPagination}
-                                        />
-                                    </>
-                                ) : (
-                                    <>
-                                        <RecipesTable
-                                            setSelectedRowId={setSelectedFoodOrRecipeRowId}
-                                            pagination={recipesPagination}
-                                        />
-                                    </>
-                                )}
-                            </Box>
                             {selectedIngredientList === IngredientTypes.FOOD_INGREDIENTS ? (
-                                <Pagination
-                                    pagination={foodsPagination}
-                                    setPagination={setFoodsPagination}
-                                    totalCount={context.foods.length}
-                                />
+                                <FoodPickerTable setSelectedRowId={setSelectedFoodOrRecipeRowId} />
                             ) : (
-                                <Pagination
-                                    pagination={recipesPagination}
-                                    setPagination={setRecipesPagination}
-                                    totalCount={context.recipes.length}
+                                <RecipePickerTable
+                                    setSelectedRowId={setSelectedFoodOrRecipeRowId}
+                                    excludeRecipeId={formData.id}
                                 />
                             )}
                         </Box>
