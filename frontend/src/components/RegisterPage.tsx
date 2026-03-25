@@ -129,100 +129,137 @@ function RegisterPage() {
         }
 
     return (
-        <Paper elevation={3} sx={{ maxWidth: 480, margin: '32px auto', p: 4 }}>
-            <form onSubmit={handleSubmit} autoComplete="off">
-                <Typography variant="h5" sx={{ mb: 2, fontWeight: 600 }}>
+        <Box
+            sx={{
+                minHeight: '100vh',
+                background: 'linear-gradient(135deg, #e3f2fd 0%, #fce4ec 100%)',
+                py: { xs: 2, md: 4 },
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+            }}
+        >
+            <Paper
+                elevation={3}
+                sx={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: 1,
+                    mb: 3,
+                    background: 'rgba(255,255,255,0.85)',
+                    borderRadius: 3,
+                    boxShadow: 3,
+                    px: { xs: 2, md: 6 },
+                    py: { xs: 2, md: 3 },
+                    width: { xs: '98%', md: '90%' },
+                    maxWidth: 900,
+                    textAlign: 'left',
+                }}
+            >
+                <Typography variant="h4" sx={{ fontWeight: 700, color: 'primary.main', letterSpacing: 1, mb: 0.5 }}>
                     Register
                 </Typography>
-                <Divider sx={{ mb: 3 }} />
-
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                    {/* Username */}
-                    <TextField
-                        label="Username"
-                        id="username"
-                        value={formData.username}
-                        inputProps={{ maxLength: 100 }}
-                        onFocus={() => setFormData(prev => ({ ...prev, usernameTouched: false }))}
-                        onBlur={() => setFormData(prev => ({ ...prev, usernameTouched: true }))}
-                        onChange={usernameChanged}
-                        error={!!(formData.usernameMessage && formData.usernameTouched && formData.username.length > 0)}
-                        helperText={formData.usernameTouched && formData.username.length > 0 ? formData.usernameMessage : " "}
-                        fullWidth
-                    />
-
-                    {/* Password */}
-                    <TextField
-                        label="Password"
-                        id="password"
-                        type="password"
-                        value={formData.password}
-                        inputProps={{ maxLength: 100 }}
-                        onFocus={() => setFormData(prev => ({ ...prev, passwordTouched: false }))}
-                        onBlur={() => setFormData(prev => ({ ...prev, passwordTouched: true }))}
-                        onChange={passwordChanged}
-                        error={!!(formData.passwordMessage && formData.passwordTouched && formData.password.length > 0)}
-                        helperText={formData.passwordTouched && formData.password.length > 0 ? formData.passwordMessage : " "}
-                        fullWidth
-                    />
-
-                    {/* Retype Password */}
-                    <TextField
-                        label="Retype Password"
-                        id="password2"
-                        type="password"
-                        value={formData.password2}
-                        inputProps={{ maxLength: 100 }}
-                        onFocus={() => setFormData(prev => ({ ...prev, password2Touched: false }))}
-                        onBlur={() => setFormData(prev => ({ ...prev, password2Touched: true }))}
-                        onChange={password2Changed}
-                        error={!!(formData.password2Message && formData.password2Touched && formData.password2.length > 0)}
-                        helperText={formData.password2Touched && formData.password2.length > 0 ? formData.password2Message : " "}
-                        fullWidth
-                    />
-
-                    {/* Email Address */}
-                    <TextField
-                        label="Email Address"
-                        id="email"
-                        type="email"
-                        value={formData.email}
-                        inputProps={{ maxLength: 320 }}
-                        onFocus={() => setFormData(prev => ({ ...prev, emailTouched: false }))}
-                        onBlur={() => setFormData(prev => ({ ...prev, emailTouched: true }))}
-                        onChange={emailChanged}
-                        error={!!(formData.emailMessage && formData.emailTouched && formData.email.length > 0)}
-                        helperText={formData.emailTouched && formData.email.length > 0 ? formData.emailMessage : " "}
-                        fullWidth
-                    />
-                </Box>
-
-                <Divider sx={{ my: 2 }} />
-
-                <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                    When you click Register, an email will be sent to the Email Address.
+                <Typography variant="subtitle1" color="text.secondary">
+                    Create your TrackEats account below
                 </Typography>
-                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                    Click on the link in that email (or paste it into a browser) to complete registration and activate your account.
-                </Typography>
-
-                <Button
-                    type="submit"
-                    variant="contained"
-                    color="primary"
-                    disabled={registerIsDisabled}
-                    fullWidth
-                >
-                    Register
-                </Button>
-
-                {errorMessage && (
-                    <Typography color="error" sx={{ mt: 2 }}>
-                        {errorMessage}
+            </Paper>
+            <Paper
+                elevation={4}
+                sx={{
+                    background: '#fff',
+                    borderRadius: 3,
+                    boxShadow: 6,
+                    px: { xs: 2, md: 6 },
+                    py: { xs: 2, md: 3 },
+                    width: { xs: '98%', md: '95%' },
+                    maxWidth: 600,
+                    display: 'flex',
+                    flexDirection: 'column',
+                }}
+            >
+                <form onSubmit={handleSubmit} autoComplete="off">
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                        {/* Username */}
+                        <TextField
+                            label="Username"
+                            id="username"
+                            value={formData.username}
+                            inputProps={{ maxLength: 100 }}
+                            onFocus={() => setFormData(prev => ({ ...prev, usernameTouched: false }))}
+                            onBlur={() => setFormData(prev => ({ ...prev, usernameTouched: true }))}
+                            onChange={usernameChanged}
+                            error={!!(formData.usernameMessage && formData.usernameTouched && formData.username.length > 0)}
+                            helperText={formData.usernameTouched && formData.username.length > 0 ? formData.usernameMessage : " "}
+                            fullWidth
+                        />
+                        {/* Password */}
+                        <TextField
+                            label="Password"
+                            id="password"
+                            type="password"
+                            value={formData.password}
+                            inputProps={{ maxLength: 100 }}
+                            onFocus={() => setFormData(prev => ({ ...prev, passwordTouched: false }))}
+                            onBlur={() => setFormData(prev => ({ ...prev, passwordTouched: true }))}
+                            onChange={passwordChanged}
+                            error={!!(formData.passwordMessage && formData.passwordTouched && formData.password.length > 0)}
+                            helperText={formData.passwordTouched && formData.password.length > 0 ? formData.passwordMessage : " "}
+                            fullWidth
+                        />
+                        {/* Retype Password */}
+                        <TextField
+                            label="Retype Password"
+                            id="password2"
+                            type="password"
+                            value={formData.password2}
+                            inputProps={{ maxLength: 100 }}
+                            onFocus={() => setFormData(prev => ({ ...prev, password2Touched: false }))}
+                            onBlur={() => setFormData(prev => ({ ...prev, password2Touched: true }))}
+                            onChange={password2Changed}
+                            error={!!(formData.password2Message && formData.password2Touched && formData.password2.length > 0)}
+                            helperText={formData.password2Touched && formData.password2.length > 0 ? formData.password2Message : " "}
+                            fullWidth
+                        />
+                        {/* Email Address */}
+                        <TextField
+                            label="Email Address"
+                            id="email"
+                            type="email"
+                            value={formData.email}
+                            inputProps={{ maxLength: 320 }}
+                            onFocus={() => setFormData(prev => ({ ...prev, emailTouched: false }))}
+                            onBlur={() => setFormData(prev => ({ ...prev, emailTouched: true }))}
+                            onChange={emailChanged}
+                            error={!!(formData.emailMessage && formData.emailTouched && formData.email.length > 0)}
+                            helperText={formData.emailTouched && formData.email.length > 0 ? formData.emailMessage : " "}
+                            fullWidth
+                        />
+                    </Box>
+                    <Divider sx={{ my: 2 }} />
+                    <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                        When you click Register, an email will be sent to the Email Address.
                     </Typography>
-                )}
-            </form>
-        </Paper>
+                    <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                        Click on the link in that email (or paste it into a browser) to complete registration and activate your account.
+                    </Typography>
+                    <Button
+                        type="submit"
+                        variant="contained"
+                        color="primary"
+                        disabled={registerIsDisabled}
+                        fullWidth
+                    >
+                        Register
+                    </Button>
+                    {errorMessage && (
+                        <Typography color="error" sx={{ mt: 2 }}>
+                            {errorMessage}
+                        </Typography>
+                    )}
+                </form>
+            </Paper>
+        </Box>
     );
 }
 

@@ -2,10 +2,10 @@ import { useState } from "react";
 import { useLocation, useNavigate, Link as RouterLink } from 'react-router-dom';
 import axios from "axios";
 import Button from '@mui/material/Button';
-import Container from '@mui/material/Container';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
+import Paper from '@mui/material/Paper';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function LoginPage(props: any) {
@@ -40,42 +40,90 @@ function LoginPage(props: any) {
     }
 
     return (
-        <Container maxWidth="sm" sx={{ mt: 8, p: 4, border: '1px solid #ccc', borderRadius: 2 }}>
-            <Typography variant="h5" align="center" gutterBottom>Login</Typography>
-            <form onSubmit={handleSubmit}>
-                <Box display="flex" flexDirection="column" gap={3}>
-                    <TextField
-                        label="Username"
-                        variant="outlined"
-                        value={formData.username}
-                        onChange={(e) => setFormData(prevState => ({...prevState, username: e.target.value}))}
-                        required
-                        autoFocus
-                    />
-                    <TextField
-                        label="Password"
-                        variant="outlined"
-                        type="password"
-                        value={formData.password}
-                        onChange={(e) => setFormData(prevState => ({...prevState, password: e.target.value}))}
-                        required
-                    />
-                    {isConfirm && (
-                        <Box>
-                            <Typography variant="body2" color="primary">Check your inbox for an email from Trackeats.</Typography>
-                            <Typography variant="body2">Click on the link in that email (or paste it into a browser) to complete registration and activate your account. Then you will be able to log in.</Typography>
-                        </Box>
-                    )}
-                    <Button variant="contained" color="primary" type="submit" disabled={loginIsDisabled} sx={{ height: 48 }}>
-                        Login
-                    </Button>
-                    <Typography variant="body2">Not a TrackEats user yet? <RouterLink to="/register">Register here</RouterLink>.</Typography>
-                    {loginMessage && (
-                        <Typography className="errorText" color="error">{loginMessage}</Typography>
-                    )}
-                </Box>
-            </form>
-        </Container>
+        <Box
+            sx={{
+                minHeight: '100vh',
+                background: 'linear-gradient(135deg, #e3f2fd 0%, #fce4ec 100%)',
+                py: { xs: 2, md: 4 },
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+            }}
+        >
+            <Paper
+                elevation={3}
+                sx={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: 1,
+                    mb: 3,
+                    background: 'rgba(255,255,255,0.85)',
+                    borderRadius: 3,
+                    boxShadow: 3,
+                    px: { xs: 2, md: 6 },
+                    py: { xs: 2, md: 3 },
+                    width: { xs: '98%', md: '90%' },
+                    maxWidth: 900,
+                    textAlign: 'left',
+                }}
+            >
+                <Typography variant="h4" sx={{ fontWeight: 700, color: 'primary.main', letterSpacing: 1, mb: 0.5 }}>
+                    Login
+                </Typography>
+                <Typography variant="subtitle1" color="text.secondary">
+                    Please enter your username and password to sign in
+                </Typography>
+            </Paper>
+            <Paper
+                elevation={4}
+                sx={{
+                    background: '#fff',
+                    borderRadius: 3,
+                    boxShadow: 6,
+                    px: { xs: 2, md: 6 },
+                    py: { xs: 2, md: 3 },
+                    width: { xs: '98%', md: '95%' },
+                    maxWidth: 600,
+                    display: 'flex',
+                    flexDirection: 'column',
+                }}
+            >
+                <form onSubmit={handleSubmit}>
+                    <Box display="flex" flexDirection="column" gap={3}>
+                        <TextField
+                            label="Username"
+                            variant="outlined"
+                            value={formData.username}
+                            onChange={(e) => setFormData(prevState => ({...prevState, username: e.target.value}))}
+                            required
+                            autoFocus
+                        />
+                        <TextField
+                            label="Password"
+                            variant="outlined"
+                            type="password"
+                            value={formData.password}
+                            onChange={(e) => setFormData(prevState => ({...prevState, password: e.target.value}))}
+                            required
+                        />
+                        {isConfirm && (
+                            <Box>
+                                <Typography variant="body2" color="primary">Check your inbox for an email from Trackeats.</Typography>
+                                <Typography variant="body2">Click on the link in that email (or paste it into a browser) to complete registration and activate your account. Then you will be able to log in.</Typography>
+                            </Box>
+                        )}
+                        <Button variant="contained" color="primary" type="submit" disabled={loginIsDisabled} sx={{ height: 48 }}>
+                            Login
+                        </Button>
+                        <Typography variant="body2">Not a TrackEats user yet? <RouterLink to="/register">Register here</RouterLink>.</Typography>
+                        {loginMessage && (
+                            <Typography className="errorText" color="error">{loginMessage}</Typography>
+                        )}
+                    </Box>
+                </form>
+            </Paper>
+        </Box>
     );
 }
 
