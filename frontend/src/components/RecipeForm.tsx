@@ -491,7 +491,7 @@ function RecipeForm() {
                             <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>Selected Ingredients</Typography>
                             <Box sx={{ maxHeight: 400, minHeight: 400, overflowY: 'auto', border: '1px solid', borderColor: 'divider', borderRadius: 1 }}>
                                 <IngredientsTable
-                                    data={ingredients}
+                                    data={[...ingredients].sort((a,b) => a.ordinal - b.ordinal)}
                                     setSelectedRowId={handleIngredientRowSelect}
                                     selectedRowId={selectedIngredientRowId} />
                             </Box>
