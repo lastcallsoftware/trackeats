@@ -3,7 +3,7 @@ import React, { useContext, useEffect } from 'react';
 import { IRecipe, DataContext } from "./DataProvider";
 import { getCuisineLabel } from './Cuisines';
 import { useNavigate } from 'react-router-dom';
-import TruncatedCellWithTooltip from './TruncatedCellWithTooltip';
+import TruncatedCell from './TruncatedCell';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
@@ -340,9 +340,9 @@ const RecipesTable: React.FC<IRecipesTableProps> = ({setSelectedRowId, paginatio
                                         whiteSpace: 'normal',
                                     })}
                                 >
-                                    <TruncatedCellWithTooltip>
+                                    <TruncatedCell>
                                         {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                                    </TruncatedCellWithTooltip>
+                                    </TruncatedCell>
                                 </TableCell>
                             ))}
                         </TableRow>
