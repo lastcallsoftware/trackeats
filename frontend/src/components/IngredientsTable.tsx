@@ -28,7 +28,7 @@ const columns = [
 
 interface IngredientsTableProps {
     data: IIngredient[];
-    setSelectedRowId?: React.Dispatch<React.SetStateAction<number[] | null>>;
+    setSelectedRowId?: (id: number[] | null) => void;
     selectedRowId?: number[] | null;
 }
 

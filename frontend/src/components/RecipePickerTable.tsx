@@ -17,15 +17,15 @@ import MuiPagination from "@mui/material/Pagination";
 const PAGE_SIZE = 10;
 
 interface RecipePickerTableProps {
-    setSelectedRowId: React.Dispatch<React.SetStateAction<number | null>>;
+    setSelectedRowId: (id: number | null) => void;
+    selectedRowId: number | null;
     excludeRecipeId?: number;   // optionally hide the recipe being edited (can't add itself)
 }
 
-const RecipePickerTable: React.FC<RecipePickerTableProps> = ({ setSelectedRowId, excludeRecipeId }) => {
+const RecipePickerTable: React.FC<RecipePickerTableProps> = ({ setSelectedRowId, selectedRowId, excludeRecipeId }) => {
     const context = useContext(DataContext);
     if (!context) throw Error("RecipePickerTable must be inside a DataProvider");
 
-    const [selectedId, setSelectedId] = useState<number | null>(null);
     const [filter, setFilter] = useState("");
     const [page, setPage] = useState(1);
     const [sort, setSort] = useState<{ key: string; dir: 'asc' | 'desc' } | null>(null);
@@ -69,13 +69,7 @@ const RecipePickerTable: React.FC<RecipePickerTableProps> = ({ setSelectedRowId,
 
     const handleClick = (recipe: IRecipe) => {
         const id = recipe.id ?? null;
-        if (selectedId === id) {
-            setSelectedId(null);
-            setSelectedRowId(null);
-        } else {
-            setSelectedId(id);
-            setSelectedRowId(id);
-        }
+        setSelectedRowId(selectedRowId === id ? null : id);
     };
 
     const headerSx = {
@@ -140,17 +134,17 @@ const RecipePickerTable: React.FC<RecipePickerTableProps> = ({ setSelectedRowId,
                     </TableHead>
                     <TableBody>
                         {rows.map((recipe) => {
-                            const isSelected = recipe.id === selectedId;
+                            const isSelected = recipe.id === selectedRowId;
                             return (
                                 <TableRow
                                     key={recipe.id}
                                     hover
                                     onClick={() => handleClick(recipe)}
-                                    sx={{
+                                    sx={(theme: Theme) => ({
                                         cursor: "pointer",
-                                        ...(isSelected ? ((theme: Theme) => ({ backgroundColor: `${theme.palette.table.rowSelectedBg} !important` })) : {}),
-                                    }}
-                                >
+                                        ...(isSelected ? { backgroundColor: `${theme.palette.table.rowSelectedBg} !important` } : {}),
+                                    })}
+                                    >
                                     <TableCell sx={cellSx} title={getCuisineLabel(recipe.cuisine) ?? ''}>{getCuisineLabel(recipe.cuisine)}</TableCell>
                                     <TableCell sx={cellSx} title={recipe.name}>{recipe.name}</TableCell>
                                     <TableCell sx={cellSx} title={recipe.nutrition?.serving_size_description ?? ''}>{recipe.nutrition?.serving_size_description}</TableCell>

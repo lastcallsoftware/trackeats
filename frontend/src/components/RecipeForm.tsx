@@ -81,9 +81,25 @@ function RecipeForm() {
         navigate("/recipes", { state: { } })
     }
 
+    const handleIngredientRowSelect = (id: number[] | null) => {
+        setSelectedIngredientRowId(id);
+        if (id !== null) setSelectedFoodOrRecipeRowId(null);
+    };
+
+    const handleFoodOrRecipeRowSelect = (id: number | null) => {
+        setSelectedFoodOrRecipeRowId(id);
+        if (id !== null) setSelectedIngredientRowId(null);
+    };
+
     const generateSummary = (nutrition: INutrition, food?: IFood, recipe?: IRecipe) => {
         return generateIngredientSummary(nutrition, food, recipe, ingredientServings);
     }
+
+    const findIngredient = (rowId: number[]) =>
+        ingredients.find(item =>
+            (item.food_ingredient_id ?? 0) === rowId[0]
+            && (item.recipe_ingredient_id ?? 0) === rowId[1]
+        );
 
     const updateNutrition = (nutritionA: INutrition, nutritionB: INutrition, servings: number, modifier: number): void => {
         nutritionA.calories         += nutritionB.calories * servings * modifier;
@@ -144,7 +160,7 @@ function RecipeForm() {
         let modifier: number = 1;
         let ingredient_serving_price = 0;
 
-        const ingredient: IIngredient|undefined = ingredients.find((item: IIngredient) => item.food_ingredient_id === selectedIngredientRowId[0] && item.recipe_ingredient_id === selectedIngredientRowId[1]);
+        const ingredient: IIngredient|undefined = findIngredient(selectedIngredientRowId)
         if (!ingredient) { setErrorMessage("Ingredient not found"); return }
 
         if (ingredient.food_ingredient_id) {
@@ -175,7 +191,7 @@ function RecipeForm() {
         if (!selectedIngredientRowId) return
 
         let modifier: number = -1;
-        const ingredient: IIngredient|undefined = ingredients.find((item: IIngredient) => item.food_ingredient_id === selectedIngredientRowId[0] && item.recipe_ingredient_id === selectedIngredientRowId[1]);
+        const ingredient: IIngredient|undefined = findIngredient(selectedIngredientRowId)
         if (!ingredient) { setErrorMessage("Unable to find Ingredient " + selectedIngredientRowId[0] + "/" + selectedIngredientRowId[1]); return }
 
         let nutrition: INutrition;
@@ -203,34 +219,44 @@ function RecipeForm() {
 
     const moveIngredientUp = (e: { preventDefault: () => void; }) => {
         e.preventDefault();
-        if (!selectedIngredientRowId) return
+        if (!selectedIngredientRowId) return;
 
-        const ingredient: IIngredient|undefined = ingredients.find((item: IIngredient) => item.food_ingredient_id === selectedIngredientRowId[0] && item.recipe_ingredient_id === selectedIngredientRowId[1]);
+        const ingredient: IIngredient|undefined = findIngredient(selectedIngredientRowId)
         if (!ingredient) { setErrorMessage("Unable to find Ingredient " + selectedIngredientRowId[0] + "/" + selectedIngredientRowId[1]); return }
         if (ingredient.ordinal <= 0) return
 
         const prevIngredient: IIngredient|undefined = ingredients.find((item: IIngredient) => item.ordinal == (ingredient.ordinal - 1));
         if (!prevIngredient) { setErrorMessage("Unable to find Ingredient with ordinal " + (ingredient.ordinal - 1)); return }
 
-        prevIngredient.ordinal = ingredient.ordinal
-        ingredient.ordinal = ingredient.ordinal - 1
-        setIngredients([...ingredients])
+        const index = ingredients.findIndex(item => item === ingredient);
+        if (index <= 0) return;
+
+        const newIngredients = [...ingredients];
+        [newIngredients[index - 1], newIngredients[index]] = [newIngredients[index], newIngredients[index - 1]];
+        newIngredients[index].ordinal = index;
+        newIngredients[index - 1].ordinal = index - 1;
+        setIngredients(newIngredients);
     }
 
     const moveIngredientDown = (e: { preventDefault: () => void; }) => {
         e.preventDefault();
         if (!selectedIngredientRowId) return
 
-        const ingredient: IIngredient|undefined = ingredients.find((item: IIngredient) => item.food_ingredient_id === selectedIngredientRowId[0] && item.recipe_ingredient_id === selectedIngredientRowId[1]);
+        const ingredient: IIngredient|undefined = findIngredient(selectedIngredientRowId)
         if (!ingredient) { setErrorMessage("Unable to find Ingredient " + selectedIngredientRowId[0] + "/" + selectedIngredientRowId[1]); return }
         if (ingredient.ordinal >= ingredients.length - 1) return
 
         const nextIngredient: IIngredient|undefined = ingredients.find((item: IIngredient) => item.ordinal == ingredient.ordinal + 1);
-        if (!nextIngredient) { setErrorMessage("Unable to find Ingredient with ordinal " + (ingredient.ordinal - 1)); return }
+        if (!nextIngredient) { setErrorMessage("Unable to find Ingredient with ordinal " + (ingredient.ordinal + 1)); return }
 
-        nextIngredient.ordinal = ingredient.ordinal
-        ingredient.ordinal = ingredient.ordinal + 1
-        setIngredients([...ingredients])
+        const index = ingredients.findIndex(item => item === ingredient);
+        if (index >= ingredients.length - 1) return;
+
+        const newIngredients = [...ingredients];
+        [newIngredients[index + 1], newIngredients[index]] = [newIngredients[index], newIngredients[index + 1]];
+        newIngredients[index].ordinal = index;
+        newIngredients[index + 1].ordinal = index + 1;
+        setIngredients(newIngredients);
     }
 
     useEffect(() => {
@@ -457,7 +483,10 @@ function RecipeForm() {
                         <Box sx={{ flex: 1, minWidth: 0 }}>
                             <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>Selected Ingredients</Typography>
                             <Box sx={{ maxHeight: 400, minHeight: 400, overflowY: 'auto', border: '1px solid', borderColor: 'divider', borderRadius: 1 }}>
-                                <IngredientsTable data={ingredients} setSelectedRowId={setSelectedIngredientRowId} selectedRowId={selectedIngredientRowId} />
+                                <IngredientsTable
+                                    data={ingredients}
+                                    setSelectedRowId={handleIngredientRowSelect}
+                                    selectedRowId={selectedIngredientRowId} />
                             </Box>
                         </Box>
 
@@ -577,10 +606,13 @@ function RecipeForm() {
                                     </Box>
                             </Box>
                             {selectedIngredientList === IngredientTypes.FOOD_INGREDIENTS ? (
-                                <FoodPickerTable setSelectedRowId={setSelectedFoodOrRecipeRowId} />
+                                <FoodPickerTable
+                                    setSelectedRowId={handleFoodOrRecipeRowSelect} 
+                                    selectedRowId={selectedFoodOrRecipeRowId} />
                             ) : (
                                 <RecipePickerTable
-                                    setSelectedRowId={setSelectedFoodOrRecipeRowId}
+                                    setSelectedRowId={handleFoodOrRecipeRowSelect}
+                                    selectedRowId={selectedFoodOrRecipeRowId}
                                     excludeRecipeId={formData.id}
                                 />
                             )}

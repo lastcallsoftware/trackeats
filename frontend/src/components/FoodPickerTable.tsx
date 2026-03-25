@@ -16,14 +16,14 @@ import MuiPagination from "@mui/material/Pagination";
 const PAGE_SIZE = 10;
 
 interface FoodPickerTableProps {
-    setSelectedRowId: React.Dispatch<React.SetStateAction<number | null>>;
+    setSelectedRowId: (id: number | null) => void;
+    selectedRowId: number | null;
 }
 
-const FoodPickerTable: React.FC<FoodPickerTableProps> = ({ setSelectedRowId }) => {
+const FoodPickerTable: React.FC<FoodPickerTableProps> = ({setSelectedRowId, selectedRowId}) => {
     const context = useContext(DataContext);
     if (!context) throw Error("FoodPickerTable must be inside a DataProvider");
 
-    const [selectedId, setSelectedId] = useState<number | null>(null);
     const [filter, setFilter] = useState("");
     const [page, setPage] = useState(1);
     const [sort, setSort] = useState<{ key: string; dir: 'asc' | 'desc' } | null>(null);
@@ -67,13 +67,7 @@ const FoodPickerTable: React.FC<FoodPickerTableProps> = ({ setSelectedRowId }) =
 
     const handleClick = (food: IFood) => {
         const id = food.id ?? null;
-        if (selectedId === id) {
-            setSelectedId(null);
-            setSelectedRowId(null);
-        } else {
-            setSelectedId(id);
-            setSelectedRowId(id);
-        }
+        setSelectedRowId(selectedRowId === id ? null : id);
     };
 
     const headerSx = {
@@ -140,16 +134,16 @@ const FoodPickerTable: React.FC<FoodPickerTableProps> = ({ setSelectedRowId }) =
                     </TableHead>
                     <TableBody>
                         {rows.map((food) => {
-                            const isSelected = food.id === selectedId;
+                            const isSelected = food.id === selectedRowId;
                             return (
                                 <TableRow
                                     key={food.id}
                                     hover
                                     onClick={() => handleClick(food)}
-                                    sx={{
+                                    sx={(theme: Theme) => ({
                                         cursor: "pointer",
-                                        ...(isSelected ? ((theme: Theme) => ({ backgroundColor: `${theme.palette.table.rowSelectedBg} !important` })) : {}),
-                                    }}
+                                        ...(isSelected ? { backgroundColor: `${theme.palette.table.rowSelectedBg} !important` } : {}),
+                                    })}
                                 >
                                     <TableCell sx={cellSx} title={food.vendor ?? ''}>{food.vendor}</TableCell>
                                     <TableCell sx={cellSx} title={food.name}>{food.name}</TableCell>
