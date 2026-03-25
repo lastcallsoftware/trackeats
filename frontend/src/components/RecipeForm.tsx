@@ -68,6 +68,7 @@ function RecipeForm() {
 
     const handleSubmit = async (e: { preventDefault: () => void; }) => {
         e.preventDefault();
+        setErrorMessage("");
         if (isEdit) {
             await context.updateRecipe(formData, ingredients);
         } else {
@@ -78,6 +79,7 @@ function RecipeForm() {
 
     const handleCancel = (e: { preventDefault: () => void; }) => {
         e.preventDefault();
+        setErrorMessage("");
         navigate("/recipes", { state: { } })
     }
 
@@ -121,6 +123,7 @@ function RecipeForm() {
 
     const addIngredient = (e: { preventDefault: () => void; }) => {
         e.preventDefault();
+        setErrorMessage("");
         if (!selectedFoodOrRecipeRowId) return
 
         let nutrition: INutrition;
@@ -151,6 +154,7 @@ function RecipeForm() {
 
     const updateIngredient = (e: { preventDefault: () => void; }) => {
         e.preventDefault();
+        setErrorMessage("");
         if (!selectedIngredientRowId) return
 
         let summary: string|undefined = undefined
@@ -188,6 +192,7 @@ function RecipeForm() {
 
     const removeIngredient = (e: { preventDefault: () => void; }) => {
         e.preventDefault();
+        setErrorMessage("");
         if (!selectedIngredientRowId) return
 
         let modifier: number = -1;
@@ -219,6 +224,7 @@ function RecipeForm() {
 
     const moveIngredientUp = (e: { preventDefault: () => void; }) => {
         e.preventDefault();
+        setErrorMessage("");
         if (!selectedIngredientRowId) return;
 
         const ingredient: IIngredient|undefined = findIngredient(selectedIngredientRowId)
@@ -240,6 +246,7 @@ function RecipeForm() {
 
     const moveIngredientDown = (e: { preventDefault: () => void; }) => {
         e.preventDefault();
+        setErrorMessage("");
         if (!selectedIngredientRowId) return
 
         const ingredient: IIngredient|undefined = findIngredient(selectedIngredientRowId)

@@ -3,6 +3,7 @@ import React, { useContext, useEffect } from 'react';
 import { IRecipe, DataContext } from "./DataProvider";
 import { getCuisineLabel } from './Cuisines';
 import { useNavigate } from 'react-router-dom';
+import TruncatedCellWithTooltip from './TruncatedCellWithTooltip';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
@@ -261,7 +262,7 @@ const RecipesTable: React.FC<IRecipesTableProps> = ({setSelectedRowId, paginatio
                 </colgroup>
                 <TableHead>
                     {table.getHeaderGroups().map((headerGroup) => (
-                        <TableRow key={headerGroup.id}>
+                        <TableRow key={headerGroup.id} sx={{ height: '2.5rem' }}>
                             {headerGroup.headers.map((header) =>
                                 header.isPlaceholder ? (
                                     <TableCell
@@ -320,7 +321,10 @@ const RecipesTable: React.FC<IRecipesTableProps> = ({setSelectedRowId, paginatio
                             hover
                             onClick={() => handleClick(row)}
                             onDoubleClick={() => handleDoubleClick(row)}
-                            sx={row.getIsSelected() ? (theme => ({ backgroundColor: `${theme.palette.table.rowSelectedBg} !important` })) : {}}
+                            sx={theme => ({
+                                ...(row.getIsSelected() ? { backgroundColor: `${theme.palette.table.rowSelectedBg} !important` } : {}),
+                                height: '2.5rem',
+                            })}
                         >
                             {row.getVisibleCells().map((cell) => (
                                 <TableCell
@@ -330,11 +334,15 @@ const RecipesTable: React.FC<IRecipesTableProps> = ({setSelectedRowId, paginatio
                                         borderBottom: `1px solid ${theme.palette.table.rowBorder}`,
                                         fontSize: 14,
                                         padding: '2px',
-                                        height: '2rem',
+                                        height: '2.5rem',
+                                        maxHeight: '2.5rem',
                                         textAlign: 'center',
+                                        whiteSpace: 'normal',
                                     })}
                                 >
-                                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                                    <TruncatedCellWithTooltip>
+                                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                                    </TruncatedCellWithTooltip>
                                 </TableCell>
                             ))}
                         </TableRow>
