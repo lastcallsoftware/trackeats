@@ -1,9 +1,8 @@
 import { useState, useEffect } from "react"
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { IFood, IRecipe, IIngredient, INutrition } from "./DataProvider";
-import { useData } from "@/utils/useData";
+import { useData, Recipe } from "@/utils/useData";
 import { cuisines } from "./Cuisines";
-
 import IngredientsTable from "./IngredientsTable";
 import FoodPickerTable from "./FoodPickerTable";
 import RecipePickerTable from "./RecipePickerTable";
@@ -28,27 +27,11 @@ function RecipeForm() {
     const [searchParams] = useSearchParams();
     const { foods, recipes, addRecipe, updateRecipe, errorMessage, setErrorMessage } = useData();
 
-    // Set the (default) form data.
-    const emptyFormData: IRecipe = {
-        cuisine: "",
-        name: "",
-        total_yield: "",
-        servings: 0,
-        nutrition: {
-            serving_size_description: "", serving_size_oz: 0, serving_size_g: 0,
-            calories: 0, total_fat_g: 0, saturated_fat_g: 0, trans_fat_g: 0,
-            cholesterol_mg: 0, sodium_mg: 0, total_carbs_g: 0, fiber_g: 0, total_sugar_g: 0, added_sugar_g: 0,
-            protein_g: 0, vitamin_d_mcg: 0, calcium_mg: 0, iron_mg: 0, potassium_mg: 0,
-        },
-        price: 0,
-        price_per_calorie: 0
-    }
-
     const { id } = useParams();
     const isEditMode = Boolean(id)
     const recipe = isEditMode ? recipes.find(f => f.id === Number(id)) : null;
     const [formData, setFormData] = useState<IRecipe>(() => {
-        return recipe || emptyFormData;
+        return recipe || new Recipe();
     });
 
     const [selectedIngredientRowId, setSelectedIngredientRowId] = useState<number[] | null>(null)

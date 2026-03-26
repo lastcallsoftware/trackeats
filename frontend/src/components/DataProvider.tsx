@@ -166,6 +166,7 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
         fetchData();
     }, [access_token, handleError]);
 
+
     // Add Food
     const addFood = async (food: IFood): Promise<void> => {
         setErrorMessage("");

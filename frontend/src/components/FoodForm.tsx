@@ -4,7 +4,7 @@ import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { IFood } from "./DataProvider";
 import { foodGroups } from "./FoodGroups";
 import TitleCard from "./TitleCard";
-import { useData } from "@/utils/useData";
+import { useData, Food } from "@/utils/useData";
 import {
     Grid,
     Paper,
@@ -21,23 +21,11 @@ function FoodForm() {
     const [searchParams] = useSearchParams();
     const { foods, addFood, updateFood, errorMessage, setErrorMessage } = useData();
 
-    const emptyFormData: IFood = {
-        group: "", name: "", subtype: "", description: "", vendor: "",
-        size_description: "", size_oz: 0, size_g: 0, servings: 0,
-        nutrition: {
-            serving_size_description: "", serving_size_oz: 0, serving_size_g: 0,
-            calories: 0, total_fat_g: 0, saturated_fat_g: 0, trans_fat_g: 0,
-            cholesterol_mg: 0, sodium_mg: 0, total_carbs_g: 0, fiber_g: 0, total_sugar_g: 0, added_sugar_g: 0,
-            protein_g: 0, vitamin_d_mcg: 0, calcium_mg: 0, iron_mg: 0, potassium_mg: 0
-        },
-        price: 0, price_per_serving: 0, price_per_oz: 0, price_per_calorie: 0, price_date: "", shelf_life: ""
-    }
-
     const { id } = useParams();
     const isEditMode = Boolean(id)
     const food = isEditMode ? foods.find(f => f.id === Number(id)) : null;
     const [formData, setFormData] = useState<IFood>(() => {
-        return food || emptyFormData;
+        return food || new Food();
     });
     
     // Scroll to top on mount
