@@ -1012,7 +1012,7 @@ class Recipe(db.Model):
         its child records.
         """
         try:
-            recipe_id = data["recipe_id"]
+            recipe_id = data["id"]
             nutrition_id = data["nutrition_id"]
             nutrition = data["nutrition"]
 
