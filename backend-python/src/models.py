@@ -525,7 +525,8 @@ class Food(db.Model):
         self.size_oz = data.get("size_oz")
         self.size_g = data.get("size_g")
         self.servings = data["servings"]
-        self.nutrition = Nutrition(data.get("nutrition"))
+        self.nutrition_id = data.get("nutrition_id")
+        #self.nutrition = Nutrition(data.get("nutrition"))
         self.price = data.get("price")
         # This code sets the DAO field to None if the date string is None
         # OR if its stripped length is 0 (e.g., if is's all spaces)
