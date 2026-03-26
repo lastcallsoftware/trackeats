@@ -152,7 +152,7 @@ function RecipesPage() {
                             fontWeight: 500,
                             boxShadow: '0 1px 4px 0 rgba(229, 57, 53, 0.08)',
                             textAlign: 'left',
-                            maxWidth: 600,
+                            width: '100%'
                         }}
                     >
                         {errorMessage}
