@@ -56,7 +56,7 @@ function RecipeForm() {
             await addRecipe(formData, ingredients);
         }
 
-        const returnPath = searchParams.get("returnTo") || "/foods"
+        const returnPath = searchParams.get("returnTo") || "/recipes"
         navigate(returnPath)
     }
 
@@ -64,7 +64,7 @@ function RecipeForm() {
         e.preventDefault();
         setErrorMessage("");
 
-        const returnPath = searchParams.get("returnTo") || "/foods"
+        const returnPath = searchParams.get("returnTo") || "/recipes"
         navigate(returnPath)
     }
 
