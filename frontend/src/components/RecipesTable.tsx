@@ -1,6 +1,19 @@
-import { ColumnFiltersState, createColumnHelper, flexRender, getCoreRowModel, getFilteredRowModel, getPaginationRowModel, getSortedRowModel, Row, SortingState, TableOptions, useReactTable } from '@tanstack/react-table';
-import React, { useContext, useEffect } from 'react';
-import { IRecipe, DataContext } from "./DataProvider";
+import { 
+    ColumnFiltersState, 
+    createColumnHelper, 
+    flexRender, 
+    getCoreRowModel, 
+    getFilteredRowModel, 
+    getPaginationRowModel, 
+    getSortedRowModel, 
+    Row,
+    SortingState, 
+    TableOptions, 
+    useReactTable
+} from '@tanstack/react-table';
+import React, { useEffect } from 'react';
+import { IRecipe } from "./DataProvider";
+import { useData } from "@/utils/useData";
 import { getCuisineLabel } from './Cuisines';
 import { useNavigate } from 'react-router-dom';
 import TruncatedCell from './TruncatedCell';
@@ -12,8 +25,8 @@ import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import Paper from '@mui/material/Paper';
 import Box from '@mui/material/Box';
-
 import FilterWidget from './FilterWidget';
+
 
 // Define the table's columns
 const columnHelper = createColumnHelper<IRecipe>()
@@ -180,10 +193,7 @@ const RecipesTable: React.FC<IRecipesTableProps> = ({setSelectedRowId, paginatio
     const navigate = useNavigate()
     const [sorting, setSorting] = React.useState<SortingState>([])
     const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
-    const context = useContext(DataContext)
-    if (!context)
-        throw Error("useDataContext can only be used inside a DataProvider")
-    const recipes = context.recipes;
+    const { recipes } = useData();
 
     // Define the table's properties.
     const tableOptions: TableOptions<IRecipe> = {
@@ -228,8 +238,9 @@ const RecipesTable: React.FC<IRecipesTableProps> = ({setSelectedRowId, paginatio
             row.toggleSelected()
         // Retrieve the selected record from the context and send it to the edit form.
         const record_id:number = row.getValue("id")
-        const recipe = recipes.find((item:IRecipe) => item.id == record_id);
-        navigate("/recipeForm", { state: { recipe } });
+        const currentPath = window.location.pathname + window.location.search;
+        const editUrl = `/recipe/edit/${record_id}?returnTo=${encodeURIComponent(currentPath)}`;
+        navigate(editUrl);
     }
     
     const RECIPES_FILTERS_STORAGE = "recipes_filters_storage"

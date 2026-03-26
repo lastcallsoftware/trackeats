@@ -1,9 +1,10 @@
 import { useEffect } from "react";
-import { useContext, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
-import { IFood, DataContext } from "./DataProvider";
+import { useState } from "react";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { IFood } from "./DataProvider";
 import { foodGroups } from "./FoodGroups";
 import TitleCard from "./TitleCard";
+import { useData } from "@/utils/useData";
 import {
     Grid,
     Paper,
@@ -16,8 +17,10 @@ import {
 } from '@mui/material';
 
 function FoodForm() {
-    const location = useLocation();
-    const navigate = useNavigate()
+    const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
+    const { foods, addFood, updateFood, errorMessage, setErrorMessage } = useData();
+
     const emptyFormData: IFood = {
         group: "", name: "", subtype: "", description: "", vendor: "",
         size_description: "", size_oz: 0, size_g: 0, servings: 0,
@@ -29,51 +32,41 @@ function FoodForm() {
         },
         price: 0, price_per_serving: 0, price_per_oz: 0, price_per_calorie: 0, price_date: "", shelf_life: ""
     }
-    // location.state is non-null only if it has been set manually, and that's 
-    // the case only when the user clicked the Edit button on the FoodPage.
-    // Otherwise they clicked the New button.
-    const isEdit = (location.state != null);
 
-    // Again, the location.state is set when the user clicked the Edit button.
-    // The syntax below is quite clever: if location.state IS NOT null, the
-    // OR condition short-circuits and the part after the || is never evaluated.
-    // If location.state IS null, the ? makes the first half of the condition
-    // evaluate to null, so the second half of the condition is evaluated.
-    // The net effect is that if we come in on an Edit, the defaultFormData
-    // is the data we're editing; otherwise it's the emptyFormData.
-    const defaultFormData = location.state?.food || emptyFormData;
-    const [formData, setFormData] = useState<IFood>(defaultFormData);
-
-    // const saveIsDisabled = false;
-
+    const { id } = useParams();
+    const isEditMode = Boolean(id)
+    const food = isEditMode ? foods.find(f => f.id === Number(id)) : null;
+    const [formData, setFormData] = useState<IFood>(() => {
+        return food || emptyFormData;
+    });
+    
     // Scroll to top on mount
     useEffect(() => {
         window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
     }, []);
-    const context = useContext(DataContext)
-    if (!context)
-        throw Error("useDataContext can only be used inside a DataProvider")
-    const errorMessage = context.errorMessage;
 
     const handleSubmit = async (e: { preventDefault: () => void; }) => {
-        // Prevent default behavior for form submission (namely, sending the form to the server)
         e.preventDefault();
+        setErrorMessage("")
 
         // Save the new Food
-        if (isEdit)
-            await context.updateFood(formData);
+        if (isEditMode)
+            await updateFood(formData);
         else
-            await context.addFood(formData);
+            await addFood(formData);
         
         // Return to the Foods page
-        navigate("/foods")
+        const returnPath = searchParams.get("returnTo") || "/foods"
+        navigate(returnPath)
     }
 
     const handleCancel = (e: { preventDefault: () => void; }) => {
         e.preventDefault();
+        setErrorMessage("")
 
         // Return to the Foods page
-        navigate("/foods", { state: { } })
+        const returnPath = searchParams.get("returnTo") || "/foods"
+        navigate(returnPath)
     }
 
     return (
@@ -87,7 +80,7 @@ function FoodForm() {
                 alignItems: 'center',
             }}
         >
-            <TitleCard title={isEdit ? 'Edit Food' : 'Add Food'} subtitle="Enter food and nutrition details" />
+            <TitleCard title={isEditMode ? 'Edit Food' : 'Add Food'} subtitle="Enter food and nutrition details" />
             <Paper elevation={3} sx={{ maxWidth: 700, width: '100%', p: 4 }}>
             <form onSubmit={handleSubmit} autoComplete="off">
                 <Grid container spacing={2}>

@@ -1,5 +1,6 @@
-import React, { useContext, useState } from "react";
-import { DataContext, IFood } from "./DataProvider";
+import React, { useState } from "react";
+import { IFood } from "./DataProvider";
+import { useData } from "@/utils/useData";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
 import TableCell from "@mui/material/TableCell";
@@ -7,7 +8,6 @@ import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import Paper from "@mui/material/Paper";
-
 import Box from "@mui/material/Box";
 import { Theme } from '@mui/material/styles';
 import MuiPagination from "@mui/material/Pagination";
@@ -21,9 +21,7 @@ interface FoodPickerTableProps {
 }
 
 const FoodPickerTable: React.FC<FoodPickerTableProps> = ({setSelectedRowId, selectedRowId}) => {
-    const context = useContext(DataContext);
-    if (!context) throw Error("FoodPickerTable must be inside a DataProvider");
-
+    const { foods } = useData();
     const [filter, setFilter] = useState("");
     const [page, setPage] = useState(1);
     const [sort, setSort] = useState<{ key: string; dir: 'asc' | 'desc' } | null>(null);
@@ -36,7 +34,7 @@ const FoodPickerTable: React.FC<FoodPickerTableProps> = ({setSelectedRowId, sele
         setPage(1);
     };
 
-    const filtered = context.foods.filter((f: IFood) => {
+    const filtered = foods.filter((f: IFood) => {
         const q = filter.toLowerCase();
         return (
             !q ||

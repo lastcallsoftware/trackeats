@@ -1,7 +1,8 @@
-import { generateIngredientSummary } from "../utils/generateIngredientSummary";
-import React, { createContext, useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import { DataContext } from '@/utils/useData';
+import { generateIngredientSummary } from "../utils/generateIngredientSummary";
 
 // The purpose of this component is to provide a context that can be used to share
 // data between components.  It wraps the children in a context provider that
@@ -79,6 +80,7 @@ export type DataContextType = {
     ingredients: IIngredient[];
     isLoading: boolean;
     errorMessage: string | null;
+    setErrorMessage: (msg: string | null) => void;
     addFood: (food: IFood) => Promise<void>;
     updateFood: (food: IFood) => Promise<void>;
     deleteFood: (food_id: number) => Promise<void>;
@@ -89,9 +91,6 @@ export type DataContextType = {
     addIngredients: (recipe_id: number, ingredients: IIngredient[]) => Promise<void>;
     removeIngredients: (recipe_id: number) => Promise<void>;
 }
-
-// eslint-disable-next-line react-refresh/only-export-components
-export const DataContext = createContext<DataContextType|null>(null);
 
 export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) => {
     const [foods, setFoods] = useState<IFood[]>([])
@@ -308,6 +307,7 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
             ingredients,
             isLoading,
             errorMessage, 
+            setErrorMessage,
             addFood, 
             updateFood, 
             deleteFood,
@@ -322,3 +322,4 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
         </DataContext.Provider>
     );
 }
+

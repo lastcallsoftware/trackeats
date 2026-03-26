@@ -1,41 +1,53 @@
-import { useContext, useState } from "react";
-import { DataContext, IRecipe } from "./DataProvider";
+import { useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { MdAddCircleOutline, MdEdit, MdRemoveCircleOutline } from "react-icons/md";
-import RecipesTable from "./RecipesTable";
-import Pagination from "./Pagination";
-import { useNavigate } from "react-router-dom";
-import Button from '@mui/material/Button';
 import Box from '@mui/material/Box';
+import Button from '@mui/material/Button';
 import Paper from '@mui/material/Paper';
 import Stack from '@mui/material/Stack';
+import { useData } from "@/utils/useData";
+import RecipesTable from "./RecipesTable";
+import Pagination from "./Pagination";
 import TitleCard from './TitleCard';
 
 function RecipesPage() {
     const navigate = useNavigate();
     const [selectedRowId, setSelectedRowId] = useState<number|null>(null)
-    const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
-    const context = useContext(DataContext)
-    if (!context)
-        throw Error("useDataContext can only be used inside a DataProvider")
-    const recipes = context.recipes
-    const deleteRecipe = context.deleteRecipe;
-    const errorMessage = context.errorMessage;
+    const { recipes, deleteRecipe, errorMessage, setErrorMessage } = useData();
+
+    // Read page from URL as 1-based, convert to 0-based for state
+    const [searchParams, setSearchParams] = useSearchParams();
+    const currentPage = Math.max(1, Number(searchParams.get("page")) || 1);
+    const pageSize = Number(searchParams.get("pageSize")) || 10;
+    const pagination = { pageIndex: currentPage - 1, pageSize };
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const setPagination = (updater: any) => {
+        const nextValue = typeof updater === "function" ? updater(pagination) : updater;
+        // Write page to URL as 1-based
+        setSearchParams({
+            ...Object.fromEntries(searchParams),
+            page: (nextValue.pageIndex + 1).toString(),
+            pageSize: nextValue.pageSize.toString()
+        });
+    }
+
 
     const addRecord = () => {
-        // Go to the edit form
-        navigate("/recipeForm");
+        setErrorMessage("")
+        navigate("/recipe/add");
     }
 
     const editRecord = () => {
+        setErrorMessage("")
         if (selectedRowId) {
-            // Get the selected record and go to the edit form
-            const recipe = recipes.find((item:IRecipe) => item.id == selectedRowId);
-            navigate("/recipeForm", { state: { recipe } });
+            const currentPath = window.location.pathname + window.location.search;
+            const editUrl = `/recipe/edit/${selectedRowId}?returnTo=${encodeURIComponent(currentPath)}`;
+            navigate(editUrl);
         }
     }
 
     const deleteRecord = () => {
-        // Get the selected record
+        setErrorMessage("")
         if (selectedRowId) {
             // Confirm the deletion request
             const confirmed = confirm("Delete record.  Are you sure?  This cannot be undone.")

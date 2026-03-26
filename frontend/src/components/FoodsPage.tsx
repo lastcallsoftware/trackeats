@@ -1,52 +1,63 @@
+import { useState } from "react";
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { MdAddCircleOutline, MdEdit, MdRemoveCircleOutline } from "react-icons/md";
-import Button from '@mui/material/Button';
-import FoodsTable from "./FoodsTable";
-import Pagination from "./Pagination";
-import { useContext, useState } from "react";
-import { useNavigate } from 'react-router-dom';
-import { IFood, DataContext } from "./DataProvider";
 import Box from '@mui/material/Box';
+import Button from '@mui/material/Button';
 import Paper from '@mui/material/Paper';
 import Stack from '@mui/material/Stack';
+import { useData } from "@/utils/useData";
+import FoodsTable from "./FoodsTable";
+import Pagination from "./Pagination";
 import TitleCard from './TitleCard';
 
 const FoodsPage = () => {
     const navigate = useNavigate();
     const [selectedRowId, setSelectedRowId] = useState<number|null>(null)
-    const context = useContext(DataContext)
-    if (!context)
-        throw Error("useDataContext can only be used inside a DataProvider")
-    const foods = context.foods;
+    const { foods, deleteFood, isLoading, errorMessage, setErrorMessage } = useData();
 
-    // Pagination state is now managed here
-    const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
+    // Read page from URL as 1-based, convert to 0-based for state
+    const [searchParams, setSearchParams] = useSearchParams();
+    const currentPage = Math.max(1, Number(searchParams.get("page")) || 1);
+    const pageSize = Number(searchParams.get("pageSize")) || 10;
+    const pagination = { pageIndex: currentPage - 1, pageSize };
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const setPagination = (updater: any) => {
+        const nextValue = typeof updater === "function" ? updater(pagination) : updater;
+        // Write page to URL as 1-based
+        setSearchParams({
+            ...Object.fromEntries(searchParams),
+            page: (nextValue.pageIndex + 1).toString(),
+            pageSize: nextValue.pageSize.toString()
+        });
+    }
 
     const addRecord = () => {
-        // Go to the edit form
-        navigate("/foodForm");
+        setErrorMessage("")
+        navigate("/food/add");
     }
 
     const editRecord = () => {
+        setErrorMessage("")
         if (selectedRowId) {
-            // Get the selected record and go to the edit form
-            const food = foods.find((item:IFood) => item.id == selectedRowId);
-            navigate("/foodForm", { state: { food } });
+            const currentPath = window.location.pathname + window.location.search;
+            const editUrl = `/food/edit/${selectedRowId}?returnTo=${encodeURIComponent(currentPath)}`;
+            navigate(editUrl);
         }
     }
 
     const deleteRecord = () => {
-        // Get the selected record
+        setErrorMessage("")
         if (selectedRowId) {
             // Confirm the deletion request
             const confirmed = confirm("Delete record.  Are you sure?  This cannot be undone.")
             if (confirmed) {
                 // Delete the record from the database and the foods list.
-                context.deleteFood(selectedRowId);
+                deleteFood(selectedRowId);
             }
         }
     }
 
-    if (context.isLoading) {
+    if (isLoading) {
         return (<p style={{ textAlign: 'center' }}>Loading...</p>)
     }
     return (
@@ -129,7 +140,7 @@ const FoodsPage = () => {
                     </Button>
                 </Stack>
 
-                {context.errorMessage && (
+                {errorMessage && (
                     <Box
                         role="alert"
                         sx={{
@@ -146,7 +157,7 @@ const FoodsPage = () => {
                             maxWidth: 600,
                         }}
                     >
-                        {context.errorMessage}
+                        {errorMessage}
                     </Box>
                 )}
             </Paper>

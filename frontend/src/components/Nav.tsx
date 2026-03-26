@@ -150,8 +150,10 @@ function Nav() {
                     <Route path="/login" element={<LoginPage storeTokenFunction={storeToken}/>} />
                     <Route path="/register" element={<RegisterPage />} />
                     <Route path="/confirm" element={<ConfirmUser/>} />
-                    <Route path="/foodForm" element={<FoodForm />} />
-                    <Route path="/recipeForm" element={<RecipeForm />} />
+                    <Route path="/food/add" element={<FoodForm />} />
+                    <Route path="/food/edit/:id" element={<FoodForm />} />
+                    <Route path="/recipe/add" element={<RecipeForm />} />
+                    <Route path="/recipe/edit/:id" element={<RecipeForm />} />
                 </Routes>
             </Box>
             <Footer />

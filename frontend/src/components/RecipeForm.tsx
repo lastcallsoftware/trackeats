@@ -1,6 +1,7 @@
-import { useContext, useState, useEffect } from "react"
-import { useLocation, useNavigate } from "react-router-dom";
-import { IFood, IRecipe, DataContext, IIngredient, INutrition } from "./DataProvider";
+import { useState, useEffect } from "react"
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { IFood, IRecipe, IIngredient, INutrition } from "./DataProvider";
+import { useData } from "@/utils/useData";
 import { cuisines } from "./Cuisines";
 
 import IngredientsTable from "./IngredientsTable";
@@ -23,8 +24,9 @@ import {
 } from '@mui/material';
 
 function RecipeForm() {
-    const location = useLocation();
     const navigate = useNavigate()
+    const [searchParams] = useSearchParams();
+    const { foods, recipes, addRecipe, updateRecipe, errorMessage, setErrorMessage } = useData();
 
     // Set the (default) form data.
     const emptyFormData: IRecipe = {
@@ -42,15 +44,12 @@ function RecipeForm() {
         price_per_calorie: 0
     }
 
-    const isEdit = (location.state != null);
-    const defaultFormData = location.state?.recipe || emptyFormData;
-    const [formData, setFormData] = useState<IRecipe>(defaultFormData);
-
-    const context = useContext(DataContext)
-    if (!context)
-        throw Error("useDataContext can only be used inside a DataProvider")
-
-    const [errorMessage, setErrorMessage] = useState(context.errorMessage)
+    const { id } = useParams();
+    const isEditMode = Boolean(id)
+    const recipe = isEditMode ? recipes.find(f => f.id === Number(id)) : null;
+    const [formData, setFormData] = useState<IRecipe>(() => {
+        return recipe || emptyFormData;
+    });
 
     const [selectedIngredientRowId, setSelectedIngredientRowId] = useState<number[] | null>(null)
     const [ingredientServings, setIngredientServings] = useState<number>(1)
@@ -60,8 +59,6 @@ function RecipeForm() {
 
     const [selectedFoodOrRecipeRowId, setSelectedFoodOrRecipeRowId] = useState<number|null>(null)
 
-
-
     const saveIsDisabled = false;
 
     const [ingredients, setIngredients] = useState<IIngredient[]>([])
@@ -69,18 +66,23 @@ function RecipeForm() {
     const handleSubmit = async (e: { preventDefault: () => void; }) => {
         e.preventDefault();
         setErrorMessage("");
-        if (isEdit) {
-            await context.updateRecipe(formData, ingredients);
+
+        if (isEditMode) {
+            await updateRecipe(formData, ingredients);
         } else {
-            await context.addRecipe(formData, ingredients);
+            await addRecipe(formData, ingredients);
         }
-        navigate("/recipes")
+
+        const returnPath = searchParams.get("returnTo") || "/foods"
+        navigate(returnPath)
     }
 
     const handleCancel = (e: { preventDefault: () => void; }) => {
         e.preventDefault();
         setErrorMessage("");
-        navigate("/recipes", { state: { } })
+
+        const returnPath = searchParams.get("returnTo") || "/foods"
+        navigate(returnPath)
     }
 
     const handleIngredientRowSelect = (id: number[] | null) => {
@@ -131,14 +133,14 @@ function RecipeForm() {
         let ingredient_serving_price = 0;
 
         if (selectedIngredientList === IngredientTypes.FOOD_INGREDIENTS) {
-            const food: IFood|undefined = context.foods.find((item: IFood) => item.id == selectedFoodOrRecipeRowId);
+            const food: IFood|undefined = foods.find((item: IFood) => item.id == selectedFoodOrRecipeRowId);
             if (!food) { setErrorMessage("Food " + selectedFoodOrRecipeRowId + " not found"); return }
             nutrition = food.nutrition
             const summary = generateSummary(food.nutrition, food, undefined)
             ingredient_serving_price = food.price/food.servings
             ingredients.push({food_ingredient_id: food.id, ordinal: ingredients.length, servings: ingredientServings, summary: summary});
         } else {
-            const recipe: IRecipe|undefined = context.recipes.find((item: IRecipe) => item.id == selectedFoodOrRecipeRowId);
+            const recipe: IRecipe|undefined = recipes.find((item: IRecipe) => item.id == selectedFoodOrRecipeRowId);
             if (!recipe) { setErrorMessage("Recipe " + selectedFoodOrRecipeRowId + " for Ingredient not found"); return }
             nutrition = recipe.nutrition
             const summary = generateSummary(recipe.nutrition, undefined, recipe)
@@ -168,12 +170,12 @@ function RecipeForm() {
         if (!ingredient) { setErrorMessage("Ingredient not found"); return }
 
         if (ingredient.food_ingredient_id) {
-            food = context.foods.find((item: IFood) => item.id == ingredient.food_ingredient_id);
+            food = foods.find((item: IFood) => item.id == ingredient.food_ingredient_id);
             if (!food) { setErrorMessage("Food " + ingredient.food_ingredient_id + " for Ingredient not found"); return }
             nutrition = food.nutrition
             ingredient_serving_price = food.price/food.servings
         } else if (ingredient.recipe_ingredient_id) {
-            recipe = context.recipes.find((item: IRecipe) => item.id === ingredient.recipe_ingredient_id);
+            recipe = recipes.find((item: IRecipe) => item.id === ingredient.recipe_ingredient_id);
             if (!recipe) { setErrorMessage("Recipe " + ingredient.recipe_ingredient_id + " for Ingredient not found"); return }
             nutrition = recipe.nutrition
             modifier = 1/recipe.servings
@@ -201,12 +203,12 @@ function RecipeForm() {
 
         let nutrition: INutrition;
         if (ingredient.food_ingredient_id) {
-            const food: IFood|undefined = context.foods.find((item: IFood) => item.id === ingredient.food_ingredient_id);
+            const food: IFood|undefined = foods.find((item: IFood) => item.id === ingredient.food_ingredient_id);
             if (!food) { setErrorMessage("Food " + ingredient.food_ingredient_id + " not found."); return }
             nutrition = food.nutrition
             setFormData(prev => ({ ...prev, price: prev.price - food.price * ingredient.servings / food.servings }));
         } else if (ingredient.recipe_ingredient_id) {
-            const recipe: IRecipe|undefined = context.recipes.find((item: IRecipe) => item.id === ingredient.recipe_ingredient_id);
+            const recipe: IRecipe|undefined = recipes.find((item: IRecipe) => item.id === ingredient.recipe_ingredient_id);
             if (!recipe) { setErrorMessage("Recipe " + ingredient.recipe_ingredient_id + " not found."); return }
             nutrition = recipe.nutrition
             modifier = -1/recipe.servings
@@ -334,10 +336,10 @@ function RecipeForm() {
                 }}
             >
                 <Typography variant="h4" sx={{ fontWeight: 700, color: 'primary.main', letterSpacing: 1, mb: 0.5 }}>
-                    {isEdit ? "Edit Recipe" : "New Recipe"}
+                    {isEditMode ? "Edit Recipe" : "New Recipe"}
                 </Typography>
                 <Typography variant="subtitle1" color="text.secondary">
-                    {isEdit ? "Update your recipe details and ingredients" : "Create a new recipe and add ingredients"}
+                    {isEditMode ? "Update your recipe details and ingredients" : "Create a new recipe and add ingredients"}
                 </Typography>
             </Paper>
             <Paper

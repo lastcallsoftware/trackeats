@@ -1,5 +1,6 @@
-import React, { useContext, useState } from "react";
-import { DataContext, IRecipe } from "./DataProvider";
+import React, { useState } from "react";
+import { IRecipe } from "./DataProvider";
+import { useData } from "@/utils/useData";
 import { getCuisineLabel } from "./Cuisines";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
@@ -8,7 +9,6 @@ import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import Paper from "@mui/material/Paper";
-
 import Box from "@mui/material/Box";
 import { Theme } from '@mui/material/styles';
 import MuiPagination from "@mui/material/Pagination";
@@ -23,9 +23,7 @@ interface RecipePickerTableProps {
 }
 
 const RecipePickerTable: React.FC<RecipePickerTableProps> = ({ setSelectedRowId, selectedRowId, excludeRecipeId }) => {
-    const context = useContext(DataContext);
-    if (!context) throw Error("RecipePickerTable must be inside a DataProvider");
-
+    const { recipes } = useData();
     const [filter, setFilter] = useState("");
     const [page, setPage] = useState(1);
     const [sort, setSort] = useState<{ key: string; dir: 'asc' | 'desc' } | null>(null);
@@ -38,7 +36,7 @@ const RecipePickerTable: React.FC<RecipePickerTableProps> = ({ setSelectedRowId,
         setPage(1);
     };
 
-    const filtered = context.recipes.filter((r: IRecipe) => {
+    const filtered = recipes.filter((r: IRecipe) => {
         if (excludeRecipeId !== undefined && r.id === excludeRecipeId) return false;
         const q = filter.toLowerCase();
         return (

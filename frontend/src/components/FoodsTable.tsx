@@ -11,9 +11,10 @@ import {
     TableOptions, 
     useReactTable 
 } from '@tanstack/react-table';
-import React, { useContext, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { IFood, DataContext } from "./DataProvider";
+import { IFood } from "./DataProvider";
+import { useData } from "@/utils/useData";
 import { getFoodGroupLabel } from './FoodGroups';
 import FilterWidget from './FilterWidget';
 //import TruncatedCellWithTooltip from './TruncatedCellWithTooltip';
@@ -263,15 +264,13 @@ const FoodsTable: React.FC<FoodsTableProps> = ({setSelectedRowId, pagination, se
     const navigate = useNavigate()
     const [sorting, setSorting] = React.useState<SortingState>([])
     const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
-    const context = useContext(DataContext)
-    if (!context)
-        throw Error("useDataContext can only be used inside a DataProvider")
+    const { foods } = useData();
 
     const FOOD_FILTERS_STORAGE = "food_filters_storage";
 
     // Define the table's properties.
     const tableOptions: TableOptions<IFood> = {
-        data: context.foods,
+        data: foods,
         columns: foodColumns,
         getCoreRowModel: getCoreRowModel(),
         getSortedRowModel: getSortedRowModel(),
@@ -320,10 +319,10 @@ const FoodsTable: React.FC<FoodsTableProps> = ({setSelectedRowId, pagination, se
     const handleDoubleClick = (row: Row<IFood>) => {
         if (!row.getIsSelected())
             row.toggleSelected()
-        // Retrieve the selected record from the context and send it to the edit form.
         const record_id:number = row.getValue("id")
-        const food = context.foods.find((item:IFood) => item.id == record_id);
-        navigate("/foodForm", { state: { food } });
+        const currentPath = window.location.pathname + window.location.search;
+        const editUrl = `/food/edit/${record_id}?returnTo=${encodeURIComponent(currentPath)}`;
+        navigate(editUrl);
     }
 
     // Restore filters on mount
