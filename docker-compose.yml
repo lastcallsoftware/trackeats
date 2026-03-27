@@ -88,7 +88,7 @@ services:
       DB_DATABASE_NAME: ${DB_DATABASE_NAME:-trackeats}
       DB_APP_USERNAME: ${DB_APP_USERNAME:?}
       DB_APP_PASSWORD: ${DB_APP_PASSWORD:?}
-      FLASK_APP: ${FLASK_APP:-src/app:create_app}
+      FLASK_APP: ${FLASK_APP:-src/app:minimal_app_config}
 
   db:
     container_name: trackeats-db
