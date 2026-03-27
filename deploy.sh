@@ -17,7 +17,7 @@ fi
 
 # Run any DB migrations necessary
 echo "Running database migrations..."
-run: docker compose run --rm migrate
+docker compose run --rm migrate
 
 # Update and restart containers
 echo "Updating containers with new images..."
