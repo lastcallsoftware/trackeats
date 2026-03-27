@@ -1,6 +1,9 @@
 # flask is our main application framework!
 flask
 
+# flask-migrate handles database updates for us
+flask-migrate
+
 # python-dotenv is a config library that helps load config values from .env
 # and other files.
 python-dotenv
