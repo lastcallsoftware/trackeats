@@ -15,6 +15,10 @@ if [ -z "${BACKEND_ENCRYPTION_KEY_B64:-}" ]; then
   exit 1
 fi
 
+# Run any DB migrations necessary
+echo "Running database migrations..."
+run: docker compose run --rm migrate
+
 # Update and restart containers
 echo "Updating containers with new images..."
 docker compose up -d

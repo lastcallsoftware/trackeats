@@ -104,11 +104,14 @@ class User(db.Model):
     id: Mapped[int] = mapped_column(primary_key=True)
     username: Mapped[str] = mapped_column(db.String(100), index=True, unique=True)
     status: Mapped[UserStatus] = mapped_column(db.Enum(UserStatus), nullable=False)
-    email: Mapped[bytes|None] = mapped_column(db.LargeBinary, nullable=True)
+    email: Mapped[bytes | None] = mapped_column(db.LargeBinary, nullable=True)
     created_at: Mapped[str] = mapped_column(db.DateTime, nullable=False)
     password_hash: Mapped[str] = mapped_column(db.String(64), nullable=False)
     confirmation_sent_at: Mapped[datetime.datetime | None] = mapped_column(db.DateTime, nullable=True)
-    confirmation_token: Mapped[str|None] = mapped_column(db.String(64), nullable=True)
+    confirmation_token: Mapped[str | None] = mapped_column(db.String(64), nullable=True)
+    seed_requested: Mapped[bool] = mapped_column(db.Boolean, nullable=False, default=False)
+    seed_version: Mapped[int | None] = mapped_column(db.Integer, nullable=True)
+    seeded_at: Mapped[datetime.datetime | None] = mapped_column(db.DateTime, nullable=True)
 
     def __init__(self, data: dict[str,Any]):
         self.username = data["username"]
@@ -118,16 +121,35 @@ class User(db.Model):
         self.password_hash = data["password_hash"]
         self.confirmation_sent_at = data.get("confirmation_sent_at")
         self.confirmation_token = data.get("confirmation_token")
+        self.seed_requested = data["seed_requested"]
+        self.seed_version = data.get("seed_version")
+        self.seeded_at = data.get("seeded_at")
         return self
 
     def __str__(self):
-        return f"<User {self.id} {self.username}, status: {self.status}, created_at: {self.created_at}, confirmation_sent_at: {self.confirmation_sent_at}>"
+        return (f"<User {self.id} {self.username}, "
+                f"status: {self.status}, "
+                f"created_at: {self.created_at}, "
+                f"confirmation_sent_at: {self.confirmation_sent_at}>"
+                f"seed_requested: {self.seed_requested}, "
+                f"seed_version: {self.seed_version}, "
+                f"seeded_at: {self.seeded_at}>")
 
     def __repr__(self):
         email = ""
         if self.email and len(self.email) > 0:
             email = Crypto.decrypt(self.email)
-        return f"User({self.id}, \'{self.username}\', {self.status}, \'{email}\', {self.created_at}, \'{self.password_hash}\', {self.confirmation_sent_at}, \'{self.confirmation_token}\')"
+        return (f"User({self.id}, "
+                f"\'{self.username}\', "
+                f"{self.status}, "
+                f"\'{email}\', "
+                f"{self.created_at}, "
+                f"\'{self.password_hash}\', "
+                f"{self.confirmation_sent_at}, "
+                f"\'{self.confirmation_token}\', "
+                f"{self.seed_requested}, "
+                f"{self.seed_version}, "
+                f"{self.seeded_at}")
 
     def json(self) -> dict[str,Any]:
         return {
@@ -135,8 +157,11 @@ class User(db.Model):
             "username": self.username,
             "status": self.status.name,
             "created_at": self.created_at,
-            "confirmation_sent_at": self.confirmation_sent_at
-            }
+            "confirmation_sent_at": self.confirmation_sent_at,
+            "seed_requested": self.seed_requested,
+            "seed_version": self.seed_version,
+            "seeded_at": self.seeded_at
+        }
     
 
     @staticmethod

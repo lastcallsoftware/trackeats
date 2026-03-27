@@ -148,6 +148,7 @@ def register():
         username = request.json.get('username', None)
         password = request.json.get('password', None)
         email_addr = request.json.get('email', None)
+        seed_requested = request.json.get('seed_requested', False)
 
         # Generate a verification token
         token = Crypto.generate_url_token()
@@ -158,7 +159,8 @@ def register():
             "password": password,
             "email": email_addr, 
             "status": UserStatus.pending, 
-            "token": token})
+            "token": token,
+            "seed_requested": seed_requested})
         logging.info(f"New user added to database: {username} at {email_addr}")
 
         # Send the confirmation email
@@ -418,7 +420,8 @@ def get_foods():
         msg = "Food records retrieved"
         logging.info(msg)
         return jsonify(data), 200
-    
+
+
 @bp.route("/food/<int:food_id>", methods = ["GET"])
 @jwt_required()
 def get_food(food_id:int):
@@ -443,6 +446,7 @@ def get_food(food_id:int):
         msg = "Food record retrieved"
         logging.info(msg)
         return jsonify(data), 200
+
 
 @bp.route("/food", methods = ["POST"])
 @jwt_required()
@@ -471,6 +475,7 @@ def add_food():
         resp.headers["Location"] = f"/food/{food_id}"
         return resp
 
+
 @bp.route("/food", methods = ["PUT"])
 @jwt_required()
 def update_food():
@@ -494,6 +499,7 @@ def update_food():
         msg = f"Food record updated"
         logging.info(msg)
         return jsonify(updated_food), 200
+
 
 @bp.route("/food/<int:food_id>", methods = ["DELETE"])
 @jwt_required()

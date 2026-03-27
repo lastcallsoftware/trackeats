@@ -30,8 +30,8 @@ services:
     image: lastcallsoftware/trackeats-backend:latest
     pull_policy: always
     depends_on:
-      db:
-        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
     ports:
       - "5000:5000"
     environment:
@@ -76,6 +76,15 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
+
+  migrate:
+    image: lastcallsoftware/trackeats-backend:latest
+    command: flask db upgrade
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      - name=value
 
   db:
     container_name: trackeats-db

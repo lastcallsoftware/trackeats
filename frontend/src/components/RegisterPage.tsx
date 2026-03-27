@@ -8,13 +8,16 @@ import {
     Button,
     Divider,
     Box,
+    Checkbox,
+    FormControlLabel,
 } from '@mui/material';
 
 function RegisterPage() {
     const defaultFormData = {username: "", usernameTouched: false, usernameMessage: "",
                              password: "", passwordTouched: false, passwordMessage: "",
                              password2: "", password2Touched: false, password2Message: "",
-                             email: "", emailTouched: false, emailMessage: ""}
+                             email: "", emailTouched: false, emailMessage: "",
+                             seed_requested: false}
     const [formData, setFormData] = useState(defaultFormData);
     const [errorMessage, setErrorMessage] = useState("");
     const navigate = useNavigate();
@@ -116,7 +119,12 @@ function RegisterPage() {
 
     const handleSubmit = (e: { preventDefault: () => void; }) => {
         e.preventDefault();
-        axios.post("/register", {username: formData.username, password: formData.password, email: formData.email})
+        axios.post("/register", {
+            username: formData.username,
+            password: formData.password,
+            email: formData.email,
+            seed_requested: formData.seed_requested
+        })
             .then(() => {
                 navigate("/login", { state: { username: formData.username, password: formData.password, email: formData.email } });
             })
@@ -126,7 +134,7 @@ function RegisterPage() {
                 else
                     setErrorMessage(error.message)
             })
-        }
+    }
 
     return (
         <Box
@@ -234,6 +242,18 @@ function RegisterPage() {
                             error={!!(formData.emailMessage && formData.emailTouched && formData.email.length > 0)}
                             helperText={formData.emailTouched && formData.email.length > 0 ? formData.emailMessage : " "}
                             fullWidth
+                        />
+                        {/* Seed Data Checkbox */}
+                        <FormControlLabel
+                            control={
+                                <Checkbox
+                                    id="seed_requested"
+                                    checked={formData.seed_requested}
+                                    onChange={e => setFormData(prev => ({ ...prev, seed_requested: e.target.checked }))}
+                                    color="primary"
+                                />
+                            }
+                            label="Add seed data to my new account"
                         />
                     </Box>
                     <Divider sx={{ my: 2 }} />
