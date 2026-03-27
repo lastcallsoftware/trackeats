@@ -84,7 +84,11 @@ services:
       db:
         condition: service_healthy
     environment:
-      - name=value
+      DB_HOSTNAME: db
+      DB_DATABASE_NAME: ${DB_DATABASE_NAME:-trackeats}
+      DB_APP_USERNAME: ${DB_APP_USERNAME:?}
+      DB_APP_PASSWORD: ${DB_APP_PASSWORD:?}
+      FLASK_APP: ${FLASK_APP:-src/app:create_app}
 
   db:
     container_name: trackeats-db
