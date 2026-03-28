@@ -83,7 +83,7 @@ def minimal_app_config() -> Flask:
     # Disabling it saves memory by turning off an unnecessary monitoring feature.
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-    # Instantiate the database connector.
+    # Connect the app object to the db object.
     db.init_app(app)
 
     # Instantiate the Flask migration object.  This thing is basically why I split the 
