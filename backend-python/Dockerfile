@@ -25,6 +25,7 @@ RUN adduser --uid 5678 --disabled-password --gecos "" appuser && chown -R appuse
 COPY --chown=appuser . .
 
 # Copy the contents of data/ to /app/data
+RUN mkdir -p ./data
 COPY --chown=appuser data/*.json ./data/
 
 USER appuser
