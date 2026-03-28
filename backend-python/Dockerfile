@@ -24,6 +24,9 @@ RUN adduser --uid 5678 --disabled-password --gecos "" appuser && chown -R appuse
 # Copy application code
 COPY --chown=appuser . .
 
+# Copy the contents of data/ to /app/data
+COPY --chown=appuser data/*.json ./data/
+
 USER appuser
 
 EXPOSE 5000
