@@ -3,7 +3,7 @@ from typing import Any
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from email_validator import validate_email, EmailNotValidError
+from email_validator import validate_email
 from crypto import Crypto
 import enum
 import datetime
@@ -81,7 +81,10 @@ import logging
 ##############################
 
 # Instantiate the Flask-SQLAlchemny database connector.
-db = SQLAlchemy()
+# Disable "expire on commit".  By default SQLAlchemy does lazy reads on DAO objects
+# when you access their fields outside of a trandaction to ensure they're "up to date".
+# This is exactly the kind of behavior I *don't* want in a DAO layer.  No thanks.
+db = SQLAlchemy(session_options={ "expire_on_commit": False })
 
 
 ##############################
@@ -171,8 +174,10 @@ class User(db.Model):
 
 
     @staticmethod
-    def get(username: str) -> User|None:
+    def get(username: str) -> User:
         user = db.session.scalars(db.select(User).filter_by(username=username)).first()
+        if not user:
+            raise ValueError(f"Invali username {username}")
         return user
 
 
@@ -198,124 +203,103 @@ class User(db.Model):
         email_addr: str = data["email"]
         status: UserStatus = data.get("status", UserStatus.pending)
         confirmation_token: str|None = data.get("token")
+        seed_requested: bool = data["seed_requested"]
 
-        errors: list[str] = []
-        try:
-            if not username:
-                errors.append("Username is required but missing.")
-            else:
-                username = username.strip()
-                if len(username) < 3:
-                    errors.append("Username must be at least 3 characters.")
-                elif len(username) > 100:
-                    errors.append("Username must be at most 100 characters.")
+        if not username:
+            raise ValueError("Username is required.")
+        username = username.strip()
+        if len(username) < 3:
+            raise ValueError("Username must be at least 3 characters.")
+        elif len(username) > 100:
+            raise ValueError("Username must be at most 100 characters.")
             
-            if not password:
-                errors.append("Password is required but missing.")
-            else:
-                password = password.strip()
-                if len(password) < 8:
-                    errors.append("Password must be at least 8 characters.")
-                elif len(password) > 100:
-                    errors.append("Password must be at most 100 characters.")
-                if not re.search(r"[a-z]", password):
-                    errors.append("Password must contain at least one lowercase letter.")
-                if not re.search(r"[A-Z]", password):
-                    errors.append("Password must contain at least one uppercase letter.")
-                if not re.search(r"\d", password):
-                    errors.append("Password must contain at least one digit.")
-                if not re.search(r"[!@#$%^&*()_+\-=\[\]{};':\"\\|,.<>\/?]", password):
-                    errors.append("Password must contain at least one special character.")
+        if not password:
+            raise ValueError("Password is required.")
+        password = password.strip()
+        errors: list[str] = []
+        if len(password) < 8:
+            errors.append("Password must be at least 8 characters.")
+        elif len(password) > 100:
+            errors.append("Password must be at most 100 characters.")
+        if not re.search(r"[a-z]", password):
+            errors.append("Password must contain at least one lowercase letter.")
+        if not re.search(r"[A-Z]", password):
+            errors.append("Password must contain at least one uppercase letter.")
+        if not re.search(r"\d", password):
+            errors.append("Password must contain at least one digit.")
+        if not re.search(r"[!@#$%^&*()_+\-=\[\]{};':\"\\|,.<>\/?]", password):
+            errors.append("Password must contain at least one special character.")
+        if len(errors) > 0:
+            raise ValueError(errors)
 
-            if not email_addr:
-                errors.append("Email address is required but missing.")
-            else:
-                try:
-                    email_info = validate_email(email_addr, check_deliverability=True)
-                    email_addr = email_info.normalized
-                except EmailNotValidError as e:
-                    errors.append(str(e) + " ")
+        if not email_addr:
+            raise ValueError("Email address is required but missing.")
+        email_info = validate_email(email_addr, check_deliverability=True)
+        email_addr = email_info.normalized
 
-            if len(errors) == 0:
-                # Check whether this username is already in the database
-                query = db.select(User).filter_by(username=username)
-                existing_user = db.session.execute(query).first()
-                if (existing_user is not None):
-                    errors.append(f"User {username} already exists.")
-                else:
-                    # Salt and hash the password
-                    password_hash_str = Crypto.hash_password(password)
+        # Check whether this username is already in the database
+        query = db.select(User).filter_by(username=username)
+        existing_user = db.session.execute(query).first()
+        if (existing_user is not None):
+            raise ValueError(f"User {username} already exists.")
 
-                    # Encrypt the user data.  Currently that is just the email address.
-                    encrypted_email_addr = None
-                    if email_addr and len(email_addr) > 0:
-                        encrypted_email_addr = Crypto.encrypt(email_addr)
+        # Salt and hash the password
+        password_hash_str = Crypto.hash_password(password)
 
-                    # Store the user record in the database
-                    now = datetime.datetime.now()
-                    confirmation_sent_at = None
-                    if confirmation_token is not None:
-                        confirmation_sent_at = now
-                    new_user = User({
-                        "username": username, 
-                        "status": status, 
-                        "email": encrypted_email_addr, 
-                        "created_at": now, 
-                        "password_hash": password_hash_str,
-                        "confirmation_sent_at": confirmation_sent_at, 
-                        "confirmation_token": confirmation_token
-                        })
-                    db.session.add(new_user)
-                    db.session.commit()
-        except Exception as e:
-            errors.append(repr(e))
-        if (len(errors) > 0):
-            msg = "\n".join(errors)
-            raise ValueError(f"User {username} could not be added: " + msg)
+        # Encrypt the user data.  Currently that is just the email address.
+        encrypted_email_addr = None
+        if email_addr and len(email_addr) > 0:
+            encrypted_email_addr = Crypto.encrypt(email_addr)
+
+        # Store the user record in the database
+        now = datetime.datetime.now()
+        confirmation_sent_at = None
+        if confirmation_token is not None:
+            confirmation_sent_at = now
+        new_user = User({
+            "username": username, 
+            "status": status, 
+            "email": encrypted_email_addr, 
+            "created_at": now, 
+            "password_hash": password_hash_str,
+            "confirmation_sent_at": confirmation_sent_at, 
+            "confirmation_token": confirmation_token,
+            "seed_requested": seed_requested
+            })
+        db.session.add(new_user)
 
 
     @staticmethod
-    def verify(username: str, password: str) -> None:
+    def verify(username: str, password: str) -> User:
         """
         Verify that the given user credentials are valid.
         """
-        errors: list[str] = []
-        try:
-            if not username:
-                errors.append("Username is required but missing.")
-            if not password:
-                errors.append("Password is required but missing.")
+        if not username:
+            raise ValueError("Username is required.")
+        if not password:
+            raise ValueError("Password is required.")
 
-            if len(errors) == 0:
-                # Validate the credentials
-                # Retrieve user record from database
-                # I know that in the case of a validation failure you're not 
-                # supposed to tell the caller whether the username or password 
-                # was invalid, because that gives hackers more info.  But in the
-                # interests of easier debugging, I'll take my chances here...
-                query = db.select(User).filter_by(username=username)
-                users = db.session.execute(query).first()
-                if users is None:
-                    errors.append(f"Invalid username {username}.")
-                else:
-                    user = users[0]
+        # Validate the credentials
+        # Retrieve user record from database
+        # I know that in the case of a validation failure you're not 
+        # supposed to tell the caller whether the username or password 
+        # was invalid, because that gives hackers more info.  But in the
+        # interests of easier debugging, I'll take my chances here...
+        user = User.get(username)
 
-                    # Make sure the user has been confirmed
-                    if user.status != UserStatus.confirmed:
-                        errors.append(f"User {username} has not been confirmed.")
-                    else:
-                        # Validate the password.
-                        # Note that the salt is stored as part of the hash, rather than as a 
-                        # separarte value.  The bcrypt API knows how to separate them.
-                        password_hash_bytes = bytes(user.password_hash, "utf-8")
-                        password_bytes = bytes(password, "utf-8")
-                        if not Crypto.check_password(password_bytes, password_hash_bytes):
-                            errors.append(f"Invalid password for username {username}.")
-        except Exception as e:
-            errors.append(repr(e))
-        if (len(errors) > 0):
-            msg = "\n".join(errors)
-            raise ValueError(f"User record could not be validated: " + msg)
+        # Make sure the user has been confirmed
+        if user.status != UserStatus.confirmed:
+            raise ValueError(f"User {username} has not been confirmed.")
+
+        # Validate the password.
+        # Note that the salt is stored as part of the hash, rather than as a 
+        # separarte value.  The bcrypt API knows how to separate them.
+        password_hash_bytes = bytes(user.password_hash, "utf-8")
+        password_bytes = bytes(password, "utf-8")
+        if not Crypto.check_password(password_bytes, password_hash_bytes):
+            raise ValueError(f"Incorrect password for username {username}.")
+
+        return user
 
 
 ##############################
@@ -359,6 +343,7 @@ class Nutrition(db.Model):
     __tablename__ = "nutrition"
 
     id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(db.Integer, db.ForeignKey("user.id"), nullable=False)
     serving_size_description: Mapped[str] = mapped_column(db.String(50), nullable=False)
     serving_size_g: Mapped[int | None] = mapped_column(db.Integer, nullable=True)
     serving_size_oz: Mapped[float | None] = mapped_column(db.Float, nullable=True)
@@ -380,9 +365,9 @@ class Nutrition(db.Model):
 
     def __init__(self, data: dict[str,Any]|None = None):
         if data is not None:
-            self._update(data)
+            self.from_dict(data)
 
-    def _update(self, data: dict[str,Any]):
+    def from_dict(self, data: dict[str,Any]):
         if data.get("id"):
             self.id = data["id"]
         self.serving_size_description = data["serving_size_description"]
@@ -489,226 +474,6 @@ class Nutrition(db.Model):
 
 
 ##############################
-# FOOD
-##############################
-class FoodGroup(enum.Enum):
-    beverages = 1,
-    condiments = 2,
-    dairy = 3,
-    fatsAndSugars = 4,
-    fruits = 5,
-    grains = 6,
-    herbsAndSpices = 7,
-    nutsAndSeeds = 8,
-    preparedFoods = 9,
-    proteins = 10,
-    vegetables = 11,
-    other = 12
-
-class Food(db.Model):
-    """
-    This represents one "atomic" food item that you'd buy at the grocery store:
-    a loaf of bread, a box of cereal, an orange, a head of lettuce, etc.
-    This is the app's basic building-block record.
-    """
-    __tablename__ = "food"
-
-    id: Mapped[int] = mapped_column(primary_key=True)
-    user_id: Mapped[int] = mapped_column(db.Integer, db.ForeignKey("user.id"), nullable=False)
-    group: Mapped[FoodGroup] = mapped_column(db.Enum(FoodGroup), nullable=False)
-    name: Mapped[str] = mapped_column(db.String(50), nullable=False)
-    subtype: Mapped[str | None] = mapped_column(db.String(50), nullable=True)
-    description: Mapped[str | None] = mapped_column(db.String(100), nullable=True)
-    vendor: Mapped[str] = mapped_column(db.String(50), nullable=False)
-    size_description: Mapped[str | None] = mapped_column(db.String(50), nullable=True)
-    size_oz: Mapped[float | None] = mapped_column(db.Float, nullable=True)
-    size_g: Mapped[int | None] = mapped_column(db.Integer, nullable=True)
-    servings: Mapped[float] = mapped_column(db.Float, nullable=False)
-    nutrition_id: Mapped[int | None] = mapped_column(db.Integer, db.ForeignKey("nutrition.id"), nullable=True)
-    nutrition: Mapped[Nutrition] = relationship("Nutrition")
-    price: Mapped[float | None] = mapped_column(db.Float, nullable=True)
-    price_date: Mapped[datetime.date | None] = mapped_column(db.Date, nullable=True)
-    shelf_life: Mapped[str | None] = mapped_column(db.String(150), nullable=True)
-
-    def __init__(self, user_id: int, data: dict[str,Any]|None = None):
-        if data is not None:
-            self._update(user_id, data)
-        else:
-            self.group = FoodGroup.other
-            self.nutrition = Nutrition()
-
-    def _update(self, user_id: int, data: dict[str,Any]) -> None:
-        if data.get("id"):
-            self.id = data["id"]
-        self.user_id = user_id
-        self.group = FoodGroup[data["group"]]
-        self.name = data["name"]
-        self.subtype = data.get("subtype")
-        self.description = data.get("description")
-        self.vendor = data["vendor"]
-        self.size_description = data.get("size_description")
-        self.size_oz = data.get("size_oz")
-        self.size_g = data.get("size_g")
-        self.servings = data["servings"]
-        self.nutrition_id = data.get("nutrition_id")
-        #self.nutrition = Nutrition(data.get("nutrition"))
-        self.price = data.get("price")
-        # This code sets the DAO field to None if the date string is None
-        # OR if its stripped length is 0 (e.g., if is's all spaces)
-        price_date = (data.get("price_date") or "").strip()
-        self.price_date = datetime.date.fromisoformat(price_date) if price_date else None
-        self.shelf_life = data.get("shelf_life")
-
-    def __str__(self):
-        return str(vars(self))
-    
-    def json(self) -> dict[str,Any]:
-        return {
-            "id": self.id,
-            "user_id": self.user_id,
-            "group": self.group.name,
-            "name": self.name,
-            "subtype": self.subtype,
-            "description": self.description,
-            "vendor": self.vendor,
-            "size_description": self.size_description,
-            "size_oz": self.size_oz,
-            "size_g": self.size_g,
-            "servings": self.servings,
-            "nutrition_id": self.nutrition_id,
-            "nutrition": self.nutrition.json(),
-            "price": self.price,
-            "price_date": self.price_date.strftime("%Y-%m-%d") if self.price_date else None,
-            "shelf_life": self.shelf_life
-            }
-
-    
-
-    @staticmethod
-    def get_all() -> list[Food]:
-        foods = db.session.scalars(db.select(Food)).all()
-        return list(foods)
-
-
-    @staticmethod
-    def get_by_user(user_id: int) -> list[Food]:
-        foods = db.session.scalars(db.select(Food).where(Food.user_id == user_id).order_by("group", "name", "subtype")).all()
-        return list(foods)
-
-
-    @staticmethod
-    def get(user_id: int, food_id: int) -> Food | None:
-        food = db.session.scalars(db.select(Food).where(Food.user_id == user_id).where(Food.id == food_id).order_by("group", "name", "subtype")).first()
-        return food
-
-
-    @staticmethod
-    def add(user_id: int, food: dict[str, str|int|float], commit: bool) -> dict[str, str|int|float]:
-        """
-        Add a new Food record to the database.
-        commit is a boolean indicating whether the record should be committed to
-            the database.  Set it to false when you want to add a bunch of records
-            at once (calling this function multiple times), in which case the caller
-            is required to commit the records afterwards (via db.session.commit()).
-        """
-        try: 
-            # Construct the new Food database record.
-            new_food_dao = Food(user_id, food)
-
-            # Add the new record to the database!
-            db.session.add(new_food_dao)
-
-            if commit:
-                db.session.commit()
-
-            return new_food_dao.json()
-        except Exception as e:
-            raise ValueError("Food record could not be added: " + repr(e)) from e
-
-
-    @staticmethod
-    def update(user_id: int, food: dict[str, str|int|float]) -> dict[str, str|int|float]:
-        """
-        Update an existing Food record.
-        """
-        try:
-            # Get the Food record
-            food_id = food["id"]
-            food_dao = db.session.get(Food, food_id)
-            if not food_dao:
-                raise ValueError(f"Food record {food_id} not found.")
-
-            # Get the Nutrition child record
-            nutrition_id = food_dao.nutrition_id
-            nutrition_dao = db.session.get(Nutrition, nutrition_id)
-            if not nutrition_dao:
-                raise ValueError(f"Nutrition record {food_id}/{nutrition_id} not found.")
-
-            # Add the user_id field.
-            food["user_id"] = user_id
-
-            # Update the data fields
-            food_dao._update(user_id, food)
-
-            db.session.commit()
-
-            return food
-        except Exception as e:
-            raise ValueError("Food record could not be updated: " + repr(e)) from e
-
-
-    @staticmethod
-    def delete(user_id: int, food_id: int):
-        """
-        Delete a particular Food record
-        """
-        try:
-            # Get the Food record
-            food_dao = db.session.get(Food, food_id)
-            if not food_dao:
-                raise ValueError(f"Food record {food_id} not found")
-
-            # Food has a foreign key on Nutrition so it must be deleted first
-            nutrition_id = food_dao.nutrition_id
-            db.session.delete(food_dao)
-
-            # Delete its associated Nutrition record qif it exists
-            if nutrition_id:
-                nutrition_dao = db.session.get(Nutrition, food_dao.nutrition_id)
-                if nutrition_dao:
-                    db.session.delete(nutrition_dao)
-
-            db.session.commit()
-        except Exception as e:
-            raise ValueError("Food record could not be deleted: " + repr(e)) from e
-
-
-    @staticmethod
-    def delete_all_for_user(user_id: int):
-        """
-        Delete all Food records for a particular User
-        """
-        logging.info(f"Deleting Food records for user {user_id}")
-        try:
-            food_daos = db.session.scalars(db.select(Food).where(Food.user_id == user_id)).all()
-            for food_dao in food_daos:
-                # Food has a foreign key on Nutrition so it must be deleted first
-                nutrition_id = food_dao.nutrition_id
-                db.session.delete(food_dao)
-
-                # Delete its associated Nutrition record if it exists
-                if nutrition_id:
-                    nutrition_dao = db.session.get(Nutrition, nutrition_id)
-                    if nutrition_dao:
-                        db.session.delete(nutrition_dao)
-                
-            db.session.commit()
-        except Exception as e:
-            raise ValueError(f"Food records could not be deleted for user {user_id}: {repr(e)}") from e
-        logging.info("Food records deleted")
-
-
-##############################
 # INGREDIENT
 ##############################
 class Ingredient(db.Model):
@@ -727,6 +492,7 @@ class Ingredient(db.Model):
     __tablename__ = "ingredient"
 
     id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(db.Integer, db.ForeignKey("user.id"), nullable=False)
     recipe_id: Mapped[int] = mapped_column(db.Integer, db.ForeignKey("recipe.id"), nullable=True)
     food_ingredient_id: Mapped[int | None] = mapped_column(db.Integer, db.ForeignKey("food.id"), nullable=True)
     recipe_ingredient_id: Mapped[int | None] = mapped_column(db.Integer, db.ForeignKey("recipe.id"), nullable=True)
@@ -735,9 +501,9 @@ class Ingredient(db.Model):
     summary: Mapped[str | None] = mapped_column(db.String(100), nullable=True)
 
     def __init__(self, user_id: int, data: dict[str,Any]):
-        self._update(user_id, data)
+        self.from_dict(user_id, data)
     
-    def _update(self, user_id: int, data: dict[str,Any]) -> None:
+    def from_dict(self, user_id: int, data: dict[str,Any]) -> None:
         if data.get("id"):
             self.id = data["id"]
         self.recipe_id = data["recipe_id"]
@@ -786,16 +552,18 @@ class Ingredient(db.Model):
 
 
     @staticmethod
-    def get(user_id: int, ingredient_id: int) -> Ingredient | None:
+    def get(user_id: int, ingredient_id: int) -> Ingredient:
         """
         Get one specififc Ingredient
         """
         ingredient = db.session.get(Ingredient, ingredient_id)
+        if not ingredient:
+            raise ValueError(f"Ingredient record not found for ID {ingredient_id}")
         return ingredient
 
 
     @staticmethod
-    def add(user_id: int, data: dict[str,Any], commit: bool = True) -> dict[str, str|int|float]:
+    def add(user_id: int, data: dict[str,Any], keylists: dict[str,dict[int,int]]) -> Ingredient:
         """
         Create a new Ingredient record
         """
@@ -814,9 +582,7 @@ class Ingredient(db.Model):
                 raise ValueError(f"Ingredient record {recipe_id}/{food_ingredient_id}/{recipe_ingredient_id} already exists")
 
             # Get the Recipe record
-            recipe_dao = db.session.get(Recipe, recipe_id)
-            if not recipe_dao:
-                raise ValueError(f"Recipe record {recipe_id} not found")
+            recipe_dao = Recipe.get(user_id, recipe_id)
 
             # Get its Nutrition child record
             recipe_nutrition_dao = db.session.get(Nutrition, recipe_dao.nutrition_id)
@@ -827,9 +593,7 @@ class Ingredient(db.Model):
             # Also, sum the Nutrition data from the new Ingredient into the Recipe.
             # Food Ingredient
             if food_ingredient_id:
-                food_ingredient_dao = db.session.get(Food, food_ingredient_id)
-                if not food_ingredient_dao:
-                    raise ValueError(f"Food Ingredient record {food_ingredient_id} not found")
+                food_ingredient_dao = Food.get(user_id, food_ingredient_id)
                 
                 ingredient_nutririon_dao = db.session.get(Nutrition, food_ingredient_dao.nutrition_id)
                 if not ingredient_nutririon_dao:
@@ -842,9 +606,7 @@ class Ingredient(db.Model):
 
             # Recipe Ingredient
             elif recipe_ingredient_id:
-                recipe_ingredient_dao = db.session.get(Recipe, recipe_ingredient_id)
-                if not recipe_ingredient_dao:
-                    raise ValueError(f"Recipe Ingredient record {recipe_ingredient_id} not found")
+                recipe_ingredient_dao = Recipe.get(user_id, recipe_ingredient_id)
 
                 ingredient_nutrition_dao = db.session.get(Nutrition, recipe_ingredient_dao.nutrition_id)
                 if not ingredient_nutrition_dao:
@@ -864,19 +626,16 @@ class Ingredient(db.Model):
                 ordinal = db.session.query(func.count(Ingredient.id)).filter_by(recipe_id=recipe_id).scalar()
             
             # Create a new Ingredient record and add it to the database.
-            ingred = Ingredient(user_id, {
+            ingredient_dao = Ingredient(user_id, {
                 "recipe_id": recipe_id, 
                 "food_ingredient_id": food_ingredient_id, 
                 "recipe_ingredient_id": recipe_ingredient_id, 
                 "ordinal": ordinal,
                 "servings": servings,
                 "summary": summary})
-            db.session.add(ingred)
+            db.session.add(ingredient_dao)
 
-            if True:
-                db.session.commit()
-
-            return ingred.json()
+            return ingredient_dao
         except Exception as e:
             raise ValueError(f"Ingredient record {recipe_id}/{food_ingredient_id}/{recipe_ingredient_id} could not be added: " + repr(e)) from e
 
@@ -906,6 +665,236 @@ class Ingredient(db.Model):
 
 
 ##############################
+# FOOD
+##############################
+class FoodGroup(enum.Enum):
+    beverages = 1,
+    condiments = 2,
+    dairy = 3,
+    fatsAndSugars = 4,
+    fruits = 5,
+    grains = 6,
+    herbsAndSpices = 7,
+    nutsAndSeeds = 8,
+    preparedFoods = 9,
+    proteins = 10,
+    vegetables = 11,
+    other = 12
+
+class Food(db.Model):
+    """
+    This represents one "atomic" food item that you'd buy at the grocery store:
+    a loaf of bread, a box of cereal, an orange, a head of lettuce, etc.
+    This is the app's basic building-block record.
+    """
+    __tablename__ = "food"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(db.Integer, db.ForeignKey("user.id"), nullable=False)
+    group: Mapped[FoodGroup] = mapped_column(db.Enum(FoodGroup), nullable=False)
+    name: Mapped[str] = mapped_column(db.String(50), nullable=False)
+    subtype: Mapped[str | None] = mapped_column(db.String(50), nullable=True)
+    description: Mapped[str | None] = mapped_column(db.String(100), nullable=True)
+    vendor: Mapped[str] = mapped_column(db.String(50), nullable=False)
+    size_description: Mapped[str | None] = mapped_column(db.String(50), nullable=True)
+    size_oz: Mapped[float | None] = mapped_column(db.Float, nullable=True)
+    size_g: Mapped[int | None] = mapped_column(db.Integer, nullable=True)
+    servings: Mapped[float] = mapped_column(db.Float, nullable=False)
+    nutrition_id: Mapped[int | None] = mapped_column(db.Integer, db.ForeignKey("nutrition.id"), nullable=True)
+    nutrition: Mapped[Nutrition] = relationship("Nutrition")
+    price: Mapped[float | None] = mapped_column(db.Float, nullable=True)
+    price_date: Mapped[datetime.date | None] = mapped_column(db.Date, nullable=True)
+    shelf_life: Mapped[str | None] = mapped_column(db.String(150), nullable=True)
+
+    def __init__(self, user_id: int, data: dict[str,Any]|None = None):
+        if data is not None:
+            self.from_dict(user_id, data)
+        else:
+            self.group = FoodGroup.other
+            self.nutrition = Nutrition()
+
+    def from_dict(self, user_id: int, data: dict[str,Any]) -> None:
+        if data.get("id"):
+            self.id = data["id"]
+        self.user_id = user_id
+        self.group = FoodGroup[data["group"]]
+        self.name = data["name"]
+        self.subtype = data.get("subtype")
+        self.description = data.get("description")
+        self.vendor = data["vendor"]
+        self.size_description = data.get("size_description")
+        self.size_oz = data.get("size_oz")
+        self.size_g = data.get("size_g")
+        self.servings = data["servings"]
+        self.nutrition_id = data.get("nutrition_id")
+        self.nutrition = Nutrition(data["nutrition"])
+        self.price = data.get("price")
+        # This code sets the DAO field to None if the date string is None
+        # OR if its stripped length is 0 (e.g., if is's all spaces)
+        price_date = (data.get("price_date") or "").strip()
+        self.price_date = datetime.date.fromisoformat(price_date) if price_date else None
+        self.shelf_life = data.get("shelf_life")
+
+    def __str__(self):
+        return str(vars(self))
+    
+    def json(self) -> dict[str,Any]:
+        return {
+            "id": self.id,
+            "user_id": self.user_id,
+            "group": self.group.name,
+            "name": self.name,
+            "subtype": self.subtype,
+            "description": self.description,
+            "vendor": self.vendor,
+            "size_description": self.size_description,
+            "size_oz": self.size_oz,
+            "size_g": self.size_g,
+            "servings": self.servings,
+            "nutrition_id": self.nutrition_id,
+            "nutrition": self.nutrition.json(),
+            "price": self.price,
+            "price_date": self.price_date.strftime("%Y-%m-%d") if self.price_date else None,
+            "shelf_life": self.shelf_life
+            }
+
+    
+
+    @staticmethod
+    def get_all() -> list[Food]:
+        food_daos = db.session.scalars(db.select(Food)).all()
+        return list(food_daos)
+
+
+    @staticmethod
+    def get_by_user(user_id: int) -> list[Food]:
+        food_daos = db.session.scalars(db.select(Food).where(Food.user_id == user_id).order_by("group", "name", "subtype")).all()
+        return list(food_daos)
+
+
+    @staticmethod
+    def get(user_id: int, food_id: int) -> Food:
+        food_dao = db.session.scalars(db.select(Food).where(Food.user_id == user_id).where(Food.id == food_id).order_by("group", "name", "subtype")).first()
+        if not food_dao:
+            raise ValueError(f"Food record not found for ID {food_id}")
+        return food_dao
+
+
+    @staticmethod
+    def add(user_id: int, food: dict[str, Any], keylists: dict[str,dict[int,int]] | None = None) -> Food:
+        """
+        Add a new Food record to the database.
+        """
+        try: 
+            # When adding new records we should always generate new IDs,
+            # but remember the old food IDs in case we need them for key remapping.
+            old_food_id = food.pop("id", None)
+
+            nutrition: dict[str,Any]|None = food.get("nutrition")
+            if nutrition:
+                nutrition.pop("id", None)
+            
+            # Construct the new Food DAO.  This implicitly creates its new Nutrition DAO child record
+            new_food_dao = Food(user_id, food)
+
+            # Add the new record to the database
+            db.session.add(new_food_dao)
+
+            # Flush without committing to get the new IDs
+            db.session.flush()
+
+            # Save the old ID to new ID mapping
+            if keylists:
+                if not keylists.get("foods"):
+                    keylists["foods"] = {}
+                keylists["foods"][old_food_id] = food["id"]
+
+            return new_food_dao
+
+        except Exception as e:
+            raise ValueError("Food record could not be added: " + str(e))
+
+
+    @staticmethod
+    def update(user_id: int, food: dict[str, str|int|float]) -> Food:
+        """
+        Update an existing Food record.
+        """
+        try:
+            # Get the Food record
+            food_id = food["id"]
+            food_dao = db.session.get(Food, food_id)
+            if not food_dao:
+                raise ValueError(f"Food record {food_id} not found.")
+
+            # Get the Nutrition child record
+            nutrition_id = food_dao.nutrition_id
+            nutrition_dao = db.session.get(Nutrition, nutrition_id)
+            if not nutrition_dao:
+                raise ValueError(f"Nutrition record {food_id}/{nutrition_id} not found.")
+
+            # Add the user_id field.
+            food["user_id"] = user_id
+
+            # Update the data fields
+            food_dao.from_dict(user_id, food)
+
+            return food_dao
+
+        except Exception as e:
+            raise ValueError("Food record could not be updated: " + repr(e)) from e
+
+
+    @staticmethod
+    def delete(user_id: int, food_id: int) -> None:
+        """
+        Delete a particular Food record
+        """
+        try:
+            # Get the Food record
+            food_dao = db.session.get(Food, food_id)
+            if not food_dao:
+                raise ValueError(f"Food record {food_id} not found")
+
+            # Food has a foreign key on Nutrition so it must be deleted first
+            nutrition_id = food_dao.nutrition_id
+            db.session.delete(food_dao)
+
+            # Delete its associated Nutrition record qif it exists
+            if nutrition_id:
+                nutrition_dao = db.session.get(Nutrition, food_dao.nutrition_id)
+                if nutrition_dao:
+                    db.session.delete(nutrition_dao)
+
+        except Exception as e:
+            raise ValueError("Food record could not be deleted: " + repr(e)) from e
+
+
+    @staticmethod
+    def delete_all_for_user(user_id: int) -> None:
+        """
+        Delete all Food records for a particular User
+        """
+        logging.info(f"Deleting Food records for user {user_id}")
+        try:
+            food_daos = db.session.scalars(db.select(Food).where(Food.user_id == user_id)).all()
+            for food_dao in food_daos:
+                # Food has a foreign key on Nutrition so it must be deleted first
+                nutrition_id = food_dao.nutrition_id
+                db.session.delete(food_dao)
+
+                # Delete its associated Nutrition record if it exists
+                if nutrition_id:
+                    nutrition_dao = db.session.get(Nutrition, nutrition_id)
+                    if nutrition_dao:
+                        db.session.delete(nutrition_dao)
+
+        except Exception as e:
+            raise ValueError(f"Food records could not be deleted for user {user_id}: {repr(e)}") from e
+        logging.info("Food records deleted")
+
+
+##############################
 # RECIPE
 ##############################
 class Recipe(db.Model):
@@ -930,19 +919,22 @@ class Recipe(db.Model):
     nutrition: Mapped[Nutrition] = relationship("Nutrition")
     price: Mapped[float | None] = mapped_column(db.Float, default=0, nullable=True)
 
-    def __init__(self, user_id: int, data: dict[str,Any]):
-        self.user_id = user_id
-        self._update(user_id, data)
-    
-    def _update(self, user_id: int, data: dict[str,Any]):
+    def __init__(self, user_id: int, data: dict[str,Any] | None):
+        if data:
+            self.from_dict(user_id, data)
+        else:
+            self.nutrition = Nutrition()
+
+    def from_dict(self, user_id: int, data: dict[str,Any]):
         if data.get("id"):
             self.id = data["id"]
+        self.user_id = user_id
         self.cuisine = data.get("cuisine")
         self.name = data["name"]
         self.total_yield = data["total_yield"]
         self.servings = data["servings"]
         self.nutrition_id = data.get("nutrition_id")
-        #self.nutrition is set by recipe.add()
+        self.nutrition = Nutrition(data["nutrition"])
         self.price = data.get("price")
 
     def __str__(self):
@@ -971,62 +963,61 @@ class Recipe(db.Model):
         """
         Get all Recipe records
         """
-        recipes = db.session.scalars(db.select(Recipe)).all()
-        return list(recipes)
+        recipe_daos = db.session.scalars(db.select(Recipe)).all()
+        return list(recipe_daos)
 
 
     @staticmethod
     def get_all_for_user(user_id: int) -> list[Recipe]:
-        recipes = db.session.scalars(db.select(Recipe).where(Recipe.user_id == user_id)).all()
-        return list(recipes)
+        recipe_daos = db.session.scalars(db.select(Recipe).where(Recipe.user_id == user_id)).all()
+        return list(recipe_daos)
 
 
     @staticmethod
-    def get(user_id: int, recipe_id: int) -> Recipe | None:
-        recipe = db.session.scalars(db.select(Recipe).where(Recipe.user_id == user_id).where(Recipe.id == recipe_id)).first()
-        return recipe
+    def get(user_id: int, recipe_id: int) -> Recipe:
+        recipe_dao = db.session.scalars(db.select(Recipe).where(Recipe.user_id == user_id).where(Recipe.id == recipe_id)).first()
+        if not recipe_dao:
+            raise ValueError(f"Recipe record not found for ID {recipe_id}")
+        return recipe_dao
 
 
     @staticmethod
-    def add(user_id: int, data: dict[str,Any]) -> dict[str,Any]:
+    def add(user_id: int, recipe: dict[str,Any], keylists: dict[str,dict[int,int]] | None = None) -> Recipe:
         """
         Add a new Recipe record with a new blank Nutrition child record
         """
         try:
-            recipe_dao = Recipe(user_id, data)
+            # When adding new records we should always generate new IDs,
+            # but remember the old food IDs in case we need them for key remapping.
+            old_recipe_id = recipe.pop("id", None)
 
-            # Create a new Nurition child record for the Recipe.  At the start the only field
-            # with a value is the serving_size_description.
-            nutrition = data.get("nutrition")
-            serving_size_description = nutrition.get("serving_size_description") if nutrition else None
-            recipe_dao.nutrition = Nutrition({"serving_size_description": serving_size_description})
+            nutrition: dict[str,Any]|None = recipe.get("nutrition")
+            if nutrition:
+                nutrition.pop("id", None)
+            
+            # Construct the new Recipe DAO.  This implicitly creates its new Nutrition DAO child record
+            new_recipe_dao = Recipe(user_id, recipe)
 
-            # Add the Recipe record
-            db.session.add(recipe_dao)
+            # Add the Recipe record to the database
+            db.session.add(new_recipe_dao)
 
-            # Flush the recent changes (but don't commit them yet)
-            # This is so Recipe's primary key gets generated
+            # Flush without committing to get the new IDs
             db.session.flush()
 
-            # Add the ingredients
-            ingredients = data.get("ingredients", [])
-            for ingredient in ingredients:
-                # Assign the recipe_id we just got for the new Recipe record
-                ingredient["recipe_id"] = recipe_dao.id
-                ingredient_dao = Ingredient(user_id, ingredient)
-                db.session.add(ingredient_dao)
-
-            db.session.commit()
+            # Save the old ID to new ID mapping
+            if keylists:
+                if not keylists.get("recipes"):
+                    keylists["recipes"] = {}
+                keylists["recipes"][old_recipe_id] = recipe["id"]
 
             # Return the new Recipe record.
-            return recipe_dao.json()
+            return new_recipe_dao
         except Exception as e:
-            db.session.rollback()
-            raise ValueError("Recipe record could not be added: " + repr(e)) from e
+            raise ValueError("Recipe record could not be added: " + str(e))
 
 
     @staticmethod
-    def update(user_id: int, data: dict[str, Any]) -> dict[str, Any]:
+    def update(user_id: int, data: dict[str, Any]) -> Recipe:
         """
         Update an existing Recipe record.
 
@@ -1053,13 +1044,9 @@ class Recipe(db.Model):
                 raise ValueError(f"Nutrition record {recipe_id}/{nutrition_id} not found")
 
             # Update the Recipe DAO's fields with the data from the front end
-            recipe_dao.cuisine = data["cuisine"]
-            recipe_dao.name = data["name"]
-            recipe_dao.total_yield = data["total_yield"]
-            recipe_dao.servings = data["servings"]
-            recipe_dao.price = data["price"]
+            recipe_dao.from_dict(user_id, data)
 
-            # Flush the session (but don't commit it yet) so Recipe's primary key gets generated
+            # Flush without committing to get the new IDs
             db.session.flush()
 
             # Remove the existing Ingredient records for this Recipe
@@ -1078,7 +1065,7 @@ class Recipe(db.Model):
                 ingredient_dao = Ingredient(user_id, ingredient)
                 db.session.add(ingredient_dao)
 
-            # Flush the recent changes (but don't commit them yet)
+            # Flush without committing to get the new IDs
             db.session.flush()
 
             # Update the Recipe's Nutrition data
@@ -1089,75 +1076,50 @@ class Recipe(db.Model):
             # are calculated.
             recipe_nutrition_dao.serving_size_description = nutrition["serving_size_description"]
 
-            db.session.commit()
-
             # Return the updated Recipe record.
-            return recipe_dao.json()
+            return recipe_dao
         except Exception as e:
-            db.session.rollback()
-            raise ValueError("Recipe record could not be updated: " + repr(e)) from e
+            raise ValueError("Recipe record could not be updated: " + str(e))
     
 
     @staticmethod
-    def update_ingredient(user_id: int, recipe_id: int, ingredient_id: int, servings: float) -> Recipe:
+    def update_recipe_ingredient(user_id: int, recipe_id: int, ingredient_id: int, servings: float) -> Recipe:
         """
         Update a Recipe's existing Ingredient record.
         """
         try:
-            #logging.info(f"Updating Ingredient record {recipe_id}/{ingredient_id} with {servings} servings")
-
             # Get the Ingredient record
-            ingredient_dao: Ingredient|None = Ingredient.get(user_id, ingredient_id)
-            if not ingredient_dao:
-                raise ValueError(f"Ingredient record {recipe_id}/{ingredient_id} not found")
+            ingredient_dao = Ingredient.get(user_id, ingredient_id)
 
             # Update it
             ingredient_dao.servings = servings
 
-            # Flush the change to the database server.  Not strictly necessary but it's nice
-            # to be explicit
-            db.session.flush()
-
             # Recompute the Recipe's Nutrition data
             recipe_dao = Recipe._recalculate_nutrition(user_id, recipe_id)
 
-            db.session.commit()
-
             return recipe_dao
         except Exception as e:
-            db.session.rollback()
-            raise ValueError(f"Ingredient record {ingredient_id} could not be updated: {repr(e)}") from e
+            raise ValueError(f"Ingredient record {ingredient_id} could not be updated: {str(e)}")
 
 
     @staticmethod
-    def delete_ingredient(user_id: int, recipe_id: int, ingredient_id: int) -> Recipe:
+    def delete_recipe_ingredient(user_id: int, recipe_id: int, ingredient_id: int) -> Recipe:
         """
         Update a Recipe's existing Ingredient record.
         """
         try:
-            #logging.info(f"Deleting Ingredient record {recipe_id}/{ingredient_id}")
-
             # Get the Ingredient record
             ingredient_dao: Ingredient|None = Ingredient.get(user_id, ingredient_id)
-            if not ingredient_dao:
-                raise ValueError(f"Ingredient record {recipe_id}/{ingredient_id} not found")
 
             # Delete it
             db.session.delete(ingredient_dao)
 
-            # Flush the change to the database server.  Not strictly necessary but it's nice
-            # to be explicit
-            db.session.flush()
-
             # Recompute the Recipe's Nutrition data
             recipe_dao = Recipe._recalculate_nutrition(user_id, recipe_id)
 
-            db.session.commit()
-
             return recipe_dao
         except Exception as e:
-            db.session.rollback()
-            raise ValueError(f"Ingredient record {ingredient_id} could not be deleted: {repr(e)}") from e
+            raise ValueError(f"Ingredient record {ingredient_id} could not be deleted: {str(e)}")
 
 
     @staticmethod
@@ -1166,12 +1128,8 @@ class Recipe(db.Model):
         Delete a particular Recipe record
         """
         try:
-            #logging.info(f"Deleting Recipe record {recipe_id}")
-
             # Get the Recipe record
-            recipe_dao: Recipe|None = Recipe.get(user_id, recipe_id)
-            if not recipe_dao:
-                raise ValueError(f"Recipe record {recipe_id} not found")
+            recipe_dao = Recipe.get(user_id, recipe_id)
 
             # Get its child Ingredient records
             ingredient_daos: list[Ingredient] = Ingredient.get_all_for_recipe(user_id, recipe_id)
@@ -1189,10 +1147,8 @@ class Recipe(db.Model):
                 if nutrition_dao:
                     db.session.delete(nutrition_dao)
 
-            db.session.commit()
         except Exception as e:
-            db.session.rollback()
-            raise ValueError(f"Recipe record {recipe_id} could not be deleted: {repr(e)}") from e
+            raise ValueError(f"Recipe record {recipe_id} could not be deleted: {str(e)}")
 
 
     @staticmethod
@@ -1232,10 +1188,8 @@ class Recipe(db.Model):
                     if nutrition_dao:
                         db.session.delete(nutrition_dao)
 
-            db.session.commit()
         except Exception as e:
-            db.session.rollback()
-            raise ValueError(f"Recipe records could not be deleted for user {user_id}: {repr(e)}") from e
+            raise ValueError(f"Recipe records could not be deleted for user {user_id}: {str(e)}")
         logging.info("Recipe records deleted")
 
 
@@ -1291,10 +1245,8 @@ class Recipe(db.Model):
                 # Add its nutrition data to the total
                 recipe_nutrition_dao.sum(ingredient_nutrition_dao, ingredient_dao.servings)
 
-            db.session.commit()
-
             return recipe_dao
+        
         except Exception as e:
-            db.session.rollback()
             raise ValueError(f"Unable to recalculate Nutrition for recipe {recipe_id}: {repr(e)}") from e
 

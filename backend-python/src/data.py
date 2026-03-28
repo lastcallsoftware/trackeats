@@ -4,7 +4,11 @@ from models import db, User, UserStatus, Food, Recipe, Ingredient, Nutrition
 import json
 import logging
 import os
+import datetime
 from typing import Any
+
+class DatabaseError(Exception):
+    pass
 
 class Data:
     ADMIN_USER_NAME = "admin"
@@ -64,9 +68,10 @@ class Data:
         Food.delete_all_for_user(user_id)
 
         # Now add all the data
-        Data.import_foods(user_id)
-        Data.import_recipes(user_id)
-        Data.import_ingredients(user_id)
+        keylists: dict[str, dict[int,int]] = {}
+        Data.import_foods(user_id, keylists)
+        Data.import_recipes(user_id, keylists)
+        Data.import_ingredients(user_id, keylists)
         
 
     @staticmethod
@@ -80,7 +85,19 @@ class Data:
         db.session.execute(delete(Recipe))
         db.session.execute(delete(Food))
         db.session.execute(delete(Nutrition))
-        db.session.commit()
+
+
+    @staticmethod
+    def seed_database(user: User) -> None:
+        try:
+            keylists: dict[str, dict[int,int]] = {}
+            Data.import_foods(user.id, keylists)
+            Data.import_recipes(user.id, keylists)
+            user.seeded_at = datetime.datetime.now()
+            user.seed_version = 1
+            user.seed_requested = False
+        except Exception as e:
+            raise DatabaseError("Seeding failed: " + str(e))
 
 
     @staticmethod
@@ -114,12 +131,11 @@ class Data:
         if not guest_user_dao:
             User.add({"username": Data.GUEST_USER_NAME, "password": guest_password, "email": Data.GUEST_USER_EMAIL, "status": UserStatus.confirmed})
 
-        db.session.commit()
         logging.info("User records added")
 
 
     @staticmethod
-    def import_foods(user_id: int):
+    def import_foods(user_id: int, keylists: dict[str, dict[int,int]]):
         """
         Import Foods from JSON
         """
@@ -127,13 +143,12 @@ class Data:
         with open("./data/foods.json") as f:
             foods: list[dict[str,Any]] = json.load(f)
             for food in foods:
-                Food.add(user_id, food, False)
-        db.session.commit()
+                Food.add(user_id, food, keylists)
         logging.info("Food records imported")
 
 
     @staticmethod
-    def import_recipes(user_id: int):
+    def import_recipes(user_id: int, keylists: dict[str, dict[int,int]]):
         """
         Import Recipes from JSON
         """
@@ -141,12 +156,12 @@ class Data:
         with open("./data/recipes.json") as f:
             recipes: list[dict[str,Any]] = json.load(f)
             for recipe in recipes:
-                Recipe.add(user_id, recipe)
+                Recipe.add(user_id, recipe, keylists)
         logging.info("Recipe records imported")
 
 
     @staticmethod
-    def import_ingredients(user_id: int):
+    def import_ingredients(user_id: int, keylists: dict[str, dict[int,int]]):
         """
         Import Ingredients from JSON
         """
@@ -154,8 +169,7 @@ class Data:
         with open("./data/ingredients.json") as f:
             ingredients: list[dict[str,Any]] = json.load(f)
             for ingredient in ingredients:
-                # Not sure why we're calling this with commit = True but I must have had a reason
-                Ingredient.add(user_id, ingredient, True)
+                Ingredient.add(user_id, ingredient, keylists)
         logging.info("Ingredient records imported")
 
 
