@@ -26,5 +26,6 @@ wheels
 README.md
 .env
 .vscode
-data
 bin
+data/*
+!data/*.json
