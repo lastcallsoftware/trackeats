@@ -175,7 +175,7 @@ class User(db.Model):
 
     @staticmethod
     def get(username: str) -> User:
-        user = db.session.scalars(db.select(User).filter_by(username=username)).first()
+        user = db.session.scalar(db.select(User).filter_by(username=username))
         if not user:
             raise ValueError(f"Invali username {username}")
         return user
@@ -186,7 +186,7 @@ class User(db.Model):
         """
         Get the user_id for the given username
         """
-        user = db.session.scalars(db.select(User).filter_by(username=username)).first()
+        user = db.session.scalar(db.select(User).filter_by(username=username))
         if user is None:
             raise ValueError(f"User {username} not found")
         return user.id
@@ -363,13 +363,14 @@ class Nutrition(db.Model):
     iron_mg: Mapped[float | None] = mapped_column(db.Float, nullable=True)
     potassium_mg: Mapped[int | None] = mapped_column(db.Integer, nullable=True)
 
-    def __init__(self, data: dict[str,Any]|None = None):
+    def __init__(self, user_id: int, data: dict[str,Any]|None = None):
         if data is not None:
-            self.from_dict(data)
+            self.from_dict(user_id, data)
 
-    def from_dict(self, data: dict[str,Any]):
+    def from_dict(self, user_id: int, data: dict[str,Any]):
         if data.get("id"):
             self.id = data["id"]
+        self.user_id = user_id
         self.serving_size_description = data["serving_size_description"]
         self.serving_size_oz = data.get("serving_size_oz", 0)
         self.serving_size_g = data.get("serving_size_g", 0)
@@ -395,6 +396,7 @@ class Nutrition(db.Model):
     def json(self) -> dict[str,Any]:
         return {
             "id": self.id,
+            "user_id": self.user_id,
             "serving_size_description": self.serving_size_description,
             "serving_size_oz": self.serving_size_oz,
             "serving_size_g": self.serving_size_g,
@@ -506,6 +508,7 @@ class Ingredient(db.Model):
     def from_dict(self, user_id: int, data: dict[str,Any]) -> None:
         if data.get("id"):
             self.id = data["id"]
+        self.user_id = user_id
         self.recipe_id = data["recipe_id"]
         self.food_ingredient_id = data.get("food_ingredient_id")
         self.recipe_ingredient_id = data.get("recipe_ingredient_id")
@@ -516,6 +519,7 @@ class Ingredient(db.Model):
     def json(self) -> dict[str,Any]:
         return {
             "id": self.id,
+            "user_id": self.user_id,
             "recipe_id": self.recipe_id,
             "food_ingredient_id": self.food_ingredient_id,
             "recipe_ingredient_id": self.recipe_ingredient_id,
@@ -539,7 +543,8 @@ class Ingredient(db.Model):
         """
         Get all Ingredients for a particular User
         """
-        raise NotImplementedError("This feature is not yet implemented.  Ingredient does not have a user_id column.")
+        ingredients = db.session.scalars(db.select(Ingredient).where(Ingredient.user_id == user_id)).all()
+        return list(ingredients)
 
 
     @staticmethod
@@ -547,7 +552,7 @@ class Ingredient(db.Model):
         """
         Get all Ingredients for a Recipe
         """
-        ingredients = db.session.scalars(db.select(Ingredient).where(Ingredient.recipe_id == recipe_id)).all()
+        ingredients = db.session.scalars(db.select(Ingredient).where(Ingredient.user_id == user_id).where(Ingredient.recipe_id == recipe_id)).all()
         return list(ingredients)
 
 
@@ -556,7 +561,7 @@ class Ingredient(db.Model):
         """
         Get one specififc Ingredient
         """
-        ingredient = db.session.get(Ingredient, ingredient_id)
+        ingredient = db.session.scalar(db.select(Ingredient).where(Ingredient.user_id == user_id).where(Ingredient.id == ingredient_id))
         if not ingredient:
             raise ValueError(f"Ingredient record not found for ID {ingredient_id}")
         return ingredient
@@ -577,7 +582,7 @@ class Ingredient(db.Model):
 
         try:
             # Check whether a matching Ingredient record already exists
-            ingredient_dao = db.session.scalars(db.select(Ingredient).where(Ingredient.recipe_id == recipe_id).where(Ingredient.food_ingredient_id == food_ingredient_id).where(Ingredient.recipe_ingredient_id == recipe_ingredient_id)).first()
+            ingredient_dao = db.session.scalar(db.select(Ingredient).where(Ingredient.recipe_id == recipe_id).where(Ingredient.food_ingredient_id == food_ingredient_id).where(Ingredient.recipe_ingredient_id == recipe_ingredient_id))
             if ingredient_dao:
                 raise ValueError(f"Ingredient record {recipe_id}/{food_ingredient_id}/{recipe_ingredient_id} already exists")
 
@@ -711,7 +716,7 @@ class Food(db.Model):
             self.from_dict(user_id, data)
         else:
             self.group = FoodGroup.other
-            self.nutrition = Nutrition()
+            self.nutrition = Nutrition(user_id)
 
     def from_dict(self, user_id: int, data: dict[str,Any]) -> None:
         if data.get("id"):
@@ -774,7 +779,7 @@ class Food(db.Model):
 
     @staticmethod
     def get(user_id: int, food_id: int) -> Food:
-        food_dao = db.session.scalars(db.select(Food).where(Food.user_id == user_id).where(Food.id == food_id).order_by("group", "name", "subtype")).first()
+        food_dao = db.session.scalar(db.select(Food).where(Food.user_id == user_id).where(Food.id == food_id).order_by("group", "name", "subtype"))
         if not food_dao:
             raise ValueError(f"Food record not found for ID {food_id}")
         return food_dao
@@ -890,7 +895,7 @@ class Food(db.Model):
                         db.session.delete(nutrition_dao)
 
         except Exception as e:
-            raise ValueError(f"Food records could not be deleted for user {user_id}: {repr(e)}") from e
+            raise ValueError(f"Food records could not be deleted for user {user_id}: {str(e)}") from e
         logging.info("Food records deleted")
 
 
@@ -923,7 +928,7 @@ class Recipe(db.Model):
         if data:
             self.from_dict(user_id, data)
         else:
-            self.nutrition = Nutrition()
+            self.nutrition = Nutrition(user_id)
 
     def from_dict(self, user_id: int, data: dict[str,Any]):
         if data.get("id"):
@@ -975,7 +980,7 @@ class Recipe(db.Model):
 
     @staticmethod
     def get(user_id: int, recipe_id: int) -> Recipe:
-        recipe_dao = db.session.scalars(db.select(Recipe).where(Recipe.user_id == user_id).where(Recipe.id == recipe_id)).first()
+        recipe_dao = db.session.scalar(db.select(Recipe).where(Recipe.user_id == user_id).where(Recipe.id == recipe_id))
         if not recipe_dao:
             raise ValueError(f"Recipe record not found for ID {recipe_id}")
         return recipe_dao
