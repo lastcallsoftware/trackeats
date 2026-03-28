@@ -206,6 +206,7 @@ class Data:
     def export_foods(user_id: int):
         logging.info("Exporting Food records...")
         foods = db.session.scalars(select(Food)).all()
+        os.makedirs("./data", exist_ok=True)
         with open(file="./data/foods.json", mode="w") as f:
             json.dump(obj=foods, fp=f, indent=4, default=Data.serialize_data)
         logging.info("Food records exported")
@@ -215,6 +216,7 @@ class Data:
     def export_ingredients(user_id: int):
         logging.info("Exporting Ingredient records...")
         ingredients = db.session.scalars(select(Ingredient)).all()
+        os.makedirs("./data", exist_ok=True)
         with open(file="./data/ingredients.json", mode="w") as f:
             json.dump(obj=ingredients, fp=f, indent=4, default=Data.serialize_data)
         logging.info("Ingredient records exported")
@@ -224,6 +226,7 @@ class Data:
     def export_recipes(user_id: int):
         logging.info("Exporting Recipe records...")
         recipes = db.session.scalars(select(Recipe)).all()
+        os.makedirs("./data", exist_ok=True)
         with open(file="./data/recipes.json", mode="w") as f:
             json.dump(obj=recipes, fp=f, indent=4, default=Data.serialize_data)
         logging.info("Recipe records exported")
