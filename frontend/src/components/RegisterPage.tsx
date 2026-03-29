@@ -11,16 +11,24 @@ import {
     Checkbox,
     FormControlLabel,
 } from '@mui/material';
+import Tooltip from '@mui/material/Tooltip';
+import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
+import Visibility from '@mui/icons-material/Visibility';
+import VisibilityOff from '@mui/icons-material/VisibilityOff';
+import IconButton from '@mui/material/IconButton';
+import InputAdornment from '@mui/material/InputAdornment';
 
 function RegisterPage() {
     const defaultFormData = {username: "", usernameTouched: false, usernameMessage: "",
                              password: "", passwordTouched: false, passwordMessage: "",
                              password2: "", password2Touched: false, password2Message: "",
                              email: "", emailTouched: false, emailMessage: "",
-                             seed_requested: false}
+                             seed_requested: true}
     const [formData, setFormData] = useState(defaultFormData);
     const [errorMessage, setErrorMessage] = useState("");
     const navigate = useNavigate();
+    const [showPassword, setShowPassword] = useState(false);
+    const [showPassword2, setShowPassword2] = useState(false);
 
     const usernameChanged = (e: React.ChangeEvent<HTMLInputElement>) => {
         const username = e.target.value;
@@ -205,7 +213,7 @@ function RegisterPage() {
                         <TextField
                             label="Password"
                             id="password"
-                            type="password"
+                            type={showPassword ? 'text' : 'password'}
                             value={formData.password}
                             inputProps={{ maxLength: 100 }}
                             onFocus={() => setFormData(prev => ({ ...prev, passwordTouched: false }))}
@@ -214,12 +222,25 @@ function RegisterPage() {
                             error={!!(formData.passwordMessage && formData.passwordTouched && formData.password.length > 0)}
                             helperText={formData.passwordTouched && formData.password.length > 0 ? formData.passwordMessage : " "}
                             fullWidth
+                            InputProps={{
+                                endAdornment: (
+                                    <InputAdornment position="end">
+                                        <IconButton
+                                            aria-label="toggle password visibility"
+                                            onClick={() => setShowPassword((show) => !show)}
+                                            edge="end"
+                                        >
+                                            {showPassword ? <Visibility /> : <VisibilityOff />}
+                                        </IconButton>
+                                    </InputAdornment>
+                                ),
+                            }}
                         />
                         {/* Retype Password */}
                         <TextField
                             label="Retype Password"
                             id="password2"
-                            type="password"
+                            type={showPassword2 ? 'text' : 'password'}
                             value={formData.password2}
                             inputProps={{ maxLength: 100 }}
                             onFocus={() => setFormData(prev => ({ ...prev, password2Touched: false }))}
@@ -228,6 +249,19 @@ function RegisterPage() {
                             error={!!(formData.password2Message && formData.password2Touched && formData.password2.length > 0)}
                             helperText={formData.password2Touched && formData.password2.length > 0 ? formData.password2Message : " "}
                             fullWidth
+                            InputProps={{
+                                endAdornment: (
+                                    <InputAdornment position="end">
+                                        <IconButton
+                                            aria-label="toggle password visibility"
+                                            onClick={() => setShowPassword2((show) => !show)}
+                                            edge="end"
+                                        >
+                                            {showPassword2 ? <Visibility /> : <VisibilityOff />}
+                                        </IconButton>
+                                    </InputAdornment>
+                                ),
+                            }}
                         />
                         {/* Email Address */}
                         <TextField
@@ -253,7 +287,14 @@ function RegisterPage() {
                                     color="primary"
                                 />
                             }
-                            label="Add seed data to my new account"
+                            label={
+                                <span style={{ display: 'inline-flex', alignItems: 'center' }}>
+                                    Add seed data to my new account
+                                    <Tooltip title="This will populate your account with sample foods and recipes" placement="right">
+                                        <HelpOutlineIcon style={{ marginLeft: 6, fontSize: 20, cursor: 'pointer' }} />
+                                    </Tooltip>
+                                </span>
+                            }
                         />
                     </Box>
                     <Divider sx={{ my: 2 }} />
@@ -263,15 +304,25 @@ function RegisterPage() {
                     <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
                         Click on the link in that email (or paste it into a browser) to complete registration and activate your account.
                     </Typography>
-                    <Button
-                        type="submit"
-                        variant="contained"
-                        color="primary"
-                        disabled={registerIsDisabled}
-                        fullWidth
-                    >
-                        Register
-                    </Button>
+                    <Box sx={{ display: 'flex', gap: 2, mt: 2 }}>
+                        <Button
+                            type="submit"
+                            variant="contained"
+                            color="primary"
+                            disabled={registerIsDisabled}
+                            fullWidth
+                        >
+                            Register
+                        </Button>
+                        <Button
+                            variant="outlined"
+                            color="secondary"
+                            fullWidth
+                            onClick={() => navigate('/login')}
+                        >
+                            Cancel
+                        </Button>
+                    </Box>
                     {errorMessage && (
                         <Typography color="error" sx={{ mt: 2 }}>
                             {errorMessage}
