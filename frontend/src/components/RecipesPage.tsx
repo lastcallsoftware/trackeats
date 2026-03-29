@@ -85,21 +85,30 @@ function RecipesPage() {
                     flexDirection: 'column',
                 }}
             >
-                <Box
-                    sx={{
-                        my: 0,
-                        mx: { xs: 0, sm: 4 },
-                        overflowX: 'auto',
-                        border: '1px solid',
-                        borderColor: 'divider',
-                        borderRadius: 1.5,
-                        background: '#fff',
-                        boxShadow: '0 2px 12px 0 rgba(0,0,0,0.07)',
-                    }}
-                >
-                    <RecipesTable setSelectedRowId={setSelectedRowId} pagination={pagination} />
-                </Box>
-                <Pagination pagination={pagination} setPagination={setPagination} totalCount={recipes.length} />
+                {recipes.length === 0 ? (
+                    <Box sx={{ textAlign: 'center', py: 8, color: 'text.secondary', fontSize: 20 }}>
+                        Looks like you haven't added any recipes yet.<br />
+                        Click <b>Add</b> to get started!
+                    </Box>
+                ) : (
+                    <>
+                        <Box
+                            sx={{
+                                my: 0,
+                                mx: { xs: 0, sm: 4 },
+                                overflowX: 'auto',
+                                border: '1px solid',
+                                borderColor: 'divider',
+                                borderRadius: 1.5,
+                                background: '#fff',
+                                boxShadow: '0 2px 12px 0 rgba(0,0,0,0.07)',
+                            }}
+                        >
+                            <RecipesTable setSelectedRowId={setSelectedRowId} pagination={pagination} />
+                        </Box>
+                        <Pagination pagination={pagination} setPagination={setPagination} totalCount={recipes.length} />
+                    </>
+                )}
 
                 <Stack
                     direction="row"
