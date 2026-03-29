@@ -1,4 +1,4 @@
-import { IFood, IRecipe, INutrition } from "../components/DataProvider";
+import { IFood, IRecipe, INutrition } from "../contexts/DataProvider";
 
 /**
  * Generate a summary string for an ingredient, given its nutrition and source (food or recipe).

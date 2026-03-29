@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { createColumnHelper, flexRender, getCoreRowModel, Row, useReactTable } from '@tanstack/react-table';
-import { IIngredient } from "./DataProvider";
+import { IIngredient } from "../contexts/DataProvider";
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';

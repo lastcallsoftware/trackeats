@@ -1,5 +1,5 @@
 import { createContext, useContext } from 'react';
-import { DataContextType, IFood, INutrition, IRecipe } from '@/components/DataProvider';
+import { DataContextType, IFood, INutrition, IRecipe } from '@/contexts/DataProvider';
 
 export const DataContext = createContext<DataContextType | null>(null)
 

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { IFood } from "./DataProvider";
+import { IFood } from "../contexts/DataProvider";
 import { useData } from "@/utils/useData";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";

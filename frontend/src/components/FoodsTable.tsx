@@ -13,7 +13,7 @@ import {
 } from '@tanstack/react-table';
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { IFood } from "./DataProvider";
+import { IFood } from "../contexts/DataProvider";
 import { useData } from "@/utils/useData";
 import { getFoodGroupLabel } from './FoodGroups';
 import FilterWidget from './FilterWidget';

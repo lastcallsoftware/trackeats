@@ -12,7 +12,7 @@ import {
     useReactTable
 } from '@tanstack/react-table';
 import React, { useEffect } from 'react';
-import { IRecipe } from "./DataProvider";
+import { IRecipe } from "../contexts/DataProvider";
 import { useData } from "@/utils/useData";
 import { getCuisineLabel } from './Cuisines';
 import { useNavigate } from 'react-router-dom';

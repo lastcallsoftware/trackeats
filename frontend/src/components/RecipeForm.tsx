@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react"
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
-import { IFood, IRecipe, IIngredient, INutrition } from "./DataProvider";
+import { IFood, IRecipe, IIngredient, INutrition } from "../contexts/DataProvider";
 import { useData, Recipe } from "@/utils/useData";
 import { cuisines } from "./Cuisines";
 import IngredientsTable from "./IngredientsTable";
