@@ -51,7 +51,7 @@ const buttonSx = {
     '&:hover': { backgroundColor: 'transparent', textDecoration: 'underline' }
 }
 
-function Nav() {
+function App() {
     const { setErrorMessage } = useData();
     const [isAuthenticated, setAuthenticated] = useState(sessionStorage.getItem("access_token") != null);
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -241,4 +241,4 @@ function Nav() {
     );
 }
 
-export default Nav;
+export default App;

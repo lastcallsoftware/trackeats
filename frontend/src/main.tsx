@@ -2,7 +2,7 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import {BrowserRouter } from 'react-router-dom'
 import { CssBaseline, ThemeProvider } from '@mui/material'
-import Nav from './components/Nav'
+import App from './components/App'
 import { DataProvider } from "./contexts/DataProvider"
 import theme from './theme'
 
@@ -16,7 +16,7 @@ createRoot(document.getElementById('root')!).render(
       <CssBaseline />
       <BrowserRouter>
         <DataProvider>
-          <Nav/>
+          <App/>
         </DataProvider>
       </BrowserRouter>
     </ThemeProvider>
