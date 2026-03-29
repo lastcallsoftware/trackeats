@@ -177,7 +177,7 @@ class User(db.Model):
     def get(username: str) -> User:
         user = db.session.scalar(db.select(User).filter_by(username=username))
         if not user:
-            raise ValueError(f"Invalid username {username}")
+            raise ValueError(f"Invalid username '{username}'")
         return user
 
 
@@ -188,7 +188,7 @@ class User(db.Model):
         """
         user = db.session.scalar(db.select(User).filter_by(username=username))
         if user is None:
-            raise ValueError(f"User {username} not found")
+            raise ValueError(f"User '{username}' not found")
         return user.id
 
 
@@ -241,7 +241,7 @@ class User(db.Model):
         query = db.select(User).filter_by(username=username)
         existing_user = db.session.execute(query).first()
         if (existing_user is not None):
-            raise ValueError(f"User {username} already exists")
+            raise ValueError(f"User '{username}' already exists")
 
         # Salt and hash the password
         password_hash_str = Crypto.hash_password(password)
@@ -289,7 +289,7 @@ class User(db.Model):
 
         # Make sure the user has been confirmed
         if user.status != UserStatus.confirmed:
-            raise ValueError(f"User {username} has not been confirmed")
+            raise ValueError(f"User '{username}' has not been confirmed")
 
         # Validate the password.
         # Note that the salt is stored as part of the hash, rather than as a 
@@ -297,7 +297,7 @@ class User(db.Model):
         password_hash_bytes = bytes(user.password_hash, "utf-8")
         password_bytes = bytes(password, "utf-8")
         if not Crypto.check_password(password_bytes, password_hash_bytes):
-            raise ValueError(f"Incorrect password for username {username}")
+            raise ValueError(f"Incorrect password for username '{username}'")
 
         return user
 
