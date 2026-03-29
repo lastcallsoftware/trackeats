@@ -39,7 +39,7 @@ const HomePage: React.FC = () => {
                         A NOTE FOR NEW GUESTS: TrackEats is a portfolio app, intended to showcase my tech skills.
                     </Typography>
                     <Typography variant="body1" sx={{ mb: 1.5 }}>
-                        To use the app you can Register your own new account, but it is a lot more interesting to log on with an account that already has a lot of data. To do that, log on using these credentials:
+                        To use the app you can Register your own new account, or log on with the guest account:
                     </Typography>
                     <Typography component="div" sx={{ pl: 3.5, fontFamily: 'monospace' }}>Username: guest</Typography>
                     <Typography component="div" sx={{ pl: 3.5, mb: 1.5, fontFamily: 'monospace' }}>Password: Guest*123</Typography>
