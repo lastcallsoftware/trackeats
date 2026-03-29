@@ -236,8 +236,9 @@ const foodColumns = [
             columnHelper.accessor("price_date", {
                 header: () => <span>Price Date</span>,
                 cell: info => {
-                    if (info.getValue().trim().length > 0)
-                        return new Date(info.getValue().replace(/-/g, '/').replace(/T.+/, '')).toLocaleDateString('en-US', {year: 'numeric', month: 'short', day: 'numeric'})
+                    const val = info.getValue();
+                    if (typeof val === 'string' && val.trim().length > 0)
+                        return new Date(val.replace(/-/g, '/').replace(/T.+/, '')).toLocaleDateString('en-US', {year: 'numeric', month: 'short', day: 'numeric'})
                     else
                         return "";
                 },
