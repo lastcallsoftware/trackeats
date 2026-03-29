@@ -1,71 +1,48 @@
-import axios from "axios";
-import { useLocation, useNavigate } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
+import { useSearchParams, useNavigate } from "react-router-dom";
+import RegisterStateLoading from "./RegisterStateLoading";
+import RegisterStateSuccess from "./RegisterStateSuccess";
+import RegisterStateError from "./RegisterStateError";
 
-function ConfirmUser() {
-    const {state} = useLocation()
-    const {username, password, email} = state;
+export default function ConfirmEmail() {
+    const [searchParams] = useSearchParams();
     const navigate = useNavigate();
-    const [message, setMessage] = useState("");
-    const [errorMessage, setErrorMessage] = useState("");
-	const [loading, setLoading] = useState(true);    
-    const [hasToken, setHasToken] = useState(false);
+    const token = searchParams.get("token");
 
-	useEffect(() => {
-		const fetchApi = async () => {
-			try {
-				const datetime = new Intl.DateTimeFormat(navigator.language, {dateStyle: "full", timeStyle: "long"}).format(new Date());
-				setMessage("Last checked at: " + datetime)
-				axios.post("/login", {username: username, password: password})
-				.then((response) => {
-                    setHasToken(true)
-					sessionStorage.setItem("access_token", response.data.access_token)
-                    navigate("/")
-				})
-				.catch((error) => {
-					if (error.response)
-						setErrorMessage(error.response.data.msg)
-					else
-                        setErrorMessage(error.message)
-				})
-			} catch (error) {
-				setErrorMessage("Error: " + error);
-			} finally {
-				setLoading(false);
-			}
-		};
-
-		const intervalId = setInterval(() => {
-			if (!hasToken) {
-				fetchApi();
-			}
-		}, 5000);
-
-		// Fetch immediately on mount
-		fetchApi();
-
-		// Cleanup interval on unmount
-		return () => clearInterval(intervalId);
-	}, [hasToken, navigate, username, password]);
-
-    return (
-        <>
-            <p>Hello, {username}, check your inbox for an email from Trackeats!</p>
-            <p>Click on the link in that email to complete registration and activate your account.</p>
-			{loading ? (
-				<p>Loading...</p>
-			) : hasToken ? (
-				<p>Login successful, redirecting...</p>
-			) : (
-                <>
-                    <p>{message}</p>
-                    <p style={{ color: 'red' }}>{errorMessage}</p>
-                </>
-			)}
-            <p>Don't see the email?  Click here to re-send the confirmation email to {email}</p>
-            <p>Wrong email address?  Click here to cancel and start over.</p>
-        </>
+    // Derive initial state before any effect runs
+    const [status, setStatus] = useState<"loading" | "success" | "error">(
+        token ? "loading" : "error"
     );
-}
+    const [username, setUsername] = useState("");
+    const [errorMessage, setErrorMessage] = useState(
+        token ? "" : "No confirmation token found."
+    );
 
-export default ConfirmUser;
+    useEffect(() => {
+        if (!token) return; // nothing to do — state already set correctly above
+
+        fetch("/api/confirm-email", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ token }),
+        })
+            .then((r) => r.json())
+            .then((data) => {
+                if (data.success) {
+                    setUsername(data.username);
+                    setStatus("success");
+                } else {
+                    setErrorMessage(data.error || "Something went wrong.");
+                    setStatus("error");
+                }
+            })
+            .catch(() => {
+                setErrorMessage("Could not reach the server. Please try again.");
+                setStatus("error");
+            });
+    }, [token]);
+
+    if (status === "loading") return <RegisterStateLoading />;
+    if (status === "success") return <RegisterStateSuccess username={username} onLogin={() => navigate("/login")} />;
+    return <RegisterStateError message={errorMessage} onResend={() => navigate("/resend-confirmation")} />;
+}
