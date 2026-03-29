@@ -732,7 +732,7 @@ class Food(db.Model):
         self.size_g = data.get("size_g")
         self.servings = data["servings"]
         self.nutrition_id = data.get("nutrition_id")
-        self.nutrition = Nutrition(data["nutrition"])
+        self.nutrition = Nutrition(user_id, data["nutrition"])
         self.price = data.get("price")
         # This code sets the DAO field to None if the date string is None
         # OR if its stripped length is 0 (e.g., if is's all spaces)
@@ -939,7 +939,7 @@ class Recipe(db.Model):
         self.total_yield = data["total_yield"]
         self.servings = data["servings"]
         self.nutrition_id = data.get("nutrition_id")
-        self.nutrition = Nutrition(data["nutrition"])
+        self.nutrition = Nutrition(user_id, data["nutrition"])
         self.price = data.get("price")
 
     def __str__(self):
