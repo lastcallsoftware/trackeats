@@ -177,7 +177,7 @@ class User(db.Model):
     def get(username: str) -> User:
         user = db.session.scalar(db.select(User).filter_by(username=username))
         if not user:
-            raise ValueError(f"Invali username {username}")
+            raise ValueError(f"Invalid username {username}")
         return user
 
 
@@ -209,31 +209,31 @@ class User(db.Model):
             raise ValueError("Username is required.")
         username = username.strip()
         if len(username) < 3:
-            raise ValueError("Username must be at least 3 characters.")
+            raise ValueError("Username must be at least 3 characters")
         elif len(username) > 100:
-            raise ValueError("Username must be at most 100 characters.")
+            raise ValueError("Username must be at most 100 characters")
             
         if not password:
             raise ValueError("Password is required.")
         password = password.strip()
         errors: list[str] = []
         if len(password) < 8:
-            errors.append("Password must be at least 8 characters.")
+            errors.append("Password must be at least 8 characters")
         elif len(password) > 100:
-            errors.append("Password must be at most 100 characters.")
+            errors.append("Password must be at most 100 characters")
         if not re.search(r"[a-z]", password):
-            errors.append("Password must contain at least one lowercase letter.")
+            errors.append("Password must contain at least one lowercase letter")
         if not re.search(r"[A-Z]", password):
-            errors.append("Password must contain at least one uppercase letter.")
+            errors.append("Password must contain at least one uppercase letter")
         if not re.search(r"\d", password):
-            errors.append("Password must contain at least one digit.")
+            errors.append("Password must contain at least one digit")
         if not re.search(r"[!@#$%^&*()_+\-=\[\]{};':\"\\|,.<>\/?]", password):
-            errors.append("Password must contain at least one special character.")
+            errors.append("Password must contain at least one special character")
         if len(errors) > 0:
             raise ValueError(errors)
 
         if not email_addr:
-            raise ValueError("Email address is required but missing.")
+            raise ValueError("Email address is required")
         email_info = validate_email(email_addr, check_deliverability=True)
         email_addr = email_info.normalized
 
@@ -241,7 +241,7 @@ class User(db.Model):
         query = db.select(User).filter_by(username=username)
         existing_user = db.session.execute(query).first()
         if (existing_user is not None):
-            raise ValueError(f"User {username} already exists.")
+            raise ValueError(f"User {username} already exists")
 
         # Salt and hash the password
         password_hash_str = Crypto.hash_password(password)
@@ -275,9 +275,9 @@ class User(db.Model):
         Verify that the given user credentials are valid.
         """
         if not username:
-            raise ValueError("Username is required.")
+            raise ValueError("Username is required")
         if not password:
-            raise ValueError("Password is required.")
+            raise ValueError("Password is required")
 
         # Validate the credentials
         # Retrieve user record from database
@@ -289,7 +289,7 @@ class User(db.Model):
 
         # Make sure the user has been confirmed
         if user.status != UserStatus.confirmed:
-            raise ValueError(f"User {username} has not been confirmed.")
+            raise ValueError(f"User {username} has not been confirmed")
 
         # Validate the password.
         # Note that the salt is stored as part of the hash, rather than as a 
@@ -297,7 +297,7 @@ class User(db.Model):
         password_hash_bytes = bytes(user.password_hash, "utf-8")
         password_bytes = bytes(password, "utf-8")
         if not Crypto.check_password(password_bytes, password_hash_bytes):
-            raise ValueError(f"Incorrect password for username {username}.")
+            raise ValueError(f"Incorrect password for username {username}")
 
         return user
 
@@ -625,7 +625,7 @@ class Ingredient(db.Model):
                 recipe_dao.price = recipe_dao.price + total_price if recipe_dao.price else total_price
 
             else:
-                raise ValueError("Either food_ingredient_id or recipe_ingredient_id must be provided.")
+                raise ValueError("Either food_ingredient_id or recipe_ingredient_id must be provided")
             
             if ordinal is None:
                 ordinal = db.session.query(func.count(Ingredient.id)).filter_by(recipe_id=recipe_id).scalar()
@@ -642,7 +642,7 @@ class Ingredient(db.Model):
 
             return ingredient_dao
         except Exception as e:
-            raise ValueError(f"Ingredient record {recipe_id}/{food_ingredient_id}/{recipe_ingredient_id} could not be added: " + repr(e)) from e
+            raise ValueError(f"Ingredient record {recipe_id}/{food_ingredient_id}/{recipe_ingredient_id} could not be added: " + str(e))
 
 
     @staticmethod
@@ -654,7 +654,7 @@ class Ingredient(db.Model):
         nutrition_id = ingredient.nutrition_id
         nutrition_dao = db.session.get(Nutrition, nutrition_id)
         if not nutrition_dao:
-            raise ValueError(f"Nutrition record {nutrition_id} not found.")
+            raise ValueError(f"Nutrition record {nutrition_id} not found")
 
         ss_oz: float = round((nutrition_dao.serving_size_oz or 0) * servings, 1)
         ss_g: int = round((nutrition_dao.serving_size_g or 0) * servings)
@@ -836,7 +836,7 @@ class Food(db.Model):
             nutrition_id = food_dao.nutrition_id
             nutrition_dao = db.session.get(Nutrition, nutrition_id)
             if not nutrition_dao:
-                raise ValueError(f"Nutrition record {food_id}/{nutrition_id} not found.")
+                raise ValueError(f"Nutrition record {food_id}/{nutrition_id} not found")
 
             # Add the user_id field.
             food["user_id"] = user_id
@@ -847,7 +847,7 @@ class Food(db.Model):
             return food_dao
 
         except Exception as e:
-            raise ValueError("Food record could not be updated: " + repr(e)) from e
+            raise ValueError("Food record could not be updated: " + str(e))
 
 
     @staticmethod
@@ -872,7 +872,7 @@ class Food(db.Model):
                     db.session.delete(nutrition_dao)
 
         except Exception as e:
-            raise ValueError("Food record could not be deleted: " + repr(e)) from e
+            raise ValueError("Food record could not be deleted: " + str(e))
 
 
     @staticmethod
@@ -895,7 +895,7 @@ class Food(db.Model):
                         db.session.delete(nutrition_dao)
 
         except Exception as e:
-            raise ValueError(f"Food records could not be deleted for user {user_id}: {str(e)}") from e
+            raise ValueError(f"Food records could not be deleted for user {user_id}: {str(e)}")
         logging.info("Food records deleted")
 
 
@@ -1253,5 +1253,5 @@ class Recipe(db.Model):
             return recipe_dao
         
         except Exception as e:
-            raise ValueError(f"Unable to recalculate Nutrition for recipe {recipe_id}: {repr(e)}") from e
+            raise ValueError(f"Unable to recalculate Nutrition for recipe {recipe_id}: {str(e)}")
 
