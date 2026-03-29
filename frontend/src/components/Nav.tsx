@@ -10,7 +10,7 @@ import LoginPage from './LoginPage';
 import RegisterPage from './RegisterPage';
 import Footer from './Footer';
 import axios from "axios";
-import ConfirmUser from './ConfirmUser';
+import ConfirmUserPage from './ConfirmUserPage';
 import FoodForm from './FoodForm';
 import RecipeForm from './RecipeForm';
 import Header from './Header';
@@ -149,7 +149,7 @@ function Nav() {
                     <Route path="/about" element={<AboutPage />} />
                     <Route path="/login" element={<LoginPage storeTokenFunction={storeToken}/>} />
                     <Route path="/register" element={<RegisterPage />} />
-                    <Route path="/confirm" element={<ConfirmUser/>} />
+                    <Route path="/confirm" element={<ConfirmUserPage/>} />
                     <Route path="/food/add" element={<FoodForm />} />
                     <Route path="/food/edit/:id" element={<FoodForm />} />
                     <Route path="/recipe/add" element={<RecipeForm />} />

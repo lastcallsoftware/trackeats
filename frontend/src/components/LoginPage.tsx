@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useLocation, useNavigate, Link as RouterLink } from 'react-router-dom';
 import axios from "axios";
 import Button from '@mui/material/Button';
@@ -22,10 +22,24 @@ function LoginPage(props: any) {
     const [loginMessage, setLoginMessage] = useState("");
     const navigate = useNavigate();
     const [showPassword, setShowPassword] = useState(false);
+    const [pageState, setPageState] = useState<"login" | "confirmed">("login")
+    const [confirmedUsername, setConfirmedUsername] = useState("")
 
     const usernameIsValid = formData.username.length > 0;
     const passwordIsValid = formData.password.length > 0;
     const loginIsDisabled = !usernameIsValid || !passwordIsValid;
+
+    useEffect(() => {
+    const channel = new BroadcastChannel("trackeats_auth");
+    channel.onmessage = (event) => {
+        if (event.data.type === "EMAIL_CONFIRMED") {
+            const { username } = event.data;
+            setConfirmedUsername(username)
+            setPageState("confirmed")
+        }
+    };
+    return () => channel.close(); // clean up on unmount
+    }, []);
 
     const handleSubmit = (e: { preventDefault: () => void; }) => {
         e.preventDefault();
@@ -44,10 +58,19 @@ function LoginPage(props: any) {
             })
     }
 
+    if (pageState === "confirmed") {
+        return (
+            <Box sx={{ minHeight: '70vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                <Typography variant="h6">Your email has been confirmed, {confirmedUsername}.</Typography>
+                <Typography variant="body2" color="text.secondary">You can close this tab.</Typography>
+            </Box>
+        );
+    }
+
     return (
         <Box
             sx={{
-                minHeight: '100vh',
+                minHeight: '70vh',
                 background: 'linear-gradient(135deg, #e3f2fd 0%, #fce4ec 100%)',
                 py: { xs: 2, md: 4 },
                 display: 'flex',

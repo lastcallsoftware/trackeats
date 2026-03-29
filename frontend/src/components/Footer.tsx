@@ -19,10 +19,10 @@ const FooterLogo = styled('img')({
 function Footer() {
     return (
         <FooterRoot>
-            <Box sx={{ backgroundColor: theme => theme.palette.tableAlt.headerBorder, borderRadius: 2, p: '6px 10px', display: 'inline-flex' }}>
+            <Box sx={{ backgroundColor: theme => theme.palette.primary.main, borderRadius: 2, p: '6px 10px', display: 'inline-flex' }}>
                 <FooterLogo src={logo} alt="LCS Logo" />
             </Box>
-            <Typography variant="body2">Copyright: © 2024 Last Call Software.  All rights reserved.</Typography>
+            <Typography variant="body2">Copyright: © 2026 Last Call Software.  All rights reserved.</Typography>
         </FooterRoot>
     );
 }

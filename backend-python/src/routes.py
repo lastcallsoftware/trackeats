@@ -152,24 +152,48 @@ def register():
             if not request.is_json:
                 raise ValueError("Invalid request - not JSON.")
 
-            # Get parameters from request
-            username = request.json.get('username', None)
-            password = request.json.get('password', None)
-            email_addr = request.json.get('email', None)
-            seed_requested = request.json.get('seed_requested', False)
+            # If this is a "resend confirmation email" request sent because the original 
+            # token expired, the request will be sent with the expired token rather than 
+            # the username and email address (which is sent in the usual case).  So look 
+            # for the expired token first and deal with that workflow separately.
+            expired_token = request.json.get("token")
+            if expired_token:
+                user = User.get_by_token(expired_token)
+                username = user.username
+                encrypted_email_addr = user.email
+                if encrypted_email_addr is None:
+                    raise ValueError("Email address missing from User record")
+                email_addr = Crypto.decrypt(encrypted_email_addr)
 
-            # Generate a verification token
-            token = Crypto.generate_url_token()
+                # Generate a NEW verification token
+                token = Crypto.generate_url_token()
 
-            # Add the user to the database in "pending" state
-            User.add({
-                "username": username,
-                "password": password,
-                "email": email_addr, 
-                "status": UserStatus.pending, 
-                "token": token,
-                "seed_requested": seed_requested})
-            logging.info(f"New user added to database: {username} at {email_addr}")
+                # Save the new token to the database.
+                # We only keep the latest one.  A fancy-schmancy system would keep a 
+                # record of past tokens and invalidate them, but we're not that fancy.
+                user.confirmation_token = token
+
+            # Otherwise this is a normal confirmation request, with username, password,
+            # email address, and the seed requested flag.
+            else:
+                # Get parameters from request
+                username = request.json.get('username', None)
+                password = request.json.get('password', None)
+                email_addr = request.json.get('email', None)
+                seed_requested = request.json.get('seed_requested', False)
+
+                # Generate a verification token
+                token = Crypto.generate_url_token()
+
+                # Add the user to the database in "pending" state
+                user = User.add({
+                    "username": username,
+                    "password": password,
+                    "email": email_addr, 
+                    "status": UserStatus.pending, 
+                    "token": token,
+                    "seed_requested": seed_requested})
+                logging.info(f"New user added to database: {username} at {email_addr}")
 
             # Send the confirmation email
             error_msg = Sendmail.send_confirmation_email(username, token, email_addr)
@@ -177,6 +201,9 @@ def register():
                 raise RuntimeError(f"Couldn't send email to {email_addr}: {error_msg}.")
             else:
                 logging.info(f"Email successfully sent to {email_addr}.")
+
+            user.confirmation_sent_at = datetime.now()
+
     except Exception as e:
         msg = str(e)
         logging.error(msg)
@@ -204,11 +231,11 @@ def sendmail():
         # Get request parameters from URL
         username = request.args.get("username")
         if username is None:
-            raise ValueError("Missing required parameter 'username'.")
+            raise ValueError("Missing required parameter 'username'")
 
         email_addr = request.args.get("addr")
         if email_addr is None:
-            raise ValueError("Missing required parameter 'addr'.")
+            raise ValueError("Missing required parameter 'addr'")
 
         # Generate an auth token
         token = Crypto.generate_url_token(32)
@@ -231,6 +258,13 @@ def sendmail():
 ##############################
 # CONFIRM
 ##############################
+class ExpiredToken(Exception):
+    pass
+class InvalidToken(Exception):
+    pass
+class UserAlreadyConfirmed(Exception):
+    pass
+
 @bp.route("/confirm", methods = ["GET"])
 def confirm():
     """
@@ -240,44 +274,64 @@ def confirm():
     logging.info("/confirm")
     try:
         with db.session.begin():
-            # Retrieve request parameters from the confirmation URL.
-            username = request.args.get("username")
-            if username is None:
-                raise ValueError("Missing required parameter 'username'.")
-
             confirmation_token = request.args.get("token")
             if confirmation_token is None:
-                raise ValueError("Missing required parameter 'token'.")
+                raise ValueError("Missing required parameter 'token'")
 
             # Retrieve the User record from the database.
-            user = User.get(username)
-
-            # Check whether the confirmation token has expired.
-            if not user.confirmation_sent_at:
-                raise ValueError(f"Confirmation token was not sent to {username}.")
-            expired_time = user.confirmation_sent_at + timedelta(hours=4)
-            if datetime.now() > expired_time:
-                raise ValueError(f"Confirmation token expired for {username}.")
+            user = User.get_by_token(confirmation_token)
 
             # Check whether the confirmation token is correct.
             if (confirmation_token != user.confirmation_token):
-                raise ValueError(f"Invalid confirmation token for {username}.")
+                raise InvalidToken(f"Invalid confirmation token for '{user.username}'")
+
+            # Make sure we have a time for when the token was sent.  Shouldn't be possible for us
+            # to match the token but not have a send time for it, but we have to check anyway.
+            if not user.confirmation_sent_at:
+                raise InvalidToken(f"Missing send time for confirmation token sent to '{user.username}'")
+
+            # Check whether the confirmation token has expired.
+            expired_time = user.confirmation_sent_at + timedelta(hours=4)
+            if datetime.now() > expired_time:
+                raise ExpiredToken(f"Confirmation token expired for '{user.username}'")
+
+            # Check whether the user is already confirmed
+            #if user.status == UserStatus.confirmed:
+            #    raise UserAlreadyConfirmed(f"User '{user.username}' has already been confirmed")
 
             # The user is confirmed.  Update their status.
             user.status = UserStatus.confirmed
   
-    except ValueError as e:
+    except ValueError as e: # malformed request (missing token)
         msg = f"Unable to confirm user: {str(e)}."
+        return_data = { "username": None, "msg": msg }
         logging.error(msg)
-        return jsonify(msg), 400
+        return jsonify(return_data), 400
+    except InvalidToken as e:
+        msg = f"Unable to confirm user: {str(e)}."
+        return_data = { "username": None, "msg": msg }
+        logging.error(msg)
+        return jsonify(return_data), 401
+    except ExpiredToken as e:
+        msg = f"Unable to confirm user: {str(e)}."
+        return_data = { "username": None, "msg": msg }
+        logging.error(msg)
+        return jsonify(return_data), 403
+    except UserAlreadyConfirmed as e:
+        msg = str(e)
+        return_data = { "username": user.username, "msg": msg } # type: ignore
+        logging.error(msg)
+        return jsonify(return_data), 409
     except Exception as e:
-        msg = f"Unable to confirm user: {str(e)}."
+        msg = f"Unexpected server error: {str(e)}."
+        return_data = { "username": None,  "msg": msg }
         logging.error(msg)
-        return jsonify(msg), 500
+        return jsonify(return_data), 500
     else:
-        msg = f"User {username} confirmed.  You may now close this window and log into the Trackeats app."
+        msg = f"User {user.username} confirmed"
+        return_data: dict[str,Any] = { "username": user.username, "msg": msg }
         logging.info(msg)
-        return jsonify(msg), 200
+        return jsonify(return_data), 200
 
 
 ##############################

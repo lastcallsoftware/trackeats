@@ -8,7 +8,7 @@ interface Props {
 
 export default function RegisterStateSuccess({ username, onLogin }: Props) {
 	return (
-		<Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "100vh", bgcolor: "grey.50" }}>
+		<Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "70vh", bgcolor: "grey.50" }}>
 			<Paper elevation={0} variant="outlined" sx={{ p: 5, maxWidth: 400, width: "100%", textAlign: "center", borderRadius: 3 }}>
 				<Avatar sx={{ width: 56, height: 56, bgcolor: "success.light", mx: "auto", mb: 2.5 }}>
 					<CheckCircleOutlineIcon sx={{ color: "success.dark", fontSize: 30 }} />

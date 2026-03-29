@@ -52,8 +52,10 @@ class Sendmail:
     @staticmethod
     def send_confirmation_email(username: str, token:str, email_address: str) -> None:
         # Create the link they'll use to confirm.
-        base_url = os.environ.get("BACKEND_BASE_URL")
-        link = f"{base_url}/confirm?username={username}&token={token}"
+        #base_url = os.environ.get("BACKEND_BASE_URL")
+        base_url = os.environ.get("FRONTEND_BASE_URL")
+        #link = f"{base_url}/confirm?username={username}&token={token}"
+        link = f"{base_url}/confirm?token={token}"
         logging.info(link)
         email_body_text = VERIFY_EMAIL_TEMPLATE_TEXT.format(link=link)
         email_body_html = VERIFY_EMAIL_TEMPLATE_HTML.format(link1=link, link2=link)

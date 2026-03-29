@@ -1,7 +1,7 @@
 from __future__ import annotations
 from typing import Any
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import func
+from sqlalchemy import func, select
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from email_validator import validate_email
 from crypto import Crypto
@@ -130,10 +130,14 @@ class User(db.Model):
         return self
 
     def __str__(self):
-        return (f"<User {self.id} {self.username}, "
+        return (f"<User {self.id} "
+                f"username: {self.username}, "
                 f"status: {self.status}, "
+                f"email: <confidential>, "
                 f"created_at: {self.created_at}, "
+                f"password_hash: <confidential>, "
                 f"confirmation_sent_at: {self.confirmation_sent_at}>"
+                f"confirmation_token: <confidential>, "
                 f"seed_requested: {self.seed_requested}, "
                 f"seed_version: {self.seed_version}, "
                 f"seeded_at: {self.seeded_at}>")
@@ -175,25 +179,31 @@ class User(db.Model):
 
     @staticmethod
     def get(username: str) -> User:
-        user = db.session.scalar(db.select(User).filter_by(username=username))
+        user = db.session.scalar(db.select(User).where(User.username == username))
         if not user:
             raise ValueError(f"Invalid username '{username}'")
         return user
 
 
     @staticmethod
+    def get_by_token(token: str) -> User:
+        user = db.session.scalar(db.select(User).where(User.confirmation_token == token))
+        return user
+    
+
+    @staticmethod
     def get_id(username: str) -> int:
         """
         Get the user_id for the given username
         """
-        user = db.session.scalar(db.select(User).filter_by(username=username))
+        user = db.session.scalar(db.select(User).where(User.username == username))
         if user is None:
             raise ValueError(f"User '{username}' not found")
         return user.id
 
 
     @staticmethod
-    def add(data: dict[str,Any]) -> None:
+    def add(data: dict[str,Any]) -> User:
         """
         Add a new User to the database.
         """
@@ -203,7 +213,10 @@ class User(db.Model):
         email_addr: str = data["email"]
         status: UserStatus = data.get("status", UserStatus.pending)
         confirmation_token: str|None = data.get("token")
+        confirmation_sent_at: datetime.datetime|None = data.get("confirmation_sent_at")
         seed_requested: bool = data["seed_requested"]
+        seed_version: int|None = data.get("seed_version")
+        seeded_at: datetime.datetime|None = data.get("seeded_at")
 
         if not username:
             raise ValueError("Username is required.")
@@ -238,9 +251,8 @@ class User(db.Model):
         email_addr = email_info.normalized
 
         # Check whether this username is already in the database
-        query = db.select(User).filter_by(username=username)
-        existing_user = db.session.execute(query).first()
-        if (existing_user is not None):
+        existing_user = db.session.scalar(db.select(User).where(User.username == username))
+        if existing_user:
             raise ValueError(f"User '{username}' already exists")
 
         # Salt and hash the password
@@ -254,9 +266,7 @@ class User(db.Model):
         # Store the user record in the database
         now = datetime.datetime.now()
         confirmation_sent_at = None
-        if confirmation_token is not None:
-            confirmation_sent_at = now
-        new_user = User({
+        new_user_dao = User({
             "username": username, 
             "status": status, 
             "email": encrypted_email_addr, 
@@ -264,10 +274,14 @@ class User(db.Model):
             "password_hash": password_hash_str,
             "confirmation_sent_at": confirmation_sent_at, 
             "confirmation_token": confirmation_token,
-            "seed_requested": seed_requested
+            "seed_requested": seed_requested,
+            "seed_version": seed_version,
+            "seeded_at": seeded_at
             })
-        db.session.add(new_user)
+        db.session.add(new_user_dao)
 
+        return new_user_dao
+    
 
     @staticmethod
     def verify(username: str, password: str) -> User:
@@ -628,8 +642,7 @@ class Ingredient(db.Model):
                 raise ValueError("Either food_ingredient_id or recipe_ingredient_id must be provided")
             
             if ordinal is None:
-                ordinal = db.session.query(func.count(Ingredient.id)).filter_by(recipe_id=recipe_id).scalar()
-            
+                ordinal = db.session.scalar(select(func.count(Ingredient.id)).where(Ingredient.recipe_id == recipe_id))            
             # Create a new Ingredient record and add it to the database.
             ingredient_dao = Ingredient(user_id, {
                 "recipe_id": recipe_id, 
