@@ -403,7 +403,7 @@ def get_users():
     else:
         msg = "User records retrieved"
         logging.info(msg)
-        return jsonify(users),200
+        return jsonify(users), 200
 
 
 @bp.route("/user/<string:username>", methods = ["GET"])
@@ -429,7 +429,31 @@ def get_user(username: str):
     else:
         msg = f"User record retrieved for {username}"
         logging.info(msg)
-        return jsonify(data),200
+        return jsonify(data), 200
+
+
+@bp.route("/user", methods = ["DELETE"])
+@jwt_required()
+def delete_user():
+    """
+    Delete a user and ALL THEIR DATA
+    """
+    try:
+        with db.session.begin():
+            # Get the user_id for the user identified by the token
+            username = get_jwt_identity()
+            user_id = User.get_id(username)
+
+            logging.debug(f"TODO: delete data for user {username}")
+
+    except Exception as e:
+        msg = f"User deletion failed: {str(e)}"
+        logging.error(msg)
+        return jsonify({"msg": msg}), 500
+    else:
+        msg = f"User record deleted for user {user_id} '{username}'"
+        logging.info(msg)
+        return jsonify({"msg": msg}), 200
 
 
 ##############################

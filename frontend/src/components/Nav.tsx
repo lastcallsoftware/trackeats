@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useData } from '@/utils/useData';
 import { Routes, Route, Link as RouterLink, useNavigate } from 'react-router-dom';
 import trackEatsIcon from '../assets/trackeats-icon-32x32.png';
 import HomePage from './HomePage';
@@ -20,7 +21,13 @@ import Button from '@mui/material/Button';
 import Box from '@mui/material/Box';
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
+import Dialog from '@mui/material/Dialog';
+import DialogTitle from '@mui/material/DialogTitle';
+import DialogContent from '@mui/material/DialogContent';
+import DialogContentText from '@mui/material/DialogContentText';
+import DialogActions from '@mui/material/DialogActions';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
+import SettingsIcon from '@mui/icons-material/Settings';
 
 console.log("process.env.NODE_ENV:", process.env.NODE_ENV)
 console.log("import.meta.env.MODE:", import.meta.env.MODE)
@@ -45,8 +52,11 @@ const buttonSx = {
 }
 
 function Nav() {
+    const { setErrorMessage } = useData();
     const [isAuthenticated, setAuthenticated] = useState(sessionStorage.getItem("access_token") != null);
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+    const [optionsAnchorEl, setOptionsAnchorEl] = useState<null | HTMLElement>(null);
+    const [confirmOpen, setConfirmOpen] = useState(false);
     const navigate = useNavigate();
 
     const storeToken = (token: string): undefined => {
@@ -62,6 +72,36 @@ function Nav() {
 
     const handleAboutOpen = (e: React.MouseEvent<HTMLElement>) => setAnchorEl(e.currentTarget);
     const handleAboutClose = () => setAnchorEl(null);
+
+    const handleOptionsOpen = (e: React.MouseEvent<HTMLElement>) => setOptionsAnchorEl(e.currentTarget);
+    const handleOptionsClose = () => setOptionsAnchorEl(null);
+
+    const handleDeleteAccountClick = () => {
+        setOptionsAnchorEl(null);
+        setConfirmOpen(true);
+    };
+
+    const handleConfirmClose = () => setConfirmOpen(false);
+
+    const handleConfirmYes = async () => {
+        setConfirmOpen(false);
+        try {
+            const tok = sessionStorage.getItem("access_token");
+            const access_token = tok ? JSON.parse(tok) : "";
+            await axios.delete("/user", {
+                headers: { "Authorization": "Bearer " + access_token }
+            });
+            sessionStorage.removeItem("access_token");
+            setAuthenticated(false);
+            navigate("/login", { state: { message: "Your account has been deleted." } });
+        } catch (error) {
+            if (axios.isAxiosError(error) && error.response?.data?.msg) {
+                setErrorMessage(error.response.data.msg);
+            } else {
+                setErrorMessage("Account deletion failed. Please try again.");
+            }
+        }
+    };
 
     const handleAboutItem = (path: string) => {
         handleAboutClose();
@@ -111,6 +151,7 @@ function Nav() {
                         </Button>
                     )}
 
+
                     {/* About dropdown */}
                     <Button
                         color="primary"
@@ -132,10 +173,49 @@ function Nav() {
                     {/* Spacer pushes Log In / Log Out to the right */}
                     <Box sx={{ flexGrow: 1 }} />
 
-                    {isAuthenticated
-                        ? <Button color="primary" sx={buttonSx} onClick={removeToken}>Log Out</Button>
-                        : <Button component={RouterLink} to="/login" color="primary" sx={buttonSx}>Log In</Button>
-                    }
+                    {isAuthenticated ? (
+                        <>
+                            <Button color="primary" sx={buttonSx} onClick={removeToken}>Log Out</Button>
+                            {/* Options dropdown (gear icon), only when authenticated */}
+                            <Button
+                                color="primary"
+                                onClick={handleOptionsOpen}
+                                sx={buttonSx}
+                                aria-label="Options"
+                                endIcon={
+                                    <span style={{ display: 'flex', alignItems: 'center', marginTop: '3px' }}>
+                                        <SettingsIcon sx={{ fontSize: '36px !important' }} />
+                                    </span>
+                                }
+                            />
+                            <Menu
+                                anchorEl={optionsAnchorEl}
+                                open={Boolean(optionsAnchorEl)}
+                                onClose={handleOptionsClose}
+                            >
+                                <MenuItem onClick={handleDeleteAccountClick}>Delete my account</MenuItem>
+                            </Menu>
+                            <Dialog
+                                open={confirmOpen}
+                                onClose={handleConfirmClose}
+                                aria-labelledby="confirm-dialog-title"
+                                aria-describedby="confirm-dialog-description"
+                            >
+                                <DialogTitle id="confirm-dialog-title">Are you sure?</DialogTitle>
+                                <DialogContent>
+                                    <DialogContentText id="confirm-dialog-description">
+                                        This will delete your account and all data associated with it.  This action cannot be undone.
+                                    </DialogContentText>
+                                </DialogContent>
+                                <DialogActions>
+                                    <Button onClick={handleConfirmClose} color="primary">No</Button>
+                                    <Button onClick={handleConfirmYes} color="primary" autoFocus>Yes</Button>
+                                </DialogActions>
+                            </Dialog>
+                        </>
+                    ) : (
+                        <Button component={RouterLink} to="/login" color="primary" sx={buttonSx}>Log In</Button>
+                    )}
                 </Toolbar>
             </AppBar>
 
