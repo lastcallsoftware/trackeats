@@ -17,7 +17,7 @@ export default function ConfirmUserPage() {
     );
     const [username, setUsername] = useState("");
     const [showResend, setShowResend] = useState(false);
-    const [errorMessage, setErrorMessage] = useState(
+    const [confirmationMessage, setConfirmationMessage] = useState(
         token ? "" : "No confirmation token found."
     );
     const [resendStatus, setResendStatus] = useState<"idle" | "sent" | "error">("idle")
@@ -39,13 +39,13 @@ export default function ConfirmUserPage() {
                 if (axios.isAxiosError(error)) {
                     switch (error.response?.status) {
                         case 400:
-                            setErrorMessage(error.response.data?.msg ?? "The confirmation token was missing from the link.");
+                            setConfirmationMessage(error.response.data?.msg ?? "The confirmation token was missing from the link.");
                             break;
                         case 401:
-                            setErrorMessage(error.response.data?.msg ?? "The confirmation link is invalid.");
+                            setConfirmationMessage(error.response.data?.msg ?? "The confirmation link is invalid.");
                             break;
                         case 403:
-                            setErrorMessage(error.response.data?.msg ?? "The confirmation link has expired.");
+                            setConfirmationMessage(error.response.data?.msg ?? "The confirmation link has expired.");
                             setShowResend(true);
                             break;
                         // We don't treat "already confirmed" as an error on the backend anymore
@@ -54,10 +54,10 @@ export default function ConfirmUserPage() {
                         //    setStatus("success")
                         //    break;
                         default:
-                            setErrorMessage("Something went wrong on our end. Please try again later.");
+                            setConfirmationMessage("Something went wrong on our end. Please try again later.");
                     }
                 } else {
-                    setErrorMessage("Could not reach the server.  Please try again.");
+                    setConfirmationMessage("Could not reach the server.  Please try again.");
                 }
                 setStatus("error")
             }
@@ -85,7 +85,7 @@ export default function ConfirmUserPage() {
             onLogin={() => navigate("/login")} />;
     else
         return <RegisterStateError
-            message={errorMessage}
+            message={confirmationMessage}
             showResend={showResend}
             resendStatus={resendStatus}
             onResend={handleResend} />;

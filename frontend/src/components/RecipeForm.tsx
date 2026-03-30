@@ -25,7 +25,7 @@ import {
 function RecipeForm() {
     const navigate = useNavigate()
     const [searchParams] = useSearchParams();
-    const { foods, recipes, addRecipe, updateRecipe, errorMessage, setErrorMessage } = useData();
+    const { foods, recipes, addRecipe, updateRecipe, setErrorMessage } = useData();
 
     const { id } = useParams();
     const isEditMode = Boolean(id)
@@ -48,7 +48,6 @@ function RecipeForm() {
 
     const handleSubmit = async (e: { preventDefault: () => void; }) => {
         e.preventDefault();
-        setErrorMessage("");
 
         if (isEditMode) {
             await updateRecipe(formData, ingredients);
@@ -62,7 +61,6 @@ function RecipeForm() {
 
     const handleCancel = (e: { preventDefault: () => void; }) => {
         e.preventDefault();
-        setErrorMessage("");
 
         const returnPath = searchParams.get("returnTo") || "/recipes"
         navigate(returnPath)
@@ -108,7 +106,6 @@ function RecipeForm() {
 
     const addIngredient = (e: { preventDefault: () => void; }) => {
         e.preventDefault();
-        setErrorMessage("");
         if (!selectedFoodOrRecipeRowId) return
 
         let nutrition: INutrition;
@@ -139,7 +136,6 @@ function RecipeForm() {
 
     const updateIngredient = (e: { preventDefault: () => void; }) => {
         e.preventDefault();
-        setErrorMessage("");
         if (!selectedIngredientRowId) return
 
         let summary: string|undefined = undefined
@@ -177,7 +173,6 @@ function RecipeForm() {
 
     const removeIngredient = (e: { preventDefault: () => void; }) => {
         e.preventDefault();
-        setErrorMessage("");
         if (!selectedIngredientRowId) return
 
         let modifier: number = -1;
@@ -209,7 +204,6 @@ function RecipeForm() {
 
     const moveIngredientUp = (e: { preventDefault: () => void; }) => {
         e.preventDefault();
-        setErrorMessage("");
         if (!selectedIngredientRowId) return;
 
         const ingredient: IIngredient|undefined = findIngredient(selectedIngredientRowId)
@@ -231,7 +225,6 @@ function RecipeForm() {
 
     const moveIngredientDown = (e: { preventDefault: () => void; }) => {
         e.preventDefault();
-        setErrorMessage("");
         if (!selectedIngredientRowId) return
 
         const ingredient: IIngredient|undefined = findIngredient(selectedIngredientRowId)
@@ -622,11 +615,6 @@ function RecipeForm() {
                         </Button>
                     </Stack>
                 </Box>
-                {errorMessage && (
-                    <Typography color="error" sx={{ mt: 2 }}>
-                        {errorMessage}
-                    </Typography>
-                )}
             </Paper>
         </Box>
     );

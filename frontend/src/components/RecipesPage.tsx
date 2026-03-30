@@ -13,7 +13,7 @@ import TitleCard from './TitleCard';
 function RecipesPage() {
     const navigate = useNavigate();
     const [selectedRowId, setSelectedRowId] = useState<number|null>(null)
-    const { recipes, deleteRecipe, errorMessage, setErrorMessage } = useData();
+    const { recipes, deleteRecipe } = useData();
 
     // Read page from URL as 1-based, convert to 0-based for state
     const [searchParams, setSearchParams] = useSearchParams();
@@ -33,12 +33,10 @@ function RecipesPage() {
 
 
     const addRecord = () => {
-        setErrorMessage("")
         navigate("/recipe/add");
     }
 
     const editRecord = () => {
-        setErrorMessage("")
         if (selectedRowId) {
             const currentPath = window.location.pathname + window.location.search;
             const editUrl = `/recipe/edit/${selectedRowId}?returnTo=${encodeURIComponent(currentPath)}`;
@@ -47,7 +45,6 @@ function RecipesPage() {
     }
 
     const deleteRecord = () => {
-        setErrorMessage("")
         if (selectedRowId) {
             // Confirm the deletion request
             const confirmed = confirm("Delete record.  Are you sure?  This cannot be undone.")
@@ -146,27 +143,6 @@ function RecipesPage() {
                         Delete
                     </Button>
                 </Stack>
-
-                {errorMessage && (
-                    <Box
-                        role="alert"
-                        sx={{
-                            mt: 3,
-                            background: '#ffebee',
-                            color: '#b71c1c',
-                            border: '1px solid #e57373',
-                            borderRadius: 1,
-                            p: 2,
-                            fontSize: '1.05em',
-                            fontWeight: 500,
-                            boxShadow: '0 1px 4px 0 rgba(229, 57, 53, 0.08)',
-                            textAlign: 'left',
-                            width: '100%'
-                        }}
-                    >
-                        {errorMessage}
-                    </Box>
-                )}
             </Paper>
         </Box>
     )

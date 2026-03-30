@@ -13,7 +13,7 @@ import TitleCard from './TitleCard';
 const FoodsPage = () => {
     const navigate = useNavigate();
     const [selectedRowId, setSelectedRowId] = useState<number|null>(null)
-    const { foods, deleteFood, isLoading, errorMessage, setErrorMessage } = useData();
+    const { foods, deleteFood, isLoading } = useData();
 
     // Read page from URL as 1-based, convert to 0-based for state
     const [searchParams, setSearchParams] = useSearchParams();
@@ -32,12 +32,10 @@ const FoodsPage = () => {
     }
 
     const addRecord = () => {
-        setErrorMessage("")
         navigate("/food/add");
     }
 
     const editRecord = () => {
-        setErrorMessage("")
         if (selectedRowId) {
             const currentPath = window.location.pathname + window.location.search;
             const editUrl = `/food/edit/${selectedRowId}?returnTo=${encodeURIComponent(currentPath)}`;
@@ -46,7 +44,6 @@ const FoodsPage = () => {
     }
 
     const deleteRecord = () => {
-        setErrorMessage("")
         if (selectedRowId) {
             // Confirm the deletion request
             const confirmed = confirm("Delete record.  Are you sure?  This cannot be undone.")
@@ -148,27 +145,6 @@ const FoodsPage = () => {
                         Delete
                     </Button>
                 </Stack>
-
-                {errorMessage && (
-                        <Box
-                            role="alert"
-                            sx={{
-                                mt: 3,
-                                background: '#ffebee',
-                                color: '#b71c1c',
-                                border: '1px solid #e57373',
-                                borderRadius: 1,
-                                p: 2,
-                                fontSize: '1.05em',
-                                fontWeight: 500,
-                                boxShadow: '0 1px 4px 0 rgba(229, 57, 53, 0.08)',
-                                textAlign: 'left',
-                                width: '100%'
-                            }}
-                        >
-                            {errorMessage}
-                        </Box>
-                )}
             </Paper>
         </Box>
     )

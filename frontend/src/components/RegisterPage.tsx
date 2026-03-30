@@ -25,7 +25,7 @@ function RegisterPage() {
                              email: "", emailTouched: false, emailMessage: "",
                              seed_requested: true}
     const [formData, setFormData] = useState(defaultFormData);
-    const [errorMessage, setErrorMessage] = useState("");
+    const [registrationMessage, setRegistrationMessage] = useState("");
     const navigate = useNavigate();
     const [showPassword, setShowPassword] = useState(false);
     const [showPassword2, setShowPassword2] = useState(false);
@@ -138,9 +138,9 @@ function RegisterPage() {
             })
             .catch((error) => {
                 if (error.response)
-                    setErrorMessage(error.response.data.msg)
+                    setRegistrationMessage(error.response.data.msg)
                 else
-                    setErrorMessage(error.message)
+                    setRegistrationMessage(error.message)
             })
     }
 
@@ -323,9 +323,9 @@ function RegisterPage() {
                             Cancel
                         </Button>
                     </Box>
-                    {errorMessage && (
+                    {registrationMessage && (
                         <Typography color="error" sx={{ mt: 2 }}>
-                            {errorMessage}
+                            {registrationMessage}
                         </Typography>
                     )}
                 </form>

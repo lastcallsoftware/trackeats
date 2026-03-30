@@ -19,7 +19,7 @@ import {
 function FoodForm() {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
-    const { foods, addFood, updateFood, errorMessage, setErrorMessage } = useData();
+    const { foods, addFood, updateFood } = useData();
 
     const { id } = useParams();
     const isEditMode = Boolean(id)
@@ -35,7 +35,6 @@ function FoodForm() {
 
     const handleSubmit = async (e: { preventDefault: () => void; }) => {
         e.preventDefault();
-        setErrorMessage("")
 
         // Save the new Food
         if (isEditMode)
@@ -50,7 +49,6 @@ function FoodForm() {
 
     const handleCancel = (e: { preventDefault: () => void; }) => {
         e.preventDefault();
-        setErrorMessage("")
 
         // Return to the Foods page
         const returnPath = searchParams.get("returnTo") || "/foods"
@@ -414,11 +412,6 @@ function FoodForm() {
                         </Button>
                     </Grid>
                 </Grid>
-                {errorMessage && (
-                    <Typography color="error" sx={{ mt: 2 }}>
-                        {errorMessage}
-                    </Typography>
-                )}
             </form>
             </Paper>
         </Box>

@@ -3,6 +3,7 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { DataContext } from '@/utils/useData';
 import { generateIngredientSummary } from "../utils/generateIngredientSummary";
+import { useSnackbar } from '@/utils/useSnackbar';
 
 // The purpose of this component is to provide a context that can be used to share
 // data between components.  It wraps the children in a context provider that
@@ -79,8 +80,7 @@ export type DataContextType = {
     recipes: IRecipe[];
     ingredients: IIngredient[];
     isLoading: boolean;
-    errorMessage: string | null;
-    setErrorMessage: (msg: string | null) => void;
+    setErrorMessage: (msg: string) => void;
     addFood: (food: IFood) => Promise<void>;
     updateFood: (food: IFood) => Promise<void>;
     deleteFood: (food_id: number) => Promise<void>;
@@ -96,7 +96,11 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
     const [foods, setFoods] = useState<IFood[]>([])
     const [recipes, setRecipes] = useState<IRecipe[]>([])
     const [ingredients, setIngredients] = useState<IIngredient[]>([])
-    const [errorMessage, setErrorMessage] = useState<string|null>(null)
+    const { showSnackbar } = useSnackbar();
+    const setErrorMessage = useCallback((message: string) => {
+        showSnackbar(message, "error")
+    }, [showSnackbar]);
+
 
     // Store navigate in a ref so it never triggers re-renders or stale
     // dependency issues in useCallback/useEffect.
@@ -126,7 +130,7 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
             setErrorMessage(error.response.data.msg)
         else
             setErrorMessage(error.message)
-    }, []); // navigateRef is a ref, so it's stable and doesn't need to be a dependency
+    }, [setErrorMessage]); // navigateRef is a ref, so it's stable and doesn't need to be a dependency
 
     useEffect(() => {
         // If there's no token, state is already initialized to empty defaults — just return.
@@ -136,7 +140,6 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
 
         // Get Foods
         const getFoods = async (): Promise<void> => {
-            setErrorMessage("");
             try {
                 const response = await axios.get("/food", {headers: { "Authorization": "Bearer " + access_token}})
                 setFoods(response.data);
@@ -147,7 +150,6 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
 
         // Get Recipes
         const getRecipes = async (): Promise<void> => {
-            setErrorMessage("");
             try {
                 const response = await axios.get("/recipe", {headers: { "Authorization": "Bearer " + access_token}})
                 setRecipes(response.data);
@@ -164,12 +166,11 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
         };
 
         fetchData();
-    }, [access_token, handleError]);
+    }, [access_token, handleError, setErrorMessage]);
 
 
     // Add Food
     const addFood = async (food: IFood): Promise<void> => {
-        setErrorMessage("");
         try {
             const response = await axios.post("/food", food, {headers: { "Authorization": "Bearer " + access_token}})
             const newFood = response.data
@@ -181,7 +182,6 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
 
     // Update Food
     const updateFood = async (food: IFood): Promise<void> => {
-        setErrorMessage("");
         try {
             await axios.put("/food", food, {headers: { "Authorization": "Bearer " + access_token}})
             setFoods(prevItems => prevItems.map(item => {
@@ -198,7 +198,6 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
 
     // Delete Food
     const deleteFood = async (id: number): Promise<void> => {
-        setErrorMessage("");
         try {
             await axios.delete("/food/" + id, {headers: { "Authorization": "Bearer " + access_token}})
             setFoods(prevItems => prevItems.filter(_item => _item.id != id));
@@ -210,7 +209,6 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
     // Add Recipe
     const addRecipe = async (recipe: IRecipe, ingredients: IIngredient[]): Promise<number|undefined> => {
         let recipe_id = undefined
-        setErrorMessage("");
         try {
             const payload = { ...recipe, ingredients };
             const response = await axios.post("/recipe", payload, {headers: { "Authorization": "Bearer " + access_token}})
@@ -225,7 +223,6 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
 
     // Update Recipe
     const updateRecipe = async (recipe: IRecipe, ingredients: IIngredient[]): Promise<void> => {
-        setErrorMessage("");
         try {
             const payload = { ...recipe, ingredients };
             await axios.put("/recipe", payload, {headers: { "Authorization": "Bearer " + access_token}})
@@ -243,7 +240,6 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
 
     // Delete Recipe
     const deleteRecipe = async (id: number): Promise<void> => {
-        setErrorMessage("");
         try {
             await axios.delete("/recipe/" + id, {headers: { "Authorization": "Bearer " + access_token}})
             setRecipes(prevItems => prevItems.filter(_item => _item.id != id));
@@ -254,7 +250,6 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
 
     // Get Ingredients
     const getIngredients = async (recipe_id: number): Promise<void> => {
-        setErrorMessage("");
         try {
             const response = await axios.get("/recipe/" + recipe_id + "/ingredient", {headers: { "Authorization": "Bearer " + access_token}})
             const ingredientsWithSummary: IIngredient[] = response.data.map((ing: IIngredient) => {
@@ -282,7 +277,6 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
 
     // Add Ingredient(s)
     const addIngredients = async (recipe_id: number, ingredients: IIngredient[]): Promise<void> => {
-        setErrorMessage("");
         try {
             await axios.post("/recipe/" + recipe_id + "/ingredient", ingredients, {headers: { "Authorization": "Bearer " + access_token}})
         } catch(error) {
@@ -292,7 +286,6 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
 
     // Remove all Ingredients from a Recipe
     const removeIngredients = async (recipe_id: number): Promise<void> => {
-        setErrorMessage("");
         try {
             await axios.delete("/recipe/" + recipe_id + "/ingredient", {headers: { "Authorization": "Bearer " + access_token}})
             setIngredients([])
@@ -307,7 +300,6 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
             recipes, 
             ingredients,
             isLoading,
-            errorMessage, 
             setErrorMessage,
             addFood, 
             updateFood, 
