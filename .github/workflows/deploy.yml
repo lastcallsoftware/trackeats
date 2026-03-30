@@ -87,8 +87,6 @@ jobs:
           DB_ROOT_PASSWORD: ${{ secrets.DB_ROOT_PASSWORD }}
           DB_APP_USERNAME: ${{ secrets.DB_APP_USERNAME }}
           DB_APP_PASSWORD: ${{ secrets.DB_APP_PASSWORD }}
-          BACKEND_BASE_URL: ${{ vars.BACKEND_BASE_URL }}
-          PORTFOLIO_URL: ${{ vars.PORTFOLIO_URL }}
           APP_ADMIN_PASSWORD: ${{ secrets.APP_ADMIN_PASSWORD }}
           APP_TEST_PASSWORD: ${{ secrets.APP_TEST_PASSWORD }}
           APP_GUEST_PASSWORD: ${{ secrets.APP_GUEST_PASSWORD }}
@@ -98,6 +96,9 @@ jobs:
           BACKEND_ENCRYPTION_KEY_B64: ${{ secrets.BACKEND_ENCRYPTION_KEY_B64 }}
           JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY }}
           ACCESS_TOKEN_DURATION: ${{ secrets.ACCESS_TOKEN_DURATION }}
+          FRONTEND_BASE_URL: ${{ vars.FRONTEND_BASE_URL }}
+          BACKEND_BASE_URL: ${{ vars.BACKEND_BASE_URL }}
+          PORTFOLIO_URL: ${{ vars.PORTFOLIO_URL }}
         with:
           host: ${{ secrets.APP_SERVER_HOST }}
           username: ${{ secrets.APP_SERVER_USERNAME }}
@@ -116,9 +117,10 @@ jobs:
             SMTP_PASSWORD,
             BACKEND_ENCRYPTION_KEY_B64, 
             JWT_SECRET_KEY,
+            ACCESS_TOKEN_DURATION
+            FRONTEND_BASE_URL,
             BACKEND_BASE_URL,
             PORTFOLIO_URL,
-            ACCESS_TOKEN_DURATION
           script: |
             cd ~/trackeats
             bash deploy.sh

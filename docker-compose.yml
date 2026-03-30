@@ -53,8 +53,6 @@ services:
       DB_DATABASE_NAME: ${DB_DATABASE_NAME:-trackeats}
       DB_APP_USERNAME: ${DB_APP_USERNAME:?}
       DB_APP_PASSWORD: ${DB_APP_PASSWORD:?}
-      BACKEND_BASE_URL: ${BACKEND_BASE_URL:?}
-      PORTFOLIO_URL: ${PORTFOLIO_URL:?}
       APP_ADMIN_PASSWORD: ${APP_ADMIN_PASSWORD:?}
       APP_TEST_PASSWORD: ${APP_TEST_PASSWORD:?}
       APP_GUEST_PASSWORD: ${APP_GUEST_PASSWORD:?}
@@ -64,6 +62,9 @@ services:
       BACKEND_ENCRYPTION_KEY_B64: ${BACKEND_ENCRYPTION_KEY_B64:?}
       JWT_SECRET_KEY: ${JWT_SECRET_KEY:?}
       ACCESS_TOKEN_DURATION: ${ACCESS_TOKEN_DURATION:-120}
+      FRONTEND_BASE_URL: ${FRONTEND_BASE_URL:?}
+      BACKEND_BASE_URL: ${BACKEND_BASE_URL:?}
+      PORTFOLIO_URL: ${PORTFOLIO_URL:?}
     restart: on-failure
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5000/health')"]
