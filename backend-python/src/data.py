@@ -90,12 +90,15 @@ class Data:
     @staticmethod
     def seed_database(user: User) -> None:
         try:
+            logging.info(f"Seeding database for user {user.username}...")
             keylists: dict[str, dict[int,int]] = {}
             Data.import_foods(user.id, keylists)
             Data.import_recipes(user.id, keylists)
+            Data.import_ingredients(user.id, keylists)
             user.seeded_at = datetime.datetime.now()
             user.seed_version = 1
             user.seed_requested = False
+            logging.info(f"Database seeded for user '{user.username}'")
         except Exception as e:
             raise DatabaseError("Seeding failed: " + str(e))
 

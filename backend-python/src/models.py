@@ -595,6 +595,16 @@ class Ingredient(db.Model):
         ordinal = data.get("ordinal")
 
         try:
+            # If we have keylists, remap the keys
+            if keylists:
+                food_keys = keylists["foods"]
+                recipe_keys = keylists["recipes"]
+                recipe_id = recipe_keys[recipe_id]
+                if food_ingredient_id:
+                    food_ingredient_id = food_keys[food_ingredient_id]
+                if recipe_ingredient_id:
+                    recipe_ingredient_id = recipe_keys[recipe_ingredient_id]
+
             # Check whether a matching Ingredient record already exists
             ingredient_dao = db.session.scalar(db.select(Ingredient).where(Ingredient.recipe_id == recipe_id).where(Ingredient.food_ingredient_id == food_ingredient_id).where(Ingredient.recipe_ingredient_id == recipe_ingredient_id))
             if ingredient_dao:
@@ -825,10 +835,10 @@ class Food(db.Model):
             db.session.flush()
 
             # Save the old ID to new ID mapping
-            if keylists:
+            if keylists is not None:
                 if not keylists.get("foods"):
                     keylists["foods"] = {}
-                keylists["foods"][old_food_id] = food["id"]
+                keylists["foods"][old_food_id] = new_food_dao.id
 
             return new_food_dao
 
@@ -1033,10 +1043,10 @@ class Recipe(db.Model):
             db.session.flush()
 
             # Save the old ID to new ID mapping
-            if keylists:
+            if keylists is not None:
                 if not keylists.get("recipes"):
                     keylists["recipes"] = {}
-                keylists["recipes"][old_recipe_id] = recipe["id"]
+                keylists["recipes"][old_recipe_id] = new_recipe_dao.id
 
             # Return the new Recipe record.
             return new_recipe_dao
