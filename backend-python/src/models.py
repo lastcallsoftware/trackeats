@@ -1187,7 +1187,7 @@ class Recipe(db.Model):
         Delete all Recipes for a partiular user
 
         This is a little tricky because an Ingredient in one Recipe can reference
-        another Recipe, so we can't necessarilyy delete a Recipeeven when all its 
+        another Recipe, so we can't necessarily delete a Recipe even when all its 
         own Ingredients have been removed.  So first we loop through all a User's
         Recipes and delete their Ingredients, and THEN we loop through the Recipes
         and delete them in a second pass.
