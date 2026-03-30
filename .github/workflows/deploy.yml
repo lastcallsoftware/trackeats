@@ -117,10 +117,10 @@ jobs:
             SMTP_PASSWORD,
             BACKEND_ENCRYPTION_KEY_B64, 
             JWT_SECRET_KEY,
-            ACCESS_TOKEN_DURATION
+            ACCESS_TOKEN_DURATION,
             FRONTEND_BASE_URL,
             BACKEND_BASE_URL,
-            PORTFOLIO_URL,
+            PORTFOLIO_URL
           script: |
             cd ~/trackeats
             bash deploy.sh
