@@ -442,9 +442,16 @@ def delete_user():
         with db.session.begin():
             # Get the user_id for the user identified by the token
             username = get_jwt_identity()
-            user_id = User.get_id(username)
+            user_dao = User.get(username)
+            user_id = user_dao.id
 
-            logging.debug(f"TODO: delete data for user {username}")
+
+            if username == "guest" or username == "admin" or username == "testuser":
+                raise ValueError("Nice try, but this account may not be deleted.")
+            
+            Recipe.delete_all_for_user(user_id)
+            Food.delete_all_for_user(user_id)
+            db.session.delete(user_dao)
 
     except Exception as e:
         msg = f"User deletion failed: {str(e)}"
