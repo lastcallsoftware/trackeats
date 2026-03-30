@@ -745,7 +745,10 @@ class Food(db.Model):
         self.size_g = data.get("size_g")
         self.servings = data["servings"]
         self.nutrition_id = data.get("nutrition_id")
-        self.nutrition = Nutrition(user_id, data["nutrition"])
+        if self.nutrition:
+            self.nutrition.from_dict(user_id, data["nutrition"])
+        else:
+            self.nutrition = Nutrition(user_id, data["nutrition"])
         self.price = data.get("price")
         # This code sets the DAO field to None if the date string is None
         # OR if its stripped length is 0 (e.g., if is's all spaces)
@@ -846,10 +849,14 @@ class Food(db.Model):
                 raise ValueError(f"Food record {food_id} not found.")
 
             # Get the Nutrition child record
-            nutrition_id = food_dao.nutrition_id
-            nutrition_dao = db.session.get(Nutrition, nutrition_id)
-            if not nutrition_dao:
-                raise ValueError(f"Nutrition record {food_id}/{nutrition_id} not found")
+            # This shouldn't be necessary thanks to SQLAlchemy's relationship field
+            #nutrition_id = food_dao.nutrition_id
+            #nutrition_dao = db.session.get(Nutrition, nutrition_id)
+            #if not nutrition_dao:
+            #    raise ValueError(f"Nutrition record {food_id}/{nutrition_id} not found")
+            #food_dao.nutrition = nutrition_dao
+            if not food_dao.nutrition:
+                raise ValueError(f"Nutrition record for Food {food_id} not found")
 
             # Add the user_id field.
             food["user_id"] = user_id
@@ -952,7 +959,10 @@ class Recipe(db.Model):
         self.total_yield = data["total_yield"]
         self.servings = data["servings"]
         self.nutrition_id = data.get("nutrition_id")
-        self.nutrition = Nutrition(user_id, data["nutrition"])
+        if self.nutrition:
+            self.nutrition.from_dict(user_id, data["nutrition"])
+        else:
+            self.nutrition = Nutrition(user_id, data["nutrition"])
         self.price = data.get("price")
 
     def __str__(self):
@@ -1048,7 +1058,6 @@ class Recipe(db.Model):
         """
         try:
             recipe_id = data["id"]
-            nutrition_id = data["nutrition_id"]
             nutrition = data["nutrition"]
 
             # Get the existing Recipe record
@@ -1057,9 +1066,12 @@ class Recipe(db.Model):
                 raise ValueError(f"Recipe record {recipe_id} not found")
 
             # Get its child Nutrition record
-            recipe_nutrition_dao = Nutrition.get(user_id, nutrition_id)
-            if not recipe_nutrition_dao:
-                raise ValueError(f"Nutrition record {recipe_id}/{nutrition_id} not found")
+            # This shouldn't be necessary thanks to SQLAlchemy's relationship field
+            #recipe_nutrition_dao = Nutrition.get(user_id, nutrition_id)
+            #if not recipe_nutrition_dao:
+            #    raise ValueError(f"Nutrition record {recipe_id}/{nutrition_id} not found")
+            if not recipe_dao.nutrition:
+                raise ValueError(f"Nutrition record for Recipe {recipe_id} not found")
 
             # Update the Recipe DAO's fields with the data from the front end
             recipe_dao.from_dict(user_id, data)
@@ -1072,8 +1084,8 @@ class Recipe(db.Model):
             for ingredient_dao in ingredient_daos:
                 db.session.delete(ingredient_dao)
 
-            # Reset the Recipe's Nutrition data zeroes
-            recipe_nutrition_dao.reset()
+            # Reset the Recipe's Nutrition data to zeroes
+            recipe_dao.nutrition.reset()
 
             # Add the Ingredients that are in the data passed by the front end
             ingredients = data.get("ingredients", [])
@@ -1087,12 +1099,12 @@ class Recipe(db.Model):
             db.session.flush()
 
             # Update the Recipe's Nutrition data
-            recipe_dao = Recipe._recalculate_nutrition(user_id, recipe_id, recipe_dao, recipe_nutrition_dao)
+            recipe_dao = Recipe._recalculate_nutrition(user_id, recipe_id, recipe_dao, recipe_dao.nutrition)
 
             # Update the Recipe Nutrition record's serving_size_description field.
             # This is the only field for this record that comes from the UI, the rest
             # are calculated.
-            recipe_nutrition_dao.serving_size_description = nutrition["serving_size_description"]
+            recipe_dao.nutrition.serving_size_description = nutrition["serving_size_description"]
 
             # Return the updated Recipe record.
             return recipe_dao
