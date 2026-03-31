@@ -88,7 +88,7 @@ function App() {
         try {
             const tok = sessionStorage.getItem("access_token");
             const access_token = tok ? JSON.parse(tok) : "";
-            await axios.delete("/user", {
+            await axios.delete("/api/user", {
                 headers: { "Authorization": "Bearer " + access_token }
             });
             sessionStorage.removeItem("access_token");

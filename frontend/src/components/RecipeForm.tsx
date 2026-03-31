@@ -249,7 +249,7 @@ function RecipeForm() {
         const access_token = tok ? JSON.parse(tok) : ""
         const getIngredients = async () => {
             if (formData.id) {
-                const response = await axios.get("/recipe/" + formData.id + "/ingredient", {headers: { "Authorization": "Bearer " + access_token}})
+                const response = await axios.get("/api/recipe/" + formData.id + "/ingredient", {headers: { "Authorization": "Bearer " + access_token}})
                 setIngredients(response.data);
             }
         }

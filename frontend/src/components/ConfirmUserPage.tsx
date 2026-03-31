@@ -27,7 +27,7 @@ export default function ConfirmUserPage() {
 
         const confirmToken = async () => {
             try {
-                const { data } = await axios.get(`/confirm?token=${token}`)
+                const { data } = await axios.get(`/api/confirm?token=${token}`)
                 setUsername(data.username);
                 setStatus("success");
                 
@@ -69,7 +69,7 @@ export default function ConfirmUserPage() {
 
     const handleResend = async () => {
         try {
-            await axios.post("/register", { token });
+            await axios.post("/api/register", { token });
             setResendStatus("sent");
         } catch {
             setResendStatus("error")

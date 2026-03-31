@@ -16,7 +16,7 @@ bp = Blueprint("auth", __name__)
 ##############################
 # HEALTH
 ##############################
-@bp.route("/health", methods = ["GET"])
+@bp.route("/api/health", methods = ["GET"])
 def health():
     """
     Check the app's health.
@@ -38,7 +38,7 @@ def health():
 ##############################
 # DATABASE ACTIONS
 ##############################
-@bp.route("/db/init", methods=["GET"])
+@bp.route("/api/db/init", methods=["GET"])
 @jwt_required()
 def db_init():
     """
@@ -62,7 +62,7 @@ def db_init():
         return {"msg": msg}, 200
 
 
-@bp.route("/db/purge", methods=["GET"])
+@bp.route("/api/db/purge", methods=["GET"])
 @jwt_required()
 def db_purge():
     """
@@ -90,7 +90,7 @@ def db_purge():
         return {"msg": msg}, 200
 
 
-@bp.route("/db/load", methods=["GET"])
+@bp.route("/api/db/load", methods=["GET"])
 @jwt_required()
 def db_load():
     """
@@ -115,7 +115,7 @@ def db_load():
         return {"msg": msg}, 200
 
 
-@bp.route("/db/export", methods=["GET"])
+@bp.route("/api/db/export", methods=["GET"])
 @jwt_required()
 def db_export():
     """
@@ -138,7 +138,7 @@ def db_export():
 ##############################
 # REGISTER
 ##############################
-@bp.route("/register", methods=["POST"])
+@bp.route("/api/register", methods=["POST"])
 def register():
     """
     Begin the user registeration process by retrieving the user's credentials from
@@ -217,7 +217,7 @@ def register():
 ##############################
 # SENDMAIL
 ##############################
-@bp.route("/sendmail", methods=["GET"])
+@bp.route("/api/sendmail", methods=["GET"])
 @jwt_required()
 def sendmail():
     """
@@ -265,7 +265,7 @@ class InvalidToken(Exception):
 class UserAlreadyConfirmed(Exception):
     pass
 
-@bp.route("/confirm", methods = ["GET"])
+@bp.route("/api/confirm", methods = ["GET"])
 def confirm():
     """
     Confirm the user by matching the token in the confirmation email with
@@ -337,7 +337,7 @@ def confirm():
 ##############################
 # LOGIN
 ##############################
-@bp.route("/login", methods = ["POST"])
+@bp.route("/api/login", methods = ["POST"])
 def login():
     """
     Log in the user by retrieving their credentials from the request body, 
@@ -378,7 +378,7 @@ def login():
 ##############################
 # USER
 ##############################
-@bp.route("/user", methods = ["GET"])
+@bp.route("/api/user", methods = ["GET"])
 @jwt_required()
 def get_users():
     """
@@ -406,7 +406,7 @@ def get_users():
         return jsonify(users), 200
 
 
-@bp.route("/user/<string:username>", methods = ["GET"])
+@bp.route("/api/user/<string:username>", methods = ["GET"])
 @jwt_required()
 def get_user(username: str):
     """
@@ -432,7 +432,7 @@ def get_user(username: str):
         return jsonify(data), 200
 
 
-@bp.route("/user", methods = ["DELETE"])
+@bp.route("/api/user", methods = ["DELETE"])
 @jwt_required()
 def delete_user():
     """
@@ -466,7 +466,7 @@ def delete_user():
 ##############################
 # WHOAMI
 ##############################
-@bp.route('/whoami', methods=['GET'])
+@bp.route('/api/whoami', methods=['GET'])
 @jwt_required()
 def whoami():
     """
@@ -490,7 +490,7 @@ def whoami():
 ##############################
 # FOOD
 ##############################
-@bp.route("/food", methods = ["GET"])
+@bp.route("/api/food", methods = ["GET"])
 @jwt_required()
 def get_foods():
     """
@@ -518,7 +518,7 @@ def get_foods():
         return jsonify(foods), 200
 
 
-@bp.route("/food/<int:food_id>", methods = ["GET"])
+@bp.route("/api/food/<int:food_id>", methods = ["GET"])
 @jwt_required()
 def get_food(food_id:int):
     """
@@ -543,7 +543,7 @@ def get_food(food_id:int):
         return jsonify(food), 200
 
 
-@bp.route("/food", methods = ["POST"])
+@bp.route("/api/food", methods = ["POST"])
 @jwt_required()
 def add_food():
     """
@@ -573,7 +573,7 @@ def add_food():
         return resp
 
 
-@bp.route("/food", methods = ["PUT"])
+@bp.route("/api/food", methods = ["PUT"])
 @jwt_required()
 def update_food():
     """
@@ -600,7 +600,7 @@ def update_food():
         return jsonify(updated_food), 200
 
 
-@bp.route("/food/<int:food_id>", methods = ["DELETE"])
+@bp.route("/api/food/<int:food_id>", methods = ["DELETE"])
 @jwt_required()
 def delete_food(food_id:int):
     """
@@ -631,7 +631,7 @@ def delete_food(food_id:int):
 ##############################
 # RECIPE
 ##############################
-@bp.route("/recipe", methods = ["GET"])
+@bp.route("/api/recipe", methods = ["GET"])
 @jwt_required()
 def get_recipes():
     """
@@ -659,7 +659,7 @@ def get_recipes():
         return jsonify(recipes), 200
     
 
-@bp.route("/recipe/<int:recipe_id>", methods = ["GET"])
+@bp.route("/api/recipe/<int:recipe_id>", methods = ["GET"])
 @jwt_required()
 def get_recipe(recipe_id: int):
     """
@@ -687,7 +687,7 @@ def get_recipe(recipe_id: int):
         return jsonify(recipe), 200
 
 
-@bp.route("/recipe", methods = ["POST"])
+@bp.route("/api/recipe", methods = ["POST"])
 @jwt_required()
 def add_recipe():
     """
@@ -720,7 +720,7 @@ def add_recipe():
         return resp
 
 
-@bp.route("/recipe", methods = ["PUT"])
+@bp.route("/api/recipe", methods = ["PUT"])
 @jwt_required()
 def update_recipe():
     """
@@ -747,7 +747,7 @@ def update_recipe():
         return jsonify(updated_recipe), 200
 
 
-@bp.route("/recipe/<int:recipe_id>", methods = ["DELETE"])
+@bp.route("/api/recipe/<int:recipe_id>", methods = ["DELETE"])
 @jwt_required()
 def delete_recipe(recipe_id: int):
     """
@@ -783,7 +783,7 @@ def delete_recipe(recipe_id: int):
 ##############################
 # INGREDIENT
 ##############################
-@bp.route("/recipe/<int:recipe_id>/ingredient", methods = ["GET"])
+@bp.route("/api/recipe/<int:recipe_id>/ingredient", methods = ["GET"])
 @jwt_required()
 def get_ingredients(recipe_id:int):
     """

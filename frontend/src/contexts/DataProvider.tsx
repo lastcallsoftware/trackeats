@@ -141,7 +141,7 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
         // Get Foods
         const getFoods = async (): Promise<void> => {
             try {
-                const response = await axios.get("/food", {headers: { "Authorization": "Bearer " + access_token}})
+                const response = await axios.get("/api/food", {headers: { "Authorization": "Bearer " + access_token}})
                 setFoods(response.data);
             } catch(error) {
                 handleError(error)
@@ -151,7 +151,7 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
         // Get Recipes
         const getRecipes = async (): Promise<void> => {
             try {
-                const response = await axios.get("/recipe", {headers: { "Authorization": "Bearer " + access_token}})
+                const response = await axios.get("/api/recipe", {headers: { "Authorization": "Bearer " + access_token}})
                 setRecipes(response.data);
             } catch(error) {
                 handleError(error)
@@ -172,7 +172,7 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
     // Add Food
     const addFood = async (food: IFood): Promise<void> => {
         try {
-            const response = await axios.post("/food", food, {headers: { "Authorization": "Bearer " + access_token}})
+            const response = await axios.post("/api/food", food, {headers: { "Authorization": "Bearer " + access_token}})
             const newFood = response.data
             setFoods((prev_foods) => [...prev_foods, newFood])
         } catch (error) {
@@ -183,7 +183,7 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
     // Update Food
     const updateFood = async (food: IFood): Promise<void> => {
         try {
-            await axios.put("/food", food, {headers: { "Authorization": "Bearer " + access_token}})
+            await axios.put("/api/food", food, {headers: { "Authorization": "Bearer " + access_token}})
             setFoods(prevItems => prevItems.map(item => {
                 if (item.id === food.id) {
                     return food;
@@ -199,7 +199,7 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
     // Delete Food
     const deleteFood = async (id: number): Promise<void> => {
         try {
-            await axios.delete("/food/" + id, {headers: { "Authorization": "Bearer " + access_token}})
+            await axios.delete("/api/food/" + id, {headers: { "Authorization": "Bearer " + access_token}})
             setFoods(prevItems => prevItems.filter(_item => _item.id != id));
         } catch(error) {
             handleError(error)
@@ -211,7 +211,7 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
         let recipe_id = undefined
         try {
             const payload = { ...recipe, ingredients };
-            const response = await axios.post("/recipe", payload, {headers: { "Authorization": "Bearer " + access_token}})
+            const response = await axios.post("/api/recipe", payload, {headers: { "Authorization": "Bearer " + access_token}})
             const new_recipe = response.data
             recipe_id = new_recipe.id
             setRecipes((prev_recipes) => [...prev_recipes, new_recipe])
@@ -225,7 +225,7 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
     const updateRecipe = async (recipe: IRecipe, ingredients: IIngredient[]): Promise<void> => {
         try {
             const payload = { ...recipe, ingredients };
-            await axios.put("/recipe", payload, {headers: { "Authorization": "Bearer " + access_token}})
+            await axios.put("/api/recipe", payload, {headers: { "Authorization": "Bearer " + access_token}})
             setRecipes(prevItems => prevItems.map(item => {
                 if (item.id === recipe.id) {
                     return { ...recipe, ingredients };
@@ -241,7 +241,7 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
     // Delete Recipe
     const deleteRecipe = async (id: number): Promise<void> => {
         try {
-            await axios.delete("/recipe/" + id, {headers: { "Authorization": "Bearer " + access_token}})
+            await axios.delete("/api/recipe/" + id, {headers: { "Authorization": "Bearer " + access_token}})
             setRecipes(prevItems => prevItems.filter(_item => _item.id != id));
         } catch(error) {
             handleError(error)
@@ -251,7 +251,7 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
     // Get Ingredients
     const getIngredients = async (recipe_id: number): Promise<void> => {
         try {
-            const response = await axios.get("/recipe/" + recipe_id + "/ingredient", {headers: { "Authorization": "Bearer " + access_token}})
+            const response = await axios.get("/api/recipe/" + recipe_id + "/ingredient", {headers: { "Authorization": "Bearer " + access_token}})
             const ingredientsWithSummary: IIngredient[] = response.data.map((ing: IIngredient) => {
                 let food, recipe, nutrition;
                 if (ing.food_ingredient_id) {
@@ -278,7 +278,7 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
     // Add Ingredient(s)
     const addIngredients = async (recipe_id: number, ingredients: IIngredient[]): Promise<void> => {
         try {
-            await axios.post("/recipe/" + recipe_id + "/ingredient", ingredients, {headers: { "Authorization": "Bearer " + access_token}})
+            await axios.post("/api/recipe/" + recipe_id + "/ingredient", ingredients, {headers: { "Authorization": "Bearer " + access_token}})
         } catch(error) {
             handleError(error)
         }
@@ -287,7 +287,7 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
     // Remove all Ingredients from a Recipe
     const removeIngredients = async (recipe_id: number): Promise<void> => {
         try {
-            await axios.delete("/recipe/" + recipe_id + "/ingredient", {headers: { "Authorization": "Bearer " + access_token}})
+            await axios.delete("/api/recipe/" + recipe_id + "/ingredient", {headers: { "Authorization": "Bearer " + access_token}})
             setIngredients([])
         } catch(error) {
             handleError(error)

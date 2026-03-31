@@ -127,7 +127,7 @@ function RegisterPage() {
 
     const handleSubmit = (e: { preventDefault: () => void; }) => {
         e.preventDefault();
-        axios.post("/register", {
+        axios.post("/api/register", {
             username: formData.username,
             password: formData.password,
             email: formData.email,
