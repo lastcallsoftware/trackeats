@@ -85,77 +85,122 @@ const columns = [
             }),
             columnHelper.accessor("nutrition.calories", {
                 header: () => <span>Calories</span>,
-                cell: info => info.getValue(),
+                cell: info => {
+                    const servings = info.row.original.servings || 1;
+                    return (info.getValue() / servings).toFixed(0);
+                },
                 size: 80
             }),
             columnHelper.accessor("nutrition.total_fat_g", {
                 header: () => <span>Total Fat (g)</span>,
-                cell: info => info.getValue(),
+                cell: info => {
+                    const servings = info.row.original.servings || 1;
+                    return (info.getValue() / servings).toFixed(1);
+                },
                 size: 80
             }),
             columnHelper.accessor("nutrition.saturated_fat_g", {
                 header: () => <span>Sat. Fat (g)</span>,
-                cell: info => info.getValue(),
+                cell: info => {
+                    const servings = info.row.original.servings || 1;
+                    return (info.getValue() / servings).toFixed(1);
+                },
                 size: 80
             }),
             columnHelper.accessor("nutrition.trans_fat_g", {
                 header: () => <span>Trans Fat (g)</span>,
-                cell: info => info.getValue(),
+                cell: info => {
+                    const servings = info.row.original.servings || 1;
+                    return (info.getValue() / servings).toFixed(1);
+                },
                 size: 80
             }),
             columnHelper.accessor("nutrition.cholesterol_mg", {
                 header: () => <span>Cholesterol (mg)</span>,
-                cell: info => info.getValue(),
+                cell: info => {
+                    const servings = info.row.original.servings || 1;
+                    return (info.getValue() / servings).toFixed(0);
+                },
                 size: 80
             }),
             columnHelper.accessor("nutrition.sodium_mg", {
                 header: () => <span>Sodium (mg)</span>,
-                cell: info => info.getValue(),
+                cell: info => {
+                    const servings = info.row.original.servings || 1;
+                    return (info.getValue() / servings).toFixed(0);
+                },
                 size: 80
             }),
             columnHelper.accessor("nutrition.total_carbs_g", {
                 header: () => <span>Total Carbs (g)</span>,
-                cell: info => info.getValue(),
+                cell: info => {
+                    const servings = info.row.original.servings || 1;
+                    return (info.getValue() / servings).toFixed(1);
+                },
                 size: 80
             }),
             columnHelper.accessor("nutrition.fiber_g", {
                 header: () => <span>Fiber (g)</span>,
-                cell: info => info.getValue(),
+                cell: info => {
+                    const servings = info.row.original.servings || 1;
+                    return (info.getValue() / servings).toFixed(1);
+                },
                 size: 80
             }),
             columnHelper.accessor("nutrition.total_sugar_g", {
                 header: () => <span>Total Sugar (g)</span>,
-                cell: info => info.getValue(),
+                cell: info => {
+                    const servings = info.row.original.servings || 1;
+                    return (info.getValue() / servings).toFixed(1);
+                },
                 size: 80
             }),
             columnHelper.accessor("nutrition.added_sugar_g", {
                 header: () => <span>Added Sugar (g)</span>,
-                cell: info => info.getValue(),
+                cell: info => {
+                    const servings = info.row.original.servings || 1;
+                    return (info.getValue() / servings).toFixed(1);
+                },
                 size: 80
             }),
             columnHelper.accessor("nutrition.protein_g", {
                 header: () => <span>Protein (g)</span>,
-                cell: info => info.getValue(),
+                cell: info => {
+                    const servings = info.row.original.servings || 1;
+                    return (info.getValue() / servings).toFixed(1);
+                },
                 size: 80
             }),
             columnHelper.accessor("nutrition.vitamin_d_mcg", {
                 header: () => <span>Vitamin D (mcg)</span>,
-                cell: info => info.getValue(),
+                cell: info => {
+                    const servings = info.row.original.servings || 1;
+                    return (info.getValue() / servings).toFixed(1);
+                },
                 size: 80
             }),
             columnHelper.accessor("nutrition.calcium_mg", {
                 header: () => <span>Calcium (mg)</span>,
-                cell: info => info.getValue(),
+                cell: info => {
+                    const servings = info.row.original.servings || 1;
+                    return (info.getValue() / servings).toFixed(0);
+                },
                 size: 80
             }),
             columnHelper.accessor("nutrition.iron_mg", {
                 header: () => <span>Iron (mg)</span>,
-                cell: info => info.getValue(),
+                cell: info => {
+                    const servings = info.row.original.servings || 1;
+                    return (info.getValue() / servings).toFixed(1);
+                },
                 size: 80
             }),
             columnHelper.accessor("nutrition.potassium_mg", {
                 header: () => <span>Potassium (mg)</span>,
-                cell: info => info.getValue(),
+                cell: info => {
+                    const servings = info.row.original.servings || 1;
+                    return (info.getValue() / servings).toFixed(0);
+                },
                 size: 80
             }),
         ]

@@ -7,6 +7,7 @@ import Paper from '@mui/material/Paper';
 import Stack from '@mui/material/Stack';
 import { useData } from "@/utils/useData";
 import FoodsTable from "./FoodsTable";
+import NutritionLabel from "./NutritionLabel";
 import Pagination from "./Pagination";
 import TitleCard from './TitleCard';
 
@@ -81,70 +82,78 @@ const FoodsPage = () => {
                     width: { xs: '98%', md: '90%' },
                     maxWidth: 1600,
                     display: 'flex',
-                    flexDirection: 'column',
+                    flexDirection: { xs: 'column', md: 'row' },
+                    alignItems: 'stretch',
+                    gap: 3,
                 }}
             >
-                {foods.length === 0 ? (
-                    <Box sx={{ textAlign: 'center', py: 8, color: 'text.secondary', fontSize: 20 }}>
-                        Looks like you haven't added any foods yet.<br />
-                        Click <b>Add</b> to get started!
-                    </Box>
-                ) : (
-                    <>
-                        <Box
-                            sx={{
-                                my: 0,
-                                mx: { xs: 0, sm: 4 },
-                                overflowX: 'auto',
-                                border: '1px solid',
-                                borderColor: 'divider',
-                                borderRadius: 1.5,
-                                background: '#fff',
-                                boxShadow: '0 2px 12px 0 rgba(0,0,0,0.07)',
-                            }}
-                        >
-                            <FoodsTable setSelectedRowId={setSelectedRowId} pagination={pagination} setPagination={setPagination} />
+                <Box sx={{ flex: 3, minWidth: 0 }}>
+                    {foods.length === 0 ? (
+                        <Box sx={{ textAlign: 'center', py: 8, color: 'text.secondary', fontSize: 20 }}>
+                            Looks like you haven't added any foods yet.<br />
+                            Click <b>Add</b> to get started!
                         </Box>
-                        <Pagination pagination={pagination} setPagination={setPagination} totalCount={foods.length} />
-                    </>
-                )}
+                    ) : (
+                        <>
+                            <Box
+                                sx={{
+                                    my: 0,
+                                    mx: { xs: 0, sm: 4 },
+                                    overflowX: 'auto',
+                                    border: '1px solid',
+                                    borderColor: 'divider',
+                                    borderRadius: 1.5,
+                                    background: '#fff',
+                                    boxShadow: '0 2px 12px 0 rgba(0,0,0,0.07)',
+                                }}
+                            >
+                                <FoodsTable setSelectedRowId={setSelectedRowId} pagination={pagination} setPagination={setPagination} />
+                            </Box>
+                            <Pagination pagination={pagination} setPagination={setPagination} totalCount={foods.length} />
+                        </>
+                    )}
 
-                <Stack
-                    direction="row"
-                    spacing={2}
-                    justifyContent="center"
-                    sx={{ mt: 3 }}
-                >
-                    <Button
-                        variant="contained"
-                        color="success"
-                        startIcon={<MdAddCircleOutline />}
-                        onClick={addRecord}
-                        title="Add Food"
+                    <Stack
+                        direction="row"
+                        spacing={2}
+                        justifyContent="center"
+                        sx={{ mt: 3 }}
                     >
-                        Add
-                    </Button>
-                    <Button
-                        variant="contained"
-                        color="warning"
-                        startIcon={<MdEdit />}
-                        onClick={editRecord}
-                        title="Edit Selected"
-                        disabled={!selectedRowId}
-                    >
-                        Edit
-                    </Button>
-                    <Button
-                        variant="contained"
-                        color="error"
-                        startIcon={<MdRemoveCircleOutline />}
-                        onClick={deleteRecord}
-                        title="Delete Selected"
-                        disabled={!selectedRowId}
-                    >
-                        Delete
-                    </Button>
-                </Stack>
+                        <Button
+                            variant="contained"
+                            color="success"
+                            startIcon={<MdAddCircleOutline />}
+                            onClick={addRecord}
+                            title="Add Food"
+                        >
+                            Add
+                        </Button>
+                        <Button
+                            variant="contained"
+                            color="warning"
+                            startIcon={<MdEdit />}
+                            onClick={editRecord}
+                            title="Edit Selected"
+                            disabled={!selectedRowId}
+                        >
+                            Edit
+                        </Button>
+                        <Button
+                            variant="contained"
+                            color="error"
+                            startIcon={<MdRemoveCircleOutline />}
+                            onClick={deleteRecord}
+                            title="Delete Selected"
+                            disabled={!selectedRowId}
+                        >
+                            Delete
+                        </Button>
+                    </Stack>
+                </Box>
+                {/* Nutrition label panel */}
+                <Box sx={{ flex: 1, minWidth: 280, maxWidth: 340, display: { xs: 'none', md: 'block' }, pl: 2 }}>
+                    <NutritionLabel nutrition={foods.find(f => f.id === selectedRowId)?.nutrition || null} />
+                </Box>
             </Paper>
         </Box>
     )
