@@ -20,4 +20,4 @@ curl -s \
 curl -s \
     -X GET \
     -H "Authorization: Bearer $ACCESS_TOKEN" \
-    "$BACKEND_BASE_URL/recipe/1/food_ingredient/25" | jq
+    "$BACKEND_BASE_URL/api/recipe/1/food_ingredient/25" | jq

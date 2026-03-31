@@ -33,4 +33,4 @@ curl \
         "serving_size_description": "1 hogshead"
         }
 }' \
-    "$BACKEND_BASE_URL/recipe"
+    "$BACKEND_BASE_URL/api/recipe"

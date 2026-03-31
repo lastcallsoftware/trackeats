@@ -27,4 +27,4 @@ curl \
 "servings": 4,
 "nutrition": {"serving_size_description": "1 cup"}
 }' \
-    "$BACKEND_BASE_URL/recipe"
+    "$BACKEND_BASE_URL/api/recipe"

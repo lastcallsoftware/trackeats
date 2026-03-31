@@ -20,4 +20,4 @@ fi
 curl -s \
   -X GET \
   -H "Authorization: Bearer $ACCESS_TOKEN" \
-  "$BACKEND_BASE_URL/db/load"
+  "$BACKEND_BASE_URL/api/db/load"

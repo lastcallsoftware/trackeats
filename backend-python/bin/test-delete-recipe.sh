@@ -22,4 +22,4 @@ curl \
     -X DELETE \
     -H "Authorization: Bearer $ACCESS_TOKEN" \
     -H "Content-Type: application/json" \
-    "$BACKEND_BASE_URL/recipe/2"
+    "$BACKEND_BASE_URL/api/recipe/2"

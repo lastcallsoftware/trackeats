@@ -48,4 +48,4 @@ curl \
 "price": 3.19,
 "price_date": "2024-11-12",
 "shelf_life": "7-14 days in fridge"}' \
-	"$BACKEND_BASE_URL/food"
+	"$BACKEND_BASE_URL/api/food"

@@ -17,4 +17,4 @@ curl \
     -X POST \
     -d '{"username": "testuser", "password": "Test*123", "email": "testuser@lastcallsoftware.com"}' \
     -H "Content-Type: application/json" \
-    "$BACKEND_BASE_URL/register"
+    "$BACKEND_BASE_URL/api/register"

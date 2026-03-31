@@ -21,4 +21,4 @@ fi
 curl \
     -X GET \
     -H "Authorization: Bearer $ACCESS_TOKEN" \
-    "$BACKEND_BASE_URL/whoami"
+    "$BACKEND_BASE_URL/api/whoami"

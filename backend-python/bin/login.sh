@@ -25,7 +25,7 @@ fi
 OUTPUT=`curl --no-progress-meter \
 -H "Content-Type: application/json" \
 -d "{\"username\": \"$USERNAME\", \"password\": \"$PASSWORD\" }" \
-"$BACKEND_BASE_URL/login"`
+"$BACKEND_BASE_URL/api/login"`
 
 ACCESS_TOKEN=`echo $OUTPUT | grep -o '"access_token":"[^"]*' | grep -o '[^"]*$'`
 export ACCESS_TOKEN=$ACCESS_TOKEN

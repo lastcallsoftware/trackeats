@@ -21,4 +21,4 @@ fi
 curl -s \
     -X GET \
     -H "Authorization: Bearer $ACCESS_TOKEN" \
-    "$BACKEND_BASE_URL/food" | jq
+    "$BACKEND_BASE_URL/api/food" | jq

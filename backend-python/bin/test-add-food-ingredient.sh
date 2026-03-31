@@ -21,4 +21,4 @@ curl \
   -X POST \
   -H "Authorization: Bearer $ACCESS_TOKEN" \
   -H "Content-Type: application/json" \
-  "$BACKEND_BASE_URL/recipe/2/food_ingredient/141/4.0"
+  "$BACKEND_BASE_URL/api/recipe/2/food_ingredient/141/4.0"
