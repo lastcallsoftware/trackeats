@@ -5,7 +5,7 @@ from typing import Any
 from flask import Blueprint, jsonify, make_response, request
 from flask_jwt_extended import jwt_required, create_access_token, get_jwt_identity # type:ignore
 from sendmail import Sendmail
-from models import db, User, UserStatus, Food, Recipe, Ingredient
+from models import db, User, Preferences, UserStatus, Food, Recipe, Ingredient
 from crypto import Crypto
 from data import Data
 from sqlalchemy.sql import text
@@ -445,7 +445,6 @@ def delete_user():
             user_dao = User.get(username)
             user_id = user_dao.id
 
-
             if username == "guest" or username == "admin" or username == "testuser":
                 raise ValueError("Nice try, but this account may not be deleted.")
             
@@ -461,6 +460,59 @@ def delete_user():
         msg = f"User record deleted for user {user_id} '{username}'"
         logging.info(msg)
         return jsonify({"msg": msg}), 200
+
+
+##############################
+# PREFERENCES
+##############################
+@bp.route("/api/preferences/:context", methods = ["GET"])
+@jwt_required()
+def get_preferences(context: str):
+    """
+    Return the list of all Users
+    """
+    logging.info(f"/preferences/{context}")
+    try:
+        with db.session.begin():
+            # Get the user_id for the user identified by the token
+            username = get_jwt_identity()
+            user_id = User.get_id(username)
+
+            prefs = Preferences.get(user_id, context)
+    except Exception as e:
+        msg = f"Preference records could not be retrieved: {str(e)}"
+        logging.error(msg)
+        return jsonify({"msg": msg}), 500
+    else:
+        msg = "Preferences retrieved"
+        logging.info(msg)
+        return jsonify(prefs), 200
+
+
+@bp.route("/api/preferences/:context", methods = ["PUT"])
+@jwt_required()
+def save_preferences(context: str):
+    """
+    Return the list of all Users
+    """
+    logging.info(f"/preferences/{context}")
+    try:
+        with db.session.begin():
+            # Get the user_id for the user identified by the token
+            username = get_jwt_identity()
+            user_id = User.get_id(username)
+
+            prefs = request.json
+            
+            Preferences.save(user_id, context, prefs)
+    except Exception as e:
+        msg = f"Preference records could not be saved: {str(e)}"
+        logging.error(msg)
+        return jsonify({"msg": msg}), 500
+    else:
+        msg = "Preferences stored"
+        logging.info(msg)
+        return jsonify(msg), 200
 
 
 ##############################

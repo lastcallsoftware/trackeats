@@ -317,6 +317,45 @@ class User(db.Model):
 
 
 ##############################
+# PREFERENCES
+##############################
+class Preferences(db.Model):
+    """
+    This stores user preferences like which table columns are visible.
+    The context column indicates the thing to which the preferences apply.
+    Example: "foods.columns"
+    """
+    __tablename__ = "preferences"
+    __table_args__ = (db.UniqueConstraint("user_id", "context", name="uq_user_table_pref"),)
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(db.Integer, db.ForeignKey("user.id"), nullable=False)
+    context: Mapped[str] = mapped_column(db.String(50), nullable=False)
+    preferences: Mapped[dict[str,Any]] = mapped_column(db.JSON, nullable=False)
+
+
+    @staticmethod
+    def get(user_id: int, context: str) -> dict[str,Any] | None:
+        prefs_dao = db.session.scalar(select(Preferences).where(Preferences.user_id == user_id).where(Preferences.context == context))
+        if not prefs_dao:
+            return None;
+        return prefs_dao.preferences;
+
+
+    @staticmethod
+    def save(user_id: int, context: str, prefs: dict[str,Any]) -> None:
+        prefs_dao = db.session.scalar(select(Preferences).where(Preferences.user_id == user_id).where(Preferences.context == context))
+        if prefs_dao:
+            prefs_dao.preferences = prefs
+        else:
+            prefs_dao = Preferences()
+            prefs_dao.user_id = user_id
+            prefs_dao.context = context
+            prefs_dao.preferences = prefs
+        db.session.add(prefs_dao)
+
+
+##############################
 # NURITION
 ##############################
 class Nutrition(db.Model):
