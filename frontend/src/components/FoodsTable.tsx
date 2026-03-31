@@ -1,5 +1,6 @@
 import {
-    ColumnFiltersState, 
+    ColumnFiltersState,
+    VisibilityState,
     createColumnHelper, 
     flexRender,
     getCoreRowModel, 
@@ -19,6 +20,7 @@ import { getFoodGroupLabel } from './FoodGroups';
 import FilterWidget from './FilterWidget';
 //import TruncatedCellWithTooltip from './TruncatedCellWithTooltip';
 import TruncatedCell from './TruncatedCell';
+import ColumnVisibilityPicker from './ColumnVisibilityPicker';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
@@ -95,7 +97,7 @@ const foodColumns = [
     }),
     columnHelper.group({
         id: "nutrition_data",
-        header: () => <span>Nutrition Info</span>,
+        header: () => <span>Nutrition Info (per serving)</span>,
         columns: [
             columnHelper.accessor("nutrition_id", {
                 header: () => <span>Nutrition ID</span>,
@@ -253,6 +255,9 @@ const foodColumns = [
     }),
 ]
 
+const FOOD_FILTERS_STORAGE = "food_filters_storage";
+const FOOD_VISIBILITY_STORAGE = "food_visibility_storage";
+
 interface FoodsTableProps {
     setSelectedRowId: React.Dispatch<React.SetStateAction<number | null>>,
     pagination: { pageIndex: number, pageSize: number },
@@ -265,9 +270,11 @@ const FoodsTable: React.FC<FoodsTableProps> = ({setSelectedRowId, pagination, se
     const navigate = useNavigate()
     const [sorting, setSorting] = React.useState<SortingState>([])
     const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
+    const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>(() => {
+        const saved = sessionStorage.getItem(FOOD_VISIBILITY_STORAGE);
+        return saved ? JSON.parse(saved) : {};
+    });
     const { foods } = useData();
-
-    const FOOD_FILTERS_STORAGE = "food_filters_storage";
 
     // Define the table's properties.
     const tableOptions: TableOptions<IFood> = {
@@ -282,8 +289,15 @@ const FoodsTable: React.FC<FoodsTableProps> = ({setSelectedRowId, pagination, se
         onSortingChange: setSorting,
         onColumnFiltersChange: setColumnFilters,
         onPaginationChange: setPagination,
+        onColumnVisibilityChange: (updater) => {
+            setColumnVisibility(prev => {
+                const next = typeof updater === 'function' ? updater(prev) : updater;
+                sessionStorage.setItem(FOOD_VISIBILITY_STORAGE, JSON.stringify(next));
+                return next;
+            });
+        },
         filterFns: {},
-        state: { sorting, columnFilters, pagination },
+        state: { sorting, columnFilters, pagination, columnVisibility },
         initialState: {
             pagination: {
                 pageSize: 10
@@ -295,8 +309,6 @@ const FoodsTable: React.FC<FoodsTableProps> = ({setSelectedRowId, pagination, se
 
     // If a column filter causes the list to shrink such that the current page
     // is greater than the maximum page, go to the last page.
-    // To make this work you also need to add onPaginationChange to the table 
-    // properties and a pagination state variable.
     const totalPages = table.getPageCount()
     useEffect(() => {
         if (pagination.pageIndex >= totalPages) {
@@ -305,12 +317,7 @@ const FoodsTable: React.FC<FoodsTableProps> = ({setSelectedRowId, pagination, se
     }, [totalPages, pagination.pageIndex, setPagination])
 
     const handleClick = (row: Row<IFood>) => {
-        // Toggle the row's state (selected/unselected).
         row.toggleSelected()
-        // Inform our parent about which row was selected.
-        // toggleSelected() doesn't take effect until the page is re-rendered, which happens AFTER
-        // this function executes, so getIsSelected() actually returns the opposite of what you'd expect.
-        // So we invert the logic too.
         if (row.getIsSelected())
             setSelectedRowId(null)
         else
@@ -342,105 +349,112 @@ const FoodsTable: React.FC<FoodsTableProps> = ({setSelectedRowId, pagination, se
             sessionStorage.setItem(FOOD_FILTERS_STORAGE, JSON.stringify(updatedFilters));
             return updatedFilters;
         });
-      };
+    };
     
     return (
-        <TableContainer component={Paper} sx={{ overflowX: 'auto', boxShadow: 2, borderRadius: 2 }}>
-            <Table size="small" sx={{ minWidth: 650, tableLayout: 'fixed', borderCollapse: 'separate', borderSpacing: 0 }}>
-                <colgroup>
-                    {table.getAllLeafColumns().map((col) => (
-                        <col key={col.id} style={{ width: col.getSize() }} />
-                    ))}
-                </colgroup>
-                <TableHead>
-                    {table.getHeaderGroups().map((headerGroup) => (
-                        <TableRow key={headerGroup.id} sx={{ height: '2.5rem' }}>
-                            {headerGroup.headers.map((header) =>
-                                header.isPlaceholder ? (
-                                    <TableCell
-                                        key={header.id}
-                                        colSpan={header.colSpan}
-                                        sx={theme => ({
-                                            background: theme.palette.table.headerBg,
-                                            borderRight: `1px solid ${theme.palette.table.headerBorder}`,
-                                            borderBottom: `1px solid ${theme.palette.table.headerBorder}`,
-                                            p: 1,
-                                        })}
-                                    />
-                                ) : (
-                                    <TableCell
-                                        key={header.id}
-                                        sx={theme => ({
-                                            width: header.getSize(),
-                                            userSelect: 'none',
-                                            fontWeight: 'bold',
-                                            fontSize: 14,
-                                            color: theme.palette.table.headerColor,
-                                            background: theme.palette.table.headerBg,
-                                            borderRight: `1px solid ${theme.palette.table.headerBorder}`,
-                                            borderBottom: `1px solid ${theme.palette.table.headerBorder}`,
-                                            p: 1,
-                                            textAlign: 'center',
-                                            lineHeight: 1.2,
-                                        })}
-                                        colSpan={header.colSpan}
-                                        onClick={header.column.getToggleSortingHandler()}
-                                    >
-                                        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
-                                            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%' }}>
-                                                {flexRender(header.column.columnDef.header, header.getContext())}
-                                                <Box component="span" sx={{ ml: 1 }}>
-                                                    {{asc: '🔼', desc: '🔽'}[header.column.getIsSorted() as string] ?? null}
+        <Box>
+            {/* Column visibility picker toolbar */}
+            <Box sx={{ display: 'flex', justifyContent: 'flex-end', px: 1, py: 0.75 }}>
+                <ColumnVisibilityPicker table={table} storageKey={FOOD_VISIBILITY_STORAGE} />
+            </Box>
+
+            <TableContainer component={Paper} sx={{ overflowX: 'auto', boxShadow: 2, borderRadius: 2 }}>
+                <Table size="small" sx={{ minWidth: 650, tableLayout: 'fixed', borderCollapse: 'separate', borderSpacing: 0 }}>
+                    <colgroup>
+                        {table.getVisibleLeafColumns().map((col) => (
+                            <col key={col.id} style={{ width: col.getSize() }} />
+                        ))}
+                    </colgroup>
+                    <TableHead>
+                        {table.getHeaderGroups().map((headerGroup) => (
+                            <TableRow key={headerGroup.id} sx={{ height: '2.5rem' }}>
+                                {headerGroup.headers.map((header) =>
+                                    header.isPlaceholder ? (
+                                        <TableCell
+                                            key={header.id}
+                                            colSpan={header.colSpan}
+                                            sx={theme => ({
+                                                background: theme.palette.table.headerBg,
+                                                borderRight: `1px solid ${theme.palette.table.headerBorder}`,
+                                                borderBottom: `1px solid ${theme.palette.table.headerBorder}`,
+                                                p: 1,
+                                            })}
+                                        />
+                                    ) : (
+                                        <TableCell
+                                            key={header.id}
+                                            sx={theme => ({
+                                                width: header.getSize(),
+                                                userSelect: 'none',
+                                                fontWeight: 'bold',
+                                                fontSize: 14,
+                                                color: theme.palette.table.headerColor,
+                                                background: theme.palette.table.headerBg,
+                                                borderRight: `1px solid ${theme.palette.table.headerBorder}`,
+                                                borderBottom: `1px solid ${theme.palette.table.headerBorder}`,
+                                                p: 1,
+                                                textAlign: 'center',
+                                                lineHeight: 1.2,
+                                            })}
+                                            colSpan={header.colSpan}
+                                            onClick={header.column.getToggleSortingHandler()}
+                                        >
+                                            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
+                                                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%' }}>
+                                                    {flexRender(header.column.columnDef.header, header.getContext())}
+                                                    <Box component="span" sx={{ ml: 1 }}>
+                                                        {{asc: '🔼', desc: '🔽'}[header.column.getIsSorted() as string] ?? null}
+                                                    </Box>
                                                 </Box>
+                                                {header.column.getCanFilter() && header.column.columnDef.meta?.filterVariant === "text" ? (
+                                                    <Box sx={{ mt: 0.5, width: '100%' }} onClick={e => e.stopPropagation()}>
+                                                        <FilterWidget column={header.column} updateFilterFunction={updateFilter} />
+                                                    </Box>
+                                                ) : null}
                                             </Box>
-                                            {header.column.getCanFilter() && header.column.columnDef.meta?.filterVariant === "text" ? (
-                                                <Box sx={{ mt: 0.5, width: '100%' }} onClick={e => e.stopPropagation()}>
-                                                    <FilterWidget column={header.column} updateFilterFunction={updateFilter} />
-                                                </Box>
-                                            ) : null}
-                                        </Box>
+                                        </TableCell>
+                                    )
+                                )}
+                            </TableRow>
+                        ))}
+                    </TableHead>
+                    <TableBody>
+                        {table.getRowModel().rows.map((row) => (
+                            <TableRow
+                                key={row.id}
+                                hover
+                                onClick={() => handleClick(row)}
+                                onDoubleClick={isRecipesForm ? undefined : () => handleDoubleClick(row)}
+                                sx={theme => ({
+                                    ...(row.getIsSelected() ? { backgroundColor: `${theme.palette.table.rowSelectedBg} !important` } : {}),
+                                    height: '2.5rem',
+                                })}
+                            >
+                                {row.getVisibleCells().map((cell) => (
+                                    <TableCell
+                                        key={cell.id}
+                                        sx={theme => ({
+                                            borderRight: `1px solid ${theme.palette.table.rowBorder}`,
+                                            borderBottom: `1px solid ${theme.palette.table.rowBorder}`,
+                                            fontSize: 14,
+                                            padding: '2px',
+                                            height: '2.5rem',
+                                            maxHeight: '2.5rem',
+                                            textAlign: 'center',
+                                            whiteSpace: 'normal',
+                                        })}
+                                    >
+                                    <TruncatedCell>
+                                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                                    </TruncatedCell>
                                     </TableCell>
-                                )
-                            )}
-                        </TableRow>
-                    ))}
-                </TableHead>
-                <TableBody>
-                    {table.getRowModel().rows.map((row) => (
-                        <TableRow
-                            key={row.id}
-                            hover
-                            onClick={() => handleClick(row)}
-                            onDoubleClick={isRecipesForm ? undefined : () => handleDoubleClick(row)}
-                            sx={theme => ({
-                                ...(row.getIsSelected() ? { backgroundColor: `${theme.palette.table.rowSelectedBg} !important` } : {}),
-                                height: '2.5rem',
-                            })}
-                        >
-                            {row.getVisibleCells().map((cell) => (
-                                <TableCell
-                                    key={cell.id}
-                                    sx={theme => ({
-                                        borderRight: `1px solid ${theme.palette.table.rowBorder}`,
-                                        borderBottom: `1px solid ${theme.palette.table.rowBorder}`,
-                                        fontSize: 14,
-                                        padding: '2px',
-                                        height: '2.5rem',
-                                        maxHeight: '2.5rem',
-                                        textAlign: 'center',
-                                        whiteSpace: 'normal',
-                                    })}
-                                >
-                                <TruncatedCell>
-                                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                                </TruncatedCell>
-                                </TableCell>
-                            ))}
-                        </TableRow>
-                    ))}
-                </TableBody>
-            </Table>
-        </TableContainer>
+                                ))}
+                            </TableRow>
+                        ))}
+                    </TableBody>
+                </Table>
+            </TableContainer>
+        </Box>
     );
 }
 

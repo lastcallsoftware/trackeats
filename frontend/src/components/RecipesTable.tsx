@@ -1,5 +1,6 @@
 import { 
-    ColumnFiltersState, 
+    ColumnFiltersState,
+    VisibilityState,
     createColumnHelper, 
     flexRender, 
     getCoreRowModel, 
@@ -17,6 +18,7 @@ import { useData } from "@/utils/useData";
 import { getCuisineLabel } from './Cuisines';
 import { useNavigate } from 'react-router-dom';
 import TruncatedCell from './TruncatedCell';
+import ColumnVisibilityPicker from './ColumnVisibilityPicker';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
@@ -66,7 +68,7 @@ const columns = [
     }),
     columnHelper.group({
         id: "nutrition_data",
-        header: () => <span>Nutrition Info</span>,
+        header: () => <span>Nutrition Info (per serving)</span>,
         columns: [
             columnHelper.accessor("nutrition.serving_size_description", {
                 header: () => <span>Serving Size Desc</span>,
@@ -87,7 +89,8 @@ const columns = [
                 header: () => <span>Calories</span>,
                 cell: info => {
                     const servings = info.row.original.servings || 1;
-                    return (info.getValue() / servings).toFixed(0);
+                    const val = info.getValue();
+                    return (val / servings).toFixed(0);
                 },
                 size: 80
             }),
@@ -95,7 +98,8 @@ const columns = [
                 header: () => <span>Total Fat (g)</span>,
                 cell: info => {
                     const servings = info.row.original.servings || 1;
-                    return (info.getValue() / servings).toFixed(1);
+                    const val = info.getValue();
+                    return (val / servings).toFixed(1);
                 },
                 size: 80
             }),
@@ -103,7 +107,8 @@ const columns = [
                 header: () => <span>Sat. Fat (g)</span>,
                 cell: info => {
                     const servings = info.row.original.servings || 1;
-                    return (info.getValue() / servings).toFixed(1);
+                    const val = info.getValue();
+                    return (val / servings).toFixed(1);
                 },
                 size: 80
             }),
@@ -111,7 +116,8 @@ const columns = [
                 header: () => <span>Trans Fat (g)</span>,
                 cell: info => {
                     const servings = info.row.original.servings || 1;
-                    return (info.getValue() / servings).toFixed(1);
+                    const val = info.getValue();
+                    return (val / servings).toFixed(1);
                 },
                 size: 80
             }),
@@ -119,7 +125,8 @@ const columns = [
                 header: () => <span>Cholesterol (mg)</span>,
                 cell: info => {
                     const servings = info.row.original.servings || 1;
-                    return (info.getValue() / servings).toFixed(0);
+                    const val = info.getValue();
+                    return (val / servings).toFixed(0);
                 },
                 size: 80
             }),
@@ -127,7 +134,8 @@ const columns = [
                 header: () => <span>Sodium (mg)</span>,
                 cell: info => {
                     const servings = info.row.original.servings || 1;
-                    return (info.getValue() / servings).toFixed(0);
+                    const val = info.getValue();
+                    return (val / servings).toFixed(0);
                 },
                 size: 80
             }),
@@ -135,7 +143,8 @@ const columns = [
                 header: () => <span>Total Carbs (g)</span>,
                 cell: info => {
                     const servings = info.row.original.servings || 1;
-                    return (info.getValue() / servings).toFixed(1);
+                    const val = info.getValue();
+                    return (val / servings).toFixed(1);
                 },
                 size: 80
             }),
@@ -143,7 +152,8 @@ const columns = [
                 header: () => <span>Fiber (g)</span>,
                 cell: info => {
                     const servings = info.row.original.servings || 1;
-                    return (info.getValue() / servings).toFixed(1);
+                    const val = info.getValue();
+                    return (val / servings).toFixed(1);
                 },
                 size: 80
             }),
@@ -151,7 +161,8 @@ const columns = [
                 header: () => <span>Total Sugar (g)</span>,
                 cell: info => {
                     const servings = info.row.original.servings || 1;
-                    return (info.getValue() / servings).toFixed(1);
+                    const val = info.getValue();
+                    return (val / servings).toFixed(1);
                 },
                 size: 80
             }),
@@ -159,7 +170,8 @@ const columns = [
                 header: () => <span>Added Sugar (g)</span>,
                 cell: info => {
                     const servings = info.row.original.servings || 1;
-                    return (info.getValue() / servings).toFixed(1);
+                    const val = info.getValue();
+                    return (val / servings).toFixed(1);
                 },
                 size: 80
             }),
@@ -167,7 +179,8 @@ const columns = [
                 header: () => <span>Protein (g)</span>,
                 cell: info => {
                     const servings = info.row.original.servings || 1;
-                    return (info.getValue() / servings).toFixed(1);
+                    const val = info.getValue();
+                    return (val / servings).toFixed(1);
                 },
                 size: 80
             }),
@@ -175,7 +188,8 @@ const columns = [
                 header: () => <span>Vitamin D (mcg)</span>,
                 cell: info => {
                     const servings = info.row.original.servings || 1;
-                    return (info.getValue() / servings).toFixed(1);
+                    const val = info.getValue();
+                    return (val / servings).toFixed(1);
                 },
                 size: 80
             }),
@@ -183,7 +197,8 @@ const columns = [
                 header: () => <span>Calcium (mg)</span>,
                 cell: info => {
                     const servings = info.row.original.servings || 1;
-                    return (info.getValue() / servings).toFixed(0);
+                    const val = info.getValue();
+                    return (val / servings).toFixed(0);
                 },
                 size: 80
             }),
@@ -191,7 +206,8 @@ const columns = [
                 header: () => <span>Iron (mg)</span>,
                 cell: info => {
                     const servings = info.row.original.servings || 1;
-                    return (info.getValue() / servings).toFixed(1);
+                    const val = info.getValue();
+                    return (val / servings).toFixed(1);
                 },
                 size: 80
             }),
@@ -199,7 +215,8 @@ const columns = [
                 header: () => <span>Potassium (mg)</span>,
                 cell: info => {
                     const servings = info.row.original.servings || 1;
-                    return (info.getValue() / servings).toFixed(0);
+                    const val = info.getValue();
+                    return (val / servings).toFixed(0);
                 },
                 size: 80
             }),
@@ -228,6 +245,9 @@ const columns = [
     }),
 ]
 
+const RECIPES_FILTERS_STORAGE = "recipes_filters_storage"
+const RECIPES_VISIBILITY_STORAGE = "recipes_visibility_storage"
+
 interface IRecipesTableProps {
     setSelectedRowId: React.Dispatch<React.SetStateAction<number | null>>,
     pagination: { pageIndex: number, pageSize: number };
@@ -238,6 +258,10 @@ const RecipesTable: React.FC<IRecipesTableProps> = ({setSelectedRowId, paginatio
     const navigate = useNavigate()
     const [sorting, setSorting] = React.useState<SortingState>([])
     const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
+    const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>(() => {
+        const saved = sessionStorage.getItem(RECIPES_VISIBILITY_STORAGE);
+        return saved ? JSON.parse(saved) : {};
+    });
     const { recipes } = useData();
 
     // Define the table's properties.
@@ -252,26 +276,27 @@ const RecipesTable: React.FC<IRecipesTableProps> = ({setSelectedRowId, paginatio
         enableMultiRowSelection: false,
         onSortingChange: setSorting,
         onColumnFiltersChange: setColumnFilters,
+        onColumnVisibilityChange: (updater) => {
+            setColumnVisibility(prev => {
+                const next = typeof updater === 'function' ? updater(prev) : updater;
+                sessionStorage.setItem(RECIPES_VISIBILITY_STORAGE, JSON.stringify(next));
+                return next;
+            });
+        },
         filterFns: {},
-        state: { sorting, columnFilters }
+        state: { sorting, columnFilters, columnVisibility }
     }
     // eslint-disable-next-line react-hooks/incompatible-library
     const table = useReactTable(tableOptions)
 
     // Pagination state for the table
-    // Sync Tanstack Table's pagination with local state
     React.useEffect(() => {
         table.setPageIndex(pagination.pageIndex);
         table.setPageSize(pagination.pageSize);
     }, [pagination.pageIndex, pagination.pageSize, table]);
 
     const handleClick = (row: Row<IRecipe>) => {
-        // Toggle the row's state (selected/unselected).
         row.toggleSelected()
-        // Inform our parent about which row was selected.
-        // toggleSelected() doesn't take effect until the page is re-rendered, which happens AFTER
-        // this function executes, so getIsSelected() actually returns the opposite of what you'd expect.
-        // So we invert the logic too.
         if (row.getIsSelected())
             setSelectedRowId(null)
         else
@@ -281,14 +306,11 @@ const RecipesTable: React.FC<IRecipesTableProps> = ({setSelectedRowId, paginatio
     const handleDoubleClick = (row: Row<IRecipe>) => {
         if (!row.getIsSelected())
             row.toggleSelected()
-        // Retrieve the selected record from the context and send it to the edit form.
         const record_id:number = row.getValue("id")
         const currentPath = window.location.pathname + window.location.search;
         const editUrl = `/recipe/edit/${record_id}?returnTo=${encodeURIComponent(currentPath)}`;
         navigate(editUrl);
     }
-    
-    const RECIPES_FILTERS_STORAGE = "recipes_filters_storage"
 
     // Restore filters on mount
     useEffect(() => {
@@ -309,104 +331,110 @@ const RecipesTable: React.FC<IRecipesTableProps> = ({setSelectedRowId, paginatio
     };
 
     return (
-        <TableContainer component={Paper} sx={{ overflowX: 'auto', borderRadius: 2, boxShadow: 2 }}>
-            <Table size="small" sx={{ minWidth: 650, tableLayout: 'fixed', borderCollapse: 'separate', borderSpacing: 0 }}>
-                <colgroup>
-                    {table.getAllLeafColumns().map((col) => (
-                        <col key={col.id} style={{ width: col.getSize() }} />
-                    ))}
-                </colgroup>
-                <TableHead>
-                    {table.getHeaderGroups().map((headerGroup) => (
-                        <TableRow key={headerGroup.id} sx={{ height: '2.5rem' }}>
-                            {headerGroup.headers.map((header) =>
-                                header.isPlaceholder ? (
-                                    <TableCell
-                                        key={header.id}
-                                        colSpan={header.colSpan}
-                                        sx={theme => ({
-                                            background: theme.palette.table.headerBg,
-                                            borderRight: `1px solid ${theme.palette.table.headerBorder}`,
-                                            borderBottom: `1px solid ${theme.palette.table.headerBorder}`,
-                                            p: 1,
-                                        })}
-                                    />
-                                ) : (
-                                    <TableCell
-                                        key={header.id}
-                                        sx={theme => ({
-                                            width: header.getSize(),
-                                            userSelect: 'none',
-                                            fontWeight: 'bold',
-                                            fontSize: 14,
-                                            color: theme.palette.table.headerColor,
-                                            background: theme.palette.table.headerBg,
-                                            borderRight: `1px solid ${theme.palette.table.headerBorder}`,
-                                            borderBottom: `1px solid ${theme.palette.table.headerBorder}`,
-                                            p: 1,
-                                            cursor: 'pointer',
-                                            textAlign: 'center',
-                                            lineHeight: 1.2,
-                                        })}
-                                        colSpan={header.colSpan}
-                                        onClick={header.column.getToggleSortingHandler()}
-                                    >
-                                        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
-                                            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%' }}>
-                                                {flexRender(header.column.columnDef.header, header.getContext())}
-                                                <Box component="span" sx={{ ml: 1 }}>
-                                                    {({asc: '🔼', desc: '🔽'} as Record<string, string>)[header.column.getIsSorted() as string] ?? null}
+        <Box>
+            {/* Column visibility picker toolbar */}
+            <Box sx={{ display: 'flex', justifyContent: 'flex-end', px: 1, py: 0.75 }}>
+                <ColumnVisibilityPicker table={table} storageKey={RECIPES_VISIBILITY_STORAGE} />
+            </Box>
+
+            <TableContainer component={Paper} sx={{ overflowX: 'auto', borderRadius: 2, boxShadow: 2 }}>
+                <Table size="small" sx={{ minWidth: 650, tableLayout: 'fixed', borderCollapse: 'separate', borderSpacing: 0 }}>
+                    <colgroup>
+                        {table.getVisibleLeafColumns().map((col) => (
+                            <col key={col.id} style={{ width: col.getSize() }} />
+                        ))}
+                    </colgroup>
+                    <TableHead>
+                        {table.getHeaderGroups().map((headerGroup) => (
+                            <TableRow key={headerGroup.id} sx={{ height: '2.5rem' }}>
+                                {headerGroup.headers.map((header) =>
+                                    header.isPlaceholder ? (
+                                        <TableCell
+                                            key={header.id}
+                                            colSpan={header.colSpan}
+                                            sx={theme => ({
+                                                background: theme.palette.table.headerBg,
+                                                borderRight: `1px solid ${theme.palette.table.headerBorder}`,
+                                                borderBottom: `1px solid ${theme.palette.table.headerBorder}`,
+                                                p: 1,
+                                            })}
+                                        />
+                                    ) : (
+                                        <TableCell
+                                            key={header.id}
+                                            sx={theme => ({
+                                                width: header.getSize(),
+                                                userSelect: 'none',
+                                                fontWeight: 'bold',
+                                                fontSize: 14,
+                                                color: theme.palette.table.headerColor,
+                                                background: theme.palette.table.headerBg,
+                                                borderRight: `1px solid ${theme.palette.table.headerBorder}`,
+                                                borderBottom: `1px solid ${theme.palette.table.headerBorder}`,
+                                                p: 1,
+                                                cursor: 'pointer',
+                                                textAlign: 'center',
+                                                lineHeight: 1.2,
+                                            })}
+                                            colSpan={header.colSpan}
+                                            onClick={header.column.getToggleSortingHandler()}
+                                        >
+                                            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
+                                                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%' }}>
+                                                    {flexRender(header.column.columnDef.header, header.getContext())}
+                                                    <Box component="span" sx={{ ml: 1 }}>
+                                                        {({asc: '🔼', desc: '🔽'} as Record<string, string>)[header.column.getIsSorted() as string] ?? null}
+                                                    </Box>
                                                 </Box>
+                                                {header.column.getCanFilter() && header.column.columnDef.meta?.filterVariant === "text" ? (
+                                                    <Box sx={{ mt: 0.5, width: '100%' }} onClick={e => e.stopPropagation()}>
+                                                        <FilterWidget column={header.column} updateFilterFunction={updateFilter} />
+                                                    </Box>
+                                                ) : null}
                                             </Box>
-                                            {header.column.getCanFilter() && header.column.columnDef.meta?.filterVariant === "text" ? (
-                                                <Box sx={{ mt: 0.5, width: '100%' }} onClick={e => e.stopPropagation()}>
-                                                    <FilterWidget column={header.column} updateFilterFunction={updateFilter} />
-                                                </Box>
-                                            ) : null}
-                                        </Box>
+                                        </TableCell>
+                                    )
+                                )}
+                            </TableRow>
+                        ))}
+                    </TableHead>
+                    <TableBody>
+                        {table.getRowModel().rows.map((row) => (
+                            <TableRow
+                                key={row.id}
+                                hover
+                                onClick={() => handleClick(row)}
+                                onDoubleClick={() => handleDoubleClick(row)}
+                                sx={theme => ({
+                                    ...(row.getIsSelected() ? { backgroundColor: `${theme.palette.table.rowSelectedBg} !important` } : {}),
+                                    height: '2.5rem',
+                                })}
+                            >
+                                {row.getVisibleCells().map((cell) => (
+                                    <TableCell
+                                        key={cell.id}
+                                        sx={theme => ({
+                                            borderRight: `1px solid ${theme.palette.table.rowBorder}`,
+                                            borderBottom: `1px solid ${theme.palette.table.rowBorder}`,
+                                            fontSize: 14,
+                                            padding: '2px',
+                                            height: '2.5rem',
+                                            maxHeight: '2.5rem',
+                                            textAlign: 'center',
+                                            whiteSpace: 'normal',
+                                        })}
+                                    >
+                                        <TruncatedCell>
+                                            {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                                        </TruncatedCell>
                                     </TableCell>
-                                )
-                            )}
-                        </TableRow>
-                    ))}
-                </TableHead>
-                <TableBody>
-                    {table.getRowModel().rows.map((row) => (
-                        <TableRow
-                            key={row.id}
-                            hover
-                            onClick={() => handleClick(row)}
-                            onDoubleClick={() => handleDoubleClick(row)}
-                            sx={theme => ({
-                                ...(row.getIsSelected() ? { backgroundColor: `${theme.palette.table.rowSelectedBg} !important` } : {}),
-                                height: '2.5rem',
-                            })}
-                        >
-                            {row.getVisibleCells().map((cell) => (
-                                <TableCell
-                                    key={cell.id}
-                                    sx={theme => ({
-                                        borderRight: `1px solid ${theme.palette.table.rowBorder}`,
-                                        borderBottom: `1px solid ${theme.palette.table.rowBorder}`,
-                                        fontSize: 14,
-                                        padding: '2px',
-                                        height: '2.5rem',
-                                        maxHeight: '2.5rem',
-                                        textAlign: 'center',
-                                        whiteSpace: 'normal',
-                                    })}
-                                >
-                                    <TruncatedCell>
-                                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                                    </TruncatedCell>
-                                </TableCell>
-                            ))}
-                        </TableRow>
-                    ))}
-                </TableBody>
-                {/* Optionally render footers if needed */}
-            </Table>
-        </TableContainer>
+                                ))}
+                            </TableRow>
+                        ))}
+                    </TableBody>
+                </Table>
+            </TableContainer>
+        </Box>
     );
 }
 

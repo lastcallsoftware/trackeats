@@ -149,10 +149,10 @@ function RecipesPage() {
                     </Stack>
                 </Box>
                 {/* Nutrition label panel */}
-                <Box sx={{ flex: 1, minWidth: 280, maxWidth: 340, display: { xs: 'none', md: 'block' }, pl: 2 }}>
+                <Box sx={{ flex: 1, minWidth: 280, maxWidth: 340, display: { xs: 'none', md: 'block' }, pl: 2, mt: 3 }}>
                     {(() => {
                         const recipe = recipes.find(r => r.id === selectedRowId);
-                        if (!recipe) return null;
+                        if (!recipe) return <NutritionLabel nutrition={null} />;
                         const servings = recipe.servings || 1;
                         // Create a per-serving nutrition object
                         const n = recipe.nutrition;

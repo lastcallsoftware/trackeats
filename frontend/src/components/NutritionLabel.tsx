@@ -7,7 +7,27 @@ import { DAILY_VALUES } from "../utils/dailyValues";
 
 // A simple FDA-style Nutrition Facts label for use in FoodsTable/RecipesTable detail panel
 export const NutritionLabel: React.FC<{ nutrition: INutrition | null }> = ({ nutrition }) => {
-  if (!nutrition) return null;
+  // If no nutrition, show empty/placeholder label
+  const n = nutrition || {
+    serving_size_description: "-",
+    serving_size_oz: 0,
+    serving_size_g: 0,
+    calories: 0,
+    total_fat_g: 0,
+    saturated_fat_g: 0,
+    trans_fat_g: 0,
+    cholesterol_mg: 0,
+    sodium_mg: 0,
+    total_carbs_g: 0,
+    fiber_g: 0,
+    total_sugar_g: 0,
+    added_sugar_g: 0,
+    protein_g: 0,
+    vitamin_d_mcg: 0,
+    calcium_mg: 0,
+    iron_mg: 0,
+    potassium_mg: 0,
+  };
 
   return (
     <Box
@@ -28,31 +48,31 @@ export const NutritionLabel: React.FC<{ nutrition: INutrition | null }> = ({ nut
       </Typography>
       <Divider sx={{ borderBottomWidth: 4, mb: 1 }} />
       <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 0.5 }}>
-        Serving Size: {nutrition.serving_size_description}
+        Serving Size: {n.serving_size_description}
       </Typography>
       <Divider sx={{ borderBottomWidth: 2, my: 1 }} />
       <Typography variant="h4" sx={{ fontWeight: 900, mb: 0.5 }}>
-        {Math.round(nutrition.calories)} <span style={{ fontSize: 18, fontWeight: 400 }}>Calories</span>
+        {Math.round(n.calories)} <span style={{ fontSize: 18, fontWeight: 400 }}>Calories</span>
       </Typography>
       <Divider sx={{ borderBottomWidth: 2, my: 1 }} />
       <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 0.5 }}>
         % Daily Value*
       </Typography>
       <Box sx={{ ml: 1 }}>
-        <LabelRow label="Total Fat" value={nutrition.total_fat_g} unit="g" dv={DAILY_VALUES.total_fat_g} />
-        <LabelRow label="Saturated Fat" value={nutrition.saturated_fat_g} unit="g" dv={DAILY_VALUES.saturated_fat_g} indent />
-        <LabelRow label="Trans Fat" value={nutrition.trans_fat_g} unit="g" dv={DAILY_VALUES.trans_fat_g} indent />
-        <LabelRow label="Cholesterol" value={nutrition.cholesterol_mg} unit="mg" dv={DAILY_VALUES.cholesterol_mg} />
-        <LabelRow label="Sodium" value={nutrition.sodium_mg} unit="mg" dv={DAILY_VALUES.sodium_mg} />
-        <LabelRow label="Total Carbohydrate" value={nutrition.total_carbs_g} unit="g" dv={DAILY_VALUES.total_carbs_g} />
-        <LabelRow label="Dietary Fiber" value={nutrition.fiber_g} unit="g" dv={DAILY_VALUES.fiber_g} indent />
-        <LabelRow label="Total Sugars" value={nutrition.total_sugar_g} unit="g" dv={DAILY_VALUES.total_sugar_g} indent />
-        <LabelRow label="Added Sugars" value={nutrition.added_sugar_g} unit="g" dv={DAILY_VALUES.added_sugar_g} indent />
-        <LabelRow label="Protein" value={nutrition.protein_g} unit="g" dv={DAILY_VALUES.protein_g} />
-        <LabelRow label="Vitamin D" value={nutrition.vitamin_d_mcg} unit="mcg" dv={DAILY_VALUES.vitamin_d_mcg} />
-        <LabelRow label="Calcium" value={nutrition.calcium_mg} unit="mg" dv={DAILY_VALUES.calcium_mg} />
-        <LabelRow label="Iron" value={nutrition.iron_mg} unit="mg" dv={DAILY_VALUES.iron_mg} />
-        <LabelRow label="Potassium" value={nutrition.potassium_mg} unit="mg" dv={DAILY_VALUES.potassium_mg} />
+        <LabelRow label="Total Fat" value={n.total_fat_g} unit="g" dv={DAILY_VALUES.total_fat_g} />
+        <LabelRow label="Saturated Fat" value={n.saturated_fat_g} unit="g" dv={DAILY_VALUES.saturated_fat_g} indent />
+        <LabelRow label="Trans Fat" value={n.trans_fat_g} unit="g" dv={DAILY_VALUES.trans_fat_g} indent />
+        <LabelRow label="Cholesterol" value={n.cholesterol_mg} unit="mg" dv={DAILY_VALUES.cholesterol_mg} />
+        <LabelRow label="Sodium" value={n.sodium_mg} unit="mg" dv={DAILY_VALUES.sodium_mg} />
+        <LabelRow label="Total Carbohydrate" value={n.total_carbs_g} unit="g" dv={DAILY_VALUES.total_carbs_g} />
+        <LabelRow label="Dietary Fiber" value={n.fiber_g} unit="g" dv={DAILY_VALUES.fiber_g} indent />
+        <LabelRow label="Total Sugars" value={n.total_sugar_g} unit="g" dv={DAILY_VALUES.total_sugar_g} indent />
+        <LabelRow label="Added Sugars" value={n.added_sugar_g} unit="g" dv={DAILY_VALUES.added_sugar_g} indent />
+        <LabelRow label="Protein" value={n.protein_g} unit="g" dv={DAILY_VALUES.protein_g} />
+        <LabelRow label="Vitamin D" value={n.vitamin_d_mcg} unit="mcg" dv={DAILY_VALUES.vitamin_d_mcg} />
+        <LabelRow label="Calcium" value={n.calcium_mg} unit="mg" dv={DAILY_VALUES.calcium_mg} />
+        <LabelRow label="Iron" value={n.iron_mg} unit="mg" dv={DAILY_VALUES.iron_mg} />
+        <LabelRow label="Potassium" value={n.potassium_mg} unit="mg" dv={DAILY_VALUES.potassium_mg} />
       </Box>
       <Divider sx={{ borderBottomWidth: 2, my: 1 }} />
       <Typography variant="caption" sx={{ color: "#555" }}>

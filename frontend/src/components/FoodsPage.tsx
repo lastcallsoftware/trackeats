@@ -151,7 +151,7 @@ const FoodsPage = () => {
                     </Stack>
                 </Box>
                 {/* Nutrition label panel */}
-                <Box sx={{ flex: 1, minWidth: 280, maxWidth: 340, display: { xs: 'none', md: 'block' }, pl: 2 }}>
+                <Box sx={{ flex: 1, minWidth: 280, maxWidth: 340, display: { xs: 'none', md: 'block' }, pl: 2, mt: 3 }}>
                     <NutritionLabel nutrition={foods.find(f => f.id === selectedRowId)?.nutrition || null} />
                 </Box>
             </Paper>
