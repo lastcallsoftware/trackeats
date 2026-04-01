@@ -12,10 +12,11 @@ import {
     TableOptions, 
     useReactTable 
 } from '@tanstack/react-table';
-import React, { useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { IFood } from "../contexts/DataProvider";
 import { useData } from "@/utils/useData";
+import { FOODS_COLUMNS_PREFERENCES_KEY, TABLE_PREFERENCES_DEBOUNCE_MS } from "@/utils/constants";
 import { getFoodGroupLabel } from './FoodGroups';
 import FilterWidget from './FilterWidget';
 //import TruncatedCellWithTooltip from './TruncatedCellWithTooltip';
@@ -270,14 +271,18 @@ const FoodsTable: React.FC<FoodsTableProps> = ({setSelectedRowId, pagination, se
     const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({})
     const [preferencesReady, setPreferencesReady] = React.useState(false)
     const preferencesLoadedRef = useRef(false)
-    const { foods, preferences, getPreferences, updatePreferences } = useData();
+    const visibilitySaveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+    const { foods, preferences, updatePreferences } = useData();
+    const columnsPreferencesKey = FOODS_COLUMNS_PREFERENCES_KEY
+
+    const saveColumnVisibility = useCallback((next: VisibilityState) => {
+        void updatePreferences(columnsPreferencesKey, {
+            columnVisibility: next,
+        })
+    }, [columnsPreferencesKey, updatePreferences])
 
     useEffect(() => {
-        void getPreferences("foods.columns")
-    }, [getPreferences])
-
-    useEffect(() => {
-        const tablePreferences = preferences["foods.columns"]
+        const tablePreferences = preferences[columnsPreferencesKey]
 
         if (!tablePreferences || preferencesLoadedRef.current) {
             return
@@ -291,11 +296,17 @@ const FoodsTable: React.FC<FoodsTableProps> = ({setSelectedRowId, pagination, se
         }
 
         if (tablePreferences.columnFilters) {
-            void updatePreferences("foods.columns", {
-                columnVisibility: (tablePreferences.columnVisibility as VisibilityState | undefined) ?? {},
-            })
+            saveColumnVisibility((tablePreferences.columnVisibility as VisibilityState | undefined) ?? {})
         }
-    }, [preferences, updatePreferences])
+    }, [preferences, columnsPreferencesKey, saveColumnVisibility])
+
+    useEffect(() => {
+        return () => {
+            if (visibilitySaveTimeoutRef.current) {
+                clearTimeout(visibilitySaveTimeoutRef.current)
+            }
+        }
+    }, [])
 
     // Define the table's properties.
     const tableOptions: TableOptions<IFood> = {
@@ -313,9 +324,12 @@ const FoodsTable: React.FC<FoodsTableProps> = ({setSelectedRowId, pagination, se
         onColumnVisibilityChange: (updater) => {
             setColumnVisibility(prev => {
                 const next = typeof updater === 'function' ? updater(prev) : updater;
-                void updatePreferences("foods.columns", {
-                    columnVisibility: next,
-                })
+                if (visibilitySaveTimeoutRef.current) {
+                    clearTimeout(visibilitySaveTimeoutRef.current)
+                }
+                visibilitySaveTimeoutRef.current = setTimeout(() => {
+                    saveColumnVisibility(next)
+                }, TABLE_PREFERENCES_DEBOUNCE_MS)
                 return next;
             });
         },
@@ -369,7 +383,7 @@ const FoodsTable: React.FC<FoodsTableProps> = ({setSelectedRowId, pagination, se
         <Box sx={{ visibility: preferencesReady ? 'visible' : 'hidden' }}>
             {/* Column visibility picker toolbar */}
             <Box sx={{ display: 'flex', justifyContent: 'flex-end', px: 1, py: 0.75 }}>
-                <ColumnVisibilityPicker table={table} storageKey="foods.columns" />
+                <ColumnVisibilityPicker table={table} storageKey={columnsPreferencesKey} />
             </Box>
 
             <TableContainer component={Paper} sx={{ overflowX: 'auto', boxShadow: 2, borderRadius: 2 }}>

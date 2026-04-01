@@ -75,14 +75,14 @@ function RecipesPage() {
                     background: '#fff',
                     borderRadius: 2.25,
                     boxShadow: '0 4px 24px 0 rgba(25, 118, 210, 0.10)',
-                    px: { xs: 2, sm: 5 },
+                    px: { xs: 1, sm: 2.5 },
                     py: { xs: 2, sm: 3 },
                     width: { xs: '98%', md: '90%' },
                     maxWidth: 1600,
                     display: 'flex',
                     flexDirection: { xs: 'column', md: 'row' },
                     alignItems: 'stretch',
-                    gap: 3,
+                    gap: 1.5,
                 }}
             >
                 <Box sx={{ flex: 3, minWidth: 0 }}>
@@ -96,7 +96,7 @@ function RecipesPage() {
                             <Box
                                 sx={{
                                     my: 0,
-                                    mx: { xs: 0, sm: 4 },
+                                    mx: { xs: 0, sm: 2 },
                                     overflowX: 'auto',
                                     border: '1px solid',
                                     borderColor: 'divider',
@@ -149,7 +149,7 @@ function RecipesPage() {
                     </Stack>
                 </Box>
                 {/* Nutrition label panel */}
-                <Box sx={{ flex: 1, minWidth: 280, maxWidth: 340, display: { xs: 'none', md: 'block' }, pl: 2, mt: 3 }}>
+                <Box sx={{ flex: 1, minWidth: 280, maxWidth: 310, display: { xs: 'none', md: 'block' }, pl: 1, mt: 3 }}>
                     {(() => {
                         const recipe = recipes.find(r => r.id === selectedRowId);
                         if (!recipe) return <NutritionLabel nutrition={null} />;

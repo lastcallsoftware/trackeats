@@ -2,6 +2,12 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { DataContext } from '@/utils/useData';
+import {
+    DEFAULT_FOODS_COLUMNS_PREFERENCES,
+    DEFAULT_RECIPES_COLUMNS_PREFERENCES,
+    FOODS_COLUMNS_PREFERENCES_KEY,
+    RECIPES_COLUMNS_PREFERENCES_KEY,
+} from '@/utils/constants';
 import { generateIngredientSummary } from "../utils/generateIngredientSummary";
 import { useSnackbar } from '@/utils/useSnackbar';
 
@@ -10,6 +16,24 @@ const AUTH_CHANGED_EVENT = "trackeats-auth-changed"
 const getStoredAccessToken = (): string => {
     const storedToken = sessionStorage.getItem("access_token")
     return storedToken ? JSON.parse(storedToken) : ""
+}
+
+const getDefaultPreferencesForContext = (context: string): Record<string, unknown> | null => {
+    if (context === FOODS_COLUMNS_PREFERENCES_KEY) {
+        return {
+            ...DEFAULT_FOODS_COLUMNS_PREFERENCES,
+            columnVisibility: { ...DEFAULT_FOODS_COLUMNS_PREFERENCES.columnVisibility },
+        }
+    }
+
+    if (context === RECIPES_COLUMNS_PREFERENCES_KEY) {
+        return {
+            ...DEFAULT_RECIPES_COLUMNS_PREFERENCES,
+            columnVisibility: { ...DEFAULT_RECIPES_COLUMNS_PREFERENCES.columnVisibility },
+        }
+    }
+
+    return null
 }
 
 // The purpose of this component is to provide a context that can be used to share
@@ -174,6 +198,22 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
         }
     }, [])
 
+    const getPreferences = useCallback(async (context: string): Promise<void> => {
+        try {
+            const response = await axios.get<IPreferences>("/api/preferences/" + context, {headers: { "Authorization": "Bearer " + accessToken}})
+            const backendPreferences = response.data.preferences as Record<string, unknown> | undefined
+            const hasBackendData = Boolean(backendPreferences && Object.keys(backendPreferences).length > 0)
+            const defaultPreferences = getDefaultPreferencesForContext(context)
+            const resolvedPreferences: Record<string, unknown> = (hasBackendData && backendPreferences)
+                ? backendPreferences
+                : (defaultPreferences ?? {})
+
+            setPreferences(prev => ({ ...prev, [context]: resolvedPreferences }));
+        } catch (error) {
+            handleError(error)
+        }
+    }, [accessToken, handleError])
+
     useEffect(() => {
         // If there's no token, state is already initialized to empty defaults — just return.
         if (!accessToken) {
@@ -202,23 +242,18 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
 
         const fetchData = async () => {
             setLoading(true)
-            await getFoods();
-            await getRecipes();
+            await Promise.all([
+                getFoods(),
+                getRecipes(),
+                getPreferences(FOODS_COLUMNS_PREFERENCES_KEY),
+                getPreferences(RECIPES_COLUMNS_PREFERENCES_KEY),
+            ])
             setLoading(false)
         };
 
         fetchData();
-    }, [accessToken, handleError, setErrorMessage]);
+    }, [accessToken, handleError, setErrorMessage, getPreferences]);
 
-
-    const getPreferences = useCallback(async (context: string): Promise<void> => {
-        try {
-            const response = await axios.get<IPreferences>("/api/preferences/" + context, {headers: { "Authorization": "Bearer " + accessToken}})
-            setPreferences(prev => ({ ...prev, [context]: response.data.preferences }));
-        } catch (error) {
-            handleError(error)
-        }
-    }, [accessToken, handleError])
 
     const updatePreferences = useCallback(async (context: string, prefs: Record<string, unknown>): Promise<void> => {
         try {
