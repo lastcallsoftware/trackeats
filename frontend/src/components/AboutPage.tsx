@@ -49,10 +49,8 @@ function AboutPage() {
                     <ListItem sx={{ display: 'list-item', py: 0.25 }}>MySQL - the database</ListItem>
                     <ListItem sx={{ display: 'list-item', py: 0.25 }}>Nginx - the web server/reverse proxy that serves up the front end</ListItem>
                     <ListItem sx={{ display: 'list-item', py: 0.25 }}>Waitress - the WSGI app server that serves up the back end</ListItem>
+                    <ListItem sx={{ display: 'list-item', py: 0.25 }}>Figma - for designing and prototyping the UI</ListItem>
                     <ListItem sx={{ display: 'list-item', py: 0.25 }}>Ubuntu - the OS on which it all runs</ListItem>
-                    <ListItem sx={{ display: 'list-item', py: 0.25 }}>TLS certificates - for providing HTTPS encryption</ListItem>
-                    <ListItem sx={{ display: 'list-item', py: 0.25 }}>SMTP - for the email-based authentication used during registration</ListItem>
-                    <ListItem sx={{ display: 'list-item', py: 0.25 }}>JWT tokens - for user authentication and authorization</ListItem>
                 </List>
                 <Typography sx={{ mb: 1 }}>In addition, an alternate pluggable back end is in the works using:</Typography>
                 <List sx={{ listStyleType: 'disc', pl: 3.5, mb: 2 }}>
@@ -60,7 +58,7 @@ function AboutPage() {
                     <ListItem sx={{ display: 'list-item', py: 0.25 }}>Spring Boot</ListItem>
                     <ListItem sx={{ display: 'list-item', py: 0.25 }}>Hibernate</ListItem>
                 </List>
-                <Typography sx={{ mb: 1 }}>Add to that the various techs and services used in the design and deployment process:</Typography>
+                <Typography sx={{ mb: 1 }}>Add to that the various techs and services used in the design and deployment process (DevOps and DevSecOps):</Typography>
                 <List sx={{ listStyleType: 'disc', pl: 3.5, mb: 2 }}>
                     <ListItem sx={{ display: 'list-item', py: 0.25 }}>Docker - for "containerizing" the app</ListItem>
                     <ListItem sx={{ display: 'list-item', py: 0.25 }}>Amazon Web Services (AWS) - for provisioning the server on which the app runs</ListItem>
@@ -68,7 +66,9 @@ function AboutPage() {
                     <ListItem sx={{ display: 'list-item', py: 0.25 }}>GitHub Actions/Docker Compose - for CI/CD</ListItem>
                     <ListItem sx={{ display: 'list-item', py: 0.25 }}>GitHub Secrets - for configuration management</ListItem>
                     <ListItem sx={{ display: 'list-item', py: 0.25 }}>GoDaddy/Namecheap - for reserving and configuring the app's Internet domains</ListItem>
-                    <ListItem sx={{ display: 'list-item', py: 0.25 }}>Figma - for designing and prototyping the UI</ListItem>
+                    <ListItem sx={{ display: 'list-item', py: 0.25 }}>TLS certificates - for providing HTTPS encryption</ListItem>
+                    <ListItem sx={{ display: 'list-item', py: 0.25 }}>SMTP - for the email-based authentication used during registration</ListItem>
+                    <ListItem sx={{ display: 'list-item', py: 0.25 }}>JWT tokens - for user authentication and authorization</ListItem>
                     <ListItem sx={{ display: 'list-item', py: 0.25 }}>Jira - for planning and defect tracking</ListItem>
                 </List>
                 <Typography sx={{ mb: 2 }}>
