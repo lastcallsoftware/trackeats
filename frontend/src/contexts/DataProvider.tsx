@@ -110,6 +110,7 @@ export type IRecipe = {
     nutrition_id?: number
     nutrition: INutrition
     price: number
+    price_per_serving?: number
     price_per_calorie: number
 }
 

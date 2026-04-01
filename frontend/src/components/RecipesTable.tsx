@@ -71,6 +71,11 @@ const columns = [
         id: "nutrition_data",
         header: () => <span>Nutrition Info (per serving)</span>,
         columns: [
+            columnHelper.accessor("nutrition_id", {
+                header: () => <span>Nutrition ID</span>,
+                cell: info => info.row.original.nutrition_id ?? "",
+                size: 80
+            }),
             columnHelper.accessor("nutrition.serving_size_description", {
                 header: () => <span>Serving Size Desc</span>,
                 cell: info => info.getValue(),
@@ -228,8 +233,28 @@ const columns = [
         header: () => <span>Price Info</span>,
         columns: [
             columnHelper.accessor("price", {
-                header: () => <span>Price</span>,
+                header: () => <span>Total Price</span>,
                 cell: info => info.getValue(),
+                size: 80
+            }),
+            columnHelper.accessor("price_per_serving" as keyof IRecipe, {
+                header: () => <span>Price / serving</span>,
+                cell: info => {
+                    const val = info.getValue();
+                    if (val !== undefined && val !== null) return Number(val).toFixed(2);
+                    const price = info.row.original.price ?? 0;
+                    const servings = info.row.original.servings || 1;
+                    return (price / servings).toFixed(2);
+                },
+                sortingFn: (rowA, rowB) => {
+                    const val1 = (rowA.original.price_per_serving !== undefined)
+                        ? rowA.original.price_per_serving
+                        : (rowA.original.price ?? 0) / (rowA.original.servings || 1);
+                    const val2 = (rowB.original.price_per_serving !== undefined)
+                        ? rowB.original.price_per_serving
+                        : (rowB.original.price ?? 0) / (rowB.original.servings || 1);
+                    return val1 < val2 ? -1 : (val1 > val2 ? 1 : 0);
+                },
                 size: 80
             }),
             columnHelper.accessor("price_per_calorie", {

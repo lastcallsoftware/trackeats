@@ -202,7 +202,7 @@ const foodColumns = [
         header: () => <span>Price Info</span>,
         columns: [
             columnHelper.accessor("price", {
-                header: () => <span>Price</span>,
+                header: () => <span>Total Price</span>,
                 cell: info => (info.getValue() ?? 0).toFixed(2),
                 size: 65
             }),

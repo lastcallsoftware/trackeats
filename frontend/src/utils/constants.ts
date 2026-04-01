@@ -53,6 +53,7 @@ export const DEFAULT_RECIPES_COLUMNS_PREFERENCES: TableColumnsPreferences = {
 		"name": true,
 		"total_yield": true,
 		"servings": true,
+		"nutrition_id": false,
 		"nutrition_serving_size_description": true,
 		"nutrition_serving_size_oz": false,
 		"nutrition_serving_size_g": false,
@@ -72,6 +73,7 @@ export const DEFAULT_RECIPES_COLUMNS_PREFERENCES: TableColumnsPreferences = {
 		"nutrition_iron_mg": false,
 		"nutrition_potassium_mg": false,
 		"price": true,
+		"price_per_serving": true,
 		"price_per_calorie": true,
 	},
 }
