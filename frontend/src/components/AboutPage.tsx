@@ -65,7 +65,7 @@ function AboutPage() {
                     <ListItem sx={{ display: 'list-item', py: 0.25 }}>Docker - for "containerizing" the app</ListItem>
                     <ListItem sx={{ display: 'list-item', py: 0.25 }}>Amazon Web Services (AWS) - for provisioning the server on which the app runs</ListItem>
                     <ListItem sx={{ display: 'list-item', py: 0.25 }}>GitHub - for version control</ListItem>
-                    <ListItem sx={{ display: 'list-item', py: 0.25 }}>GitHub Actons/Docker Compose - for CI/CD</ListItem>
+                    <ListItem sx={{ display: 'list-item', py: 0.25 }}>GitHub Actions/Docker Compose - for CI/CD</ListItem>
                     <ListItem sx={{ display: 'list-item', py: 0.25 }}>GitHub Secrets - for configuration management</ListItem>
                     <ListItem sx={{ display: 'list-item', py: 0.25 }}>GoDaddy/Namecheap - for reserving and configuring the app's Internet domains</ListItem>
                     <ListItem sx={{ display: 'list-item', py: 0.25 }}>Figma - for designing and prototyping the UI</ListItem>
