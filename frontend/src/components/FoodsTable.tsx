@@ -399,13 +399,30 @@ const FoodsTable: React.FC<FoodsTableProps> = ({setSelectedRowId, pagination, se
     };
     
     return (
-        <Box sx={{ visibility: preferencesReady ? 'visible' : 'hidden' }}>
+        <Box
+            sx={{
+                visibility: preferencesReady ? 'visible' : 'hidden',
+                display: 'flex',
+                flexDirection: 'column',
+                height: 680,
+            }}
+        >
             {/* Column visibility picker toolbar */}
             <Box sx={{ display: 'flex', justifyContent: 'flex-end', px: 1, py: 0.75 }}>
                 <ColumnVisibilityPicker table={table} storageKey={columnsPreferencesKey} />
             </Box>
 
-            <TableContainer component={Paper} sx={{ overflowX: 'auto', boxShadow: 2, borderRadius: 2 }}>
+            <TableContainer
+                component={Paper}
+                sx={{
+                    overflowX: 'auto',
+                    overflowY: 'auto',
+                    boxShadow: 2,
+                    borderRadius: 2,
+                    flex: 1,
+                    minHeight: 0,
+                }}
+            >
                 <Table size="small" sx={{ minWidth: 650, tableLayout: 'fixed', borderCollapse: 'separate', borderSpacing: 0 }}>
                     <colgroup>
                         {table.getVisibleLeafColumns().map((col) => (
