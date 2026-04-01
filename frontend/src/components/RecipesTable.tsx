@@ -15,7 +15,13 @@ import {
 import React, { useCallback, useEffect, useRef } from 'react';
 import { IRecipe } from "../contexts/DataProvider";
 import { useData } from "@/utils/useData";
-import { RECIPES_COLUMNS_PREFERENCES_KEY, TABLE_PREFERENCES_DEBOUNCE_MS } from "@/utils/constants";
+import {
+    enforceMandatoryColumns,
+    getDefaultColumnsPreferences,
+    RECIPES_COLUMNS_PREFERENCES_KEY,
+    TABLE_PREFERENCES_DEBOUNCE_MS,
+    toVisibilityState,
+} from "@/utils/constants";
 import { getCuisineLabel } from './Cuisines';
 import { useNavigate } from 'react-router-dom';
 import TruncatedCell from './TruncatedCell';
@@ -289,8 +295,9 @@ const RecipesTable: React.FC<IRecipesTableProps> = ({setSelectedRowId, paginatio
     const columnsPreferencesKey = RECIPES_COLUMNS_PREFERENCES_KEY
 
     const saveColumnVisibility = useCallback((next: VisibilityState) => {
+        const withMandatory = enforceMandatoryColumns(columnsPreferencesKey, next as Record<string, boolean>)
         void updatePreferences(columnsPreferencesKey, {
-            columnVisibility: next,
+            columnVisibility: withMandatory,
         })
     }, [columnsPreferencesKey, updatePreferences])
 
@@ -305,7 +312,13 @@ const RecipesTable: React.FC<IRecipesTableProps> = ({setSelectedRowId, paginatio
         setPreferencesReady(true)
 
         if (tablePreferences.columnVisibility) {
-            setColumnVisibility(tablePreferences.columnVisibility as VisibilityState)
+            const loadedVisibility = tablePreferences.columnVisibility as Record<string, boolean>
+            setColumnVisibility(enforceMandatoryColumns(columnsPreferencesKey, loadedVisibility) as VisibilityState)
+        } else {
+            const defaults = getDefaultColumnsPreferences(columnsPreferencesKey)
+            if (defaults) {
+                setColumnVisibility(toVisibilityState(defaults.columnVisibility) as VisibilityState)
+            }
         }
 
         if (tablePreferences.columnFilters) {
@@ -335,7 +348,8 @@ const RecipesTable: React.FC<IRecipesTableProps> = ({setSelectedRowId, paginatio
         onColumnFiltersChange: setColumnFilters,
         onColumnVisibilityChange: (updater) => {
             setColumnVisibility(prev => {
-                const next = typeof updater === 'function' ? updater(prev) : updater;
+                const rawNext = typeof updater === 'function' ? updater(prev) : updater;
+                const next = enforceMandatoryColumns(columnsPreferencesKey, rawNext as Record<string, boolean>) as VisibilityState
                 if (visibilitySaveTimeoutRef.current) {
                     clearTimeout(visibilitySaveTimeoutRef.current)
                 }

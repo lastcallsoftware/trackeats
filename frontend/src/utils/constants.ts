@@ -1,9 +1,12 @@
 export const TABLE_PREFERENCES_DEBOUNCE_MS = 600
 export const FOODS_COLUMNS_PREFERENCES_KEY = "foods.columns"
 export const RECIPES_COLUMNS_PREFERENCES_KEY = "recipes.columns"
+export const MANDATORY_COLUMN_VISIBILITY = "mandatory" as const
+
+export type ColumnVisibilityPreference = boolean | typeof MANDATORY_COLUMN_VISIBILITY
 
 export type TableColumnsPreferences = {
-	columnVisibility: Record<string, boolean>
+	columnVisibility: Record<string, ColumnVisibilityPreference>
 }
 
 export const DEFAULT_FOODS_COLUMNS_PREFERENCES: TableColumnsPreferences = {
@@ -11,7 +14,7 @@ export const DEFAULT_FOODS_COLUMNS_PREFERENCES: TableColumnsPreferences = {
 		"id": false,
 		"group": false,
 		"vendor": true,
-		"name": true,
+		"name": MANDATORY_COLUMN_VISIBILITY,
 		"subtype": true,
 		"description": false,
 		"size_description": true,
@@ -50,7 +53,7 @@ export const DEFAULT_RECIPES_COLUMNS_PREFERENCES: TableColumnsPreferences = {
 	columnVisibility: {
 		"id": false,
 		"cuisine": true,
-		"name": true,
+		"name": MANDATORY_COLUMN_VISIBILITY,
 		"total_yield": true,
 		"servings": true,
 		"nutrition_id": false,
@@ -76,4 +79,46 @@ export const DEFAULT_RECIPES_COLUMNS_PREFERENCES: TableColumnsPreferences = {
 		"price_per_serving": true,
 		"price_per_calorie": true,
 	},
+}
+
+export const getDefaultColumnsPreferences = (storageKey: string): TableColumnsPreferences | null => {
+	if (storageKey === FOODS_COLUMNS_PREFERENCES_KEY) {
+		return DEFAULT_FOODS_COLUMNS_PREFERENCES
+	}
+	if (storageKey === RECIPES_COLUMNS_PREFERENCES_KEY) {
+		return DEFAULT_RECIPES_COLUMNS_PREFERENCES
+	}
+	return null
+}
+
+export const getMandatoryColumnIds = (storageKey: string): string[] => {
+	const defaults = getDefaultColumnsPreferences(storageKey)
+	if (!defaults) {
+		return []
+	}
+
+	return Object.entries(defaults.columnVisibility)
+		.filter(([, value]) => value === MANDATORY_COLUMN_VISIBILITY)
+		.map(([columnId]) => columnId)
+}
+
+export const toVisibilityState = (
+	columnVisibility: Record<string, ColumnVisibilityPreference>
+): Record<string, boolean> => {
+	const next: Record<string, boolean> = {}
+	for (const [columnId, value] of Object.entries(columnVisibility)) {
+		next[columnId] = value === MANDATORY_COLUMN_VISIBILITY ? true : value
+	}
+	return next
+}
+
+export const enforceMandatoryColumns = (
+	storageKey: string,
+	columnVisibility: Record<string, boolean>
+): Record<string, boolean> => {
+	const next = { ...columnVisibility }
+	for (const mandatoryColumnId of getMandatoryColumnIds(storageKey)) {
+		next[mandatoryColumnId] = true
+	}
+	return next
 }
