@@ -266,11 +266,12 @@ interface FoodsTableProps {
     setSelectedRowId: React.Dispatch<React.SetStateAction<number | null>>,
     pagination: { pageIndex: number, pageSize: number },
     setPagination: React.Dispatch<React.SetStateAction<{ pageIndex: number, pageSize: number }>>,
+    setFilteredCount: React.Dispatch<React.SetStateAction<number>>,
     isRecipesForm?: boolean
 }
 
 // Now declare the foods table itself
-const FoodsTable: React.FC<FoodsTableProps> = ({setSelectedRowId, pagination, setPagination, isRecipesForm = false}) => {
+const FoodsTable: React.FC<FoodsTableProps> = ({setSelectedRowId, pagination, setPagination, setFilteredCount, isRecipesForm = false}) => {
     const navigate = useNavigate()
     const [sorting, setSorting] = React.useState<SortingState>([])
     const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
@@ -366,6 +367,10 @@ const FoodsTable: React.FC<FoodsTableProps> = ({setSelectedRowId, pagination, se
             setPagination((prev) => ({...prev, pageIndex: Math.max(0, totalPages - 1)}))
         }
     }, [totalPages, pagination.pageIndex, setPagination])
+
+    useEffect(() => {
+        setFilteredCount(table.getFilteredRowModel().rows.length)
+    }, [table, columnFilters, setFilteredCount])
 
     const handleClick = (row: Row<IFood>) => {
         row.toggleSelected()

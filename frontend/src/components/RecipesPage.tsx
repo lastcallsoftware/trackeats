@@ -14,6 +14,7 @@ import TitleCard from './TitleCard';
 function RecipesPage() {
     const navigate = useNavigate();
     const [selectedRowId, setSelectedRowId] = useState<number|null>(null)
+    const [filteredCount, setFilteredCount] = useState<number>(0)
     const { recipes, deleteRecipe } = useData();
 
     // Read page from URL as 1-based, convert to 0-based for state
@@ -105,9 +106,14 @@ function RecipesPage() {
                                     boxShadow: '0 2px 12px 0 rgba(0,0,0,0.07)',
                                 }}
                             >
-                                <RecipesTable setSelectedRowId={setSelectedRowId} pagination={pagination} />
+                                <RecipesTable
+                                    setSelectedRowId={setSelectedRowId}
+                                    pagination={pagination}
+                                    setPagination={setPagination}
+                                    setFilteredCount={setFilteredCount}
+                                />
                             </Box>
-                            <Pagination pagination={pagination} setPagination={setPagination} totalCount={recipes.length} />
+                            <Pagination pagination={pagination} setPagination={setPagination} totalCount={filteredCount} />
                         </>
                     )}
 

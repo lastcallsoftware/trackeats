@@ -280,10 +280,12 @@ const columns = [
 interface IRecipesTableProps {
     setSelectedRowId: React.Dispatch<React.SetStateAction<number | null>>,
     pagination: { pageIndex: number, pageSize: number };
+    setPagination: React.Dispatch<React.SetStateAction<{ pageIndex: number, pageSize: number }>>,
+    setFilteredCount: React.Dispatch<React.SetStateAction<number>>,
 }
 
 // Declare the Recipes table itself
-const RecipesTable: React.FC<IRecipesTableProps> = ({setSelectedRowId, pagination}) => {
+const RecipesTable: React.FC<IRecipesTableProps> = ({setSelectedRowId, pagination, setPagination, setFilteredCount}) => {
     const navigate = useNavigate()
     const [sorting, setSorting] = React.useState<SortingState>([])
     const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
@@ -370,6 +372,17 @@ const RecipesTable: React.FC<IRecipesTableProps> = ({setSelectedRowId, paginatio
         table.setPageIndex(pagination.pageIndex);
         table.setPageSize(pagination.pageSize);
     }, [pagination.pageIndex, pagination.pageSize, table]);
+
+    const totalPages = table.getPageCount()
+    useEffect(() => {
+        if (pagination.pageIndex >= totalPages) {
+            setPagination((prev) => ({ ...prev, pageIndex: Math.max(0, totalPages - 1) }))
+        }
+    }, [totalPages, pagination.pageIndex, setPagination])
+
+    useEffect(() => {
+        setFilteredCount(table.getFilteredRowModel().rows.length)
+    }, [table, columnFilters, setFilteredCount])
 
     const handleClick = (row: Row<IRecipe>) => {
         row.toggleSelected()

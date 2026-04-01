@@ -14,6 +14,7 @@ import TitleCard from './TitleCard';
 const FoodsPage = () => {
     const navigate = useNavigate();
     const [selectedRowId, setSelectedRowId] = useState<number|null>(null)
+    const [filteredCount, setFilteredCount] = useState<number>(0)
     const { foods, deleteFood, isLoading } = useData();
 
     // Read page from URL as 1-based, convert to 0-based for state
@@ -107,9 +108,14 @@ const FoodsPage = () => {
                                     boxShadow: '0 2px 12px 0 rgba(0,0,0,0.07)',
                                 }}
                             >
-                                <FoodsTable setSelectedRowId={setSelectedRowId} pagination={pagination} setPagination={setPagination} />
+                                <FoodsTable
+                                    setSelectedRowId={setSelectedRowId}
+                                    pagination={pagination}
+                                    setPagination={setPagination}
+                                    setFilteredCount={setFilteredCount}
+                                />
                             </Box>
-                            <Pagination pagination={pagination} setPagination={setPagination} totalCount={foods.length} />
+                            <Pagination pagination={pagination} setPagination={setPagination} totalCount={filteredCount} />
                         </>
                     )}
 
