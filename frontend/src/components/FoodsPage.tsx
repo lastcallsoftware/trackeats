@@ -8,7 +8,7 @@ import Stack from '@mui/material/Stack';
 import { useData } from "@/utils/useData";
 import FoodsTable from "./FoodsTable";
 import NutritionLabel from "./NutritionLabel";
-import Pagination from "./Pagination";
+import MuiPagination from "@mui/material/Pagination";
 import TitleCard from './TitleCard';
 
 const FoodsPage = () => {
@@ -115,7 +115,16 @@ const FoodsPage = () => {
                                     setFilteredCount={setFilteredCount}
                                 />
                             </Box>
-                            <Pagination pagination={pagination} setPagination={setPagination} totalCount={filteredCount} />
+                            {Math.ceil(filteredCount / pageSize) > 1 && (
+                                <Box sx={{ display: "flex", justifyContent: "center", mt: 1 }}>
+                                    <MuiPagination
+                                        count={Math.ceil(filteredCount / pageSize)}
+                                        page={currentPage}
+                                        onChange={(_, p) => setPagination({ pageIndex: p - 1, pageSize })}
+                                        size="small"
+                                    />
+                                </Box>
+                            )}
                         </>
                     )}
 

@@ -75,7 +75,7 @@ const FoodPickerTable: React.FC<FoodPickerTableProps> = ({setSelectedRowId, sele
         background: (theme: Theme) => theme.palette.table.headerBg,
         borderBottom: (theme: Theme) => `1px solid ${theme.palette.table.headerBorder}`,
         borderRight: (theme: Theme) => `1px solid ${theme.palette.table.headerBorder}`,
-        p: "4px 8px",
+        p: "5px 8px",
         cursor: "pointer",
         userSelect: "none",
     };
@@ -86,7 +86,7 @@ const FoodPickerTable: React.FC<FoodPickerTableProps> = ({setSelectedRowId, sele
         fontSize: 13,
         borderRight: (theme: Theme) => `1px solid ${theme.palette.table.rowBorder}`,
         borderBottom: (theme: Theme) => `1px solid ${theme.palette.table.rowBorder}`,
-        p: "3px 8px",
+        p: "4px 8px",
         whiteSpace: "nowrap",
         overflow: "hidden",
         textOverflow: "ellipsis",
@@ -112,8 +112,8 @@ const FoodPickerTable: React.FC<FoodPickerTableProps> = ({setSelectedRowId, sele
                     </button>
                 ) : null}
             </Box>
-            <TableContainer component={Paper} sx={{ borderRadius: 1, boxShadow: 1 }}>
-                <Table size="small" sx={{ tableLayout: "fixed", borderCollapse: "separate", borderSpacing: 0 }}>
+            <TableContainer component={Paper} sx={{ borderRadius: 1, boxShadow: 1, overflowX: 'auto' }}>
+                <Table size="small" sx={{ minWidth: 520, tableLayout: "fixed", borderCollapse: "separate", borderSpacing: 0 }}>
                     <colgroup>
                         <col style={{ width: 110 }} />
                         <col style={{ width: 140 }} />

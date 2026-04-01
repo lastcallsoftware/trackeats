@@ -81,12 +81,12 @@ const IngredientsTable: React.FC<IngredientsTableProps> = ({ data, setSelectedRo
                                     sx={theme => ({
                                         userSelect: "none",
                                         fontWeight: "bold",
-                                        fontSize: 14,
+                                        fontSize: 13,
                                         color: theme.palette.table.headerColor,
                                         background: theme.palette.table.headerBg,
                                         borderBottom: `1px solid ${theme.palette.table.headerBorder}`,
                                         borderRight: `1px solid ${theme.palette.table.headerBorder}`,
-                                        p: 1,
+                                        p: '5px 8px',
                                     })}
                                 >
                                     {header.isPlaceholder ? null : (
@@ -117,9 +117,11 @@ const IngredientsTable: React.FC<IngredientsTableProps> = ({ data, setSelectedRo
                                         sx={theme => ({
                                             borderRight: `1px solid ${theme.palette.table.rowBorder}`,
                                             borderBottom: `1px solid ${theme.palette.table.rowBorder}`,
-                                            fontSize: 14,
-                                            padding: '2px',
-                                            height: '2rem',
+                                            fontSize: 13,
+                                            p: '4px 8px',
+                                            whiteSpace: 'nowrap',
+                                            overflow: 'hidden',
+                                            textOverflow: 'ellipsis',
                                         })}
                                     >
                                         {flexRender(cell.column.columnDef.cell, cell.getContext())}

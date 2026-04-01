@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react"
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { useTheme } from '@mui/material/styles';
+import useMediaQuery from '@mui/material/useMediaQuery';
 import { IFood, IRecipe, IIngredient, INutrition } from "../contexts/DataProvider";
 import { useData, Recipe } from "@/utils/useData";
 import { cuisines } from "./Cuisines";
@@ -20,10 +22,40 @@ import {
     Tooltip,
     Box,
     Paper,
+    IconButton,
+    InputAdornment,
 } from '@mui/material';
+import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
+import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
+
+const cloneRecipe = (source: IRecipe): IRecipe => ({
+    ...source,
+    nutrition: { ...source.nutrition },
+});
+
+const emptyNutritionTotals = (): Omit<INutrition, 'serving_size_description' | 'serving_size_oz' | 'serving_size_g'> => ({
+    calories: 0,
+    total_fat_g: 0,
+    saturated_fat_g: 0,
+    trans_fat_g: 0,
+    cholesterol_mg: 0,
+    sodium_mg: 0,
+    total_carbs_g: 0,
+    fiber_g: 0,
+    total_sugar_g: 0,
+    added_sugar_g: 0,
+    protein_g: 0,
+    vitamin_d_mcg: 0,
+    calcium_mg: 0,
+    iron_mg: 0,
+    potassium_mg: 0,
+});
 
 function RecipeForm() {
     const navigate = useNavigate()
+    const theme = useTheme();
+    const isNarrow = useMediaQuery(theme.breakpoints.down('sm'));
+    const actionTooltipPlacement: 'top' | 'right' = isNarrow ? 'top' : 'right';
     const [searchParams] = useSearchParams();
     const { foods, recipes, addRecipe, updateRecipe, setErrorMessage } = useData();
 
@@ -31,7 +63,7 @@ function RecipeForm() {
     const isEditMode = Boolean(id)
     const recipe = isEditMode ? recipes.find(f => f.id === Number(id)) : null;
     const [formData, setFormData] = useState<IRecipe>(() => {
-        return recipe || new Recipe();
+        return recipe ? cloneRecipe(recipe) : new Recipe();
     });
 
     const [selectedIngredientRowId, setSelectedIngredientRowId] = useState<number[] | null>(null)
@@ -68,6 +100,15 @@ function RecipeForm() {
 
     const handleIngredientRowSelect = (id: number[] | null) => {
         setSelectedIngredientRowId(id);
+        if (id) {
+            const selectedIngredient = ingredients.find(item =>
+                (item.food_ingredient_id ?? 0) === id[0]
+                && (item.recipe_ingredient_id ?? 0) === id[1]
+            );
+            if (selectedIngredient) {
+                setIngredientServings(selectedIngredient.servings);
+            }
+        }
         if (id !== null) setSelectedFoodOrRecipeRowId(null);
     };
 
@@ -80,71 +121,134 @@ function RecipeForm() {
         return generateIngredientSummary(nutrition, food, recipe, ingredientServings);
     }
 
-    const findIngredient = (rowId: number[]) =>
-        ingredients.find(item =>
-            (item.food_ingredient_id ?? 0) === rowId[0]
-            && (item.recipe_ingredient_id ?? 0) === rowId[1]
-        );
+    const isSameIngredientRow = (item: IIngredient, rowId: number[]) =>
+        (item.food_ingredient_id ?? 0) === rowId[0]
+        && (item.recipe_ingredient_id ?? 0) === rowId[1];
 
-    const updateNutrition = (nutritionA: INutrition, nutritionB: INutrition, servings: number, modifier: number): void => {
-        nutritionA.calories         += nutritionB.calories * servings * modifier;
-        nutritionA.total_fat_g      += nutritionB.total_fat_g * servings * modifier;
-        nutritionA.saturated_fat_g  += nutritionB.saturated_fat_g * servings * modifier;
-        nutritionA.trans_fat_g      += nutritionB.trans_fat_g * servings * modifier;
-        nutritionA.cholesterol_mg   += nutritionB.cholesterol_mg * servings * modifier;
-        nutritionA.sodium_mg        += nutritionB.sodium_mg * servings * modifier;
-        nutritionA.total_carbs_g    += nutritionB.total_carbs_g * servings * modifier;
-        nutritionA.fiber_g          += nutritionB.fiber_g * servings * modifier;
-        nutritionA.total_sugar_g    += nutritionB.total_sugar_g * servings * modifier;
-        nutritionA.added_sugar_g    += nutritionB.added_sugar_g * servings * modifier;
-        nutritionA.protein_g        += nutritionB.protein_g * servings * modifier;
-        nutritionA.vitamin_d_mcg    += nutritionB.vitamin_d_mcg * servings * modifier;
-        nutritionA.calcium_mg       += nutritionB.calcium_mg * servings * modifier;
-        nutritionA.iron_mg          += nutritionB.iron_mg * servings * modifier;
-        nutritionA.potassium_mg     += nutritionB.potassium_mg * servings * modifier;
-    }
+    const findIngredient = (rowId: number[]) =>
+        ingredients.find(item => isSameIngredientRow(item, rowId));
+
+    const resolveIngredientSource = (ingredient: IIngredient): {
+        nutrition: INutrition;
+        modifier: number;
+        ingredientServingPrice: number;
+        food?: IFood;
+        recipe?: IRecipe;
+    } | null => {
+        if (ingredient.food_ingredient_id) {
+            const food = foods.find((item: IFood) => item.id === ingredient.food_ingredient_id);
+            if (!food) {
+                setErrorMessage("Food " + ingredient.food_ingredient_id + " for Ingredient not found");
+                return null;
+            }
+            return {
+                nutrition: food.nutrition,
+                modifier: 1,
+                ingredientServingPrice: food.price / food.servings,
+                food,
+            };
+        }
+
+        if (ingredient.recipe_ingredient_id) {
+            const recipeForIngredient = recipes.find((item: IRecipe) => item.id === ingredient.recipe_ingredient_id);
+            if (!recipeForIngredient) {
+                setErrorMessage("Recipe " + ingredient.recipe_ingredient_id + " for Ingredient not found");
+                return null;
+            }
+            return {
+                nutrition: recipeForIngredient.nutrition,
+                modifier: 1 / recipeForIngredient.servings,
+                ingredientServingPrice: recipeForIngredient.price / recipeForIngredient.servings,
+                recipe: recipeForIngredient,
+            };
+        }
+
+        setErrorMessage("Ingredient has neither a food_ingredient_id nor a recipe_ingredient_id");
+        return null;
+    };
+
+    const recalculateRecipeTotals = (nextIngredients: IIngredient[]) => {
+        const totals = emptyNutritionTotals();
+        let priceTotal = 0;
+
+        for (const ingredient of nextIngredients) {
+            const source = resolveIngredientSource(ingredient);
+            if (!source) continue;
+
+            const { nutrition, modifier, ingredientServingPrice } = source;
+            const servings = ingredient.servings;
+
+            totals.calories += nutrition.calories * servings * modifier;
+            totals.total_fat_g += nutrition.total_fat_g * servings * modifier;
+            totals.saturated_fat_g += nutrition.saturated_fat_g * servings * modifier;
+            totals.trans_fat_g += nutrition.trans_fat_g * servings * modifier;
+            totals.cholesterol_mg += nutrition.cholesterol_mg * servings * modifier;
+            totals.sodium_mg += nutrition.sodium_mg * servings * modifier;
+            totals.total_carbs_g += nutrition.total_carbs_g * servings * modifier;
+            totals.fiber_g += nutrition.fiber_g * servings * modifier;
+            totals.total_sugar_g += nutrition.total_sugar_g * servings * modifier;
+            totals.added_sugar_g += nutrition.added_sugar_g * servings * modifier;
+            totals.protein_g += nutrition.protein_g * servings * modifier;
+            totals.vitamin_d_mcg += nutrition.vitamin_d_mcg * servings * modifier;
+            totals.calcium_mg += nutrition.calcium_mg * servings * modifier;
+            totals.iron_mg += nutrition.iron_mg * servings * modifier;
+            totals.potassium_mg += nutrition.potassium_mg * servings * modifier;
+
+            priceTotal += ingredientServingPrice * servings;
+        }
+
+        setFormData(prev => ({
+            ...prev,
+            price: priceTotal,
+            nutrition: {
+                ...prev.nutrition,
+                ...totals,
+            },
+        }));
+    };
 
     const addIngredient = (e: { preventDefault: () => void; }) => {
         e.preventDefault();
-        if (!selectedFoodOrRecipeRowId) return
-
-        let nutrition: INutrition;
-        let modifier: number = 1;
-        let ingredient_serving_price = 0;
+        if (selectedFoodOrRecipeRowId === null) return
 
         if (selectedIngredientList === IngredientTypes.FOOD_INGREDIENTS) {
             const food: IFood|undefined = foods.find((item: IFood) => item.id == selectedFoodOrRecipeRowId);
             if (!food) { setErrorMessage("Food " + selectedFoodOrRecipeRowId + " not found"); return }
-            nutrition = food.nutrition
             const summary = generateSummary(food.nutrition, food, undefined)
-            ingredient_serving_price = food.price/food.servings
-            ingredients.push({food_ingredient_id: food.id, ordinal: ingredients.length, servings: ingredientServings, summary: summary});
+            const nextIngredients = [
+                ...ingredients,
+                { food_ingredient_id: food.id, ordinal: ingredients.length, servings: ingredientServings, summary },
+            ];
+            setIngredients(nextIngredients);
+            recalculateRecipeTotals(nextIngredients);
         } else {
             const recipe: IRecipe|undefined = recipes.find((item: IRecipe) => item.id == selectedFoodOrRecipeRowId);
             if (!recipe) { setErrorMessage("Recipe " + selectedFoodOrRecipeRowId + " for Ingredient not found"); return }
-            nutrition = recipe.nutrition
             const summary = generateSummary(recipe.nutrition, undefined, recipe)
-            modifier = 1/recipe.servings
-            ingredient_serving_price = recipe.price/recipe.servings
-            ingredients.push({recipe_ingredient_id: recipe.id, ordinal: ingredients.length, servings: ingredientServings, summary: summary});
+            const nextIngredients = [
+                ...ingredients,
+                { recipe_ingredient_id: recipe.id, ordinal: ingredients.length, servings: ingredientServings, summary },
+            ];
+            setIngredients(nextIngredients);
+            recalculateRecipeTotals(nextIngredients);
         }
 
-        updateNutrition(formData.nutrition, nutrition, ingredientServings, modifier)
-        setFormData(prev => ({ ...prev, price: prev.price + ingredient_serving_price * ingredientServings }));
-        setIngredients([...ingredients]);
+        setSelectedFoodOrRecipeRowId(null);
     }
 
     const updateIngredient = (e: { preventDefault: () => void; }) => {
         e.preventDefault();
         if (!selectedIngredientRowId) return
+        if (ingredientServings === 0) {
+            removeIngredient(e)
+            return
+        }
 
         let summary: string|undefined = undefined
         let food: IFood|undefined = undefined
         let recipe: IRecipe|undefined = undefined
+        // eslint-disable-next-line no-useless-assignment
         let nutrition: INutrition|undefined = undefined;
-        let modifier: number = 1;
-        let ingredient_serving_price = 0;
-
         const ingredient: IIngredient|undefined = findIngredient(selectedIngredientRowId)
         if (!ingredient) { setErrorMessage("Ingredient not found"); return }
 
@@ -152,54 +256,39 @@ function RecipeForm() {
             food = foods.find((item: IFood) => item.id == ingredient.food_ingredient_id);
             if (!food) { setErrorMessage("Food " + ingredient.food_ingredient_id + " for Ingredient not found"); return }
             nutrition = food.nutrition
-            ingredient_serving_price = food.price/food.servings
         } else if (ingredient.recipe_ingredient_id) {
             recipe = recipes.find((item: IRecipe) => item.id === ingredient.recipe_ingredient_id);
             if (!recipe) { setErrorMessage("Recipe " + ingredient.recipe_ingredient_id + " for Ingredient not found"); return }
             nutrition = recipe.nutrition
-            modifier = 1/recipe.servings
-            ingredient_serving_price = recipe.price/recipe.servings
+        } else {
+            setErrorMessage("Invalid ingredient");
+            return;
         }
+
         if (!nutrition) { setErrorMessage("Nutrition record for Ingredient not found"); return }
 
         summary = generateSummary(nutrition, food, recipe)
-        updateNutrition(formData.nutrition, nutrition, ingredientServings - ingredient.servings, modifier)
-        setFormData(prev => ({ ...prev, price: prev.price + ingredient_serving_price * (ingredientServings - ingredient.servings) }));
-        setIngredients((prevItems) =>
-            prevItems.map((item) =>
-                item.food_ingredient_id === selectedIngredientRowId[0] && item.recipe_ingredient_id === selectedIngredientRowId[1] ?
-                    {...item, summary: summary, servings: ingredientServings} : item))
+        const nextIngredients = ingredients.map((item) =>
+            isSameIngredientRow(item, selectedIngredientRowId)
+                ? { ...item, summary, servings: ingredientServings }
+                : item
+        )
+        setIngredients(nextIngredients)
+        recalculateRecipeTotals(nextIngredients)
     }
 
     const removeIngredient = (e: { preventDefault: () => void; }) => {
         e.preventDefault();
         if (!selectedIngredientRowId) return
 
-        let modifier: number = -1;
         const ingredient: IIngredient|undefined = findIngredient(selectedIngredientRowId)
         if (!ingredient) { setErrorMessage("Unable to find Ingredient " + selectedIngredientRowId[0] + "/" + selectedIngredientRowId[1]); return }
 
-        let nutrition: INutrition;
-        if (ingredient.food_ingredient_id) {
-            const food: IFood|undefined = foods.find((item: IFood) => item.id === ingredient.food_ingredient_id);
-            if (!food) { setErrorMessage("Food " + ingredient.food_ingredient_id + " not found."); return }
-            nutrition = food.nutrition
-            setFormData(prev => ({ ...prev, price: prev.price - food.price * ingredient.servings / food.servings }));
-        } else if (ingredient.recipe_ingredient_id) {
-            const recipe: IRecipe|undefined = recipes.find((item: IRecipe) => item.id === ingredient.recipe_ingredient_id);
-            if (!recipe) { setErrorMessage("Recipe " + ingredient.recipe_ingredient_id + " not found."); return }
-            nutrition = recipe.nutrition
-            modifier = -1/recipe.servings
-            setFormData(prev => ({ ...prev, price: prev.price - recipe.price * ingredient.servings / recipe.servings }));
-        } else {
-            setErrorMessage("Ingredient has neither a food_ingredient_id nor a recipe_ingredient_id"); return
-        }
-
-        updateNutrition(formData.nutrition, nutrition, ingredient.servings, modifier)
-        ingredients.forEach(item => { if (item.ordinal > ingredient.ordinal) item.ordinal = item.ordinal - 1 })
-        ingredients.splice(ingredients.indexOf(ingredient), 1);
-        setIngredients([...ingredients]);
-        setFormData({...formData});
+        const filtered = ingredients.filter(item => !isSameIngredientRow(item, selectedIngredientRowId))
+        const nextIngredients = filtered.map((item, index) => ({ ...item, ordinal: index }))
+        setIngredients(nextIngredients)
+        recalculateRecipeTotals(nextIngredients)
+        setSelectedIngredientRowId(null)
     }
 
     const moveIngredientUp = (e: { preventDefault: () => void; }) => {
@@ -250,11 +339,33 @@ function RecipeForm() {
         const getIngredients = async () => {
             if (formData.id) {
                 const response = await axios.get("/api/recipe/" + formData.id + "/ingredient", {headers: { "Authorization": "Bearer " + access_token}})
-                setIngredients(response.data);
+                const ingredientsWithSummary: IIngredient[] = response.data.map((ingredient: IIngredient) => {
+                    let food: IFood | undefined;
+                    let recipe: IRecipe | undefined;
+                    let nutrition: INutrition | undefined;
+
+                    if (ingredient.food_ingredient_id) {
+                        food = foods.find((item: IFood) => item.id === ingredient.food_ingredient_id);
+                        nutrition = food?.nutrition;
+                    } else if (ingredient.recipe_ingredient_id) {
+                        recipe = recipes.find((item: IRecipe) => item.id === ingredient.recipe_ingredient_id);
+                        nutrition = recipe?.nutrition;
+                    }
+
+                    if (!nutrition) {
+                        return ingredient;
+                    }
+
+                    return {
+                        ...ingredient,
+                        summary: generateIngredientSummary(nutrition, food, recipe, ingredient.servings),
+                    };
+                });
+                setIngredients(ingredientsWithSummary);
             }
         }
         getIngredients();
-    }, [formData.id]);
+    }, [formData.id, foods, recipes]);
 
     const calc = (value: number, precision: number = 0) => {
         if (formData.servings > 0) {
@@ -280,7 +391,16 @@ function RecipeForm() {
 
     const noIngredientSelected = selectedIngredientRowId == null;
     const noFoodOrRecipeSelected = selectedFoodOrRecipeRowId == null;
-    const noServings = ingredientServings === 0;
+    const noServingsForAdd = ingredientServings <= 0;
+    const invalidServingsForUpdate = ingredientServings < 0;
+
+    const incrementIngredientServings = () => {
+        setIngredientServings(prev => prev + 1);
+    };
+
+    const decrementIngredientServings = () => {
+        setIngredientServings(prev => Math.max(0, prev - 1));
+    };
 
     return (
         <Box
@@ -409,7 +529,8 @@ function RecipeForm() {
                         </Grid>
 
                         {/* Fats row */}
-                        <Grid size={{ xs: 12 }}><Divider /></Grid>
+                        {/* <Grid size={{ xs: 12 }}><Divider /></Grid> */}
+                        <Grid size={{ xs: 12 }}/>
                         <Grid size={{ xs: 6, sm: 2 }}>
                             <TextField label="Total Fat (g)" id="total_fat_g" value={calc(formData.nutrition.total_fat_g, 1)} {...ro} />
                         </Grid>
@@ -427,7 +548,8 @@ function RecipeForm() {
                         </Grid>
 
                         {/* Carbs row */}
-                        <Grid size={{ xs: 12 }}><Divider /></Grid>
+                        {/* <Grid size={{ xs: 12 }}><Divider /></Grid> */}
+                        <Grid size={{ xs: 12 }}/>
                         <Grid size={{ xs: 6, sm: 2 }}>
                             <TextField label="Total Carbs (g)" id="total_carbs_g" value={calc(formData.nutrition.total_carbs_g)} {...ro} />
                         </Grid>
@@ -445,7 +567,8 @@ function RecipeForm() {
                         </Grid>
 
                         {/* Vitamins/minerals row */}
-                        <Grid size={{ xs: 12 }}><Divider /></Grid>
+                        {/* <Grid size={{ xs: 12 }}><Divider /></Grid> */}
+                        <Grid size={{ xs: 12 }}/>
                         <Grid size={{ xs: 6, sm: 2 }}>
                             <TextField label="Vitamin D (mcg)" id="vitamin_d_mcg" value={calc(formData.nutrition.vitamin_d_mcg)} {...ro} />
                         </Grid>
@@ -462,12 +585,21 @@ function RecipeForm() {
 
                     {/* ── Ingredient Shuttle ── */}
                     <Divider sx={{ mb: 2 }} />
-                    <Box sx={{ display: 'flex', gap: 2, alignItems: 'flex-start' }}>
+                    <Box
+                        sx={{
+                            display: 'flex',
+                            gap: 2,
+                            alignItems: { xs: 'stretch', md: 'flex-start' },
+                            flexDirection: { xs: 'column', md: 'row' },
+                        }}
+                    >
 
                         {/* Left: Ingredients list (the recipe) */}
-                        <Box sx={{ flex: 1, minWidth: 0 }}>
-                            <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>Selected Ingredients</Typography>
-                            <Box sx={{ maxHeight: 400, minHeight: 400, overflowY: 'auto', border: '1px solid', borderColor: 'divider', borderRadius: 1 }}>
+                        <Box sx={{ flex: 1, minWidth: 0, width: { xs: '100%', md: 'auto' } }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', minHeight: 40, mb: 1 }}>
+                                <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>Selected Ingredients</Typography>
+                            </Box>
+                            <Box sx={{ mt:5, height: 330, overflowY: 'auto', border: '1px solid', borderColor: 'divider', borderRadius: 2 }}>
                                 <IngredientsTable
                                     data={[...ingredients].sort((a,b) => a.ordinal - b.ordinal)}
                                     setSelectedRowId={handleIngredientRowSelect}
@@ -476,30 +608,76 @@ function RecipeForm() {
                         </Box>
 
                         {/* Center: Action buttons */}
-                        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1, pt: 4, minWidth: 130 }}>
+                        <Box
+                            sx={{
+                                display: 'flex',
+                                flexDirection: 'column',
+                                alignItems: 'center',
+                                gap: 1,
+                                pt: { xs: 1, md: 4 },
+                                minWidth: { xs: '100%', md: 120 },
+                                width: { xs: '100%', md: 'clamp(120px, 14vw, 210px)' },
+                            }}
+                        >
                             {/* Servings input */}
-                            <Tooltip title="Number of servings of the selected Food or Recipe to add" placement="right" arrow>
+                            <Tooltip title="Number of servings of the selected Food or Recipe to add" placement={actionTooltipPlacement} arrow>
                                 <TextField
                                     label="Servings"
                                     id="ingredientServingsInput"
                                     type="number"
                                     value={ingredientServings}
                                     onChange={(e) => setIngredientServings(Number(e.target.value))}
-                                    inputProps={{ min: 0 }}
+                                    inputProps={{ min: 0, step: 'any' }}
                                     size="small"
                                     sx={{ width: '100%', mb: 1 }}
+                                    slotProps={{
+                                        input: {
+                                            endAdornment: (
+                                                <InputAdornment position="end">
+                                                    <Stack spacing={0} sx={{ ml: 0.25 }}>
+                                                        <IconButton
+                                                            size="small"
+                                                            aria-label="Increase servings"
+                                                            onClick={incrementIngredientServings}
+                                                            sx={{ p: 0.25 }}
+                                                        >
+                                                            <KeyboardArrowUpIcon fontSize="small" />
+                                                        </IconButton>
+                                                        <IconButton
+                                                            size="small"
+                                                            aria-label="Decrease servings"
+                                                            onClick={decrementIngredientServings}
+                                                            sx={{ p: 0.25 }}
+                                                        >
+                                                            <KeyboardArrowDownIcon fontSize="small" />
+                                                        </IconButton>
+                                                    </Stack>
+                                                </InputAdornment>
+                                            ),
+                                        },
+                                    }}
                                 />
                             </Tooltip>
 
                             <Divider flexItem sx={{ width: '100%', my: 0.5 }} />
 
+                            <Box
+                                sx={{
+                                    display: 'flex',
+                                    flexDirection: { xs: 'row', md: 'column' },
+                                    gap: 1,
+                                    width: '100%',
+                                    flexWrap: { xs: 'wrap', md: 'nowrap' },
+                                }}
+                            >
+
                             {/* Add */}
-                            <Tooltip title="Add the selected Food or Recipe to the ingredient list" placement="right" arrow>
-                                <span style={{ width: '100%' }}>
+                            <Tooltip title="Add the selected Food or Recipe to the ingredient list" placement={actionTooltipPlacement} arrow>
+                                <span style={{ width: '100%', flex: 1 }}>
                                     <Button
                                         variant="contained"
                                         fullWidth
-                                        disabled={noFoodOrRecipeSelected || noServings}
+                                        disabled={noFoodOrRecipeSelected || noServingsForAdd}
                                         onClick={addIngredient}
                                         sx={{ bgcolor: 'success.main', '&:hover': { bgcolor: 'success.dark' }, '&.Mui-disabled': { bgcolor: 'action.disabledBackground' } }}
                                     >
@@ -509,12 +687,12 @@ function RecipeForm() {
                             </Tooltip>
 
                             {/* Update */}
-                            <Tooltip title="Update the servings for the selected ingredient" placement="right" arrow>
-                                <span style={{ width: '100%' }}>
+                            <Tooltip title="Update the servings for the selected ingredient" placement={actionTooltipPlacement} arrow>
+                                <span style={{ width: '100%', flex: 1 }}>
                                     <Button
                                         variant="contained"
                                         fullWidth
-                                        disabled={noIngredientSelected || noServings}
+                                        disabled={noIngredientSelected || invalidServingsForUpdate}
                                         onClick={updateIngredient}
                                         sx={{ bgcolor: 'warning.main', '&:hover': { bgcolor: 'warning.dark' }, '&.Mui-disabled': { bgcolor: 'action.disabledBackground' }, color: 'warning.contrastText' }}
                                     >
@@ -524,8 +702,8 @@ function RecipeForm() {
                             </Tooltip>
 
                             {/* Remove */}
-                            <Tooltip title="Remove the selected ingredient from the recipe" placement="right" arrow>
-                                <span style={{ width: '100%' }}>
+                            <Tooltip title="Remove the selected ingredient from the recipe" placement={actionTooltipPlacement} arrow>
+                                <span style={{ width: '100%', flex: 1 }}>
                                     <Button
                                         variant="contained"
                                         fullWidth
@@ -541,8 +719,8 @@ function RecipeForm() {
                             <Divider flexItem sx={{ width: '100%', my: 0.5 }} />
 
                             {/* Move Up */}
-                            <Tooltip title="Move the selected ingredient up in the list" placement="right" arrow>
-                                <span style={{ width: '100%' }}>
+                            <Tooltip title="Move the selected ingredient up in the list" placement={actionTooltipPlacement} arrow>
+                                <span style={{ width: '100%', flex: 1 }}>
                                     <Button
                                         variant="outlined"
                                         fullWidth
@@ -556,8 +734,8 @@ function RecipeForm() {
                             </Tooltip>
 
                             {/* Move Down */}
-                            <Tooltip title="Move the selected ingredient down in the list" placement="right" arrow>
-                                <span style={{ width: '100%' }}>
+                            <Tooltip title="Move the selected ingredient down in the list" placement={actionTooltipPlacement} arrow>
+                                <span style={{ width: '100%', flex: 1 }}>
                                     <Button
                                         variant="outlined"
                                         fullWidth
@@ -569,13 +747,14 @@ function RecipeForm() {
                                     </Button>
                                 </span>
                             </Tooltip>
+                            </Box>
                         </Box>
 
                         {/* Right: Foods or Recipes to pick from */}
-                        <Box sx={{ flex: 1, minWidth: 0 }}>
+                        <Box sx={{ flex: 1, minWidth: 0, width: { xs: '100%', md: 'auto' } }}>
                             <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
                                 <Typography variant="subtitle2" sx={{ fontWeight: 600, flex: 1 }}>
-                                    {selectedIngredientList === IngredientTypes.FOOD_INGREDIENTS ? 'Available Ingredients (Foods)' : 'Available Ingredients (Other Recipes)'}
+                                    {selectedIngredientList === IngredientTypes.FOOD_INGREDIENTS ? 'Available Ingredients' : 'Available Ingredients'}
                                 </Typography>
                                 <Box sx={{ display: 'flex', alignItems: 'center', ml: 1 }}>
                                         <Typography variant="caption">Foods</Typography>

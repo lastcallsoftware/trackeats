@@ -1,5 +1,10 @@
 import { IFood, IRecipe, INutrition } from "../contexts/DataProvider";
 
+const formatAmount = (value: number, maxDecimals: number = 1): string => {
+    const rounded = Number(value.toFixed(maxDecimals));
+    return Number.isInteger(rounded) ? String(rounded) : String(rounded);
+};
+
 /**
  * Generate a summary string for an ingredient, given its nutrition and source (food or recipe).
  * @param nutrition Nutrition info for the ingredient
@@ -14,26 +19,26 @@ export function generateIngredientSummary(
     servings: number = 1
 ): string | undefined {
     if (food) {
-        let summary = servings + " x (" + nutrition?.serving_size_description + ") ";
+        let summary = formatAmount(servings, 4) + " x (" + nutrition?.serving_size_description + ") ";
         summary += food.name;
         if (food.subtype) {
             summary += ", " + food.subtype;
         }
         summary +=
             " (" +
-            (nutrition.serving_size_oz * servings).toFixed(1) +
+            formatAmount(nutrition.serving_size_oz * servings) +
             " oz/" +
-            (nutrition.serving_size_g * servings).toFixed(1) +
+            formatAmount(nutrition.serving_size_g * servings) +
             " g)";
         return summary;
     } else if (recipe) {
-        let summary = servings + " x (" + nutrition.serving_size_description + ") ";
+        let summary = formatAmount(servings, 4) + " x (" + nutrition.serving_size_description + ") ";
         summary += recipe.name + " ";
         summary +=
             "(" +
-            (nutrition.serving_size_oz * servings).toFixed(1) +
+            formatAmount(nutrition.serving_size_oz * servings) +
             " oz/" +
-            (nutrition.serving_size_g * servings).toFixed(1) +
+            formatAmount(nutrition.serving_size_g * servings) +
             " g)";
         return summary;
     } else {
