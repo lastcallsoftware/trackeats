@@ -12,7 +12,7 @@ import {
     TableOptions, 
     useReactTable
 } from '@tanstack/react-table';
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { IRecipe } from "../contexts/DataProvider";
 import { useData } from "@/utils/useData";
 import { getCuisineLabel } from './Cuisines';
@@ -245,9 +245,6 @@ const columns = [
     }),
 ]
 
-const RECIPES_FILTERS_STORAGE = "recipes_filters_storage"
-const RECIPES_VISIBILITY_STORAGE = "recipes_visibility_storage"
-
 interface IRecipesTableProps {
     setSelectedRowId: React.Dispatch<React.SetStateAction<number | null>>,
     pagination: { pageIndex: number, pageSize: number };
@@ -258,11 +255,35 @@ const RecipesTable: React.FC<IRecipesTableProps> = ({setSelectedRowId, paginatio
     const navigate = useNavigate()
     const [sorting, setSorting] = React.useState<SortingState>([])
     const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
-    const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>(() => {
-        const saved = sessionStorage.getItem(RECIPES_VISIBILITY_STORAGE);
-        return saved ? JSON.parse(saved) : {};
-    });
-    const { recipes } = useData();
+    const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({})
+    const [preferencesReady, setPreferencesReady] = React.useState(false)
+    const preferencesLoadedRef = useRef(false)
+    const { recipes, preferences, getPreferences, updatePreferences } = useData();
+
+    useEffect(() => {
+        void getPreferences("recipes.columns")
+    }, [getPreferences])
+
+    useEffect(() => {
+        const tablePreferences = preferences["recipes.columns"]
+
+        if (!tablePreferences || preferencesLoadedRef.current) {
+            return
+        }
+
+        preferencesLoadedRef.current = true
+        setPreferencesReady(true)
+
+        if (tablePreferences.columnVisibility) {
+            setColumnVisibility(tablePreferences.columnVisibility as VisibilityState)
+        }
+
+        if (tablePreferences.columnFilters) {
+            void updatePreferences("recipes.columns", {
+                columnVisibility: (tablePreferences.columnVisibility as VisibilityState | undefined) ?? {},
+            })
+        }
+    }, [preferences, updatePreferences])
 
     // Define the table's properties.
     const tableOptions: TableOptions<IRecipe> = {
@@ -279,7 +300,9 @@ const RecipesTable: React.FC<IRecipesTableProps> = ({setSelectedRowId, paginatio
         onColumnVisibilityChange: (updater) => {
             setColumnVisibility(prev => {
                 const next = typeof updater === 'function' ? updater(prev) : updater;
-                sessionStorage.setItem(RECIPES_VISIBILITY_STORAGE, JSON.stringify(next));
+                void updatePreferences("recipes.columns", {
+                    columnVisibility: next,
+                })
                 return next;
             });
         },
@@ -312,29 +335,20 @@ const RecipesTable: React.FC<IRecipesTableProps> = ({setSelectedRowId, paginatio
         navigate(editUrl);
     }
 
-    // Restore filters on mount
-    useEffect(() => {
-        const savedFilters = sessionStorage.getItem(RECIPES_FILTERS_STORAGE);
-        if (savedFilters) {
-            setColumnFilters(JSON.parse(savedFilters));
-        }
-    }, []);
-
     const updateFilter = (id: string, value: string) => {
         setColumnFilters((prev) => {
             const updatedFilters = prev.filter((f) => f.id !== id);
             if (value)
                 updatedFilters.push({ id, value });
-            sessionStorage.setItem(RECIPES_FILTERS_STORAGE, JSON.stringify(updatedFilters));
             return updatedFilters;
         });
     };
 
     return (
-        <Box>
+        <Box sx={{ visibility: preferencesReady ? 'visible' : 'hidden' }}>
             {/* Column visibility picker toolbar */}
             <Box sx={{ display: 'flex', justifyContent: 'flex-end', px: 1, py: 0.75 }}>
-                <ColumnVisibilityPicker table={table} storageKey={RECIPES_VISIBILITY_STORAGE} />
+                <ColumnVisibilityPicker table={table} storageKey="recipes.columns" />
             </Box>
 
             <TableContainer component={Paper} sx={{ overflowX: 'auto', borderRadius: 2, boxShadow: 2 }}>

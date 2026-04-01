@@ -17,11 +17,8 @@ interface ColumnVisibilityPickerProps<T> {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function ColumnVisibilityPicker<T = any>({
-    table,
-    storageKey,
-    labelOverrides = {},
-}: ColumnVisibilityPickerProps<T>) {
+function ColumnVisibilityPicker<T = any>(props: ColumnVisibilityPickerProps<T>) {
+    const { table, labelOverrides = {} } = props;
     const [open, setOpen] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
 
@@ -36,19 +33,12 @@ function ColumnVisibilityPicker<T = any>({
         return () => document.removeEventListener('mousedown', handler);
     }, [open]);
 
-    // Persist visibility to sessionStorage whenever it changes
     const handleToggle = (columnId: string, checked: boolean) => {
         table.getColumn(columnId)?.toggleVisibility(checked);
-        // Read updated state after toggling and persist
-        setTimeout(() => {
-            const visibility = table.getState().columnVisibility;
-            sessionStorage.setItem(storageKey, JSON.stringify(visibility));
-        }, 0);
     };
 
     const handleShowAll = () => {
         table.toggleAllColumnsVisible(true);
-        sessionStorage.setItem(storageKey, JSON.stringify({}));
     };
 
     // Get only leaf (data) columns, not group headers

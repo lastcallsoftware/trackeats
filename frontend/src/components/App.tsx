@@ -29,6 +29,8 @@ import DialogActions from '@mui/material/DialogActions';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import SettingsIcon from '@mui/icons-material/Settings';
 
+const AUTH_CHANGED_EVENT = "trackeats-auth-changed"
+
 console.log("process.env.NODE_ENV:", process.env.NODE_ENV)
 console.log("import.meta.env.MODE:", import.meta.env.MODE)
 
@@ -61,11 +63,13 @@ function App() {
 
     const storeToken = (token: string): undefined => {
         sessionStorage.setItem("access_token", JSON.stringify(token))
+        window.dispatchEvent(new Event(AUTH_CHANGED_EVENT))
         setAuthenticated(true)
     }
 
     const removeToken = () => {
         sessionStorage.removeItem("access_token")
+        window.dispatchEvent(new Event(AUTH_CHANGED_EVENT))
         setAuthenticated(false)
         navigate("/")
     }
@@ -92,6 +96,7 @@ function App() {
                 headers: { "Authorization": "Bearer " + access_token }
             });
             sessionStorage.removeItem("access_token");
+            window.dispatchEvent(new Event(AUTH_CHANGED_EVENT))
             setAuthenticated(false);
             navigate("/login", { state: { message: "Your account has been deleted." } });
         } catch (error) {

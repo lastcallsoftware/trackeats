@@ -465,7 +465,7 @@ def delete_user():
 ##############################
 # PREFERENCES
 ##############################
-@bp.route("/api/preferences/:context", methods = ["GET"])
+@bp.route("/api/preferences/<string:context>", methods = ["GET"])
 @jwt_required()
 def get_preferences(context: str):
     """
@@ -478,7 +478,7 @@ def get_preferences(context: str):
             username = get_jwt_identity()
             user_id = User.get_id(username)
 
-            prefs = Preferences.get(user_id, context)
+            prefs = Preferences.get(user_id, context) or {}
     except Exception as e:
         msg = f"Preference records could not be retrieved: {str(e)}"
         logging.error(msg)
@@ -486,10 +486,10 @@ def get_preferences(context: str):
     else:
         msg = "Preferences retrieved"
         logging.info(msg)
-        return jsonify(prefs), 200
+        return jsonify({"context": context, "preferences": prefs}), 200
 
 
-@bp.route("/api/preferences/:context", methods = ["PUT"])
+@bp.route("/api/preferences/<string:context>", methods = ["PUT"])
 @jwt_required()
 def save_preferences(context: str):
     """

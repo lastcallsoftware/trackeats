@@ -12,7 +12,7 @@ import {
     TableOptions, 
     useReactTable 
 } from '@tanstack/react-table';
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { IFood } from "../contexts/DataProvider";
 import { useData } from "@/utils/useData";
@@ -255,9 +255,6 @@ const foodColumns = [
     }),
 ]
 
-const FOOD_FILTERS_STORAGE = "food_filters_storage";
-const FOOD_VISIBILITY_STORAGE = "food_visibility_storage";
-
 interface FoodsTableProps {
     setSelectedRowId: React.Dispatch<React.SetStateAction<number | null>>,
     pagination: { pageIndex: number, pageSize: number },
@@ -270,11 +267,35 @@ const FoodsTable: React.FC<FoodsTableProps> = ({setSelectedRowId, pagination, se
     const navigate = useNavigate()
     const [sorting, setSorting] = React.useState<SortingState>([])
     const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
-    const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>(() => {
-        const saved = sessionStorage.getItem(FOOD_VISIBILITY_STORAGE);
-        return saved ? JSON.parse(saved) : {};
-    });
-    const { foods } = useData();
+    const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({})
+    const [preferencesReady, setPreferencesReady] = React.useState(false)
+    const preferencesLoadedRef = useRef(false)
+    const { foods, preferences, getPreferences, updatePreferences } = useData();
+
+    useEffect(() => {
+        void getPreferences("foods.columns")
+    }, [getPreferences])
+
+    useEffect(() => {
+        const tablePreferences = preferences["foods.columns"]
+
+        if (!tablePreferences || preferencesLoadedRef.current) {
+            return
+        }
+
+        preferencesLoadedRef.current = true
+        setPreferencesReady(true)
+
+        if (tablePreferences.columnVisibility) {
+            setColumnVisibility(tablePreferences.columnVisibility as VisibilityState)
+        }
+
+        if (tablePreferences.columnFilters) {
+            void updatePreferences("foods.columns", {
+                columnVisibility: (tablePreferences.columnVisibility as VisibilityState | undefined) ?? {},
+            })
+        }
+    }, [preferences, updatePreferences])
 
     // Define the table's properties.
     const tableOptions: TableOptions<IFood> = {
@@ -292,7 +313,9 @@ const FoodsTable: React.FC<FoodsTableProps> = ({setSelectedRowId, pagination, se
         onColumnVisibilityChange: (updater) => {
             setColumnVisibility(prev => {
                 const next = typeof updater === 'function' ? updater(prev) : updater;
-                sessionStorage.setItem(FOOD_VISIBILITY_STORAGE, JSON.stringify(next));
+                void updatePreferences("foods.columns", {
+                    columnVisibility: next,
+                })
                 return next;
             });
         },
@@ -333,29 +356,20 @@ const FoodsTable: React.FC<FoodsTableProps> = ({setSelectedRowId, pagination, se
         navigate(editUrl);
     }
 
-    // Restore filters on mount
-    useEffect(() => {
-        const savedFilters = sessionStorage.getItem(FOOD_FILTERS_STORAGE);
-        if (savedFilters) {
-            setColumnFilters(JSON.parse(savedFilters));
-        }
-    }, []);
-
     const updateFilter = (id: string, value: string) => {
         setColumnFilters((prev) => {
             const updatedFilters = prev.filter((f) => f.id !== id);
             if (value)
                 updatedFilters.push({ id, value });
-            sessionStorage.setItem(FOOD_FILTERS_STORAGE, JSON.stringify(updatedFilters));
             return updatedFilters;
         });
     };
     
     return (
-        <Box>
+        <Box sx={{ visibility: preferencesReady ? 'visible' : 'hidden' }}>
             {/* Column visibility picker toolbar */}
             <Box sx={{ display: 'flex', justifyContent: 'flex-end', px: 1, py: 0.75 }}>
-                <ColumnVisibilityPicker table={table} storageKey={FOOD_VISIBILITY_STORAGE} />
+                <ColumnVisibilityPicker table={table} storageKey="foods.columns" />
             </Box>
 
             <TableContainer component={Paper} sx={{ overflowX: 'auto', boxShadow: 2, borderRadius: 2 }}>
