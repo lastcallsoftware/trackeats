@@ -123,7 +123,7 @@ const columns = [
                 size: 80
             }),
             columnHelper.accessor("nutrition.cholesterol_mg", {
-                header: () => <span>Cholesterol (mg)</span>,
+                header: () => <span>Cholest. (mg)</span>,
                 cell: info => {
                     const servings = info.row.original.servings || 1;
                     const val = info.getValue();

@@ -141,7 +141,7 @@ const foodColumns = [
                 size: 80
             }),
             columnHelper.accessor("nutrition.cholesterol_mg", {
-                header: () => <span>Cholesterol (mg)</span>,
+                header: () => <span>Cholest. (mg)</span>,
                 cell: info => info.getValue(),
                 size: 80
             }),
