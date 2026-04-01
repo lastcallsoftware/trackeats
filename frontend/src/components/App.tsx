@@ -1,3 +1,5 @@
+import useMediaQuery from '@mui/material/useMediaQuery';
+import { useTheme } from '@mui/material/styles';
 import { useState } from 'react';
 import { useData } from '@/utils/useData';
 import { Routes, Route, Link as RouterLink, useNavigate } from 'react-router-dom';
@@ -54,6 +56,8 @@ const buttonSx = {
 }
 
 function App() {
+    const theme = useTheme();
+    const isNarrow = useMediaQuery(theme.breakpoints.down('md'));
     const { setErrorMessage } = useData();
     const [isAuthenticated, setAuthenticated] = useState(sessionStorage.getItem("access_token") != null);
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -117,6 +121,37 @@ function App() {
         }
     };
 
+    const navMenuItems = (
+        <>
+            {isAuthenticated && (
+                <Button component={RouterLink} to="/foods" color="primary" sx={buttonSx}>
+                    Foods
+                </Button>
+            )}
+            {isAuthenticated && (
+                <Button component={RouterLink} to="/recipes" color="primary" sx={buttonSx}>
+                    Recipes
+                </Button>
+            )}
+            <Button
+                color="primary"
+                onClick={handleAboutOpen}
+                endIcon={<KeyboardArrowDownIcon />}
+                sx={buttonSx}
+            >
+                About
+            </Button>
+            <Menu
+                anchorEl={anchorEl}
+                open={Boolean(anchorEl)}
+                onClose={handleAboutClose}
+            >
+                <MenuItem onClick={() => handleAboutItem('/about')}>About TrackEats</MenuItem>
+                <MenuItem onClick={() => handleAboutItem(portfolioUrl)}>About Me</MenuItem>
+            </Menu>
+        </>
+    );
+
     return (
         <>
             <Header />
@@ -126,100 +161,103 @@ function App() {
                 elevation={0}
                 sx={{ borderBottom: '1px solid', borderColor: 'divider', mb: 2 }}
             >
-                <Toolbar sx={{ py: 1, maxWidth: 900, width: '100%', mx: 'auto' }}>
-                    {/* Logo icon + app name — links home */}
-                    <Button
-                        component={RouterLink}
-                        to="/"
-                        color="primary"
-                        sx={{ ...buttonSx, fontWeight: 700, mr: 2, gap: 1 }}
-                        disableRipple
-                    >
-                        <Box
-                            component="img"
-                            src={trackEatsIcon}
-                            alt="TrackEats icon"
-                            sx={{ width: 28, height: 28, borderRadius: 1 }}
-                        />
-                        <span style={{ fontFamily: 'Outfit, sans-serif', fontSize: '1.4rem', fontWeight: 700 }}>TrackEats</span>
-                    </Button>
-
-                    {/* Main nav links */}
-                    {isAuthenticated && (
-                        <Button component={RouterLink} to="/foods" color="primary" sx={buttonSx}>
-                            Foods
-                        </Button>
-                    )}
-                    {isAuthenticated && (
-                        <Button component={RouterLink} to="/recipes" color="primary" sx={buttonSx}>
-                            Recipes
-                        </Button>
-                    )}
-
-
-                    {/* About dropdown */}
-                    <Button
-                        color="primary"
-                        onClick={handleAboutOpen}
-                        endIcon={<KeyboardArrowDownIcon />}
-                        sx={buttonSx}
-                    >
-                        About
-                    </Button>
-                    <Menu
-                        anchorEl={anchorEl}
-                        open={Boolean(anchorEl)}
-                        onClose={handleAboutClose}
-                    >
-                        <MenuItem onClick={() => handleAboutItem('/about')}>About TrackEats</MenuItem>
-                        <MenuItem onClick={() => handleAboutItem(portfolioUrl)}>About Me</MenuItem>
-                    </Menu>
-
-                    {/* Spacer pushes Log In / Log Out to the right */}
-                    <Box sx={{ flexGrow: 1 }} />
-
-                    {isAuthenticated ? (
-                        <>
-                            <Button color="primary" sx={buttonSx} onClick={removeToken}>Log Out</Button>
-                            {/* Options dropdown (gear icon), only when authenticated */}
-                            <Button
-                                color="primary"
-                                onClick={handleOptionsOpen}
-                                sx={buttonSx}
-                                aria-label="Options"
-                                endIcon={
-                                    <span style={{ display: 'flex', alignItems: 'center', marginTop: '3px' }}>
-                                        <SettingsIcon sx={{ fontSize: '36px !important' }} />
-                                    </span>
-                                }
+                <Toolbar sx={{
+                    py: 1,
+                    maxWidth: 900,
+                    width: '100%',
+                    mx: 'auto',
+                    flexDirection: 'column',
+                    alignItems: 'stretch',
+                    minHeight: 'unset !important',
+                }}>
+                    {/* --- Responsive menu: ---
+                        - Row 1: Logo | nav links (if wide) | spacer | right controls (always)
+                        - Row 2: nav links (if narrow)
+                    */}
+                    {/* Row 1 */}
+                    <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
+                        {/* Logo */}
+                        <Button
+                            component={RouterLink}
+                            to="/"
+                            color="primary"
+                            sx={{ ...buttonSx, fontWeight: 700, mr: 2, gap: 1 }}
+                            disableRipple
+                        >
+                            <Box
+                                component="img"
+                                src={trackEatsIcon}
+                                alt="TrackEats icon"
+                                sx={{ width: 28, height: 28, borderRadius: 1 }}
                             />
-                            <Menu
-                                anchorEl={optionsAnchorEl}
-                                open={Boolean(optionsAnchorEl)}
-                                onClose={handleOptionsClose}
-                            >
-                                <MenuItem onClick={handleDeleteAccountClick}>Delete my account</MenuItem>
-                            </Menu>
-                            <Dialog
-                                open={confirmOpen}
-                                onClose={handleConfirmClose}
-                                aria-labelledby="confirm-dialog-title"
-                                aria-describedby="confirm-dialog-description"
-                            >
-                                <DialogTitle id="confirm-dialog-title">Are you sure?</DialogTitle>
-                                <DialogContent>
-                                    <DialogContentText id="confirm-dialog-description">
-                                        This will delete your account and all data associated with it.  This action cannot be undone.
-                                    </DialogContentText>
-                                </DialogContent>
-                                <DialogActions>
-                                    <Button onClick={handleConfirmClose} color="primary">No</Button>
-                                    <Button onClick={handleConfirmYes} color="primary" autoFocus>Yes</Button>
-                                </DialogActions>
-                            </Dialog>
-                        </>
-                    ) : (
-                        <Button component={RouterLink} to="/login" color="primary" sx={buttonSx}>Log In</Button>
+                            <span style={{ fontFamily: 'Outfit, sans-serif', fontSize: '1.4rem', fontWeight: 700 }}>TrackEats</span>
+                        </Button>
+                        {/* Nav links (only on wide) */}
+                        {!isNarrow && (
+                            <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', ml: 1 }}>
+                                {navMenuItems}
+                            </Box>
+                        )}
+                        <Box sx={{ flexGrow: 1 }} />
+                        {/* Right controls: Log In/Log Out/Options (always) */}
+                        {isAuthenticated ? (
+                            <>
+                                <Button
+                                    color="primary"
+                                    onClick={handleOptionsOpen}
+                                    sx={buttonSx}
+                                    aria-label="Options"
+                                    endIcon={
+                                        <span style={{ display: 'flex', alignItems: 'center', marginTop: '3px' }}>
+                                            <SettingsIcon sx={{ fontSize: '36px !important' }} />
+                                        </span>
+                                    }
+                                />
+                                <Menu
+                                    anchorEl={optionsAnchorEl}
+                                    open={Boolean(optionsAnchorEl)}
+                                    onClose={handleOptionsClose}
+                                >
+                                    <MenuItem onClick={() => { handleOptionsClose(); removeToken(); }}>Log out</MenuItem>
+                                    <MenuItem onClick={handleDeleteAccountClick}>Delete my account</MenuItem>
+                                </Menu>
+                                <Dialog
+                                    open={confirmOpen}
+                                    onClose={handleConfirmClose}
+                                    aria-labelledby="confirm-dialog-title"
+                                    aria-describedby="confirm-dialog-description"
+                                >
+                                    <DialogTitle id="confirm-dialog-title">Are you sure?</DialogTitle>
+                                    <DialogContent>
+                                        <DialogContentText id="confirm-dialog-description">
+                                            This will delete your account and all data associated with it.  This action cannot be undone.
+                                        </DialogContentText>
+                                    </DialogContent>
+                                    <DialogActions>
+                                        <Button onClick={handleConfirmClose} color="primary">No</Button>
+                                        <Button onClick={handleConfirmYes} color="primary" autoFocus>Yes</Button>
+                                    </DialogActions>
+                                </Dialog>
+                            </>
+                        ) : (
+                            <Button component={RouterLink} to="/login" color="primary" sx={buttonSx}>Log In</Button>
+                        )}
+                    </Box>
+                    {/* Row 2: nav links only on narrow */}
+                    {isNarrow && (
+                        <Box
+                            sx={{
+                                display: 'flex',
+                                flexWrap: 'wrap',
+                                gap: 2,
+                                justifyContent: 'flex-start',
+                                mt: 1,
+                                width: '100%',
+                                overflow: 'visible',
+                            }}
+                        >
+                            {navMenuItems}
+                        </Box>
                     )}
                 </Toolbar>
             </AppBar>
@@ -232,9 +270,9 @@ function App() {
                     <Route path="/recipes" element={<RecipesPage />} />
                     <Route path="/dailylog" element={<DailyLogPage />} />
                     <Route path="/about" element={<AboutPage />} />
-                    <Route path="/login" element={<LoginPage storeTokenFunction={storeToken}/>} />
+                    <Route path="/login" element={<LoginPage storeTokenFunction={storeToken} />} />
                     <Route path="/register" element={<RegisterPage />} />
-                    <Route path="/confirm" element={<ConfirmUserPage/>} />
+                    <Route path="/confirm" element={<ConfirmUserPage />} />
                     <Route path="/food/add" element={<FoodForm />} />
                     <Route path="/food/edit/:id" element={<FoodForm />} />
                     <Route path="/recipe/add" element={<RecipeForm />} />
