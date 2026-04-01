@@ -42,14 +42,13 @@ function AboutPage() {
                 <List sx={{ listStyleType: 'disc', pl: 3.5, mb: 2 }}>
                     <ListItem sx={{ display: 'list-item', py: 0.25 }}>Vite + React + JavaScript/Typescript + HTML + CSS - for building the front end</ListItem>
                     <ListItem sx={{ display: 'list-item', py: 0.25 }}>Flask + Python - for building the back end</ListItem>
-                    <ListItem sx={{ display: 'list-item', py: 0.25 }}>Docker - for deploying the frontend, backend and database in separate containers</ListItem>
                     <ListItem sx={{ display: 'list-item', py: 0.25 }}>TanStack Table - for the tables which comprise the bulk of the UI</ListItem>
                     <ListItem sx={{ display: 'list-item', py: 0.25 }}>Material UI - for styling the user interface</ListItem>
                     <ListItem sx={{ display: 'list-item', py: 0.25 }}>Axios - for communications between the front end and back end</ListItem>
                     <ListItem sx={{ display: 'list-item', py: 0.25 }}>SQL Alchemy - for communications between the back end and the database (i.e., the ORM layer)</ListItem>
                     <ListItem sx={{ display: 'list-item', py: 0.25 }}>MySQL - the database</ListItem>
                     <ListItem sx={{ display: 'list-item', py: 0.25 }}>Nginx - the web server/reverse proxy that serves up the front end</ListItem>
-                    <ListItem sx={{ display: 'list-item', py: 0.25 }}>Waitress - the app server that serves up the back end</ListItem>
+                    <ListItem sx={{ display: 'list-item', py: 0.25 }}>Waitress - the WSGI app server that serves up the back end</ListItem>
                     <ListItem sx={{ display: 'list-item', py: 0.25 }}>Ubuntu - the OS on which it all runs</ListItem>
                     <ListItem sx={{ display: 'list-item', py: 0.25 }}>TLS certificates - for providing HTTPS encryption</ListItem>
                     <ListItem sx={{ display: 'list-item', py: 0.25 }}>SMTP - for the email-based authentication used during registration</ListItem>
@@ -61,16 +60,14 @@ function AboutPage() {
                     <ListItem sx={{ display: 'list-item', py: 0.25 }}>Spring Boot</ListItem>
                     <ListItem sx={{ display: 'list-item', py: 0.25 }}>Hibernate</ListItem>
                 </List>
-                <Typography sx={{ mb: 1 }}>Add to that the various techs and services used on the development side of things:</Typography>
+                <Typography sx={{ mb: 1 }}>Add to that the various techs and services used in the design and deployment process:</Typography>
                 <List sx={{ listStyleType: 'disc', pl: 3.5, mb: 2 }}>
+                    <ListItem sx={{ display: 'list-item', py: 0.25 }}>Docker - for "containerizing" the app</ListItem>
                     <ListItem sx={{ display: 'list-item', py: 0.25 }}>Amazon Web Services (AWS) - for provisioning the server on which the app runs</ListItem>
-                    <ListItem sx={{ display: 'list-item', py: 0.25 }}>GoDaddy/Namecheap - for licensing and configuring the app's domain names</ListItem>
-                    <ListItem sx={{ display: 'list-item', py: 0.25 }}>SSL.com - for licensing the TLS certificates that secure the server</ListItem>
-                    <ListItem sx={{ display: 'list-item', py: 0.25 }}>VS Code - the code editor/development environment</ListItem>
-                    <ListItem sx={{ display: 'list-item', py: 0.25 }}>WSL - for developing a Linux app on a Windows PC</ListItem>
                     <ListItem sx={{ display: 'list-item', py: 0.25 }}>GitHub - for version control</ListItem>
-                    <ListItem sx={{ display: 'list-item', py: 0.25 }}>GitHub Secrets - for configuration management</ListItem>
                     <ListItem sx={{ display: 'list-item', py: 0.25 }}>GitHub Actons/Docker Compose - for CI/CD</ListItem>
+                    <ListItem sx={{ display: 'list-item', py: 0.25 }}>GitHub Secrets - for configuration management</ListItem>
+                    <ListItem sx={{ display: 'list-item', py: 0.25 }}>GoDaddy/Namecheap - for reserving and configuring the app's Internet domains</ListItem>
                     <ListItem sx={{ display: 'list-item', py: 0.25 }}>Figma - for designing and prototyping the UI</ListItem>
                     <ListItem sx={{ display: 'list-item', py: 0.25 }}>Jira - for planning and defect tracking</ListItem>
                 </List>
