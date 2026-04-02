@@ -5,7 +5,7 @@ from typing import Any
 from flask import Blueprint, jsonify, make_response, request
 from flask_jwt_extended import jwt_required, create_access_token, get_jwt_identity # type:ignore
 from sendmail import Sendmail
-from models import db, User, Preferences, UserStatus, Food, Recipe, Ingredient
+from models import db, User, Preferences, UserStatus, Food, Recipe, Ingredient, DailyLogItem
 from crypto import Crypto
 from data import Data
 from sqlalchemy.sql import text
@@ -861,3 +861,181 @@ def get_ingredients(recipe_id:int):
         msg = f"{len(data)} Ingredient records retrieved"
         logging.info(msg)
         return jsonify(data), 200
+
+
+##############################
+# DAILY LOG ITEM
+##############################
+@bp.route("/dailylogitem", methods = ["GET"])
+@jwt_required()
+def get_daily_log_entries():
+    """
+    Get DailyLogItem entries for this user.
+
+    Accepts optional query parameters to filter by date range:
+      ?date=2026-04-02            returns entries for a single date
+      ?start=2026-04-01&end=2026-04-07   returns entries for a date range
+
+    If no parameters are given, returns all entries for the user.
+    """
+    logging.info("/dailylogitem GET")
+    entries: list[Any] = []
+    try:
+        with db.session.begin():
+            username = get_jwt_identity()
+            user_id = User.get_id(username)
+
+            date_str = request.args.get("date")
+            start_str = request.args.get("start")
+            end_str = request.args.get("end")
+
+            if date_str:
+                # Single-date query
+                date = datetime.strptime(date_str, "%Y-%m-%d").date()
+                log_daos = DailyLogItem.get_by_date(user_id, date)
+            elif start_str and end_str:
+                # Date-range query (weekly, monthly views)
+                start = datetime.strptime(start_str, "%Y-%m-%d").date()
+                end = datetime.strptime(end_str, "%Y-%m-%d").date()
+                log_daos = DailyLogItem.get_by_range(user_id, start, end)
+            else:
+                raise ValueError("Either 'date' or both 'start' and 'end' query parameters are required")
+
+            for log_dao in log_daos:
+                entries.append(log_dao.json())
+    except Exception as e:
+        msg = f"DailyLogItem records could not be retrieved: {str(e)}"
+        logging.error(msg)
+        return jsonify({"msg": msg}), 400
+    else:
+        msg = f"{len(entries)} DailyLogItem records retrieved"
+        logging.info(msg)
+        return jsonify(entries), 200
+
+
+@bp.route("/dailylogitem/<int:log_id>", methods = ["GET"])
+@jwt_required()
+def get_daily_log_entry(log_id: int):
+    """
+    Get one specific DailyLogItem entry.
+    """
+    logging.info(f"/dailylogitem/{log_id} GET")
+    try:
+        with db.session.begin():
+            username = get_jwt_identity()
+            user_id = User.get_id(username)
+
+            log_dao = DailyLogItem.get(user_id, log_id)
+            entry = log_dao.json()
+    except Exception as e:
+        msg = f"DailyLogItem record could not be retrieved: {str(e)}"
+        logging.error(msg)
+        return jsonify({"msg": msg}), 400
+    else:
+        msg = f"DailyLogItem record {log_id} retrieved"
+        logging.info(msg)
+        return jsonify(entry), 200
+
+
+@bp.route("/dailylogitem", methods = ["POST"])
+@jwt_required()
+def add_daily_log_entry():
+    """
+    Add a new DailyLogItem entry.
+
+    Request body:
+      {
+        "date":      "2026-04-02",
+        "recipe_id": 42,
+        "servings":  2.0,
+        "notes":     "optional note"   (optional)
+      }
+    """
+    logging.info("/dailylogitem POST")
+    try:
+        with db.session.begin():
+            username = get_jwt_identity()
+            user_id = User.get_id(username)
+
+            if not request.is_json:
+                raise ValueError("Invalid request - not JSON")
+
+            data = request.json
+            date = datetime.strptime(data["date"], "%Y-%m-%d").date()
+            recipe_id = data["recipe_id"]
+            servings = float(data["servings"])
+            notes = data.get("notes")
+
+            new_log_dao = DailyLogItem.add(user_id, date, recipe_id, servings, notes)
+            new_log_id = new_log_dao.id
+            new_entry = new_log_dao.json()
+    except Exception as e:
+        msg = f"DailyLogItem entry could not be added: {str(e)}"
+        logging.error(msg)
+        return jsonify({"msg": msg}), 400
+    else:
+        msg = f"DailyLogItem entry {new_log_id} added"
+        logging.info(msg)
+        resp = make_response(jsonify(new_entry), 201)
+        resp.headers["Location"] = f"/dailylogitem/{new_log_id}"
+        return resp
+
+
+@bp.route("/dailylogitem/<int:log_id>", methods = ["PUT"])
+@jwt_required()
+def update_daily_log_entry(log_id: int):
+    """
+    Update the servings and/or notes on an existing DailyLogItem entry.
+
+    Request body:
+      {
+        "servings": 1.5,
+        "notes":    "optional note"   (optional)
+      }
+    """
+    logging.info(f"/dailylogitem/{log_id} PUT")
+    try:
+        with db.session.begin():
+            username = get_jwt_identity()
+            user_id = User.get_id(username)
+
+            if not request.is_json:
+                raise ValueError("Invalid request - not JSON")
+
+            data = request.json
+            servings = float(data["servings"])
+            notes = data.get("notes")
+
+            updated_log_dao = DailyLogItem.update(user_id, log_id, servings, notes)
+            updated_entry = updated_log_dao.json()
+    except Exception as e:
+        msg = f"DailyLogItem entry could not be updated: {str(e)}"
+        logging.error(msg)
+        return jsonify({"msg": msg}), 400
+    else:
+        msg = f"DailyLogItem entry {log_id} updated"
+        logging.info(msg)
+        return jsonify(updated_entry), 200
+
+
+@bp.route("/dailylogitem/<int:log_id>", methods = ["DELETE"])
+@jwt_required()
+def delete_daily_log_entry(log_id: int):
+    """
+    Delete a DailyLogItem entry.
+    """
+    logging.info(f"/dailylogitem/{log_id} DELETE")
+    try:
+        with db.session.begin():
+            username = get_jwt_identity()
+            user_id = User.get_id(username)
+
+            DailyLogItem.delete(user_id, log_id)
+    except Exception as e:
+        msg = f"DailyLogItem entry could not be deleted: {str(e)}"
+        logging.error(msg)
+        return jsonify({"msg": msg}), 400
+    else:
+        msg = f"DailyLogItem entry {log_id} deleted"
+        logging.info(msg)
+        return jsonify({"msg": msg}), 200

@@ -76,7 +76,7 @@ import logging
 # In fact I've mostly ditched using relationship() at all.  It's very limited
 # in what it can do, and FAR more complicated than just handling the 
 # relationships manually.  The only place I used it is between the Nutrition
-# table and the Food/Recipe/DailyLog tables.  See the comments for the Nutrition
+# table and the Food/Recipe/DailyLogItem tables.  See the comments for the Nutrition
 # record for more about that.
 ##############################
 
@@ -364,33 +364,33 @@ class Nutrition(db.Model):
     the same data you see on a USDA nutrition label.
 
     Nutrition is a separate record because the same data fields are reused for 
-    the Food, Recipe, and DailyLog tables.
+    the Food, Recipe, and DailyLogItem tables.
 
     When used with the Food record, it represents the nutrition for one 
     serving of one food item.  It is then combined in the proper proportions to 
     calculate the nutrition for Recipes and DailyLogs.
 
-    The Nutrition data is technically denormalized for the Recipe and DailyLog
+    The Nutrition data is technically denormalized for the Recipe and DailyLogItem
     tables.  That is, we store it even though it's calculated from other records
     that are already stored in the database.  We do this for efficiency.
     It's more efficient to store it rather than load all the ingredient child
-    records and recalculate the totals every time a Recipe or DailyLog record is
+    records and recalculate the totals every time a Recipe or DailyLogItem record is
     viewed.  We just have to remember to recalculate and re-store the Nutrition
     data when necessary, such as when a Recipe's ingredients change.
 
-    The Food, Recipe and DailyLog tables each have a 1-to-1 relationship with the
+    The Food, Recipe and DailyLogItem tables each have a 1-to-1 relationship with the
     Nutrition table.  Note that technically, the Nutrition record is the parent
     record in these relationships.  That is, instead of the Nutrition record having
-    the ID of an associated Food, Recipe, or DailyLog record, those records have the
+    the ID of an associated Food, Recipe, or DailyLogItem record, those records have the
     ID of an associated Nutrition record.  This is because the Nutrition record is 
     reused -- it can't have foreign key relationships on all three of those tables,
     so we do it the other way around.
 
     This has one convenient side effect, which is that we can configure SQLAlchemy
-    for "cascade deletes".  So when we delete a Food, Recipe or DailyLog record,
+    for "cascade deletes".  So when we delete a Food, Recipe or DailyLogItem record,
     the ORM layer also automatically deletes the associated Nutrition record
     without any coding on our part.  It can do this because the "child" record in
-    these relationships (Food/Recipe/DailyLog) has the ID of the "parent"
+    these relationships (Food/Recipe/DailyLogItem) has the ID of the "parent"
     Nutrition record.
     """
     __tablename__ = "nutrition"
@@ -1019,10 +1019,6 @@ class Recipe(db.Model):
 
     # Return a JSON representation of this Recipe object
     def json(self) -> dict[str,Any]:
-        nutrition_dao = db.session.get(Nutrition, self.nutrition_id)
-        if not nutrition_dao:
-            raise ValueError(f"Nutrition record {self.id}/{self.nutrition_id} not found")
-
         return {
             "id": self.id,
             "cuisine": self.cuisine,
@@ -1030,7 +1026,7 @@ class Recipe(db.Model):
             "total_yield": self.total_yield,
             "servings": self.servings,
             "nutrition_id": self.nutrition_id,
-            "nutrition": nutrition_dao.json(),
+            "nutrition": self.nutrition.json(),
             "price": self.price
             }
     
@@ -1329,3 +1325,268 @@ class Recipe(db.Model):
         except Exception as e:
             raise ValueError(f"Unable to recalculate Nutrition for recipe {recipe_id}: {str(e)}")
 
+
+
+##############################
+# DAILY LOG
+##############################
+class DailyLogItem(db.Model):
+    """
+    A DailyLogItem record represents one item consumed on one day.
+    There are multiple DailyLogItem records per user per date -- one per
+    recipe consumed.
+
+    Fields:
+      date       - the calendar date the item was consumed
+      recipe_id  - the Recipe that was consumed
+      servings   - how many servings were consumed
+      ordinal    - display order within the day
+      notes      - optional free-text note on this specific item
+                   (e.g. "late night snack", "skipped half of it")
+      nutrition_id - a Nutrition snapshot taken at log time, scaled by
+                   servings consumed.  Stored so that later edits to the
+                   Recipe do not alter the historical record.
+
+    The nutrition snapshot is the recipe's per-serving nutrition multiplied
+    by servings consumed.  Summing snapshots across all rows for a date range
+    gives the totals for that period -- no joins into recipes or ingredients
+    required at query time.
+
+    Deletion of a DailyLogItem record also deletes its Nutrition snapshot,
+    following the same FK pattern as Food and Recipe.
+    """
+    __tablename__ = "daily_log_item"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(db.Integer, db.ForeignKey("user.id"), nullable=False)
+    date: Mapped[datetime.date] = mapped_column(db.Date, nullable=False, index=True)
+    recipe_id: Mapped[int] = mapped_column(db.Integer, db.ForeignKey("recipe.id"), nullable=False)
+    servings: Mapped[float] = mapped_column(db.Float, nullable=False)
+    ordinal: Mapped[int] = mapped_column(db.Integer, nullable=False)
+    notes: Mapped[str | None] = mapped_column(db.String(200), nullable=True)
+    nutrition_id: Mapped[int | None] = mapped_column(db.Integer, db.ForeignKey("nutrition.id"), nullable=True)
+    nutrition: Mapped["Nutrition | None"] = relationship("Nutrition")
+
+    def __init__(self, user_id: int, data: dict[str, Any]):
+        self.from_dict(user_id, data)
+
+    def from_dict(self, user_id: int, data: dict[str, Any]) -> None:
+        if data.get("id"):
+            self.id = data["id"]
+        self.user_id = user_id
+        date_val = data["date"]
+        if isinstance(date_val, datetime.date):
+            self.date = date_val
+        else:
+            self.date = datetime.date.fromisoformat(str(date_val).strip())
+        self.recipe_id = data["recipe_id"]
+        self.servings = float(data["servings"])
+        self.ordinal = data["ordinal"]
+        self.notes = data.get("notes")
+        self.nutrition_id = data.get("nutrition_id")
+
+    def __str__(self) -> str:
+        return str(vars(self))
+
+    def json(self) -> dict[str, Any]:
+        return {
+            "id": self.id,
+            "user_id": self.user_id,
+            "date": self.date.isoformat(),
+            "recipe_id": self.recipe_id,
+            "servings": self.servings,
+            "ordinal": self.ordinal,
+            "notes": self.notes,
+            "nutrition_id": self.nutrition_id,
+            "nutrition": self.nutrition.json() if self.nutrition else None,
+        }
+
+
+    # ------------------------------------------------------------------
+    # Queries
+    # ------------------------------------------------------------------
+
+    @staticmethod
+    def get(user_id: int, log_id: int) -> DailyLogItem:
+        """
+        Get one specific DailyLogItem entry.
+        """
+        log_dao = db.session.scalar(
+            db.select(DailyLogItem)
+            .where(DailyLogItem.user_id == user_id)
+            .where(DailyLogItem.id == log_id)
+        )
+        if not log_dao:
+            raise ValueError(f"DailyLogItem record not found for ID {log_id}")
+        return log_dao
+
+
+    @staticmethod
+    def get_by_date(user_id: int, date: datetime.date) -> list[DailyLogItem]:
+        """
+        Return all DailyLogItem entries for a specific date, ordered by ordinal.
+        """
+        entries = db.session.scalars(
+            db.select(DailyLogItem)
+            .where(DailyLogItem.user_id == user_id)
+            .where(DailyLogItem.date == date)
+            .order_by(DailyLogItem.ordinal)
+        ).all()
+        return list(entries)
+
+
+    @staticmethod
+    def get_by_range(user_id: int, start: datetime.date, end: datetime.date) -> list[DailyLogItem]:
+        """
+        Return all DailyLogItem entries within an inclusive date range, ordered
+        by date then ordinal.  Used for weekly and monthly summary views.
+        """
+        entries = db.session.scalars(
+            db.select(DailyLogItem)
+            .where(DailyLogItem.user_id == user_id)
+            .where(DailyLogItem.date >= start)
+            .where(DailyLogItem.date <= end)
+            .order_by(DailyLogItem.date, DailyLogItem.ordinal)
+        ).all()
+        return list(entries)
+
+
+    # ------------------------------------------------------------------
+    # Mutations
+    # ------------------------------------------------------------------
+
+    @staticmethod
+    def add(user_id: int, date: datetime.date, recipe_id: int,
+            servings: float, notes: str | None = None) -> DailyLogItem:
+        """
+        Add a new DailyLogItem entry.
+
+        Takes a snapshot of the Recipe's per-serving nutrition scaled by the
+        number of servings consumed and stores it as a new Nutrition record.
+        This means later edits to the Recipe do not alter the historical entry.
+        """
+        try:
+            # Validate the Recipe and get its nutrition
+            recipe_dao = Recipe.get(user_id, recipe_id)
+            recipe_nutrition_dao = db.session.get(Nutrition, recipe_dao.nutrition_id)
+            if not recipe_nutrition_dao:
+                raise ValueError(f"Nutrition record for Recipe {recipe_id} not found")
+
+            # Build the nutrition snapshot.
+            # modifier converts recipe total nutrition -> per-serving nutrition;
+            # multiplying by servings consumed then gives the consumed total.
+            snapshot = Nutrition(user_id)
+            snapshot.serving_size_description = recipe_nutrition_dao.serving_size_description
+            modifier = (1.0 / recipe_dao.servings) if recipe_dao.servings else 0
+            snapshot.sum(recipe_nutrition_dao, servings, modifier)
+            db.session.add(snapshot)
+            db.session.flush()  # obtain snapshot.id before using it below
+
+            # Ordinal: append after the last entry for this date
+            ordinal = db.session.scalar(
+                select(func.count(DailyLogItem.id))
+                .where(DailyLogItem.user_id == user_id)
+                .where(DailyLogItem.date == date)
+            ) or 0
+
+            log_dao = DailyLogItem(user_id, {
+                "date": date,
+                "recipe_id": recipe_id,
+                "servings": servings,
+                "ordinal": ordinal,
+                "notes": notes,
+                "nutrition_id": snapshot.id,
+            })
+            db.session.add(log_dao)
+            db.session.flush()
+
+            return log_dao
+
+        except Exception as e:
+            raise ValueError(f"DailyLogItem entry could not be added: {str(e)}")
+
+
+    @staticmethod
+    def update(user_id: int, log_id: int, servings: float,
+               notes: str | None = None) -> DailyLogItem:
+        """
+        Update the servings and/or notes on an existing DailyLogItem entry.
+
+        Rebuilds the Nutrition snapshot in-place rather than diffing old vs
+        new values -- simpler and less error-prone.
+        """
+        try:
+            log_dao = DailyLogItem.get(user_id, log_id)
+
+            # Rebuild the snapshot
+            recipe_dao = Recipe.get(user_id, log_dao.recipe_id)
+            recipe_nutrition_dao = db.session.get(Nutrition, recipe_dao.nutrition_id)
+            if not recipe_nutrition_dao:
+                raise ValueError(f"Nutrition record for Recipe {log_dao.recipe_id} not found")
+
+            snapshot = db.session.get(Nutrition, log_dao.nutrition_id)
+            if not snapshot:
+                raise ValueError(f"Nutrition snapshot for DailyLogItem {log_id} not found")
+            snapshot.reset()
+            modifier = (1.0 / recipe_dao.servings) if recipe_dao.servings else 0
+            snapshot.sum(recipe_nutrition_dao, servings, modifier)
+
+            log_dao.servings = servings
+            log_dao.notes = notes
+
+            return log_dao
+
+        except Exception as e:
+            raise ValueError(f"DailyLogItem entry {log_id} could not be updated: {str(e)}")
+
+
+    @staticmethod
+    def delete(user_id: int, log_id: int) -> None:
+        """
+        Delete a DailyLogItem entry and its Nutrition snapshot.
+        Re-ordinals the remaining entries for that date so there are no gaps.
+        """
+        try:
+            log_dao = DailyLogItem.get(user_id, log_id)
+
+            # Close the ordinal gap left by this deletion
+            siblings = DailyLogItem.get_by_date(user_id, log_dao.date)
+            for sibling in siblings:
+                if sibling.id != log_id and sibling.ordinal > log_dao.ordinal:
+                    sibling.ordinal -= 1
+
+            # Delete the entry and its snapshot
+            nutrition_id = log_dao.nutrition_id
+            db.session.delete(log_dao)
+            if nutrition_id:
+                nutrition_dao = db.session.get(Nutrition, nutrition_id)
+                if nutrition_dao:
+                    db.session.delete(nutrition_dao)
+
+        except Exception as e:
+            raise ValueError(f"DailyLogItem entry {log_id} could not be deleted: {str(e)}")
+
+
+    @staticmethod
+    def delete_all_for_user(user_id: int) -> None:
+        """
+        Delete all DailyLogItem entries for a user, including their Nutrition
+        snapshots.  Called during account deletion.
+        """
+        logging.info(f"Deleting DailyLogItem records for user {user_id}")
+        try:
+            log_daos = db.session.scalars(
+                db.select(DailyLogItem).where(DailyLogItem.user_id == user_id)
+            ).all()
+            for log_dao in log_daos:
+                nutrition_id = log_dao.nutrition_id
+                db.session.delete(log_dao)
+                if nutrition_id:
+                    nutrition_dao = db.session.get(Nutrition, nutrition_id)
+                    if nutrition_dao:
+                        db.session.delete(nutrition_dao)
+        except Exception as e:
+            raise ValueError(
+                f"DailyLogItem records could not be deleted for user {user_id}: {str(e)}"
+            )
+        logging.info("DailyLogItem records deleted")
