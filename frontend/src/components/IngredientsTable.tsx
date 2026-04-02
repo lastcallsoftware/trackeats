@@ -17,12 +17,17 @@ const columns = [
     columnHelper.accessor("ordinal", {
         header: "Ordinal",
         cell: (info) => info.getValue(),
-        size: 60,
+        size: 52,
+    }),
+    columnHelper.accessor("servings", {
+        header: "Servings",
+        cell: (info) => info.getValue(),
+        size: 52,
     }),
     columnHelper.accessor("summary", {
         header: "Ingredient",
         cell: (info) => info.getValue() ?? "",
-        size: 380,
+        size: 300,
     }),
 ];
 

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useTheme } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
@@ -6,6 +6,7 @@ import { IFood, IRecipe, IIngredient, INutrition } from "../contexts/DataProvide
 import { useData, Recipe } from "@/utils/useData";
 import { cuisines } from "./Cuisines";
 import IngredientsTable from "./IngredientsTable";
+import { NutritionLabel } from "./NutritionLabel";
 import FoodPickerTable from "./FoodPickerTable";
 import RecipePickerTable from "./RecipePickerTable";
 import axios from 'axios';
@@ -55,7 +56,6 @@ function RecipeForm() {
     const navigate = useNavigate()
     const theme = useTheme();
     const isNarrow = useMediaQuery(theme.breakpoints.down('sm'));
-    const actionTooltipPlacement: 'top' | 'right' = isNarrow ? 'top' : 'right';
     const [searchParams] = useSearchParams();
     const { foods, recipes, addRecipe, updateRecipe, setErrorMessage } = useData();
 
@@ -81,10 +81,15 @@ function RecipeForm() {
     const handleSubmit = async (e: { preventDefault: () => void; }) => {
         e.preventDefault();
 
+        const recipeToSave = {
+            ...formData,
+            price: totalRecipePrice,
+        };
+
         if (isEditMode) {
-            await updateRecipe(formData, ingredients);
+            await updateRecipe(recipeToSave, ingredients);
         } else {
-            await addRecipe(formData, ingredients);
+            await addRecipe(recipeToSave, ingredients);
         }
 
         const returnPath = searchParams.get("returnTo") || "/recipes"
@@ -367,28 +372,6 @@ function RecipeForm() {
         getIngredients();
     }, [formData.id, foods, recipes]);
 
-    const calc = (value: number, precision: number = 0) => {
-        if (formData.servings > 0) {
-            return (value/formData.servings).toFixed(precision)
-        }
-        return 0
-    }
-
-    // Shared sx for read-only nutrition TextFields
-    const readOnlySx = {
-        '& .MuiInputBase-input': { color: 'text.secondary' },
-        '& .MuiInputBase-root': { backgroundColor: 'grey.100' },
-    };
-
-    // Shared props for compact read-only nutrition fields
-    const ro = {
-        size: 'small' as const,
-        type: 'number' as const,
-        fullWidth: true,
-        slotProps: { input: { readOnly: true } },
-        sx: readOnlySx,
-    };
-
     const noIngredientSelected = selectedIngredientRowId == null;
     const noFoodOrRecipeSelected = selectedFoodOrRecipeRowId == null;
     const noServingsForAdd = ingredientServings <= 0;
@@ -401,6 +384,62 @@ function RecipeForm() {
     const decrementIngredientServings = () => {
         setIngredientServings(prev => Math.max(0, prev - 1));
     };
+
+    const totalRecipePrice = useMemo(() => {
+        return ingredients.reduce((total, ingredient) => {
+            if (ingredient.food_ingredient_id) {
+                const food = foods.find((item: IFood) => item.id === ingredient.food_ingredient_id);
+                if (!food || food.servings <= 0) {
+                    return total;
+                }
+
+                return total + (food.price / food.servings) * ingredient.servings;
+            }
+
+            if (ingredient.recipe_ingredient_id) {
+                const recipeIngredient = recipes.find((item: IRecipe) => item.id === ingredient.recipe_ingredient_id);
+                if (!recipeIngredient || recipeIngredient.servings <= 0) {
+                    return total;
+                }
+
+                return total + (recipeIngredient.price / recipeIngredient.servings) * ingredient.servings;
+            }
+
+            return total;
+        }, 0);
+    }, [ingredients, foods, recipes]);
+
+    const pricePerServing = useMemo(() => {
+        if (formData.servings <= 0) {
+            return "0.00";
+        }
+
+        return (totalRecipePrice / formData.servings).toFixed(2);
+    }, [totalRecipePrice, formData.servings]);
+
+    const perServingNutrition: INutrition = useMemo(() => {
+        const s = formData.servings > 0 ? formData.servings : 1;
+        return {
+            serving_size_description: formData.nutrition.serving_size_description,
+            serving_size_oz: formData.nutrition.serving_size_oz / s,
+            serving_size_g: formData.nutrition.serving_size_g / s,
+            calories: formData.nutrition.calories / s,
+            total_fat_g: formData.nutrition.total_fat_g / s,
+            saturated_fat_g: formData.nutrition.saturated_fat_g / s,
+            trans_fat_g: formData.nutrition.trans_fat_g / s,
+            cholesterol_mg: formData.nutrition.cholesterol_mg / s,
+            sodium_mg: formData.nutrition.sodium_mg / s,
+            total_carbs_g: formData.nutrition.total_carbs_g / s,
+            fiber_g: formData.nutrition.fiber_g / s,
+            total_sugar_g: formData.nutrition.total_sugar_g / s,
+            added_sugar_g: formData.nutrition.added_sugar_g / s,
+            protein_g: formData.nutrition.protein_g / s,
+            vitamin_d_mcg: formData.nutrition.vitamin_d_mcg / s,
+            calcium_mg: formData.nutrition.calcium_mg / s,
+            iron_mg: formData.nutrition.iron_mg / s,
+            potassium_mg: formData.nutrition.potassium_mg / s,
+        };
+    }, [formData.nutrition, formData.servings]);
 
     return (
         <Box
@@ -503,260 +542,195 @@ function RecipeForm() {
                         </Grid>
                     </Grid>
 
-                    {/* ── Nutrition (per serving, read-only) ── */}
+
+                    {/* ── Main Content: NutritionLabel (wide) + Stacked Ingredient Shuttle ── */}
                     <Divider sx={{ mb: 2 }} />
-                    <Typography variant="subtitle1" sx={{ fontWeight: 500, mb: 2 }}>
-                        Nutrition <Typography component="span" variant="body2" color="text.secondary">(per serving)</Typography>
-                    </Typography>
-                    <Grid container spacing={1.5} sx={{ mb: 3 }}>
-                        {/* Serving size (editable) + Calories + Price */}
-                        <Grid size={{ xs: 12, sm: 4 }}>
-                            <TextField
-                                label="Serving Size"
-                                id="serving_size_description"
-                                value={formData.nutrition.serving_size_description}
-                                onChange={(e) => setFormData(prev => ({ ...prev, nutrition: { ...prev.nutrition, serving_size_description: e.target.value } }))}
-                                inputProps={{ maxLength: 100 }}
-                                size="small"
-                                fullWidth
-                            />
-                        </Grid>
-                        <Grid size={{ xs: 6, sm: 2 }}>
-                            <TextField label="Calories" id="calories" value={calc(formData.nutrition.calories)} {...ro} />
-                        </Grid>
-                        <Grid size={{ xs: 6, sm: 2 }}>
-                            <TextField label="Price ($)" id="price" value={calc(formData.price, 2)} {...ro} />
-                        </Grid>
+                    <Box sx={{ display: 'flex', gap: 3, alignItems: 'flex-start' }}>
 
-                        {/* Fats row */}
-                        {/* <Grid size={{ xs: 12 }}><Divider /></Grid> */}
-                        <Grid size={{ xs: 12 }}/>
-                        <Grid size={{ xs: 6, sm: 2 }}>
-                            <TextField label="Total Fat (g)" id="total_fat_g" value={calc(formData.nutrition.total_fat_g, 1)} {...ro} />
-                        </Grid>
-                        <Grid size={{ xs: 6, sm: 2 }}>
-                            <TextField label="Saturated Fat (g)" id="saturated_fat_g" value={calc(formData.nutrition.saturated_fat_g, 1)} {...ro} />
-                        </Grid>
-                        <Grid size={{ xs: 6, sm: 2 }}>
-                            <TextField label="Trans Fat (g)" id="trans_fat_g" value={calc(formData.nutrition.trans_fat_g)} {...ro} />
-                        </Grid>
-                        <Grid size={{ xs: 6, sm: 2 }}>
-                            <TextField label="Cholesterol (mg)" id="cholesterol_mg" value={calc(formData.nutrition.cholesterol_mg)} {...ro} />
-                        </Grid>
-                        <Grid size={{ xs: 6, sm: 2 }}>
-                            <TextField label="Sodium (mg)" id="sodium_mg" value={calc(formData.nutrition.sodium_mg)} {...ro} />
-                        </Grid>
-
-                        {/* Carbs row */}
-                        {/* <Grid size={{ xs: 12 }}><Divider /></Grid> */}
-                        <Grid size={{ xs: 12 }}/>
-                        <Grid size={{ xs: 6, sm: 2 }}>
-                            <TextField label="Total Carbs (g)" id="total_carbs_g" value={calc(formData.nutrition.total_carbs_g)} {...ro} />
-                        </Grid>
-                        <Grid size={{ xs: 6, sm: 2 }}>
-                            <TextField label="Fiber (g)" id="fiber_g" value={calc(formData.nutrition.fiber_g)} {...ro} />
-                        </Grid>
-                        <Grid size={{ xs: 6, sm: 2 }}>
-                            <TextField label="Total Sugar (g)" id="total_sugar_g" value={calc(formData.nutrition.total_sugar_g)} {...ro} />
-                        </Grid>
-                        <Grid size={{ xs: 6, sm: 2 }}>
-                            <TextField label="Added Sugar (g)" id="added_sugar_g" value={calc(formData.nutrition.added_sugar_g)} {...ro} />
-                        </Grid>
-                        <Grid size={{ xs: 6, sm: 2 }}>
-                            <TextField label="Protein (g)" id="protein_g" value={calc(formData.nutrition.protein_g)} {...ro} />
-                        </Grid>
-
-                        {/* Vitamins/minerals row */}
-                        {/* <Grid size={{ xs: 12 }}><Divider /></Grid> */}
-                        <Grid size={{ xs: 12 }}/>
-                        <Grid size={{ xs: 6, sm: 2 }}>
-                            <TextField label="Vitamin D (mcg)" id="vitamin_d_mcg" value={calc(formData.nutrition.vitamin_d_mcg)} {...ro} />
-                        </Grid>
-                        <Grid size={{ xs: 6, sm: 2 }}>
-                            <TextField label="Calcium (mg)" id="calcium_mg" value={calc(formData.nutrition.calcium_mg)} {...ro} />
-                        </Grid>
-                        <Grid size={{ xs: 6, sm: 2 }}>
-                            <TextField label="Iron (mg)" id="iron_mg" value={calc(formData.nutrition.iron_mg, 1)} {...ro} />
-                        </Grid>
-                        <Grid size={{ xs: 6, sm: 2 }}>
-                            <TextField label="Potassium (mg)" id="potassium_mg" value={calc(formData.nutrition.potassium_mg)} {...ro} />
-                        </Grid>
-                    </Grid>
-
-                    {/* ── Ingredient Shuttle ── */}
-                    <Divider sx={{ mb: 2 }} />
-                    <Box
-                        sx={{
-                            display: 'flex',
-                            gap: 2,
-                            alignItems: { xs: 'stretch', md: 'flex-start' },
-                            flexDirection: { xs: 'column', md: 'row' },
-                        }}
-                    >
-
-                        {/* Left: Ingredients list (the recipe) */}
-                        <Box sx={{ flex: 1, minWidth: 0, width: { xs: '100%', md: 'auto' } }}>
-                            <Box sx={{ display: 'flex', alignItems: 'center', minHeight: 40, mb: 1 }}>
-                                <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>Selected Ingredients</Typography>
-                            </Box>
-                            <Box sx={{ mt:5, height: 330, overflowY: 'auto', border: '1px solid', borderColor: 'divider', borderRadius: 2 }}>
-                                <IngredientsTable
-                                    data={[...ingredients].sort((a,b) => a.ordinal - b.ordinal)}
-                                    setSelectedRowId={handleIngredientRowSelect}
-                                    selectedRowId={selectedIngredientRowId} />
-                            </Box>
-                        </Box>
-
-                        {/* Center: Action buttons */}
-                        <Box
-                            sx={{
-                                display: 'flex',
-                                flexDirection: 'column',
-                                alignItems: 'center',
-                                gap: 1,
-                                pt: { xs: 1, md: 4 },
-                                minWidth: { xs: '100%', md: 120 },
-                                width: { xs: '100%', md: 'clamp(120px, 14vw, 210px)' },
-                            }}
-                        >
-                            {/* Servings input */}
-                            <Tooltip title="Number of servings of the selected Food or Recipe to add" placement={actionTooltipPlacement} arrow>
+                        {/* Left: Serving Size + NutritionLabel (hidden on narrow) */}
+                        {!isNarrow && (
+                            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, width: 280, flexShrink: 0 }}>
+                                <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                                    Nutrition <Typography component="span" variant="body2" color="text.secondary">(per serving)</Typography>
+                                </Typography>
                                 <TextField
-                                    label="Servings"
-                                    id="ingredientServingsInput"
-                                    type="number"
-                                    value={ingredientServings}
-                                    onChange={(e) => setIngredientServings(Number(e.target.value))}
-                                    inputProps={{ min: 0, step: 'any' }}
+                                    label="Serving Size"
+                                    id="serving_size_description"
+                                    value={formData.nutrition.serving_size_description}
+                                    onChange={(e) => setFormData(prev => ({ ...prev, nutrition: { ...prev.nutrition, serving_size_description: e.target.value } }))}
+                                    inputProps={{ maxLength: 100 }}
                                     size="small"
-                                    sx={{ width: '100%', mb: 1 }}
-                                    slotProps={{
-                                        input: {
-                                            endAdornment: (
-                                                <InputAdornment position="end">
-                                                    <Stack spacing={0} sx={{ ml: 0.25 }}>
-                                                        <IconButton
-                                                            size="small"
-                                                            aria-label="Increase servings"
-                                                            onClick={incrementIngredientServings}
-                                                            sx={{ p: 0.25 }}
-                                                        >
-                                                            <KeyboardArrowUpIcon fontSize="small" />
-                                                        </IconButton>
-                                                        <IconButton
-                                                            size="small"
-                                                            aria-label="Decrease servings"
-                                                            onClick={decrementIngredientServings}
-                                                            sx={{ p: 0.25 }}
-                                                        >
-                                                            <KeyboardArrowDownIcon fontSize="small" />
-                                                        </IconButton>
-                                                    </Stack>
-                                                </InputAdornment>
-                                            ),
-                                        },
+                                    fullWidth
+                                />
+                                <TextField
+                                    label="Price ($/serving)"
+                                    value={pricePerServing}
+                                    size="small"
+                                    fullWidth
+                                    slotProps={{ input: { readOnly: true } }}
+                                    sx={{
+                                        '& .MuiInputBase-input': { color: 'text.secondary' },
+                                        '& .MuiInputBase-root': { backgroundColor: 'grey.100' },
                                     }}
                                 />
-                            </Tooltip>
-
-                            <Divider flexItem sx={{ width: '100%', my: 0.5 }} />
-
-                            <Box
-                                sx={{
-                                    display: 'flex',
-                                    flexDirection: { xs: 'row', md: 'column' },
-                                    gap: 1,
-                                    width: '100%',
-                                    flexWrap: { xs: 'wrap', md: 'nowrap' },
-                                }}
-                            >
-
-                            {/* Add */}
-                            <Tooltip title="Add the selected Food or Recipe to the ingredient list" placement={actionTooltipPlacement} arrow>
-                                <span style={{ width: '100%', flex: 1 }}>
-                                    <Button
-                                        variant="contained"
-                                        fullWidth
-                                        disabled={noFoodOrRecipeSelected || noServingsForAdd}
-                                        onClick={addIngredient}
-                                        sx={{ bgcolor: 'success.main', '&:hover': { bgcolor: 'success.dark' }, '&.Mui-disabled': { bgcolor: 'action.disabledBackground' } }}
-                                    >
-                                        ← Add
-                                    </Button>
-                                </span>
-                            </Tooltip>
-
-                            {/* Update */}
-                            <Tooltip title="Update the servings for the selected ingredient" placement={actionTooltipPlacement} arrow>
-                                <span style={{ width: '100%', flex: 1 }}>
-                                    <Button
-                                        variant="contained"
-                                        fullWidth
-                                        disabled={noIngredientSelected || invalidServingsForUpdate}
-                                        onClick={updateIngredient}
-                                        sx={{ bgcolor: 'warning.main', '&:hover': { bgcolor: 'warning.dark' }, '&.Mui-disabled': { bgcolor: 'action.disabledBackground' }, color: 'warning.contrastText' }}
-                                    >
-                                        Update
-                                    </Button>
-                                </span>
-                            </Tooltip>
-
-                            {/* Remove */}
-                            <Tooltip title="Remove the selected ingredient from the recipe" placement={actionTooltipPlacement} arrow>
-                                <span style={{ width: '100%', flex: 1 }}>
-                                    <Button
-                                        variant="contained"
-                                        fullWidth
-                                        disabled={noIngredientSelected}
-                                        onClick={removeIngredient}
-                                        sx={{ bgcolor: 'error.main', '&:hover': { bgcolor: 'error.dark' }, '&.Mui-disabled': { bgcolor: 'action.disabledBackground' } }}
-                                    >
-                                        Remove →
-                                    </Button>
-                                </span>
-                            </Tooltip>
-
-                            <Divider flexItem sx={{ width: '100%', my: 0.5 }} />
-
-                            {/* Move Up */}
-                            <Tooltip title="Move the selected ingredient up in the list" placement={actionTooltipPlacement} arrow>
-                                <span style={{ width: '100%', flex: 1 }}>
-                                    <Button
-                                        variant="outlined"
-                                        fullWidth
-                                        disabled={noIngredientSelected}
-                                        onClick={moveIngredientUp}
-                                        color="primary"
-                                    >
-                                        ▲ Up
-                                    </Button>
-                                </span>
-                            </Tooltip>
-
-                            {/* Move Down */}
-                            <Tooltip title="Move the selected ingredient down in the list" placement={actionTooltipPlacement} arrow>
-                                <span style={{ width: '100%', flex: 1 }}>
-                                    <Button
-                                        variant="outlined"
-                                        fullWidth
-                                        disabled={noIngredientSelected}
-                                        onClick={moveIngredientDown}
-                                        color="primary"
-                                    >
-                                        ▼ Down
-                                    </Button>
-                                </span>
-                            </Tooltip>
+                                <NutritionLabel nutrition={perServingNutrition} />
                             </Box>
-                        </Box>
+                        )}
 
-                        {/* Right: Foods or Recipes to pick from */}
-                        <Box sx={{ flex: 1, minWidth: 0, width: { xs: '100%', md: 'auto' } }}>
-                            <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                                <Typography variant="subtitle2" sx={{ fontWeight: 600, flex: 1 }}>
-                                    {selectedIngredientList === IngredientTypes.FOOD_INGREDIENTS ? 'Available Ingredients' : 'Available Ingredients'}
-                                </Typography>
-                                <Box sx={{ display: 'flex', alignItems: 'center', ml: 1 }}>
+                        {/* Right: Stacked ingredient shuttle (always stacked) */}
+                        <Box sx={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2 }}>
+
+                            {/* Serving size on narrow viewports only */}
+                            {isNarrow && (
+                                <TextField
+                                    label="Serving Size"
+                                    id="serving_size_description_narrow"
+                                    value={formData.nutrition.serving_size_description}
+                                    onChange={(e) => setFormData(prev => ({ ...prev, nutrition: { ...prev.nutrition, serving_size_description: e.target.value } }))}
+                                    inputProps={{ maxLength: 100 }}
+                                    size="small"
+                                    fullWidth
+                                />
+                            )}
+
+                            {/* Selected Ingredients */}
+                            <Box>
+                                <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1 }}>Selected Ingredients</Typography>
+                                <Box sx={{ height: 280, overflowY: 'auto', border: '1px solid', borderColor: 'divider', borderRadius: 2 }}>
+                                    <IngredientsTable
+                                        data={[...ingredients].sort((a,b) => a.ordinal - b.ordinal)}
+                                        setSelectedRowId={handleIngredientRowSelect}
+                                        selectedRowId={selectedIngredientRowId} />
+                                </Box>
+                            </Box>
+
+                            {/* Action bar */}
+                            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, alignItems: 'center' }}>
+                                {/* Servings input */}
+                                <Tooltip title="Number of servings of the selected Food or Recipe to add" placement="top" arrow>
+                                    <TextField
+                                        label="Servings"
+                                        id="ingredientServingsInput"
+                                        type="number"
+                                        value={ingredientServings}
+                                        onChange={(e) => setIngredientServings(Number(e.target.value))}
+                                        inputProps={{ min: 0, step: 'any' }}
+                                        size="small"
+                                        sx={{ width: 120 }}
+                                        slotProps={{
+                                            input: {
+                                                endAdornment: (
+                                                    <InputAdornment position="end">
+                                                        <Stack spacing={0} sx={{ ml: 0.25 }}>
+                                                            <IconButton
+                                                                size="small"
+                                                                aria-label="Increase servings"
+                                                                onClick={incrementIngredientServings}
+                                                                sx={{ p: 0.25 }}
+                                                            >
+                                                                <KeyboardArrowUpIcon fontSize="small" />
+                                                            </IconButton>
+                                                            <IconButton
+                                                                size="small"
+                                                                aria-label="Decrease servings"
+                                                                onClick={decrementIngredientServings}
+                                                                sx={{ p: 0.25 }}
+                                                            >
+                                                                <KeyboardArrowDownIcon fontSize="small" />
+                                                            </IconButton>
+                                                        </Stack>
+                                                    </InputAdornment>
+                                                ),
+                                            },
+                                        }}
+                                    />
+                                </Tooltip>
+
+                                <Divider orientation="vertical" flexItem />
+
+                                {/* Add */}
+                                <Tooltip title="Add the selected Food or Recipe to the ingredient list" placement="top" arrow>
+                                    <span>
+                                        <Button
+                                            variant="contained"
+                                            size="small"
+                                            disabled={noFoodOrRecipeSelected || noServingsForAdd}
+                                            onClick={addIngredient}
+                                            sx={{ bgcolor: 'success.main', '&:hover': { bgcolor: 'success.dark' }, '&.Mui-disabled': { bgcolor: 'action.disabledBackground' } }}
+                                        >
+                                            Add
+                                        </Button>
+                                    </span>
+                                </Tooltip>
+
+                                {/* Update */}
+                                <Tooltip title="Update the servings for the selected ingredient" placement="top" arrow>
+                                    <span>
+                                        <Button
+                                            variant="contained"
+                                            size="small"
+                                            disabled={noIngredientSelected || invalidServingsForUpdate}
+                                            onClick={updateIngredient}
+                                            sx={{ bgcolor: 'warning.main', '&:hover': { bgcolor: 'warning.dark' }, '&.Mui-disabled': { bgcolor: 'action.disabledBackground' }, color: 'warning.contrastText' }}
+                                        >
+                                            Update
+                                        </Button>
+                                    </span>
+                                </Tooltip>
+
+                                {/* Remove */}
+                                <Tooltip title="Remove the selected ingredient from the recipe" placement="top" arrow>
+                                    <span>
+                                        <Button
+                                            variant="contained"
+                                            size="small"
+                                            disabled={noIngredientSelected}
+                                            onClick={removeIngredient}
+                                            sx={{ bgcolor: 'error.main', '&:hover': { bgcolor: 'error.dark' }, '&.Mui-disabled': { bgcolor: 'action.disabledBackground' } }}
+                                        >
+                                            Remove
+                                        </Button>
+                                    </span>
+                                </Tooltip>
+
+                                <Divider orientation="vertical" flexItem />
+
+                                {/* Move Up */}
+                                <Tooltip title="Move the selected ingredient up in the list" placement="top" arrow>
+                                    <span>
+                                        <Button
+                                            variant="outlined"
+                                            size="small"
+                                            disabled={noIngredientSelected}
+                                            onClick={moveIngredientUp}
+                                            color="primary"
+                                        >
+                                            ▲ Up
+                                        </Button>
+                                    </span>
+                                </Tooltip>
+
+                                {/* Move Down */}
+                                <Tooltip title="Move the selected ingredient down in the list" placement="top" arrow>
+                                    <span>
+                                        <Button
+                                            variant="outlined"
+                                            size="small"
+                                            disabled={noIngredientSelected}
+                                            onClick={moveIngredientDown}
+                                            color="primary"
+                                        >
+                                            ▼ Down
+                                        </Button>
+                                    </span>
+                                </Tooltip>
+                            </Box>
+
+                            {/* Available Ingredients */}
+                            <Box>
+                                <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                                    <Typography variant="subtitle2" sx={{ fontWeight: 600, flex: 1 }}>Available Ingredients</Typography>
+                                    <Box sx={{ display: 'flex', alignItems: 'center', ml: 1 }}>
                                         <Typography variant="caption">Foods</Typography>
                                         <Switch
                                             size="small"
@@ -768,18 +742,19 @@ function RecipeForm() {
                                         />
                                         <Typography variant="caption">Recipes</Typography>
                                     </Box>
+                                </Box>
+                                {selectedIngredientList === IngredientTypes.FOOD_INGREDIENTS ? (
+                                    <FoodPickerTable
+                                        setSelectedRowId={handleFoodOrRecipeRowSelect}
+                                        selectedRowId={selectedFoodOrRecipeRowId} />
+                                ) : (
+                                    <RecipePickerTable
+                                        setSelectedRowId={handleFoodOrRecipeRowSelect}
+                                        selectedRowId={selectedFoodOrRecipeRowId}
+                                        excludeRecipeId={formData.id}
+                                    />
+                                )}
                             </Box>
-                            {selectedIngredientList === IngredientTypes.FOOD_INGREDIENTS ? (
-                                <FoodPickerTable
-                                    setSelectedRowId={handleFoodOrRecipeRowSelect} 
-                                    selectedRowId={selectedFoodOrRecipeRowId} />
-                            ) : (
-                                <RecipePickerTable
-                                    setSelectedRowId={handleFoodOrRecipeRowSelect}
-                                    selectedRowId={selectedFoodOrRecipeRowId}
-                                    excludeRecipeId={formData.id}
-                                />
-                            )}
                         </Box>
                     </Box>
 

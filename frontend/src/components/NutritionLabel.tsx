@@ -33,6 +33,7 @@ export const NutritionLabel: React.FC<{ nutrition: INutrition | null }> = ({ nut
     <Box
       sx={{
         width: 280,
+        boxSizing: "border-box",
         bgcolor: "#fff",
         color: "#222",
         border: "2px solid #222",
