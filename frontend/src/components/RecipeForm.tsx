@@ -385,29 +385,27 @@ function RecipeForm() {
         setIngredientServings(prev => Math.max(0, prev - 1));
     };
 
-    const totalRecipePrice = useMemo(() => {
-        return ingredients.reduce((total, ingredient) => {
-            if (ingredient.food_ingredient_id) {
-                const food = foods.find((item: IFood) => item.id === ingredient.food_ingredient_id);
-                if (!food || food.servings <= 0) {
-                    return total;
-                }
-
-                return total + (food.price / food.servings) * ingredient.servings;
+    const totalRecipePrice = ingredients.reduce((total, ingredient) => {
+        if (ingredient.food_ingredient_id) {
+            const food = foods.find((item: IFood) => item.id === ingredient.food_ingredient_id);
+            if (!food || food.servings <= 0) {
+                return total;
             }
 
-            if (ingredient.recipe_ingredient_id) {
-                const recipeIngredient = recipes.find((item: IRecipe) => item.id === ingredient.recipe_ingredient_id);
-                if (!recipeIngredient || recipeIngredient.servings <= 0) {
-                    return total;
-                }
+            return total + (food.price / food.servings) * ingredient.servings;
+        }
 
-                return total + (recipeIngredient.price / recipeIngredient.servings) * ingredient.servings;
+        if (ingredient.recipe_ingredient_id) {
+            const recipeIngredient = recipes.find((item: IRecipe) => item.id === ingredient.recipe_ingredient_id);
+            if (!recipeIngredient || recipeIngredient.servings <= 0) {
+                return total;
             }
 
-            return total;
-        }, 0);
-    }, [ingredients, foods, recipes]);
+            return total + (recipeIngredient.price / recipeIngredient.servings) * ingredient.servings;
+        }
+
+        return total;
+    }, 0);
 
     const pricePerServing = useMemo(() => {
         if (formData.servings <= 0) {
@@ -543,41 +541,11 @@ function RecipeForm() {
                     </Grid>
 
 
-                    {/* ── Main Content: NutritionLabel (wide) + Stacked Ingredient Shuttle ── */}
+                    {/* ── Main Content: Stacked Ingredient Shuttle + NutritionLabel (wide) ── */}
                     <Divider sx={{ mb: 2 }} />
                     <Box sx={{ display: 'flex', gap: 3, alignItems: 'flex-start' }}>
 
-                        {/* Left: Serving Size + NutritionLabel (hidden on narrow) */}
-                        {!isNarrow && (
-                            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, width: 280, flexShrink: 0 }}>
-                                <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
-                                    Nutrition <Typography component="span" variant="body2" color="text.secondary">(per serving)</Typography>
-                                </Typography>
-                                <TextField
-                                    label="Serving Size"
-                                    id="serving_size_description"
-                                    value={formData.nutrition.serving_size_description}
-                                    onChange={(e) => setFormData(prev => ({ ...prev, nutrition: { ...prev.nutrition, serving_size_description: e.target.value } }))}
-                                    inputProps={{ maxLength: 100 }}
-                                    size="small"
-                                    fullWidth
-                                />
-                                <TextField
-                                    label="Price ($/serving)"
-                                    value={pricePerServing}
-                                    size="small"
-                                    fullWidth
-                                    slotProps={{ input: { readOnly: true } }}
-                                    sx={{
-                                        '& .MuiInputBase-input': { color: 'text.secondary' },
-                                        '& .MuiInputBase-root': { backgroundColor: 'grey.100' },
-                                    }}
-                                />
-                                <NutritionLabel nutrition={perServingNutrition} />
-                            </Box>
-                        )}
-
-                        {/* Right: Stacked ingredient shuttle (always stacked) */}
+                        {/* Left: Stacked ingredient shuttle (always stacked) */}
                         <Box sx={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2 }}>
 
                             {/* Serving size on narrow viewports only */}
@@ -756,6 +724,36 @@ function RecipeForm() {
                                 )}
                             </Box>
                         </Box>
+
+                        {/* Right: Serving Size + NutritionLabel (hidden on narrow) */}
+                        {!isNarrow && (
+                            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, width: 280, flexShrink: 0 }}>
+                                <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                                    Nutrition <Typography component="span" variant="body2" color="text.secondary">(per serving)</Typography>
+                                </Typography>
+                                <TextField
+                                    label="Serving Size"
+                                    id="serving_size_description"
+                                    value={formData.nutrition.serving_size_description}
+                                    onChange={(e) => setFormData(prev => ({ ...prev, nutrition: { ...prev.nutrition, serving_size_description: e.target.value } }))}
+                                    inputProps={{ maxLength: 100 }}
+                                    size="small"
+                                    fullWidth
+                                />
+                                <TextField
+                                    label="Price ($/serving)"
+                                    value={pricePerServing}
+                                    size="small"
+                                    fullWidth
+                                    slotProps={{ input: { readOnly: true } }}
+                                    sx={{
+                                        '& .MuiInputBase-input': { color: 'text.secondary' },
+                                        '& .MuiInputBase-root': { backgroundColor: 'grey.100' },
+                                    }}
+                                />
+                                <NutritionLabel nutrition={perServingNutrition} />
+                            </Box>
+                        )}
                     </Box>
 
                     {/* ── Save / Cancel ── */}
