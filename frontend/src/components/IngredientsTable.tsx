@@ -11,7 +11,6 @@ import Paper from '@mui/material/Paper';
 import Box from '@mui/material/Box';
 
 
-
 const columnHelper = createColumnHelper<IIngredient>();
 const columns = [
     columnHelper.accessor("ordinal", {
@@ -67,6 +66,25 @@ const IngredientsTable: React.FC<IngredientsTableProps> = ({ data, setSelectedRo
             setRowId(tuple);
         }
     };
+
+    if (data.length === 0) {
+        return (
+            <Paper sx={{ borderRadius: 2, boxShadow: 2 }}>
+                <Box
+                    sx={theme => ({
+                        textAlign: 'center',
+                        px: 2,
+                        py: 1.5,
+                        fontSize: 20,
+                        fontWeight: 'fontWeightBold',
+                        color: theme.palette.text.secondary,
+                    })}
+                >
+                    No ingredients in this recipe yet.
+                </Box>
+            </Paper>
+        );
+    }
 
     return (
         <TableContainer component={Paper} sx={{ overflowX: 'auto', borderRadius: 2, boxShadow: 2 }}>
