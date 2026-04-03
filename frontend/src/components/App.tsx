@@ -133,6 +133,11 @@ function App() {
                     Recipes
                 </Button>
             )}
+            {isAuthenticated && (
+                <Button component={RouterLink} to="/dailylog" color="primary" sx={buttonSx}>
+                    Daily Log
+                </Button>
+            )}            
             <Button
                 color="primary"
                 onClick={handleAboutOpen}

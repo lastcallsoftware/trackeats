@@ -416,9 +416,8 @@ class Nutrition(db.Model):
     iron_mg: Mapped[float | None] = mapped_column(db.Float, nullable=True)
     potassium_mg: Mapped[int | None] = mapped_column(db.Integer, nullable=True)
 
-    def __init__(self, user_id: int, data: dict[str,Any]|None = None):
-        if data is not None:
-            self.from_dict(user_id, data)
+    def __init__(self, user_id: int, data: dict[str,Any] = {}):
+        self.from_dict(user_id, data)
 
     def from_dict(self, user_id: int, data: dict[str,Any]):
         if data.get("id"):
@@ -1475,8 +1474,7 @@ class DailyLogItem(db.Model):
             # Build the nutrition snapshot.
             # modifier converts recipe total nutrition -> per-serving nutrition;
             # multiplying by servings consumed then gives the consumed total.
-            snapshot = Nutrition(user_id)
-            snapshot.serving_size_description = recipe_nutrition_dao.serving_size_description
+            snapshot = Nutrition(user_id, {"serving_size_description": recipe_nutrition_dao.serving_size_description})
             modifier = (1.0 / recipe_dao.servings) if recipe_dao.servings else 0
             snapshot.sum(recipe_nutrition_dao, servings, modifier)
             db.session.add(snapshot)

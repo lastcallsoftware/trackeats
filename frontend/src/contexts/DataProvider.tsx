@@ -114,11 +114,24 @@ export type IRecipe = {
     price_per_calorie: number
 }
 
+export type IDailyLogItem = {
+    id?: number
+    user_id?: number
+    date: string           // ISO date string, e.g. "2026-04-02"
+    recipe_id: number
+    servings: number
+    ordinal: number
+    notes?: string
+    nutrition_id?: number
+    nutrition?: INutrition
+}
+
 export type DataContextType = {
     preferences: Record<string, Record<string, unknown>>;
     foods: IFood[];
     recipes: IRecipe[];
     ingredients: IIngredient[];
+    dailyLogItems: IDailyLogItem[];
     isLoading: boolean;
     setErrorMessage: (msg: string) => void;
     getPreferences: (context: string) => Promise<void>;
@@ -132,6 +145,10 @@ export type DataContextType = {
     getIngredients: (recipe_id: number) => Promise<void>;
     addIngredients: (recipe_id: number, ingredients: IIngredient[]) => Promise<void>;
     removeIngredients: (recipe_id: number) => Promise<void>;
+    getDailyLogItems: (start: string, end: string) => Promise<void>;
+    addDailyLogItem: (item: IDailyLogItem) => Promise<void>;
+    updateDailyLogItem: (item: IDailyLogItem) => Promise<void>;
+    deleteDailyLogItem: (id: number) => Promise<void>;
 }
 
 export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) => {
@@ -139,12 +156,12 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
     const [foods, setFoods] = useState<IFood[]>([])
     const [recipes, setRecipes] = useState<IRecipe[]>([])
     const [ingredients, setIngredients] = useState<IIngredient[]>([])
+    const [dailyLogItems, setDailyLogItems] = useState<IDailyLogItem[]>([])
     const [accessToken, setAccessToken] = useState<string>(getStoredAccessToken)
     const { showSnackbar } = useSnackbar();
     const setErrorMessage = useCallback((message: string) => {
         showSnackbar(message, "error")
     }, [showSnackbar]);
-
 
     // Store navigate in a ref so it never triggers re-renders or stale
     // dependency issues in useCallback/useEffect.
@@ -156,6 +173,7 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
         setFoods([])
         setRecipes([])
         setIngredients([])
+        setDailyLogItems([])
         setPreferences({})
     }
 
@@ -186,6 +204,7 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
                 setFoods([])
                 setRecipes([])
                 setIngredients([])
+                setDailyLogItems([])
                 setPreferences({})
             }
         }
@@ -390,12 +409,72 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
         }
     }
 
+    // Get DailyLogItems for a date range.
+    // Unlike foods and recipes, daily log items are fetched on demand rather
+    // than at login, because the dataset grows unboundedly over time and the
+    // page only ever needs a narrow window (a day, week, or month).
+    const getDailyLogItems = async (start: string, end: string): Promise<void> => {
+        try {
+            const response = await axios.get<IDailyLogItem[]>(
+                `/api/dailylogitem?start=${start}&end=${end}`,
+                { headers: { "Authorization": "Bearer " + accessToken } }
+            )
+            setDailyLogItems(response.data)
+        } catch (error) {
+            handleError(error)
+        }
+    }
+
+    // Add DailyLogItem
+    const addDailyLogItem = async (item: IDailyLogItem): Promise<void> => {
+        try {
+            const response = await axios.post<IDailyLogItem>(
+                "/api/dailylogitem",
+                item,
+                { headers: { "Authorization": "Bearer " + accessToken } }
+            )
+            const newItem = response.data
+            setDailyLogItems(prev => [...prev, newItem])
+        } catch (error) {
+            handleError(error)
+        }
+    }
+
+    // Update DailyLogItem (servings and/or notes)
+    const updateDailyLogItem = async (item: IDailyLogItem): Promise<void> => {
+        try {
+            const response = await axios.put<IDailyLogItem>(
+                `/api/dailylogitem/${item.id}`,
+                { servings: item.servings, notes: item.notes },
+                { headers: { "Authorization": "Bearer " + accessToken } }
+            )
+            const updatedItem = response.data
+            setDailyLogItems(prev => prev.map(i => i.id === updatedItem.id ? updatedItem : i))
+        } catch (error) {
+            handleError(error)
+        }
+    }
+
+    // Delete DailyLogItem
+    const deleteDailyLogItem = async (id: number): Promise<void> => {
+        try {
+            await axios.delete<void>(
+                `/api/dailylogitem/${id}`,
+                { headers: { "Authorization": "Bearer " + accessToken } }
+            )
+            setDailyLogItems(prev => prev.filter(i => i.id !== id))
+        } catch (error) {
+            handleError(error)
+        }
+    }
+
     return (
         <DataContext.Provider value={{ 
             preferences,
             foods, 
             recipes, 
             ingredients,
+            dailyLogItems,
             isLoading,
             setErrorMessage,
             getPreferences,
@@ -408,10 +487,13 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
             deleteRecipe,
             getIngredients,
             addIngredients,            
-            removeIngredients
+            removeIngredients,
+            getDailyLogItems,
+            addDailyLogItem,
+            updateDailyLogItem,
+            deleteDailyLogItem,
             }}> 
             {children}
         </DataContext.Provider>
     );
 }
-

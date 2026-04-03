@@ -866,7 +866,7 @@ def get_ingredients(recipe_id:int):
 ##############################
 # DAILY LOG ITEM
 ##############################
-@bp.route("/dailylogitem", methods = ["GET"])
+@bp.route("/api/dailylogitem", methods = ["GET"])
 @jwt_required()
 def get_daily_log_entries():
     """
@@ -913,7 +913,7 @@ def get_daily_log_entries():
         return jsonify(entries), 200
 
 
-@bp.route("/dailylogitem/<int:log_id>", methods = ["GET"])
+@bp.route("/api/dailylogitem/<int:log_id>", methods = ["GET"])
 @jwt_required()
 def get_daily_log_entry(log_id: int):
     """
@@ -937,7 +937,7 @@ def get_daily_log_entry(log_id: int):
         return jsonify(entry), 200
 
 
-@bp.route("/dailylogitem", methods = ["POST"])
+@bp.route("/api/dailylogitem", methods = ["POST"])
 @jwt_required()
 def add_daily_log_entry():
     """
@@ -966,6 +966,8 @@ def add_daily_log_entry():
             servings = float(data["servings"])
             notes = data.get("notes")
 
+            logging.debug(f"USERID {user_id}")
+
             new_log_dao = DailyLogItem.add(user_id, date, recipe_id, servings, notes)
             new_log_id = new_log_dao.id
             new_entry = new_log_dao.json()
@@ -981,7 +983,7 @@ def add_daily_log_entry():
         return resp
 
 
-@bp.route("/dailylogitem/<int:log_id>", methods = ["PUT"])
+@bp.route("/api/dailylogitem/<int:log_id>", methods = ["PUT"])
 @jwt_required()
 def update_daily_log_entry(log_id: int):
     """
@@ -1018,7 +1020,7 @@ def update_daily_log_entry(log_id: int):
         return jsonify(updated_entry), 200
 
 
-@bp.route("/dailylogitem/<int:log_id>", methods = ["DELETE"])
+@bp.route("/api/dailylogitem/<int:log_id>", methods = ["DELETE"])
 @jwt_required()
 def delete_daily_log_entry(log_id: int):
     """
