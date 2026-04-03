@@ -142,11 +142,12 @@ export type DataContextType = {
     addRecipe: (recipe: IRecipe, ingredients: IIngredient[]) => Promise<number|undefined>;
     updateRecipe: (recipe: IRecipe, ingredients: IIngredient[]) => Promise<void>;
     deleteRecipe: (recipe_id: number) => Promise<void>;
+    fetchIngredients: (recipe_id: number) => Promise<IIngredient[]>
     getIngredients: (recipe_id: number) => Promise<void>;
     addIngredients: (recipe_id: number, ingredients: IIngredient[]) => Promise<void>;
     removeIngredients: (recipe_id: number) => Promise<void>;
     getDailyLogItems: (start: string, end: string) => Promise<void>;
-    addDailyLogItem: (item: IDailyLogItem) => Promise<void>;
+    addDailyLogItem: (item: IDailyLogItem) => Promise<IDailyLogItem | null>;
     updateDailyLogItem: (item: IDailyLogItem) => Promise<void>;
     deleteDailyLogItem: (id: number) => Promise<void>;
 }
@@ -169,6 +170,7 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
 
     const removeToken = () => {
         sessionStorage.removeItem("access_token")
+        window.dispatchEvent(new Event(AUTH_CHANGED_EVENT))
         setAccessToken("")
         setFoods([])
         setRecipes([])
@@ -363,12 +365,15 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
         }
     }
 
-    // Get Ingredients
-    const getIngredients = async (recipe_id: number): Promise<void> => {
+    // Fetch Ingredients (get without updating the state)
+    const fetchIngredients = async (recipe_id: number): Promise<IIngredient[]> => {
         try {
-            const response = await axios.get<IIngredient[]>("/api/recipe/" + recipe_id + "/ingredient", {headers: { "Authorization": "Bearer " + accessToken}})
-            const ingredientsWithSummary: IIngredient[] = response.data.map((ing: IIngredient) => {
-                let food, recipe, nutrition;
+            const response = await axios.get<IIngredient[]>(`/api/recipe/${recipe_id}/ingredient`, {headers: { "Authorization": "Bearer " + accessToken}});
+            return response.data.map((ing: IIngredient) => {
+                let food: IFood | undefined;
+                let recipe: IRecipe | undefined;
+                let nutrition: INutrition | undefined;
+
                 if (ing.food_ingredient_id) {
                     food = foods.find(f => f.id === ing.food_ingredient_id);
                     nutrition = food?.nutrition;
@@ -384,10 +389,16 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
                     summary: generateIngredientSummary(nutrition, food, recipe, ing.servings)
                 };
             });
-            setIngredients(ingredientsWithSummary);
         } catch (error) {
             handleError(error);
+            return [];
         }
+    }
+
+    // Get Ingredients
+    const getIngredients = async (recipe_id: number): Promise<void> => {
+        const ingredients = await fetchIngredients(recipe_id);
+        setIngredients(ingredients);
     }
 
     // Add Ingredient(s)
@@ -426,7 +437,7 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
     }
 
     // Add DailyLogItem
-    const addDailyLogItem = async (item: IDailyLogItem): Promise<void> => {
+    const addDailyLogItem = async (item: IDailyLogItem): Promise<IDailyLogItem | null> => {
         try {
             const response = await axios.post<IDailyLogItem>(
                 "/api/dailylogitem",
@@ -435,8 +446,10 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
             )
             const newItem = response.data
             setDailyLogItems(prev => [...prev, newItem])
+            return newItem
         } catch (error) {
             handleError(error)
+            return null
         }
     }
 
@@ -485,6 +498,7 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
             addRecipe, 
             updateRecipe, 
             deleteRecipe,
+            fetchIngredients,
             getIngredients,
             addIngredients,            
             removeIngredients,
