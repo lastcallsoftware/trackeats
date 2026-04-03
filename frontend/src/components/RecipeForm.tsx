@@ -558,7 +558,7 @@ function RecipeForm() {
                             {/* Selected Ingredients */}
                             <Box>
                                 <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1 }}>Selected Ingredients</Typography>
-                                <Box sx={{ height: 280, overflowY: 'auto', border: '1px solid', borderColor: 'divider', borderRadius: 2 }}>
+                                <Box sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 2 }}>
                                     <IngredientsTable
                                         data={[...ingredients].sort((a,b) => a.ordinal - b.ordinal)}
                                         setSelectedRowId={handleIngredientRowSelect}
@@ -567,7 +567,7 @@ function RecipeForm() {
                             </Box>
 
                             {/* Action bar */}
-                            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, alignItems: 'center' }}>
+                            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, alignItems: 'center', mt: 2, justifyContent: 'center' }}>
                                 {/* Servings input */}
                                 <Tooltip title="Number of servings of the selected Food or Recipe to add" placement="top" arrow>
                                     <TextField
