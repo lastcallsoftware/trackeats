@@ -162,13 +162,32 @@ function DailyLogPage() {
     const [showAddForm, setShowAddForm] = useState(false);
     const [addForm, setAddForm] = useState<IDailyLogItem>(() => ({
         ...new DailyLogItem(),
-        date: toISODate(new Date()),
+        date: toISODate(anchorDate),
     }));
 
     const handleAdd = async () => {
-        await addDailyLogItem(addForm);
+        const newItem = await addDailyLogItem(addForm);
+        if (!newItem) return;
+
+        setAnchorDate(new Date(`${newItem.date}T00:00:00`));
+        setSelectedDateKey(newItem.date);
+        setSelectedItemId(newItem.id ?? null);
         setShowAddForm(false);
-        setAddForm({ ...new DailyLogItem(), date: toISODate(new Date()) });
+        setAddForm({ ...new DailyLogItem(), date: toISODate(anchorDate) });
+    };
+
+    const toggleAddForm = () => {
+        if (showAddForm) {
+            setShowAddForm(false);
+            return;
+        }
+
+        setAddForm(prev => ({
+            ...prev,
+            date: selectedDateKey ?? toISODate(anchorDate),
+        }));
+        setShowAddForm(true);
+        setShowEditForm(false);
     };
 
     // -- Edit form -- (item selection only)
@@ -279,7 +298,7 @@ function DailyLogPage() {
                         variant="contained"
                         color="success"
                         startIcon={<MdAddCircleOutline />}
-                        onClick={() => { setShowAddForm(v => !v); setShowEditForm(false); }}
+                        onClick={toggleAddForm}
                     >
                         Add
                     </Button>
