@@ -9,7 +9,6 @@ import IngredientsTable from "./IngredientsTable";
 import { NutritionLabel } from "./NutritionLabel";
 import FoodPickerTable from "./FoodPickerTable";
 import RecipePickerTable from "./RecipePickerTable";
-import axios from 'axios';
 import { generateIngredientSummary } from "../utils/generateIngredientSummary";
 import {
     Grid,
@@ -57,7 +56,7 @@ function RecipeForm() {
     const theme = useTheme();
     const isNarrow = useMediaQuery(theme.breakpoints.down('sm'));
     const [searchParams] = useSearchParams();
-    const { foods, recipes, addRecipe, updateRecipe, setErrorMessage } = useData();
+    const { foods, recipes, fetchIngredients, addRecipe, updateRecipe, setErrorMessage } = useData();
 
     const { id } = useParams();
     const isEditMode = Boolean(id)
@@ -333,39 +332,12 @@ function RecipeForm() {
     }
 
     useEffect(() => {
-        const tok = sessionStorage.getItem("access_token")
-        const access_token = tok ? JSON.parse(tok) : ""
-        const getIngredients = async () => {
-            if (formData.id) {
-                const response = await axios.get("/api/recipe/" + formData.id + "/ingredient", {headers: { "Authorization": "Bearer " + access_token}})
-                const ingredientsWithSummary: IIngredient[] = response.data.map((ingredient: IIngredient) => {
-                    let food: IFood | undefined;
-                    let recipe: IRecipe | undefined;
-                    let nutrition: INutrition | undefined;
-
-                    if (ingredient.food_ingredient_id) {
-                        food = foods.find((item: IFood) => item.id === ingredient.food_ingredient_id);
-                        nutrition = food?.nutrition;
-                    } else if (ingredient.recipe_ingredient_id) {
-                        recipe = recipes.find((item: IRecipe) => item.id === ingredient.recipe_ingredient_id);
-                        nutrition = recipe?.nutrition;
-                    }
-
-                    if (!nutrition) {
-                        return ingredient;
-                    }
-
-                    return {
-                        ...ingredient,
-                        summary: generateIngredientSummary(nutrition, food, recipe, ingredient.servings),
-                    };
-                });
-                setIngredients(ingredientsWithSummary);
-            }
+        if (formData.id) {
+            fetchIngredients(formData.id).then(setIngredients);
         }
-        getIngredients();
-    }, [formData.id, foods, recipes]);
+    }, [formData.id, fetchIngredients]);
 
+    
     const noIngredientSelected = selectedIngredientRowId == null;
     const noFoodOrRecipeSelected = selectedFoodOrRecipeRowId == null;
     const noServingsForAdd = ingredientServings <= 0;
