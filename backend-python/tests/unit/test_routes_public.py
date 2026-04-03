@@ -90,7 +90,7 @@ def test_register_success(client: FlaskClient, monkeypatch: pytest.MonkeyPatch) 
         "/api/register",
         json={
             "username": "newuser",
-            "password": "pw",
+            "password": "password12345",
             "email": "newuser@example.com",
             "seed_requested": False,
         },

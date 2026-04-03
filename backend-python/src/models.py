@@ -5,6 +5,7 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from email_validator import validate_email
 from crypto import Crypto
+from schemas import FoodRequest, RecipeRequest, IngredientRequest, DailyLogItemRequest, DailyLogItemUpdateRequest, NutritionRequest
 import enum
 import datetime
 import re
@@ -108,7 +109,7 @@ class User(db.Model):
     username: Mapped[str] = mapped_column(db.String(100), index=True, unique=True)
     status: Mapped[UserStatus] = mapped_column(db.Enum(UserStatus), nullable=False)
     email: Mapped[bytes | None] = mapped_column(db.LargeBinary, nullable=True)
-    created_at: Mapped[str] = mapped_column(db.DateTime, nullable=False)
+    created_at: Mapped[datetime.datetime] = mapped_column(db.DateTime, nullable=False)
     password_hash: Mapped[str] = mapped_column(db.String(64), nullable=False)
     confirmation_sent_at: Mapped[datetime.datetime | None] = mapped_column(db.DateTime, nullable=True)
     confirmation_token: Mapped[str | None] = mapped_column(db.String(64), nullable=True)
@@ -116,18 +117,29 @@ class User(db.Model):
     seed_version: Mapped[int | None] = mapped_column(db.Integer, nullable=True)
     seeded_at: Mapped[datetime.datetime | None] = mapped_column(db.DateTime, nullable=True)
 
-    def __init__(self, data: dict[str,Any]):
-        self.username = data["username"]
-        self.status = data["status"]
-        self.email = data.get("email")
-        self.created_at = data["created_at"]
-        self.password_hash = data["password_hash"]
-        self.confirmation_sent_at = data.get("confirmation_sent_at")
-        self.confirmation_token = data.get("confirmation_token")
-        self.seed_requested = data["seed_requested"]
-        self.seed_version = data.get("seed_version")
-        self.seeded_at = data.get("seeded_at")
-        return self
+    def __init__(
+        self,
+        username: str,
+        status: UserStatus,
+        email: bytes | None,
+        created_at: datetime.datetime,
+        password_hash: str,
+        confirmation_sent_at: datetime.datetime | None = None,
+        confirmation_token: str | None = None,
+        seed_requested: bool = False,
+        seed_version: int | None = None,
+        seeded_at: datetime.datetime | None = None,
+    ):
+        self.username = username
+        self.status = status
+        self.email = email
+        self.created_at = created_at
+        self.password_hash = password_hash
+        self.confirmation_sent_at = confirmation_sent_at
+        self.confirmation_token = confirmation_token
+        self.seed_requested = seed_requested
+        self.seed_version = seed_version
+        self.seeded_at = seeded_at
 
     def __str__(self):
         return (f"<User {self.id} "
@@ -266,18 +278,18 @@ class User(db.Model):
         # Store the user record in the database
         now = datetime.datetime.now()
         confirmation_sent_at = None
-        new_user_dao = User({
-            "username": username, 
-            "status": status, 
-            "email": encrypted_email_addr, 
-            "created_at": now, 
-            "password_hash": password_hash_str,
-            "confirmation_sent_at": confirmation_sent_at, 
-            "confirmation_token": confirmation_token,
-            "seed_requested": seed_requested,
-            "seed_version": seed_version,
-            "seeded_at": seeded_at
-            })
+        new_user_dao = User(
+            username=username,
+            status=status,
+            email=encrypted_email_addr,
+            created_at=now,
+            password_hash=password_hash_str,
+            confirmation_sent_at=confirmation_sent_at,
+            confirmation_token=confirmation_token,
+            seed_requested=seed_requested,
+            seed_version=seed_version,
+            seeded_at=seeded_at,
+        )
         db.session.add(new_user_dao)
 
         return new_user_dao
@@ -416,31 +428,30 @@ class Nutrition(db.Model):
     iron_mg: Mapped[float | None] = mapped_column(db.Float, nullable=True)
     potassium_mg: Mapped[int | None] = mapped_column(db.Integer, nullable=True)
 
-    def __init__(self, user_id: int, data: dict[str,Any] = {}):
-        self.from_dict(user_id, data)
+    def __init__(self, user_id: int, data: NutritionRequest | None = None):
+        if data is not None:
+            self.from_schema(user_id, data)
 
-    def from_dict(self, user_id: int, data: dict[str,Any]):
-        if data.get("id"):
-            self.id = data["id"]
+    def from_schema(self, user_id: int, data: NutritionRequest) -> None:
         self.user_id = user_id
-        self.serving_size_description = data["serving_size_description"]
-        self.serving_size_oz = data.get("serving_size_oz", 0)
-        self.serving_size_g = data.get("serving_size_g", 0)
-        self.calories = data.get("calories", 0)
-        self.total_fat_g = data.get("total_fat_g", 0)
-        self.saturated_fat_g = data.get("saturated_fat_g", 0)
-        self.trans_fat_g = data.get("trans_fat_g", 0)
-        self.cholesterol_mg = data.get("cholesterol_mg", 0)
-        self.sodium_mg = data.get("sodium_mg", 0)
-        self.total_carbs_g = data.get("total_carbs_g", 0)
-        self.fiber_g = data.get("fiber_g", 0)
-        self.total_sugar_g = data.get("total_sugar_g", 0)
-        self.added_sugar_g = data.get("added_sugar_g", 0)
-        self.protein_g = data.get("protein_g", 0)
-        self.vitamin_d_mcg = data.get("vitamin_d_mcg", 0)
-        self.calcium_mg = data.get("calcium_mg", 0)
-        self.iron_mg = data.get("iron_mg", 0)
-        self.potassium_mg = data.get("potassium_mg", 0)
+        self.serving_size_description = data.serving_size_description
+        self.serving_size_oz = data.serving_size_oz
+        self.serving_size_g = data.serving_size_g
+        self.calories = data.calories
+        self.total_fat_g = data.total_fat_g
+        self.saturated_fat_g = data.saturated_fat_g
+        self.trans_fat_g = data.trans_fat_g
+        self.cholesterol_mg = data.cholesterol_mg
+        self.sodium_mg = data.sodium_mg
+        self.total_carbs_g = data.total_carbs_g
+        self.fiber_g = data.fiber_g
+        self.total_sugar_g = data.total_sugar_g
+        self.added_sugar_g = data.added_sugar_g
+        self.protein_g = data.protein_g
+        self.vitamin_d_mcg = data.vitamin_d_mcg
+        self.calcium_mg = data.calcium_mg
+        self.iron_mg = data.iron_mg
+        self.potassium_mg = data.potassium_mg
 
     def __str__(self):
         return str(vars(self))
@@ -554,19 +565,40 @@ class Ingredient(db.Model):
     servings: Mapped[float] = mapped_column(db.Float, nullable=False, default=0)
     summary: Mapped[str | None] = mapped_column(db.String(100), nullable=True)
 
-    def __init__(self, user_id: int, data: dict[str,Any]):
-        self.from_dict(user_id, data)
-    
-    def from_dict(self, user_id: int, data: dict[str,Any]) -> None:
-        if data.get("id"):
-            self.id = data["id"]
+    def __init__(self, user_id: int, data: IngredientRequest):
+        self.from_schema(user_id, data)
+
+    def from_schema(self, user_id: int, ingredient_request: IngredientRequest) -> None:
+        """Load Ingredient attributes from an IngredientRequest Pydantic schema."""
+        if ingredient_request.id is not None:
+            self.id = ingredient_request.id
+        if ingredient_request.recipe_id is None:
+            raise ValueError("recipe_id is required for Ingredient")
+        if ingredient_request.ordinal is None:
+            raise ValueError("ordinal is required for Ingredient")
+
         self.user_id = user_id
-        self.recipe_id = data["recipe_id"]
-        self.food_ingredient_id = data.get("food_ingredient_id")
-        self.recipe_ingredient_id = data.get("recipe_ingredient_id")
-        self.ordinal = data["ordinal"]
-        self.servings = float(data["servings"])
-        self.summary = data.get("summary")
+        self.recipe_id = ingredient_request.recipe_id
+        self.food_ingredient_id = ingredient_request.food_ingredient_id
+        self.recipe_ingredient_id = ingredient_request.recipe_ingredient_id
+        self.ordinal = ingredient_request.ordinal
+        self.servings = ingredient_request.servings
+        self.summary = ingredient_request.summary
+
+    @staticmethod
+    def from_import_dict(data: dict[str, Any]) -> IngredientRequest:
+        """Convert import-file ingredient payload into a validated IngredientRequest."""
+        return IngredientRequest.model_validate(
+            {
+                "id": data.get("id"),
+                "recipe_id": data.get("recipe_id"),
+                "food_ingredient_id": data.get("food_ingredient_id"),
+                "recipe_ingredient_id": data.get("recipe_ingredient_id"),
+                "ordinal": data.get("ordinal"),
+                "servings": data.get("servings"),
+                "summary": data.get("summary"),
+            }
+        )
 
     def json(self) -> dict[str,Any]:
         return {
@@ -620,17 +652,22 @@ class Ingredient(db.Model):
 
 
     @staticmethod
-    def add(user_id: int, data: dict[str,Any], keylists: dict[str,dict[int,int]]) -> Ingredient:
-        """
-        Create a new Ingredient record
-        """
-        # Pull values from dictionary
-        recipe_id = data["recipe_id"]
-        food_ingredient_id = data.get("food_ingredient_id")
-        recipe_ingredient_id = data.get("recipe_ingredient_id")
-        servings = float(data["servings"])
-        summary = str(data.get("summary"))
-        ordinal = data.get("ordinal")
+    def add_from_schema(
+        user_id: int,
+        ingredient_request: IngredientRequest,
+        keylists: dict[str,dict[int,int]] | None = None,
+        recipe_id_override: int | None = None,
+    ) -> Ingredient:
+        """Create a new Ingredient record from a validated IngredientRequest schema."""
+        recipe_id = recipe_id_override if recipe_id_override is not None else ingredient_request.recipe_id
+        food_ingredient_id = ingredient_request.food_ingredient_id
+        recipe_ingredient_id = ingredient_request.recipe_ingredient_id
+        servings = ingredient_request.servings
+        summary = ingredient_request.summary
+        ordinal = ingredient_request.ordinal
+
+        if recipe_id is None:
+            raise ValueError("recipe_id is required")
 
         try:
             # If we have keylists, remap the keys
@@ -644,7 +681,12 @@ class Ingredient(db.Model):
                     recipe_ingredient_id = recipe_keys[recipe_ingredient_id]
 
             # Check whether a matching Ingredient record already exists
-            ingredient_dao = db.session.scalar(db.select(Ingredient).where(Ingredient.recipe_id == recipe_id).where(Ingredient.food_ingredient_id == food_ingredient_id).where(Ingredient.recipe_ingredient_id == recipe_ingredient_id))
+            ingredient_dao = db.session.scalar(
+                db.select(Ingredient)
+                .where(Ingredient.recipe_id == recipe_id)
+                .where(Ingredient.food_ingredient_id == food_ingredient_id)
+                .where(Ingredient.recipe_ingredient_id == recipe_ingredient_id)
+            )
             if ingredient_dao:
                 raise ValueError(f"Ingredient record {recipe_id}/{food_ingredient_id}/{recipe_ingredient_id} already exists")
 
@@ -656,22 +698,19 @@ class Ingredient(db.Model):
             if not recipe_nutrition_dao:
                 raise ValueError(f"Nutrition record {recipe_id}/{recipe_dao.nutrition_id} not found")
 
-            # Generate a summary for this Ingredient if one wasn't provided.
-            # Also, sum the Nutrition data from the new Ingredient into the Recipe.
-            # Food Ingredient
+            # Generate a summary and sum ingredient nutrition into recipe nutrition
             if food_ingredient_id:
                 food_ingredient_dao = Food.get(user_id, food_ingredient_id)
-                
-                ingredient_nutririon_dao = db.session.get(Nutrition, food_ingredient_dao.nutrition_id)
-                if not ingredient_nutririon_dao:
+
+                ingredient_nutrition_dao = db.session.get(Nutrition, food_ingredient_dao.nutrition_id)
+                if not ingredient_nutrition_dao:
                     raise ValueError(f"Ingredient record {food_ingredient_id}/{food_ingredient_dao.nutrition_id} not found")
 
                 summary = Ingredient.generate_summary(food_ingredient_dao, servings)
-                recipe_nutrition_dao.sum(ingredient_nutririon_dao, servings)
-                price_per_serving = (food_ingredient_dao.price or 0)/food_ingredient_dao.servings
+                recipe_nutrition_dao.sum(ingredient_nutrition_dao, servings)
+                price_per_serving = (food_ingredient_dao.price or 0) / food_ingredient_dao.servings
                 recipe_dao.price = (recipe_dao.price or 0) + round(price_per_serving * servings, 2)
 
-            # Recipe Ingredient
             elif recipe_ingredient_id:
                 recipe_ingredient_dao = Recipe.get(user_id, recipe_ingredient_id)
 
@@ -680,30 +719,41 @@ class Ingredient(db.Model):
                     raise ValueError(f"Ingredient record {recipe_ingredient_id}/{recipe_ingredient_dao.nutrition_id} not found")
 
                 summary = Ingredient.generate_summary(recipe_ingredient_dao, servings)
-                recipe_nutrition_dao.sum(ingredient_nutrition_dao, servings, 1/recipe_ingredient_dao.servings if recipe_ingredient_dao.servings else 0)
-                
-                price_per_serving = (recipe_ingredient_dao.price or 0)/recipe_ingredient_dao.servings if recipe_ingredient_dao.servings else 0
+                recipe_nutrition_dao.sum(
+                    ingredient_nutrition_dao,
+                    servings,
+                    1 / recipe_ingredient_dao.servings if recipe_ingredient_dao.servings else 0,
+                )
+
+                price_per_serving = (recipe_ingredient_dao.price or 0) / recipe_ingredient_dao.servings if recipe_ingredient_dao.servings else 0
                 total_price = round(price_per_serving * servings, 2)
                 recipe_dao.price = recipe_dao.price + total_price if recipe_dao.price else total_price
 
             else:
                 raise ValueError("Either food_ingredient_id or recipe_ingredient_id must be provided")
-            
+
             if ordinal is None:
-                ordinal = db.session.scalar(select(func.count(Ingredient.id)).where(Ingredient.recipe_id == recipe_id))            
-            # Create a new Ingredient record and add it to the database.
-            ingredient_dao = Ingredient(user_id, {
-                "recipe_id": recipe_id, 
-                "food_ingredient_id": food_ingredient_id, 
-                "recipe_ingredient_id": recipe_ingredient_id, 
-                "ordinal": ordinal,
-                "servings": servings,
-                "summary": summary})
+                ordinal = db.session.scalar(select(func.count(Ingredient.id)).where(Ingredient.recipe_id == recipe_id))
+
+            ingredient_payload = ingredient_request.model_copy(
+                update={
+                    "recipe_id": recipe_id,
+                    "food_ingredient_id": food_ingredient_id,
+                    "recipe_ingredient_id": recipe_ingredient_id,
+                    "ordinal": ordinal,
+                    "servings": servings,
+                    "summary": summary,
+                }
+            )
+            ingredient_dao = Ingredient(user_id, ingredient_payload)
             db.session.add(ingredient_dao)
 
             return ingredient_dao
+
         except Exception as e:
-            raise ValueError(f"Ingredient record {recipe_id}/{food_ingredient_id}/{recipe_ingredient_id} could not be added: " + str(e))
+            raise ValueError(
+                f"Ingredient record {recipe_id}/{food_ingredient_id}/{recipe_ingredient_id} could not be added: {str(e)}"
+            )
 
 
     @staticmethod
@@ -772,37 +822,51 @@ class Food(db.Model):
     price_date: Mapped[datetime.date | None] = mapped_column(db.Date, nullable=True)
     shelf_life: Mapped[str | None] = mapped_column(db.String(150), nullable=True)
 
-    def __init__(self, user_id: int, data: dict[str,Any]|None = None):
+    def __init__(self, user_id: int, data: FoodRequest | None = None):
         if data is not None:
-            self.from_dict(user_id, data)
+            self.from_schema(user_id, data)
         else:
             self.group = FoodGroup.other
             self.nutrition = Nutrition(user_id)
 
-    def from_dict(self, user_id: int, data: dict[str,Any]) -> None:
-        if data.get("id"):
-            self.id = data["id"]
+    def from_schema(self, user_id: int, food_request: FoodRequest) -> None:
+        """Load Food attributes from a FoodRequest Pydantic schema."""
+        if food_request.id:
+            self.id = food_request.id
         self.user_id = user_id
-        self.group = FoodGroup[data["group"]]
-        self.name = data["name"]
-        self.subtype = data.get("subtype")
-        self.description = data.get("description")
-        self.vendor = data["vendor"]
-        self.size_description = data.get("size_description")
-        self.size_oz = data.get("size_oz")
-        self.size_g = data.get("size_g")
-        self.servings = data["servings"]
-        self.nutrition_id = data.get("nutrition_id")
-        if self.nutrition:
-            self.nutrition.from_dict(user_id, data["nutrition"])
-        else:
-            self.nutrition = Nutrition(user_id, data["nutrition"])
-        self.price = data.get("price")
-        # This code sets the DAO field to None if the date string is None
-        # OR if its stripped length is 0 (e.g., if is's all spaces)
-        price_date = (data.get("price_date") or "").strip()
-        self.price_date = datetime.date.fromisoformat(price_date) if price_date else None
-        self.shelf_life = data.get("shelf_life")
+        self.group = FoodGroup[food_request.group]
+        self.name = food_request.name
+        self.subtype = food_request.subtype
+        self.description = food_request.description
+        self.vendor = food_request.vendor
+        self.size_description = food_request.size_description
+        self.size_oz = food_request.size_oz
+        self.size_g = food_request.size_g
+        self.servings = food_request.servings
+        self.price = food_request.price
+        self.price_date = datetime.date.fromisoformat(food_request.price_date) if food_request.price_date else None
+        self.shelf_life = food_request.shelf_life
+        # Create nutrition record with schema fields
+        if not self.nutrition:
+            self.nutrition = Nutrition(user_id)
+        self.nutrition.serving_size_description = food_request.serving_size_description
+        self.nutrition.serving_size_oz = food_request.serving_size_oz
+        self.nutrition.serving_size_g = food_request.serving_size_g
+        self.nutrition.calories = food_request.calories
+        self.nutrition.total_fat_g = food_request.total_fat_g
+        self.nutrition.saturated_fat_g = food_request.saturated_fat_g
+        self.nutrition.trans_fat_g = food_request.trans_fat_g
+        self.nutrition.cholesterol_mg = food_request.cholesterol_mg
+        self.nutrition.sodium_mg = food_request.sodium_mg
+        self.nutrition.total_carbs_g = food_request.total_carbs_g
+        self.nutrition.fiber_g = food_request.fiber_g
+        self.nutrition.total_sugar_g = food_request.total_sugar_g
+        self.nutrition.added_sugar_g = food_request.added_sugar_g
+        self.nutrition.protein_g = food_request.protein_g
+        self.nutrition.vitamin_d_mcg = food_request.vitamin_d_mcg
+        self.nutrition.calcium_mg = food_request.calcium_mg
+        self.nutrition.iron_mg = food_request.iron_mg
+        self.nutrition.potassium_mg = food_request.potassium_mg
 
     def __str__(self):
         return str(vars(self))
@@ -850,21 +914,16 @@ class Food(db.Model):
 
 
     @staticmethod
-    def add(user_id: int, food: dict[str, Any], keylists: dict[str,dict[int,int]] | None = None) -> Food:
+    def add(user_id: int, food: FoodRequest, keylists: dict[str,dict[int,int]] | None = None) -> Food:
         """
         Add a new Food record to the database.
         """
         try: 
-            # When adding new records we should always generate new IDs,
-            # but remember the old food IDs in case we need them for key remapping.
-            old_food_id = food.pop("id", None)
+            # Create a fresh Food DAO
+            new_food_dao = Food(user_id)
 
-            nutrition: dict[str,Any]|None = food.get("nutrition")
-            if nutrition:
-                nutrition.pop("id", None)
-            
-            # Construct the new Food DAO.  This implicitly creates its new Nutrition DAO child record
-            new_food_dao = Food(user_id, food)
+            old_food_id = food.id
+            new_food_dao.from_schema(user_id, food)
 
             # Add the new record to the database
             db.session.add(new_food_dao)
@@ -872,8 +931,8 @@ class Food(db.Model):
             # Flush without committing to get the new IDs
             db.session.flush()
 
-            # Save the old ID to new ID mapping
-            if keylists is not None:
+            # Save the old ID to new ID mapping (only if old_food_id is not None)
+            if keylists is not None and old_food_id is not None:
                 if not keylists.get("foods"):
                     keylists["foods"] = {}
                 keylists["foods"][old_food_id] = new_food_dao.id
@@ -885,32 +944,25 @@ class Food(db.Model):
 
 
     @staticmethod
-    def update(user_id: int, food: dict[str, str|int|float]) -> Food:
+    def update(user_id: int, food: FoodRequest) -> Food:
         """
         Update an existing Food record.
         """
         try:
-            # Get the Food record
-            food_id = food["id"]
+            if food.id is None:
+                raise ValueError("Food ID is required for update")
+
+            food_id = food.id
+
             food_dao = db.session.get(Food, food_id)
             if not food_dao:
                 raise ValueError(f"Food record {food_id} not found.")
 
-            # Get the Nutrition child record
-            # This shouldn't be necessary thanks to SQLAlchemy's relationship field
-            #nutrition_id = food_dao.nutrition_id
-            #nutrition_dao = db.session.get(Nutrition, nutrition_id)
-            #if not nutrition_dao:
-            #    raise ValueError(f"Nutrition record {food_id}/{nutrition_id} not found")
-            #food_dao.nutrition = nutrition_dao
             if not food_dao.nutrition:
                 raise ValueError(f"Nutrition record for Food {food_id} not found")
 
-            # Add the user_id field.
-            food["user_id"] = user_id
-
-            # Update the data fields
-            food_dao.from_dict(user_id, food)
+            # Update the data fields from schema
+            food_dao.from_schema(user_id, food)
 
             return food_dao
 
@@ -992,26 +1044,100 @@ class Recipe(db.Model):
     nutrition: Mapped[Nutrition] = relationship("Nutrition")
     price: Mapped[float | None] = mapped_column(db.Float, default=0, nullable=True)
 
-    def __init__(self, user_id: int, data: dict[str,Any] | None):
+    def __init__(self, user_id: int, data: RecipeRequest | None):
         if data:
-            self.from_dict(user_id, data)
+            self.from_schema(user_id, data)
         else:
             self.nutrition = Nutrition(user_id)
 
-    def from_dict(self, user_id: int, data: dict[str,Any]):
-        if data.get("id"):
-            self.id = data["id"]
+    def from_schema(self, user_id: int, recipe_request: RecipeRequest) -> None:
+        """Load Recipe attributes from a RecipeRequest Pydantic schema."""
+        if recipe_request.id is not None:
+            self.id = recipe_request.id
         self.user_id = user_id
-        self.cuisine = data.get("cuisine")
-        self.name = data["name"]
-        self.total_yield = data["total_yield"]
-        self.servings = data["servings"]
-        self.nutrition_id = data.get("nutrition_id")
-        if self.nutrition:
-            self.nutrition.from_dict(user_id, data["nutrition"])
-        else:
-            self.nutrition = Nutrition(user_id, data["nutrition"])
-        self.price = data.get("price")
+        self.cuisine = recipe_request.cuisine
+        self.name = recipe_request.name
+        self.total_yield = recipe_request.total_yield
+        self.servings = recipe_request.servings
+        self.price = recipe_request.price
+
+        # Ensure a Nutrition child exists, then map schema nutrition fields.
+        if not self.nutrition:
+            self.nutrition = Nutrition(
+                user_id,
+                NutritionRequest(
+                    serving_size_description=recipe_request.serving_size_description,
+                    serving_size_oz=recipe_request.serving_size_oz,
+                    serving_size_g=recipe_request.serving_size_g,
+                    calories=recipe_request.calories,
+                    total_fat_g=recipe_request.total_fat_g,
+                    saturated_fat_g=recipe_request.saturated_fat_g,
+                    trans_fat_g=recipe_request.trans_fat_g,
+                    cholesterol_mg=recipe_request.cholesterol_mg,
+                    sodium_mg=recipe_request.sodium_mg,
+                    total_carbs_g=recipe_request.total_carbs_g,
+                    fiber_g=recipe_request.fiber_g,
+                    total_sugar_g=recipe_request.total_sugar_g,
+                    added_sugar_g=recipe_request.added_sugar_g,
+                    protein_g=recipe_request.protein_g,
+                    vitamin_d_mcg=recipe_request.vitamin_d_mcg,
+                    calcium_mg=recipe_request.calcium_mg,
+                    iron_mg=recipe_request.iron_mg,
+                    potassium_mg=recipe_request.potassium_mg,
+                ),
+            )
+        self.nutrition.serving_size_description = recipe_request.serving_size_description
+        self.nutrition.serving_size_oz = recipe_request.serving_size_oz
+        self.nutrition.serving_size_g = recipe_request.serving_size_g
+        self.nutrition.calories = recipe_request.calories
+        self.nutrition.total_fat_g = recipe_request.total_fat_g
+        self.nutrition.saturated_fat_g = recipe_request.saturated_fat_g
+        self.nutrition.trans_fat_g = recipe_request.trans_fat_g
+        self.nutrition.cholesterol_mg = recipe_request.cholesterol_mg
+        self.nutrition.sodium_mg = recipe_request.sodium_mg
+        self.nutrition.total_carbs_g = recipe_request.total_carbs_g
+        self.nutrition.fiber_g = recipe_request.fiber_g
+        self.nutrition.total_sugar_g = recipe_request.total_sugar_g
+        self.nutrition.added_sugar_g = recipe_request.added_sugar_g
+        self.nutrition.protein_g = recipe_request.protein_g
+        self.nutrition.vitamin_d_mcg = recipe_request.vitamin_d_mcg
+        self.nutrition.calcium_mg = recipe_request.calcium_mg
+        self.nutrition.iron_mg = recipe_request.iron_mg
+        self.nutrition.potassium_mg = recipe_request.potassium_mg
+
+    @staticmethod
+    def from_import_dict(data: dict[str, Any]) -> RecipeRequest:
+        """Convert import-file recipe payload into a validated RecipeRequest."""
+        nutrition: dict[str, Any] = data.get("nutrition", {})
+        return RecipeRequest.model_validate(
+            {
+                "id": data.get("id"),
+                "cuisine": data.get("cuisine"),
+                "name": data.get("name"),
+                "total_yield": data.get("total_yield"),
+                "servings": data.get("servings"),
+                "serving_size_description": nutrition.get("serving_size_description"),
+                "serving_size_oz": nutrition.get("serving_size_oz"),
+                "serving_size_g": nutrition.get("serving_size_g"),
+                "calories": nutrition.get("calories", 0),
+                "total_fat_g": nutrition.get("total_fat_g"),
+                "saturated_fat_g": nutrition.get("saturated_fat_g"),
+                "trans_fat_g": nutrition.get("trans_fat_g"),
+                "cholesterol_mg": nutrition.get("cholesterol_mg"),
+                "sodium_mg": nutrition.get("sodium_mg"),
+                "total_carbs_g": nutrition.get("total_carbs_g"),
+                "fiber_g": nutrition.get("fiber_g"),
+                "total_sugar_g": nutrition.get("total_sugar_g"),
+                "added_sugar_g": nutrition.get("added_sugar_g"),
+                "protein_g": nutrition.get("protein_g"),
+                "vitamin_d_mcg": nutrition.get("vitamin_d_mcg"),
+                "calcium_mg": nutrition.get("calcium_mg"),
+                "iron_mg": nutrition.get("iron_mg"),
+                "potassium_mg": nutrition.get("potassium_mg"),
+                "price": data.get("price"),
+                "ingredients": [],
+            }
+        )
 
     def __str__(self):
         return str(vars(self))
@@ -1054,106 +1180,73 @@ class Recipe(db.Model):
 
 
     @staticmethod
-    def add(user_id: int, recipe: dict[str,Any], keylists: dict[str,dict[int,int]] | None = None) -> Recipe:
-        """
-        Add a new Recipe record with a new blank Nutrition child record
-        """
+    def add_from_schema(user_id: int, recipe_request: RecipeRequest, keylists: dict[str,dict[int,int]] | None = None) -> Recipe:
+        """Add a Recipe from a validated RecipeRequest schema."""
         try:
-            # When adding new records we should always generate new IDs,
-            # but remember the old food IDs in case we need them for key remapping.
-            old_recipe_id = recipe.pop("id", None)
+            # Create a fresh Recipe DAO and populate directly from schema.
+            new_recipe_dao = Recipe(user_id, None)
+            new_recipe_dao.from_schema(user_id, recipe_request)
 
-            nutrition: dict[str,Any]|None = recipe.get("nutrition")
-            if nutrition:
-                nutrition.pop("id", None)
-            
-            # Construct the new Recipe DAO.  This implicitly creates its new Nutrition DAO child record
-            new_recipe_dao = Recipe(user_id, recipe)
-
-            # Add the Recipe record to the database
             db.session.add(new_recipe_dao)
-
-            # Flush without committing to get the new IDs
             db.session.flush()
 
-            # Save the old ID to new ID mapping
-            if keylists is not None:
+            # Save the old ID to new ID mapping when available.
+            if keylists is not None and recipe_request.id is not None:
                 if not keylists.get("recipes"):
                     keylists["recipes"] = {}
-                keylists["recipes"][old_recipe_id] = new_recipe_dao.id
+                keylists["recipes"][recipe_request.id] = new_recipe_dao.id
 
-            # Return the new Recipe record.
             return new_recipe_dao
         except Exception as e:
             raise ValueError("Recipe record could not be added: " + str(e))
 
 
     @staticmethod
-    def update(user_id: int, data: dict[str, Any]) -> Recipe:
-        """
-        Update an existing Recipe record.
-
-        Nutrition data for a Recipe is updated ONLY by adding/updating/removing its ingredients.
-        In turn, a Recipe's ingredients are ONLY added/updated/removed via their own separate 
-        API calls.
-        
-        Therefore this API call only affects the Recipe record's own data fields, not those of
-        its child records.
-        """
+    def update_from_schema(user_id: int, recipe_request: RecipeRequest) -> Recipe:
+        """Update a Recipe from a validated RecipeRequest schema."""
         try:
-            recipe_id = data["id"]
-            nutrition = data["nutrition"]
+            if recipe_request.id is None:
+                raise ValueError("Recipe ID is required for update")
+
+            recipe_id = recipe_request.id
 
             # Get the existing Recipe record
             recipe_dao = Recipe.get(user_id, recipe_id)
             if not recipe_dao:
                 raise ValueError(f"Recipe record {recipe_id} not found")
 
-            # Get its child Nutrition record
-            # This shouldn't be necessary thanks to SQLAlchemy's relationship field
-            #recipe_nutrition_dao = Nutrition.get(user_id, nutrition_id)
-            #if not recipe_nutrition_dao:
-            #    raise ValueError(f"Nutrition record {recipe_id}/{nutrition_id} not found")
             if not recipe_dao.nutrition:
                 raise ValueError(f"Nutrition record for Recipe {recipe_id} not found")
 
-            # Update the Recipe DAO's fields with the data from the front end
-            recipe_dao.from_dict(user_id, data)
+            # Update the Recipe fields from the validated schema.
+            recipe_dao.from_schema(user_id, recipe_request)
 
-            # Flush without committing to get the new IDs
+            # Flush without committing to get any generated IDs
             db.session.flush()
 
-            # Remove the existing Ingredient records for this Recipe
+            # Remove existing Ingredient records for this Recipe
             ingredient_daos = Ingredient.get_all_for_recipe(user_id, recipe_id)
             for ingredient_dao in ingredient_daos:
                 db.session.delete(ingredient_dao)
 
-            # Reset the Recipe's Nutrition data to zeroes
+            # Reset and rebuild nutrition from ingredients
             recipe_dao.nutrition.reset()
 
-            # Add the Ingredients that are in the data passed by the front end
-            ingredients = data.get("ingredients", [])
-            for ingredient in ingredients:
-                # Assign the recipe_id we just got for the new Recipe record
-                ingredient["recipe_id"] = recipe_id
-                ingredient_dao = Ingredient(user_id, ingredient)
-                db.session.add(ingredient_dao)
+            for ingredient_request in recipe_request.ingredients:
+                Ingredient.add_from_schema(user_id, ingredient_request, recipe_id_override=recipe_id)
 
-            # Flush without committing to get the new IDs
             db.session.flush()
 
-            # Update the Recipe's Nutrition data
             recipe_dao = Recipe._recalculate_nutrition(user_id, recipe_id, recipe_dao, recipe_dao.nutrition)
+            recipe_dao.nutrition.serving_size_description = recipe_request.serving_size_description
 
-            # Update the Recipe Nutrition record's serving_size_description field.
-            # This is the only field for this record that comes from the UI, the rest
-            # are calculated.
-            recipe_dao.nutrition.serving_size_description = nutrition["serving_size_description"]
-
-            # Return the updated Recipe record.
             return recipe_dao
         except Exception as e:
             raise ValueError("Recipe record could not be updated: " + str(e))
+
+
+    @staticmethod
+
     
 
     @staticmethod
@@ -1366,23 +1459,23 @@ class DailyLogItem(db.Model):
     nutrition_id: Mapped[int | None] = mapped_column(db.Integer, db.ForeignKey("nutrition.id"), nullable=True)
     nutrition: Mapped["Nutrition | None"] = relationship("Nutrition")
 
-    def __init__(self, user_id: int, data: dict[str, Any]):
-        self.from_dict(user_id, data)
-
-    def from_dict(self, user_id: int, data: dict[str, Any]) -> None:
-        if data.get("id"):
-            self.id = data["id"]
+    def __init__(
+        self,
+        user_id: int,
+        log_request: DailyLogItemRequest,
+        ordinal: int,
+        nutrition_id: int | None,
+        dao_id: int | None = None,
+    ):
+        if dao_id is not None:
+            self.id = dao_id
         self.user_id = user_id
-        date_val = data["date"]
-        if isinstance(date_val, datetime.date):
-            self.date = date_val
-        else:
-            self.date = datetime.date.fromisoformat(str(date_val).strip())
-        self.recipe_id = data["recipe_id"]
-        self.servings = float(data["servings"])
-        self.ordinal = data["ordinal"]
-        self.notes = data.get("notes")
-        self.nutrition_id = data.get("nutrition_id")
+        self.date = datetime.date.fromisoformat(log_request.date.strip())
+        self.recipe_id = log_request.recipe_id
+        self.servings = log_request.servings
+        self.ordinal = ordinal
+        self.notes = log_request.notes
+        self.nutrition_id = nutrition_id
 
     def __str__(self) -> str:
         return str(vars(self))
@@ -1455,54 +1548,43 @@ class DailyLogItem(db.Model):
     # ------------------------------------------------------------------
 
     @staticmethod
-    def add(user_id: int, date: datetime.date, recipe_id: int,
-            servings: float, notes: str | None = None) -> DailyLogItem:
-        """
-        Add a new DailyLogItem entry.
+    def add_from_schema(user_id: int, log_request: DailyLogItemRequest) -> DailyLogItem:
+        """Add a DailyLogItem from a validated DailyLogItemRequest schema."""
+        date = datetime.date.fromisoformat(log_request.date.strip())
 
-        Takes a snapshot of the Recipe's per-serving nutrition scaled by the
-        number of servings consumed and stores it as a new Nutrition record.
-        This means later edits to the Recipe do not alter the historical entry.
-        """
-        try:
-            # Validate the Recipe and get its nutrition
-            recipe_dao = Recipe.get(user_id, recipe_id)
-            recipe_nutrition_dao = db.session.get(Nutrition, recipe_dao.nutrition_id)
-            if not recipe_nutrition_dao:
-                raise ValueError(f"Nutrition record for Recipe {recipe_id} not found")
+        # Validate the Recipe and get its nutrition
+        recipe_dao = Recipe.get(user_id, log_request.recipe_id)
+        recipe_nutrition_dao = db.session.get(Nutrition, recipe_dao.nutrition_id)
+        if not recipe_nutrition_dao:
+            raise ValueError(f"Nutrition record for Recipe {log_request.recipe_id} not found")
 
-            # Build the nutrition snapshot.
-            # modifier converts recipe total nutrition -> per-serving nutrition;
-            # multiplying by servings consumed then gives the consumed total.
-            snapshot = Nutrition(user_id, {"serving_size_description": recipe_nutrition_dao.serving_size_description})
-            modifier = (1.0 / recipe_dao.servings) if recipe_dao.servings else 0
-            snapshot.sum(recipe_nutrition_dao, servings, modifier)
-            db.session.add(snapshot)
-            db.session.flush()  # obtain snapshot.id before using it below
+        # Build nutrition snapshot
+        snapshot = Nutrition(
+            user_id,
+            NutritionRequest(serving_size_description=recipe_nutrition_dao.serving_size_description),
+        )
+        modifier = (1.0 / recipe_dao.servings) if recipe_dao.servings else 0
+        snapshot.sum(recipe_nutrition_dao, log_request.servings, modifier)
+        db.session.add(snapshot)
+        db.session.flush()
 
-            # Ordinal: append after the last entry for this date
-            ordinal = db.session.scalar(
-                select(func.count(DailyLogItem.id))
-                .where(DailyLogItem.user_id == user_id)
-                .where(DailyLogItem.date == date)
-            ) or 0
+        ordinal = db.session.scalar(
+            select(func.count(DailyLogItem.id))
+            .where(DailyLogItem.user_id == user_id)
+            .where(DailyLogItem.date == date)
+        ) or 0
 
-            log_dao = DailyLogItem(user_id, {
-                "date": date,
-                "recipe_id": recipe_id,
-                "servings": servings,
-                "ordinal": ordinal,
-                "notes": notes,
-                "nutrition_id": snapshot.id,
-            })
-            db.session.add(log_dao)
-            db.session.flush()
+        log_dao = DailyLogItem(user_id, log_request, ordinal=ordinal, nutrition_id=snapshot.id)
+        db.session.add(log_dao)
+        db.session.flush()
 
-            return log_dao
+        return log_dao
 
-        except Exception as e:
-            raise ValueError(f"DailyLogItem entry could not be added: {str(e)}")
 
+    @staticmethod
+    def update_from_schema(user_id: int, log_id: int, update_request: DailyLogItemUpdateRequest) -> DailyLogItem:
+        """Update a DailyLogItem from a validated DailyLogItemUpdateRequest schema."""
+        return DailyLogItem.update(user_id, log_id, update_request.servings, update_request.notes)
 
     @staticmethod
     def update(user_id: int, log_id: int, servings: float,

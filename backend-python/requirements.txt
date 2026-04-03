@@ -48,6 +48,10 @@ pynacl
 # MUUUUUUCH easier and more reliable than trying to do it myself.
 email-validator
 
+# pydantic is a data validation library using Python type annotations. It provides
+# BaseModel for creating request/response schemas with automatic validation.
+pydantic
+
 # waitress and gunicorn are production-level WSGI app servers for Python apps.
 # I'm currently using Waitress because (a) it's simple and (b) it allegedly
 # works on Windows.  But Gunicorn is much more popular so maybe I'll switch.

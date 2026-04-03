@@ -4,8 +4,14 @@ from datetime import datetime, timedelta
 from typing import Any
 from flask import Blueprint, jsonify, make_response, request
 from flask_jwt_extended import jwt_required, create_access_token, get_jwt_identity # type:ignore
+from pydantic import ValidationError
 from sendmail import Sendmail
 from models import db, User, Preferences, UserStatus, Food, Recipe, Ingredient, DailyLogItem
+from schemas import (
+    RegistrationRequest, ResendConfirmationRequest, LoginRequest,
+    FoodRequest, RecipeRequest,
+    DailyLogItemRequest, DailyLogItemUpdateRequest, PreferencesRequest
+)
 from crypto import Crypto
 from data import Data
 from sqlalchemy.sql import text
@@ -158,6 +164,9 @@ def register():
             # for the expired token first and deal with that workflow separately.
             expired_token = request.json.get("token")
             if expired_token:
+                # Validate resend request
+                ResendConfirmationRequest.model_validate(request.json)
+                
                 user = User.get_by_token(expired_token)
                 username = user.username
                 encrypted_email_addr = user.email
@@ -176,11 +185,13 @@ def register():
             # Otherwise this is a normal confirmation request, with username, password,
             # email address, and the seed requested flag.
             else:
-                # Get parameters from request
-                username = request.json.get('username', None)
-                password = request.json.get('password', None)
-                email_addr = request.json.get('email', None)
-                seed_requested = request.json.get('seed_requested', False)
+                # Validate registration request
+                reg_data = RegistrationRequest.model_validate(request.json)
+
+                username = reg_data.username
+                password = reg_data.password
+                email_addr = reg_data.email
+                seed_requested = reg_data.seed_requested
 
                 # Generate a verification token
                 token = Crypto.generate_url_token()
@@ -204,6 +215,10 @@ def register():
 
             user.confirmation_sent_at = datetime.now()
 
+    except ValidationError as e:
+        msg = f"Invalid request: {e.error_count()} validation error(s)"
+        logging.error(msg)
+        return jsonify({"msg": msg, "errors": e.errors()}), 422
     except Exception as e:
         msg = str(e)
         logging.error(msg)
@@ -351,9 +366,11 @@ def login():
             if not request.is_json:
                 raise ValueError("Invalid request - not JSON")
 
-            # Get parameters from request
-            username = request.json.get('username', None)
-            password = request.json.get('password', None)
+            # Validate login request
+            login_data = LoginRequest.model_validate(request.json)
+
+            username = login_data.username
+            password = login_data.password
 
             # Verify that the user's credentials are valid
             user = User.verify(username, password)
@@ -365,6 +382,10 @@ def login():
             # Generate a JWT token
             token_duration = int(os.environ.get("ACCESS_TOKEN_DURATION", 120))
             access_token = create_access_token(identity=username, expires_delta=timedelta(minutes=token_duration))
+    except ValidationError as e:
+        msg = f"Invalid request: {e.error_count()} validation error(s)"
+        logging.error(msg)
+        return jsonify({"msg": msg, "errors": e.errors()}), 422
     except Exception as e:
         msg = str(e)
         logging.error(msg)
@@ -502,9 +523,15 @@ def save_preferences(context: str):
             username = get_jwt_identity()
             user_id = User.get_id(username)
 
-            prefs = request.json
+            # Validate preferences request (just ensure it's valid JSON)
+            prefs_data = PreferencesRequest.model_validate(request.json)
+            prefs = prefs_data.model_dump()
             
             Preferences.save(user_id, context, prefs)
+    except ValidationError as e:
+        msg = f"Invalid request: {e.error_count()} validation error(s)"
+        logging.error(msg)
+        return jsonify({"msg": msg, "errors": e.errors()}), 422
     except Exception as e:
         msg = f"Preference records could not be saved: {str(e)}"
         logging.error(msg)
@@ -608,11 +635,17 @@ def add_food():
             username = get_jwt_identity()
             user_id = User.get_id(username)
 
+            # Validate food request
+            food_data = FoodRequest.model_validate(request.json)
+
             # Add the food to the database
-            food = request.json
-            new_food_dao = Food.add(user_id, food)
+            new_food_dao = Food.add(user_id, food_data)
             food_id = new_food_dao.id
             new_food = new_food_dao.json()
+    except ValidationError as e:
+        msg = f"Invalid request: {e.error_count()} validation error(s)"
+        logging.error(msg)
+        return jsonify({"msg": msg, "errors": e.errors()}), 422
     except Exception as e:
         msg = f"Food record could not be added: {str(e)}"
         logging.error(msg)
@@ -638,10 +671,16 @@ def update_food():
             username = get_jwt_identity()
             user_id = User.get_id(username)
 
+            # Validate food request
+            food_data = FoodRequest.model_validate(request.json)
+
             # Replace the database's record with the data in the request
-            food = request.json
-            updated_food_dao = Food.update(user_id, food)
+            updated_food_dao = Food.update(user_id, food_data)
             updated_food = updated_food_dao.json()
+    except ValidationError as e:
+        msg = f"Invalid request: {e.error_count()} validation error(s)"
+        logging.error(msg)
+        return jsonify({"msg": msg, "errors": e.errors()}), 422
     except Exception as e:
         msg = f"Food record could not be updated: {str(e)}"
         logging.error(msg)
@@ -752,13 +791,17 @@ def add_recipe():
             username = get_jwt_identity()
             user_id = User.get_id(username)
 
-            # Get the recipe data from the request
-            recipe: dict[str,Any] = request.json
+            # Validate recipe request
+            recipe_data = RecipeRequest.model_validate(request.json)
 
             # Add the recipe to the database
-            new_recipe_dao = Recipe.add(user_id, recipe)
+            new_recipe_dao = Recipe.add_from_schema(user_id, recipe_data)
             new_recipe_id = new_recipe_dao.id
             new_recipe = new_recipe_dao.json()
+    except ValidationError as e:
+        msg = f"Invalid request: {e.error_count()} validation error(s)"
+        logging.error(msg)
+        return jsonify({"msg": msg, "errors": e.errors()}), 422
     except Exception as e:
         msg = f"Recipe record could not be added: {str(e)}"
         logging.error(msg)
@@ -767,7 +810,6 @@ def add_recipe():
         msg = f"Recipe record {new_recipe_id} added"
         logging.info(msg)
         resp = make_response(jsonify(new_recipe), 201)
-        #resp.headers["Access-Control-Expose-Headers"] = f"Location"
         resp.headers["Location"] = f"/recipe/{new_recipe_id}"
         return resp
 
@@ -785,10 +827,16 @@ def update_recipe():
             username = get_jwt_identity()
             user_id = User.get_id(username)
 
+            # Validate recipe request
+            recipe_data = RecipeRequest.model_validate(request.json)
+
             # Update the database's record with the data in the request
-            recipe = request.json
-            updated_recipe_dao = Recipe.update(user_id, recipe)
+            updated_recipe_dao = Recipe.update_from_schema(user_id, recipe_data)
             updated_recipe = updated_recipe_dao.json()
+    except ValidationError as e:
+        msg = f"Invalid request: {e.error_count()} validation error(s)"
+        logging.error(msg)
+        return jsonify({"msg": msg, "errors": e.errors()}), 422
     except Exception as e:
         msg = f"Recipe record could not be updated: {str(e)}"
         logging.error(msg)
@@ -960,17 +1008,18 @@ def add_daily_log_entry():
             if not request.is_json:
                 raise ValueError("Invalid request - not JSON")
 
-            data = request.json
-            date = datetime.strptime(data["date"], "%Y-%m-%d").date()
-            recipe_id = data["recipe_id"]
-            servings = float(data["servings"])
-            notes = data.get("notes")
+            # Validate daily log item request
+            log_data = DailyLogItemRequest.model_validate(request.json)
 
             logging.debug(f"USERID {user_id}")
 
-            new_log_dao = DailyLogItem.add(user_id, date, recipe_id, servings, notes)
+            new_log_dao = DailyLogItem.add_from_schema(user_id, log_data)
             new_log_id = new_log_dao.id
             new_entry = new_log_dao.json()
+    except ValidationError as e:
+        msg = f"Invalid request: {e.error_count()} validation error(s)"
+        logging.error(msg)
+        return jsonify({"msg": msg, "errors": e.errors()}), 422
     except Exception as e:
         msg = f"DailyLogItem entry could not be added: {str(e)}"
         logging.error(msg)
@@ -1004,12 +1053,15 @@ def update_daily_log_entry(log_id: int):
             if not request.is_json:
                 raise ValueError("Invalid request - not JSON")
 
-            data = request.json
-            servings = float(data["servings"])
-            notes = data.get("notes")
+            # Validate daily log item update request
+            update_data = DailyLogItemUpdateRequest.model_validate(request.json)
 
-            updated_log_dao = DailyLogItem.update(user_id, log_id, servings, notes)
+            updated_log_dao = DailyLogItem.update_from_schema(user_id, log_id, update_data)
             updated_entry = updated_log_dao.json()
+    except ValidationError as e:
+        msg = f"Invalid request: {e.error_count()} validation error(s)"
+        logging.error(msg)
+        return jsonify({"msg": msg, "errors": e.errors()}), 422
     except Exception as e:
         msg = f"DailyLogItem entry could not be updated: {str(e)}"
         logging.error(msg)

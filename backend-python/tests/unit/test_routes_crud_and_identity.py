@@ -98,11 +98,13 @@ def test_food_crud_endpoints(bare_flask_app: Flask, monkeypatch: pytest.MonkeyPa
     def _get_food(user_id: int, food_id: int) -> _JsonDao:
         return _JsonDao({"id": food_id})
 
-    def _add_food(user_id: int, payload: dict[str, Any]) -> _JsonDao:
+    def _add_food(user_id: int, payload: Any) -> _JsonDao:
         return _JsonDao({"id": 77}, dao_id=77)
 
-    def _update_food(user_id: int, payload: dict[str, Any]) -> _JsonDao:
-        return _JsonDao({"id": payload["id"], "name": "new"})
+    def _update_food(user_id: int, payload: Any) -> _JsonDao:
+        # payload can be FoodRequest or dict, extract id from either
+        payload_id = payload.id if hasattr(payload, 'id') else payload["id"]
+        return _JsonDao({"id": payload_id, "name": "new"})
 
     monkeypatch.setattr(routes.User, "get_id", staticmethod(_get_id))
     monkeypatch.setattr(routes.Food, "get_by_user", staticmethod(_get_by_user))
@@ -116,10 +118,23 @@ def test_food_crud_endpoints(bare_flask_app: Flask, monkeypatch: pytest.MonkeyPa
     with bare_flask_app.test_request_context("/api/food/25", method="GET"):
         get_one_resp, get_one_status = _as_response_status(_unwrap(routes.get_food)(25))
 
-    with bare_flask_app.test_request_context("/api/food", method="POST", json={"name": "orange"}):
+    with bare_flask_app.test_request_context("/api/food", method="POST", json={
+        "group": "fruits",
+        "name": "orange",
+        "vendor": "farmers market",
+        "servings": 1.0,
+        "serving_size_description": "1 medium"
+    }):
         add_resp, add_status = _as_response_status(_unwrap(routes.add_food)())
 
-    with bare_flask_app.test_request_context("/api/food", method="PUT", json={"id": 12, "name": "new"}):
+    with bare_flask_app.test_request_context("/api/food", method="PUT", json={
+        "id": 12,
+        "group": "fruits",
+        "name": "new",
+        "vendor": "market",
+        "servings": 1.0,
+        "serving_size_description": "1 unit"
+    }):
         update_resp, update_status = _as_response_status(_unwrap(routes.update_food)())
 
     with bare_flask_app.test_request_context("/api/food/5", method="DELETE"):
@@ -163,11 +178,12 @@ def test_recipe_crud_and_ingredients_get(bare_flask_app: Flask, monkeypatch: pyt
             return recipe_obj
         return _JsonDao({"id": recipe_id})
 
-    def _add_recipe(user_id: int, payload: dict[str, Any]) -> _JsonDao:
+    def _add_recipe(user_id: int, payload: Any) -> _JsonDao:
         return _JsonDao({"id": 22}, dao_id=22)
 
-    def _update_recipe(user_id: int, payload: dict[str, Any]) -> _JsonDao:
-        return _JsonDao({"id": payload["id"]})
+    def _update_recipe(user_id: int, payload: Any) -> _JsonDao:
+        payload_id = payload.id if hasattr(payload, "id") else payload["id"]
+        return _JsonDao({"id": payload_id})
 
     def _get_all_ingredients(user_id: int, recipe_id: int) -> list[object]:
         if recipe_id == 1:
@@ -180,8 +196,8 @@ def test_recipe_crud_and_ingredients_get(bare_flask_app: Flask, monkeypatch: pyt
     monkeypatch.setattr(routes.User, "get_id", staticmethod(_get_id))
     monkeypatch.setattr(routes.Recipe, "get_all_for_user", staticmethod(_get_all_recipes))
     monkeypatch.setattr(routes.Recipe, "get", staticmethod(_get_recipe))
-    monkeypatch.setattr(routes.Recipe, "add", staticmethod(_add_recipe))
-    monkeypatch.setattr(routes.Recipe, "update", staticmethod(_update_recipe))
+    monkeypatch.setattr(routes.Recipe, "add_from_schema", staticmethod(_add_recipe))
+    monkeypatch.setattr(routes.Recipe, "update_from_schema", staticmethod(_update_recipe))
     monkeypatch.setattr(routes.Ingredient, "get_all_for_recipe", staticmethod(_get_all_ingredients))
 
     with bare_flask_app.test_request_context("/api/recipe", method="GET"):
@@ -190,10 +206,21 @@ def test_recipe_crud_and_ingredients_get(bare_flask_app: Flask, monkeypatch: pyt
     with bare_flask_app.test_request_context("/api/recipe/3", method="GET"):
         get_one_resp, get_one_status = _as_response_status(_unwrap(routes.get_recipe)(3))
 
-    with bare_flask_app.test_request_context("/api/recipe", method="POST", json={"name": "r1"}):
+    with bare_flask_app.test_request_context("/api/recipe", method="POST", json={
+        "name": "r1",
+        "total_yield": "4 servings",
+        "servings": 4.0,
+        "serving_size_description": "1 serving"
+    }):
         add_resp, add_status = _as_response_status(_unwrap(routes.add_recipe)())
 
-    with bare_flask_app.test_request_context("/api/recipe", method="PUT", json={"id": 3, "name": "r2"}):
+    with bare_flask_app.test_request_context("/api/recipe", method="PUT", json={
+        "id": 3,
+        "name": "r2",
+        "total_yield": "4 servings",
+        "servings": 4.0,
+        "serving_size_description": "1 serving"
+    }):
         update_resp, update_status = _as_response_status(_unwrap(routes.update_recipe)())
 
     with bare_flask_app.test_request_context("/api/recipe/9", method="DELETE"):
