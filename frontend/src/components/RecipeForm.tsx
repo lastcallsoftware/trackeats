@@ -300,42 +300,36 @@ function RecipeForm() {
         e.preventDefault();
         if (!selectedIngredientRowId) return;
 
-        const ingredient: IIngredient|undefined = findIngredient(selectedIngredientRowId)
-        if (!ingredient) { setErrorMessage("Unable to find Ingredient " + selectedIngredientRowId[0] + "/" + selectedIngredientRowId[1]); return }
-        if (ingredient.ordinal <= 0) return
+        const sorted = [...ingredients].sort((a, b) => a.ordinal - b.ordinal);
+        const index = sorted.findIndex(item => isSameIngredientRow(item, selectedIngredientRowId));
 
-        const prevIngredient: IIngredient|undefined = ingredients.find((item: IIngredient) => item.ordinal == (ingredient.ordinal - 1));
-        if (!prevIngredient) { setErrorMessage("Unable to find Ingredient with ordinal " + (ingredient.ordinal - 1)); return }
+        if (index < 0) {
+            setErrorMessage("Unable to find Ingredient " + selectedIngredientRowId[0] + "/" + selectedIngredientRowId[1]);
+            return;
+        }
+        if (index === 0) return;
 
-        const index = ingredients.findIndex(item => item === ingredient);
-        if (index <= 0) return;
-
-        const newIngredients = [...ingredients];
-        [newIngredients[index - 1], newIngredients[index]] = [newIngredients[index], newIngredients[index - 1]];
-        newIngredients[index].ordinal = index;
-        newIngredients[index - 1].ordinal = index - 1;
-        setIngredients(newIngredients);
+        [sorted[index - 1], sorted[index]] = [sorted[index], sorted[index - 1]];
+        const reindexed = sorted.map((item, idx) => ({ ...item, ordinal: idx }));
+        setIngredients(reindexed);
     }
 
     const moveIngredientDown = (e: { preventDefault: () => void; }) => {
         e.preventDefault();
         if (!selectedIngredientRowId) return
 
-        const ingredient: IIngredient|undefined = findIngredient(selectedIngredientRowId)
-        if (!ingredient) { setErrorMessage("Unable to find Ingredient " + selectedIngredientRowId[0] + "/" + selectedIngredientRowId[1]); return }
-        if (ingredient.ordinal >= ingredients.length - 1) return
+        const sorted = [...ingredients].sort((a, b) => a.ordinal - b.ordinal);
+        const index = sorted.findIndex(item => isSameIngredientRow(item, selectedIngredientRowId));
 
-        const nextIngredient: IIngredient|undefined = ingredients.find((item: IIngredient) => item.ordinal == ingredient.ordinal + 1);
-        if (!nextIngredient) { setErrorMessage("Unable to find Ingredient with ordinal " + (ingredient.ordinal + 1)); return }
+        if (index < 0) {
+            setErrorMessage("Unable to find Ingredient " + selectedIngredientRowId[0] + "/" + selectedIngredientRowId[1]);
+            return;
+        }
+        if (index >= sorted.length - 1) return;
 
-        const index = ingredients.findIndex(item => item === ingredient);
-        if (index >= ingredients.length - 1) return;
-
-        const newIngredients = [...ingredients];
-        [newIngredients[index + 1], newIngredients[index]] = [newIngredients[index], newIngredients[index + 1]];
-        newIngredients[index].ordinal = index;
-        newIngredients[index + 1].ordinal = index + 1;
-        setIngredients(newIngredients);
+        [sorted[index + 1], sorted[index]] = [sorted[index], sorted[index + 1]];
+        const reindexed = sorted.map((item, idx) => ({ ...item, ordinal: idx }));
+        setIngredients(reindexed);
     }
 
     useEffect(() => {
