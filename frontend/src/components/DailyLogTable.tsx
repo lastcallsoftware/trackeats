@@ -74,13 +74,12 @@ function formatDate(isoDate: string): string {
     });
 }
 
-function formatWeekLabel(sundayIso: string): string {
-    const [y, m, d] = sundayIso.split('-').map(Number);
-    const sunday = new Date(y, m - 1, d);
-    const saturday = new Date(sunday);
-    saturday.setDate(sunday.getDate() + 6);
-    const fmt = (dt: Date) => dt.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-    return `Week of ${fmt(sunday)} – ${fmt(saturday)}`;
+function formatWeekLabel(firstIso: string, lastIso: string): string {
+    const fmt = (iso: string) => {
+        const [y, m, d] = iso.split('-').map(Number);
+        return new Date(y, m - 1, d).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    };
+    return `Week of ${fmt(firstIso)} – ${fmt(lastIso)}`;
 }
 
 function zeroNutrition(): INutrition {
@@ -198,10 +197,17 @@ function buildDisplayRows(
                     (acc, dr) => addNutrition(acc, dr.nutrition),
                     zeroNutrition()
                 );
+                // Use the actual first and last dates present in this week group
+                // (clamped to the month range) rather than always Sunday-Saturday.
+                const childDates = children
+                    .map(dr => dr.rowKey.replace('date-', ''))
+                    .sort();
+                const firstDate = childDates[0];
+                const lastDate = childDates[childDates.length - 1];
                 return {
                     type: 'week' as const,
                     rowKey: `week-${sundayIso}`,
-                    label: formatWeekLabel(sundayIso),
+                    label: formatWeekLabel(firstDate, lastDate),
                     nutrition: weekNutrition,
                     subRows: children,
                 };
