@@ -400,7 +400,7 @@ const RecipePickerTable: React.FC<RecipePickerTableProps> = ({ setSelectedRowId,
                     </colgroup>
                     <TableHead>
                         {table.getHeaderGroups().map(headerGroup => (
-                            <TableRow key={headerGroup.id} sx={{ height: "2.5rem" }}>
+                            <TableRow key={headerGroup.id}>
                                 {headerGroup.headers.map(header =>
                                     header.isPlaceholder ? (
                                         <TableCell
@@ -453,7 +453,6 @@ const RecipePickerTable: React.FC<RecipePickerTableProps> = ({ setSelectedRowId,
                                 onClick={() => handleClick(row)}
                                 sx={theme => ({
                                     cursor: "pointer",
-                                    height: "2.5rem",
                                     ...(row.original.id === selectedRowId
                                         ? { backgroundColor: `${theme.palette.table.rowSelectedBg} !important` }
                                         : {}),
@@ -466,9 +465,7 @@ const RecipePickerTable: React.FC<RecipePickerTableProps> = ({ setSelectedRowId,
                                             borderRight: `1px solid ${theme.palette.table.rowBorder}`,
                                             borderBottom: `1px solid ${theme.palette.table.rowBorder}`,
                                             fontSize: 13,
-                                            padding: "2px",
-                                            height: "2.5rem",
-                                            maxHeight: "2.5rem",
+                                            p: '4px 8px',
                                             textAlign: "center",
                                             whiteSpace: "normal",
                                         })}
