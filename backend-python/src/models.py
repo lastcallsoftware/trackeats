@@ -585,21 +585,6 @@ class Ingredient(db.Model):
         self.servings = ingredient_request.servings
         self.summary = ingredient_request.summary
 
-    @staticmethod
-    def from_import_dict(data: dict[str, Any]) -> IngredientRequest:
-        """Convert import-file ingredient payload into a validated IngredientRequest."""
-        return IngredientRequest.model_validate(
-            {
-                "id": data.get("id"),
-                "recipe_id": data.get("recipe_id"),
-                "food_ingredient_id": data.get("food_ingredient_id"),
-                "recipe_ingredient_id": data.get("recipe_ingredient_id"),
-                "ordinal": data.get("ordinal"),
-                "servings": data.get("servings"),
-                "summary": data.get("summary"),
-            }
-        )
-
     def json(self) -> dict[str,Any]:
         return {
             "id": self.id,
@@ -1104,40 +1089,6 @@ class Recipe(db.Model):
         self.nutrition.calcium_mg = recipe_request.calcium_mg
         self.nutrition.iron_mg = recipe_request.iron_mg
         self.nutrition.potassium_mg = recipe_request.potassium_mg
-
-    @staticmethod
-    def from_import_dict(data: dict[str, Any]) -> RecipeRequest:
-        """Convert import-file recipe payload into a validated RecipeRequest."""
-        nutrition: dict[str, Any] = data.get("nutrition", {})
-        return RecipeRequest.model_validate(
-            {
-                "id": data.get("id"),
-                "cuisine": data.get("cuisine"),
-                "name": data.get("name"),
-                "total_yield": data.get("total_yield"),
-                "servings": data.get("servings"),
-                "serving_size_description": nutrition.get("serving_size_description"),
-                "serving_size_oz": nutrition.get("serving_size_oz"),
-                "serving_size_g": nutrition.get("serving_size_g"),
-                "calories": nutrition.get("calories", 0),
-                "total_fat_g": nutrition.get("total_fat_g"),
-                "saturated_fat_g": nutrition.get("saturated_fat_g"),
-                "trans_fat_g": nutrition.get("trans_fat_g"),
-                "cholesterol_mg": nutrition.get("cholesterol_mg"),
-                "sodium_mg": nutrition.get("sodium_mg"),
-                "total_carbs_g": nutrition.get("total_carbs_g"),
-                "fiber_g": nutrition.get("fiber_g"),
-                "total_sugar_g": nutrition.get("total_sugar_g"),
-                "added_sugar_g": nutrition.get("added_sugar_g"),
-                "protein_g": nutrition.get("protein_g"),
-                "vitamin_d_mcg": nutrition.get("vitamin_d_mcg"),
-                "calcium_mg": nutrition.get("calcium_mg"),
-                "iron_mg": nutrition.get("iron_mg"),
-                "potassium_mg": nutrition.get("potassium_mg"),
-                "price": data.get("price"),
-                "ingredients": [],
-            }
-        )
 
     def __str__(self):
         return str(vars(self))

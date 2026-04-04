@@ -1,6 +1,6 @@
 from sqlalchemy import select, delete, inspect
 from models import db, User, UserStatus, Food, Recipe, Ingredient, Nutrition
-from schemas import FoodRequest
+from schemas import FoodRequest, RecipeRequest, IngredientRequest
 #from sqlalchemy import select
 import json
 import logging
@@ -196,7 +196,36 @@ class Data:
         with open("./data/recipes.json") as f:
             recipes: list[dict[str,Any]] = json.load(f)
             for recipe in recipes:
-                recipe_request = Recipe.from_import_dict(recipe)
+                nutrition: dict[str, Any] = recipe.get("nutrition", {})
+                recipe_request = RecipeRequest.model_validate(
+                    {
+                        "id": recipe.get("id"),
+                        "cuisine": recipe.get("cuisine"),
+                        "name": recipe.get("name"),
+                        "total_yield": recipe.get("total_yield"),
+                        "servings": recipe.get("servings"),
+                        "serving_size_description": nutrition.get("serving_size_description"),
+                        "serving_size_oz": nutrition.get("serving_size_oz"),
+                        "serving_size_g": nutrition.get("serving_size_g"),
+                        "calories": nutrition.get("calories", 0),
+                        "total_fat_g": nutrition.get("total_fat_g"),
+                        "saturated_fat_g": nutrition.get("saturated_fat_g"),
+                        "trans_fat_g": nutrition.get("trans_fat_g"),
+                        "cholesterol_mg": nutrition.get("cholesterol_mg"),
+                        "sodium_mg": nutrition.get("sodium_mg"),
+                        "total_carbs_g": nutrition.get("total_carbs_g"),
+                        "fiber_g": nutrition.get("fiber_g"),
+                        "total_sugar_g": nutrition.get("total_sugar_g"),
+                        "added_sugar_g": nutrition.get("added_sugar_g"),
+                        "protein_g": nutrition.get("protein_g"),
+                        "vitamin_d_mcg": nutrition.get("vitamin_d_mcg"),
+                        "calcium_mg": nutrition.get("calcium_mg"),
+                        "iron_mg": nutrition.get("iron_mg"),
+                        "potassium_mg": nutrition.get("potassium_mg"),
+                        "price": recipe.get("price"),
+                        "ingredients": [],
+                    }
+                )
                 Recipe.add_from_schema(user_id, recipe_request, keylists)
         logging.info("Recipe records imported")
 
@@ -210,7 +239,17 @@ class Data:
         with open("./data/ingredients.json") as f:
             ingredients: list[dict[str,Any]] = json.load(f)
             for ingredient in ingredients:
-                ingredient_request = Ingredient.from_import_dict(ingredient)
+                ingredient_request = IngredientRequest.model_validate(
+                    {
+                        "id": ingredient.get("id"),
+                        "recipe_id": ingredient.get("recipe_id"),
+                        "food_ingredient_id": ingredient.get("food_ingredient_id"),
+                        "recipe_ingredient_id": ingredient.get("recipe_ingredient_id"),
+                        "ordinal": ingredient.get("ordinal"),
+                        "servings": ingredient.get("servings"),
+                        "summary": ingredient.get("summary"),
+                    }
+                )
                 Ingredient.add_from_schema(user_id, ingredient_request, keylists)
         logging.info("Ingredient records imported")
 
