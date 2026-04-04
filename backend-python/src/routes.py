@@ -880,6 +880,58 @@ def delete_recipe(recipe_id: int):
         return jsonify({"msg": msg}), 200
 
 
+@bp.route("/api/recipe/<int:recipe_id>/recalc", methods = ["POST"])
+@jwt_required()
+def recalculate_recipe(recipe_id:int):
+    """
+    Recalculate the Nutrition info for a specified Recipe.
+    """
+    logging.info(f"/recipe/{recipe_id}/recalc")
+    try:
+        with db.session.begin():
+            # Get the user_id for the user identified by the token
+            username = get_jwt_identity()
+            user_id = User.get_id(username)
+
+            Recipe.recalculate_nutrition(user_id, recipe_id)
+
+    except Exception as e:
+        msg = f"Recipe nutrition data could not be recalculated: {str(e)}"
+        logging.error(msg)
+        return jsonify({"msg": msg}), 400
+    else:
+        msg = f"Recipe nutrition data recalculated for Recipe ID {recipe_id}"
+        logging.info(msg)
+        return jsonify({"msg": msg}), 200
+
+
+@bp.route("/api/recipe/recalc", methods = ["POST"])
+@jwt_required()
+def recalculate_all_for_user():
+    """
+    Recalculate the Nutrition info for all Recipe records for a User.
+    """
+    logging.info(f"/recipe/recalc")
+    try:
+        with db.session.begin():
+            # Get the user_id for the user identified by the token
+            username = get_jwt_identity()
+            user_id = User.get_id(username)
+
+            recipe_daos = Recipe.get_all_for_user(user_id)
+            for recipe_dao in recipe_daos:
+                Recipe.recalculate_nutrition(user_id, recipe_dao.id, recipe_dao)
+
+    except Exception as e:
+        msg = f"Recipe nutrition data could not be recalculated: {str(e)}"
+        logging.error(msg)
+        return jsonify({"msg": msg}), 400
+    else:
+        msg = f"Recipe nutrition data recalculated for all Recipes for user {username}"
+        logging.info(msg)
+        return jsonify({"msg": msg}), 200
+
+
 ##############################
 # INGREDIENT
 ##############################

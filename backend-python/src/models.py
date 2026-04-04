@@ -1188,7 +1188,7 @@ class Recipe(db.Model):
 
             db.session.flush()
 
-            recipe_dao = Recipe._recalculate_nutrition(user_id, recipe_id, recipe_dao, recipe_dao.nutrition)
+            recipe_dao = Recipe.recalculate_nutrition(user_id, recipe_id, recipe_dao, recipe_dao.nutrition)
             recipe_dao.nutrition.serving_size_description = recipe_request.serving_size_description
 
             return recipe_dao
@@ -1213,7 +1213,7 @@ class Recipe(db.Model):
             ingredient_dao.servings = servings
 
             # Recompute the Recipe's Nutrition data
-            recipe_dao = Recipe._recalculate_nutrition(user_id, recipe_id)
+            recipe_dao = Recipe.recalculate_nutrition(user_id, recipe_id)
 
             return recipe_dao
         except Exception as e:
@@ -1233,7 +1233,7 @@ class Recipe(db.Model):
             db.session.delete(ingredient_dao)
 
             # Recompute the Recipe's Nutrition data
-            recipe_dao = Recipe._recalculate_nutrition(user_id, recipe_id)
+            recipe_dao = Recipe.recalculate_nutrition(user_id, recipe_id)
 
             return recipe_dao
         except Exception as e:
@@ -1312,7 +1312,7 @@ class Recipe(db.Model):
 
 
     @staticmethod
-    def _recalculate_nutrition(user_id: int, recipe_id: int, recipe_dao: Recipe | None = None, recipe_nutrition_dao: Nutrition | None = None) -> Recipe:
+    def recalculate_nutrition(user_id: int, recipe_id: int, recipe_dao: Recipe | None = None, recipe_nutrition_dao: Nutrition | None = None) -> Recipe:
         """
         Recompute a Recipe's Nutrition data.  Intended to be called after one or more
         of the Recipe's Ingredients has been added, updated or deleted.
