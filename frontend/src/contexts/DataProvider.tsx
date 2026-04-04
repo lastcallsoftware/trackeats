@@ -3,10 +3,16 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { DataContext } from '@/utils/useData';
 import {
-    DEFAULT_FOODS_COLUMNS_PREFERENCES,
-    DEFAULT_RECIPES_COLUMNS_PREFERENCES,
     FOODS_COLUMNS_PREFERENCES_KEY,
+    DEFAULT_FOODS_COLUMNS_PREFERENCES,
     RECIPES_COLUMNS_PREFERENCES_KEY,
+    DEFAULT_RECIPES_COLUMNS_PREFERENCES,
+    FOOD_INGREDIENTS_COLUMNS_PREFERENCES_KEY,
+    DEFAULT_FOOD_INGREDIENTS_COLUMNS_PREFERENCES,
+    RECIPE_INGREDIENTS_COLUMNS_PREFERENCES_KEY,
+    DEFAULT_RECIPE_INGREDIENTS_COLUMNS_PREFERENCES,
+    DAILYLOG_COLUMNS_PREFERENCES_KEY,
+    DEFAULT_DAILYLOG_COLUMNS_PREFERENCES,
     AUTH_CHANGED_EVENT
 } from '@/utils/constants';
 import { generateIngredientSummary } from "../utils/generateIngredientSummary";
@@ -40,6 +46,26 @@ const getDefaultPreferencesForContext = (context: string): Record<string, unknow
         }
     }
 
+    if (context === FOOD_INGREDIENTS_COLUMNS_PREFERENCES_KEY) {
+        return {
+            ...DEFAULT_FOOD_INGREDIENTS_COLUMNS_PREFERENCES,
+            columnVisibility: { ...DEFAULT_FOOD_INGREDIENTS_COLUMNS_PREFERENCES.columnVisibility },
+        }
+    }
+
+    if (context === RECIPE_INGREDIENTS_COLUMNS_PREFERENCES_KEY) {
+        return {
+            ...DEFAULT_RECIPE_INGREDIENTS_COLUMNS_PREFERENCES,
+            columnVisibility: { ...DEFAULT_RECIPE_INGREDIENTS_COLUMNS_PREFERENCES.columnVisibility },
+        }
+    }
+
+    if (context === DAILYLOG_COLUMNS_PREFERENCES_KEY) {
+        return {
+            ...DEFAULT_DAILYLOG_COLUMNS_PREFERENCES,
+            columnVisibility: { ...DEFAULT_DAILYLOG_COLUMNS_PREFERENCES.columnVisibility },
+        }
+    }
     return null
 }
 
@@ -144,6 +170,7 @@ export type DataContextType = {
     addRecipe: (recipe: IRecipe, ingredients: IIngredient[]) => Promise<number|undefined>;
     updateRecipe: (recipe: IRecipe, ingredients: IIngredient[]) => Promise<void>;
     deleteRecipe: (recipe_id: number) => Promise<void>;
+    recalculateRecipeNutrition: (recipe_id: number) => Promise<void>;
     fetchIngredients: (recipe_id: number) => Promise<IIngredient[]>
     getIngredients: (recipe_id: number) => Promise<void>;
     addIngredients: (recipe_id: number, ingredients: IIngredient[]) => Promise<void>;
@@ -259,32 +286,29 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
         }
     }, [handleError])
 
+    const getFoods = useCallback(async (): Promise<void> => {
+        try {
+            const response = await axios.get<IFood[]>("/api/food")
+            setFoods(response.data);
+        } catch(error) {
+            handleError(error)
+        }
+    }, [handleError])
+
+    const getRecipes = useCallback(async (): Promise<void> => {
+        try {
+            const response = await axios.get<IRecipe[]>("/api/recipe")
+            setRecipes(response.data);
+        } catch(error) {
+            handleError(error)
+        }
+    }, [handleError])
+
     useEffect(() => {
         // If there's no token, state is already initialized to empty defaults — just return.
         if (!accessToken) {
             return;
         }
-
-        // Get Foods
-        const getFoods = async (): Promise<void> => {
-            try {
-                const response = await axios.get<IFood[]>("/api/food")
-                setFoods(response.data);
-            } catch(error) {
-                handleError(error)
-            }
-        };
-
-        // Get Recipes
-        const getRecipes = async (): Promise<void> => {
-            try {
-                const response = await axios.get<IRecipe[]>("/api/recipe")
-                setRecipes(response.data);
-            } catch(error) {
-                handleError(error)
-            }
-        };
-
         const fetchData = async () => {
             setLoading(true)
             await Promise.all([
@@ -292,12 +316,15 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
                 getRecipes(),
                 getPreferences(FOODS_COLUMNS_PREFERENCES_KEY),
                 getPreferences(RECIPES_COLUMNS_PREFERENCES_KEY),
+                getPreferences(FOOD_INGREDIENTS_COLUMNS_PREFERENCES_KEY),
+                getPreferences(RECIPE_INGREDIENTS_COLUMNS_PREFERENCES_KEY),
+                getPreferences(DAILYLOG_COLUMNS_PREFERENCES_KEY),
             ])
             setLoading(false)
         };
 
         fetchData();
-    }, [accessToken, handleError, getPreferences]);
+    }, [accessToken, getFoods, getRecipes, getPreferences]);
 
     // Delete Account
     const deleteAccount = async (): Promise<boolean> => {
@@ -438,7 +465,7 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
     // Add Ingredient(s)
     const addIngredients = async (recipe_id: number, ingredients: IIngredient[]): Promise<void> => {
         try {
-            await axios.post<IIngredient>("/api/recipe/" + recipe_id + "/ingredient", ingredients)
+            await axios.post<IIngredient>(`/api/recipe/${recipe_id}/ingredient`, ingredients)
         } catch(error) {
             handleError(error)
         }
@@ -447,8 +474,22 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
     // Remove all Ingredients from a Recipe
     const removeIngredients = async (recipe_id: number): Promise<void> => {
         try {
-            await axios.delete<void>("/api/recipe/" + recipe_id + "/ingredient")
+            await axios.delete<void>(`/api/recipe/${recipe_id}/ingredient`)
             setIngredients([])
+        } catch(error) {
+            handleError(error)
+        }
+    }
+
+    // Recalculate nutrition totals for Recipes
+    const recalculateRecipeNutrition = async (recipe_id: number | null): Promise<void> => {
+        try {
+            if (recipe_id) {
+                await axios.post<void>(`/api/recipe/${recipe_id}/recalc`)
+            } else {
+                await axios.post<void>("/api/recipe/recalc")
+            }
+            await getRecipes()
         } catch(error) {
             handleError(error)
         }
@@ -520,6 +561,7 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
             addRecipe, 
             updateRecipe, 
             deleteRecipe,
+            recalculateRecipeNutrition,
             fetchIngredients,
             getIngredients,
             addIngredients,            

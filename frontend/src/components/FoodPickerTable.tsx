@@ -1,6 +1,29 @@
-import React, { useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import {
+    Row,
+    SortingState,
+    TableOptions,
+    VisibilityState,
+    createColumnHelper,
+    flexRender,
+    getCoreRowModel,
+    getFilteredRowModel,
+    getPaginationRowModel,
+    getSortedRowModel,
+    useReactTable,
+} from "@tanstack/react-table";
 import { IFood } from "../contexts/DataProvider";
 import { useData } from "@/utils/useData";
+import {
+    enforceMandatoryColumns,
+    FOOD_INGREDIENTS_COLUMNS_PREFERENCES_KEY,
+    getDefaultColumnsPreferences,
+    TABLE_PREFERENCES_DEBOUNCE_MS,
+    toVisibilityState,
+} from "@/utils/constants";
+import { getFoodGroupLabel } from "./FoodGroups";
+import TruncatedCell from "./TruncatedCell";
+import ColumnVisibilityPicker from "./ColumnVisibilityPicker";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
 import TableCell from "@mui/material/TableCell";
@@ -9,151 +32,454 @@ import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import Paper from "@mui/material/Paper";
 import Box from "@mui/material/Box";
-import { Theme } from '@mui/material/styles';
 import MuiPagination from "@mui/material/Pagination";
 
-
 const PAGE_SIZE = 10;
+
+const columnHelper = createColumnHelper<IFood>();
+const foodPickerColumns = [
+    columnHelper.group({
+        id: "general_info",
+        header: () => <span>General Info</span>,
+        columns: [
+            columnHelper.accessor("id", {
+                header: () => <span>ID</span>,
+                cell: info => info.getValue(),
+                size: 55,
+            }),
+            columnHelper.accessor("group", {
+                header: () => <span>Group</span>,
+                cell: info => getFoodGroupLabel(info.getValue()),
+                size: 85,
+            }),
+            columnHelper.accessor("vendor", {
+                header: () => <span>Vendor</span>,
+                cell: info => info.getValue(),
+                size: 150,
+            }),
+            columnHelper.accessor("name", {
+                header: () => <span>Name</span>,
+                cell: info => info.getValue(),
+                size: 150,
+            }),
+            columnHelper.accessor("subtype", {
+                header: () => <span>Subtype</span>,
+                cell: info => info.getValue(),
+                size: 100,
+            }),
+            columnHelper.accessor("description", {
+                header: () => <span>Description</span>,
+                cell: info => info.getValue(),
+                size: 200,
+            }),
+            columnHelper.accessor("size_description", {
+                header: () => <span>Size Desc</span>,
+                cell: info => info.getValue(),
+                size: 120,
+            }),
+            columnHelper.accessor("size_oz", {
+                header: () => <span>Size (oz)</span>,
+                cell: info => info.getValue(),
+                size: 80,
+            }),
+            columnHelper.accessor("size_g", {
+                header: () => <span>Size (g)</span>,
+                cell: info => info.getValue(),
+                size: 80,
+            }),
+            columnHelper.accessor("servings", {
+                header: () => <span>Servings</span>,
+                cell: info => info.getValue(),
+                size: 80,
+            }),
+        ],
+    }),
+    columnHelper.group({
+        id: "nutrition_data",
+        header: () => <span>Nutrition Info (per serving)</span>,
+        columns: [
+            columnHelper.accessor("nutrition_id", {
+                header: () => <span>Nutrition ID</span>,
+                cell: info => info.getValue(),
+                size: 80,
+            }),
+            columnHelper.accessor("nutrition.serving_size_description", {
+                header: () => <span>Serving Size Desc</span>,
+                cell: info => info.getValue(),
+                size: 120,
+            }),
+            columnHelper.accessor("nutrition.serving_size_oz", {
+                header: () => <span>Serving Size (oz)</span>,
+                cell: info => info.getValue(),
+                size: 100,
+            }),
+            columnHelper.accessor("nutrition.serving_size_g", {
+                header: () => <span>Serving Size (g)</span>,
+                cell: info => info.getValue(),
+                size: 100,
+            }),
+            columnHelper.accessor("nutrition.calories", {
+                header: () => <span>Calories</span>,
+                cell: info => info.getValue(),
+                size: 80,
+            }),
+            columnHelper.accessor("nutrition.total_fat_g", {
+                header: () => <span>Total Fat (g)</span>,
+                cell: info => info.getValue(),
+                size: 80,
+            }),
+            columnHelper.accessor("nutrition.saturated_fat_g", {
+                header: () => <span>Sat. Fat (g)</span>,
+                cell: info => info.getValue(),
+                size: 80,
+            }),
+            columnHelper.accessor("nutrition.trans_fat_g", {
+                header: () => <span>Trans Fat (g)</span>,
+                cell: info => info.getValue(),
+                size: 80,
+            }),
+            columnHelper.accessor("nutrition.cholesterol_mg", {
+                header: () => <span>Cholest. (mg)</span>,
+                cell: info => info.getValue(),
+                size: 80,
+            }),
+            columnHelper.accessor("nutrition.sodium_mg", {
+                header: () => <span>Sodium (mg)</span>,
+                cell: info => info.getValue(),
+                size: 80,
+            }),
+            columnHelper.accessor("nutrition.total_carbs_g", {
+                header: () => <span>Total Carbs (g)</span>,
+                cell: info => info.getValue(),
+                size: 80,
+            }),
+            columnHelper.accessor("nutrition.fiber_g", {
+                header: () => <span>Fiber (g)</span>,
+                cell: info => info.getValue(),
+                size: 80,
+            }),
+            columnHelper.accessor("nutrition.total_sugar_g", {
+                header: () => <span>Total Sugar (g)</span>,
+                cell: info => info.getValue(),
+                size: 80,
+            }),
+            columnHelper.accessor("nutrition.added_sugar_g", {
+                header: () => <span>Added Sugar (g)</span>,
+                cell: info => info.getValue(),
+                size: 80,
+            }),
+            columnHelper.accessor("nutrition.protein_g", {
+                header: () => <span>Protein (g)</span>,
+                cell: info => info.getValue(),
+                size: 80,
+            }),
+            columnHelper.accessor("nutrition.vitamin_d_mcg", {
+                header: () => <span>Vitamin D (mcg)</span>,
+                cell: info => info.getValue(),
+                size: 80,
+            }),
+            columnHelper.accessor("nutrition.calcium_mg", {
+                header: () => <span>Calcium (mg)</span>,
+                cell: info => info.getValue(),
+                size: 80,
+            }),
+            columnHelper.accessor("nutrition.iron_mg", {
+                header: () => <span>Iron (mg)</span>,
+                cell: info => info.getValue(),
+                size: 80,
+            }),
+            columnHelper.accessor("nutrition.potassium_mg", {
+                header: () => <span>Potassium (mg)</span>,
+                cell: info => info.getValue(),
+                size: 80,
+            }),
+        ],
+    }),
+    columnHelper.group({
+        id: "price_info",
+        header: () => <span>Price Info</span>,
+        columns: [
+            columnHelper.accessor("price", {
+                header: () => <span>Total Price</span>,
+                cell: info => (info.getValue() ?? 0).toFixed(2),
+                size: 65,
+            }),
+            columnHelper.accessor("price_per_serving", {
+                header: () => <span>Price / serving</span>,
+                cell: info => ((info.row.original.price ?? 0) / info.row.original.servings).toFixed(2),
+                sortingFn: (rowA, rowB) => {
+                    const val1 = rowA.original.price / rowA.original.servings;
+                    const val2 = rowB.original.price / rowB.original.servings;
+                    return val1 < val2 ? -1 : val1 > val2 ? 1 : 0;
+                },
+                size: 65,
+            }),
+            columnHelper.accessor("price_per_oz", {
+                header: () => <span>Price / oz</span>,
+                cell: info => ((info.row.original.price ?? 0) / info.row.original.size_oz).toFixed(2),
+                sortingFn: (rowA, rowB) => {
+                    const val1 = rowA.original.price / rowA.original.size_oz;
+                    const val2 = rowB.original.price / rowB.original.size_oz;
+                    return val1 < val2 ? -1 : val1 > val2 ? 1 : 0;
+                },
+                size: 65,
+            }),
+            columnHelper.accessor("price_per_calorie", {
+                header: () => <span>Price / 100 cal</span>,
+                cell: info =>
+                    info.row.original.nutrition.calories === 0
+                        ? "∞"
+                        : (info.row.original.price * 100 / info.row.original.servings / info.row.original.nutrition.calories).toFixed(2),
+                sortingFn: (rowA, rowB) => {
+                    const val1 = rowA.original.price / rowA.original.servings / rowA.original.nutrition.calories;
+                    const val2 = rowB.original.price / rowB.original.servings / rowB.original.nutrition.calories;
+                    return val1 < val2 ? -1 : val1 > val2 ? 1 : 0;
+                },
+                size: 65,
+            }),
+            columnHelper.accessor("price_date", {
+                header: () => <span>Price Date</span>,
+                cell: info => {
+                    const val = info.getValue();
+                    if (typeof val === "string" && val.trim().length > 0)
+                        return new Date(val.replace(/-/g, "/").replace(/T.+/, "")).toLocaleDateString("en-US", {
+                            year: "numeric",
+                            month: "short",
+                            day: "numeric",
+                        });
+                    return "";
+                },
+                size: 100,
+            }),
+        ],
+    }),
+    columnHelper.accessor("shelf_life", {
+        header: () => <span>Shelf Life</span>,
+        cell: info => info.getValue(),
+        size: 400,
+    }),
+];
+
+const foodPickerGlobalFilter = (row: Row<IFood>, _columnId: string, filterValue: string): boolean => {
+    if (!filterValue) return true;
+    const q = filterValue.toLowerCase();
+    const food = row.original;
+    return (
+        food.name.toLowerCase().includes(q) ||
+        (food.vendor ?? "").toLowerCase().includes(q) ||
+        (food.subtype ?? "").toLowerCase().includes(q)
+    );
+};
 
 interface FoodPickerTableProps {
     setSelectedRowId: (id: number | null) => void;
     selectedRowId: number | null;
 }
 
-const FoodPickerTable: React.FC<FoodPickerTableProps> = ({setSelectedRowId, selectedRowId}) => {
-    const { foods } = useData();
-    const [filter, setFilter] = useState("");
-    const [page, setPage] = useState(1);
-    const [sort, setSort] = useState<{ key: string; dir: 'asc' | 'desc' } | null>(null);
-
-    const handleSort = (key: string) => {
-        setSort(prev => {
-            if (prev?.key === key) return prev.dir === 'asc' ? { key, dir: 'desc' } : null;
-            return { key, dir: 'asc' };
-        });
-        setPage(1);
-    };
-
-    const filtered = foods.filter((f: IFood) => {
-        const q = filter.toLowerCase();
-        return (
-            !q ||
-            f.name.toLowerCase().includes(q) ||
-            (f.vendor ?? "").toLowerCase().includes(q) ||
-            (f.subtype ?? "").toLowerCase().includes(q)
-        );
-    });
-
-    const sorted = sort ? [...filtered].sort((a, b) => {
-        let valA: string | number = '';
-        let valB: string | number = '';
-        switch (sort.key) {
-            case 'subtype':  valA = a.subtype ?? '';                               valB = b.subtype ?? '';                               break;
-            case 'vendor':   valA = a.vendor ?? '';                                 valB = b.vendor ?? '';                                 break;
-            case 'name':     valA = a.name;                                         valB = b.name;                                         break;
-            case 'serving':  valA = a.nutrition?.serving_size_description ?? '';   valB = b.nutrition?.serving_size_description ?? '';    break;
-            case 'calories': valA = a.nutrition?.calories ?? 0;                    valB = b.nutrition?.calories ?? 0;                     break;
+const FoodPickerTable: React.FC<FoodPickerTableProps> = ({ setSelectedRowId, selectedRowId }) => {
+    const { foods, preferences, updatePreferences } = useData();
+    const columnsPreferencesKey = FOOD_INGREDIENTS_COLUMNS_PREFERENCES_KEY;
+    const [sorting, setSorting] = useState<SortingState>([]);
+    const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(() => {
+        const stored = preferences[columnsPreferencesKey];
+        if (stored?.columnVisibility) {
+            return enforceMandatoryColumns(columnsPreferencesKey, stored.columnVisibility as Record<string, boolean>) as VisibilityState;
         }
-        if (valA < valB) return sort.dir === 'asc' ? -1 : 1;
-        if (valA > valB) return sort.dir === 'asc' ? 1 : -1;
-        return 0;
-    }) : filtered;
+        const defaults = getDefaultColumnsPreferences(columnsPreferencesKey);
+        return defaults ? toVisibilityState(defaults.columnVisibility) as VisibilityState : {};
+    });
+    const [globalFilter, setGlobalFilter] = useState("");
+    const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: PAGE_SIZE });
+    const visibilitySaveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-    const totalPages = Math.max(1, Math.ceil(sorted.length / PAGE_SIZE));
-    const currentPage = Math.min(page, totalPages);
-    const rows = sorted.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+    const saveColumnVisibility = useCallback(
+        (next: VisibilityState) => {
+            const withMandatory = enforceMandatoryColumns(columnsPreferencesKey, next as Record<string, boolean>);
+            void updatePreferences(columnsPreferencesKey, { columnVisibility: withMandatory });
+        },
+        [columnsPreferencesKey, updatePreferences]
+    );
 
-    const handleClick = (food: IFood) => {
-        const id = food.id ?? null;
+    useEffect(() => {
+        const tablePreferences = preferences[columnsPreferencesKey];
+        if (!tablePreferences) return;
+        let nextVisibility: VisibilityState | null = null;
+        if (tablePreferences.columnVisibility) {
+            const loadedVisibility = tablePreferences.columnVisibility as Record<string, boolean>;
+            nextVisibility = enforceMandatoryColumns(columnsPreferencesKey, loadedVisibility) as VisibilityState;
+        } else {
+            const defaults = getDefaultColumnsPreferences(columnsPreferencesKey);
+            if (defaults) nextVisibility = toVisibilityState(defaults.columnVisibility) as VisibilityState;
+        }
+        if (!nextVisibility) return;
+        setColumnVisibility(prev => {
+            const prevKeys = Object.keys(prev);
+            const nextKeys = Object.keys(nextVisibility);
+            const same =
+                prevKeys.length === nextKeys.length
+                && prevKeys.every(key => prev[key] === nextVisibility[key]);
+            return same ? prev : nextVisibility;
+        });
+    }, [preferences, columnsPreferencesKey]);
+
+    useEffect(() => {
+        return () => {
+            if (visibilitySaveTimeoutRef.current) clearTimeout(visibilitySaveTimeoutRef.current);
+        };
+    }, []);
+
+    const tableOptions: TableOptions<IFood> = {
+        data: foods,
+        columns: foodPickerColumns,
+        getCoreRowModel: getCoreRowModel(),
+        getSortedRowModel: getSortedRowModel(),
+        getFilteredRowModel: getFilteredRowModel(),
+        getPaginationRowModel: getPaginationRowModel(),
+        globalFilterFn: foodPickerGlobalFilter,
+        onSortingChange: setSorting,
+        onGlobalFilterChange: setGlobalFilter,
+        onPaginationChange: setPagination,
+        onColumnVisibilityChange: (updater) => {
+            setColumnVisibility(prev => {
+                const rawNext = typeof updater === "function" ? updater(prev) : updater;
+                const next = enforceMandatoryColumns(columnsPreferencesKey, rawNext as Record<string, boolean>) as VisibilityState;
+                if (visibilitySaveTimeoutRef.current) clearTimeout(visibilitySaveTimeoutRef.current);
+                visibilitySaveTimeoutRef.current = setTimeout(() => saveColumnVisibility(next), TABLE_PREFERENCES_DEBOUNCE_MS);
+                return next;
+            });
+        },
+        state: { sorting, columnVisibility, globalFilter, pagination },
+    };
+    // eslint-disable-next-line react-hooks/incompatible-library
+    const table = useReactTable(tableOptions);
+
+    const totalPages = table.getPageCount();
+
+    const handleClick = (row: Row<IFood>) => {
+        const id = row.original.id ?? null;
         setSelectedRowId(selectedRowId === id ? null : id);
     };
 
-    const headerSx = {
-        fontWeight: "bold",
-        fontSize: 13,
-        color: (theme: Theme) => theme.palette.table.headerColor,
-        background: (theme: Theme) => theme.palette.table.headerBg,
-        borderBottom: (theme: Theme) => `1px solid ${theme.palette.table.headerBorder}`,
-        borderRight: (theme: Theme) => `1px solid ${theme.palette.table.headerBorder}`,
-        p: "5px 8px",
-        cursor: "pointer",
-        userSelect: "none",
-    };
-
-    const sortIcon = (key: string) => sort?.key === key ? (sort.dir === 'asc' ? ' 🔼' : ' 🔽') : '';
-
-    const cellSx = {
-        fontSize: 13,
-        borderRight: (theme: Theme) => `1px solid ${theme.palette.table.rowBorder}`,
-        borderBottom: (theme: Theme) => `1px solid ${theme.palette.table.rowBorder}`,
-        p: "4px 8px",
-        whiteSpace: "nowrap",
-        overflow: "hidden",
-        textOverflow: "ellipsis",
-    };
-
     return (
-        <Box>
-            <Box sx={{ position: 'relative', width: '100%', mb: 1 }}>
-                <input
-                    type="text"
-                    style={{ width: '100%', boxSizing: 'border-box', paddingRight: filter ? 28 : 8, borderRadius: 4, border: '1px solid #ccc', fontSize: 16, height: 36 }}
-                    placeholder="Filter by name, vendor, subtype…"
-                    value={filter}
-                    onChange={(e) => { setFilter(e.target.value); setPage(1); }}
-                />
-                {filter ? (
-                    <button
-                        onClick={() => { setFilter(""); setPage(1); }}
-                        style={{ position: 'absolute', right: 2, top: 10, background: 'none', border: 'none', cursor: 'pointer', fontSize: 16, padding: 0, lineHeight: 1 }}
-                        aria-label="Clear filter"
-                    >
-                        ❌
-                    </button>
-                ) : null}
+        <Box sx={{ display: "flex", flexDirection: "column" }}>
+            {/* Toolbar: search box + column visibility picker */}
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1 }}>
+                <Box sx={{ position: "relative", flex: 1 }}>
+                    <input
+                        type="text"
+                        style={{ width: "100%", boxSizing: "border-box", paddingRight: globalFilter ? 28 : 8, borderRadius: 4, border: "1px solid #ccc", fontSize: 16, height: 36 }}
+                        placeholder="Filter by name, vendor, subtype…"
+                        value={globalFilter}
+                        onChange={e => { setGlobalFilter(e.target.value); table.setPageIndex(0); }}
+                    />
+                    {globalFilter ? (
+                        <button
+                            onClick={() => { setGlobalFilter(""); table.setPageIndex(0); }}
+                            style={{ position: "absolute", right: 2, top: 10, background: "none", border: "none", cursor: "pointer", fontSize: 16, padding: 0, lineHeight: 1 }}
+                            aria-label="Clear filter"
+                        >
+                            ❌
+                        </button>
+                    ) : null}
+                </Box>
+                <ColumnVisibilityPicker table={table} storageKey={columnsPreferencesKey} />
             </Box>
-            <TableContainer component={Paper} sx={{ borderRadius: 1, boxShadow: 1, overflowX: 'auto' }}>
+
+            <TableContainer component={Paper} sx={{ borderRadius: 1, boxShadow: 1, overflowX: "auto" }}>
                 <Table size="small" sx={{ minWidth: 520, tableLayout: "fixed", borderCollapse: "separate", borderSpacing: 0 }}>
                     <colgroup>
-                        <col style={{ width: 110 }} />
-                        <col style={{ width: 140 }} />
-                        <col style={{ width: 90 }} />
-                        <col style={{ width: 100 }} />
-                        <col style={{ width: 80 }} />
+                        {table.getVisibleLeafColumns().map(col => (
+                            <col key={col.id} style={{ width: col.getSize() }} />
+                        ))}
                     </colgroup>
                     <TableHead>
-                        <TableRow>
-                            <TableCell sx={headerSx} onClick={() => handleSort('vendor')}>Vendor{sortIcon('vendor')}</TableCell>
-                            <TableCell sx={headerSx} onClick={() => handleSort('name')}>Name{sortIcon('name')}</TableCell>
-                            <TableCell sx={headerSx} onClick={() => handleSort('subtype')}>Subtype{sortIcon('subtype')}</TableCell>
-                            <TableCell sx={headerSx} onClick={() => handleSort('serving')}>Serving Size{sortIcon('serving')}</TableCell>
-                            <TableCell sx={headerSx} onClick={() => handleSort('calories')}>Cal/Srv{sortIcon('calories')}</TableCell>
-                        </TableRow>
+                        {table.getHeaderGroups().map(headerGroup => (
+                            <TableRow key={headerGroup.id} sx={{ height: "2.5rem" }}>
+                                {headerGroup.headers.map(header =>
+                                    header.isPlaceholder ? (
+                                        <TableCell
+                                            key={header.id}
+                                            colSpan={header.colSpan}
+                                            sx={theme => ({
+                                                background: theme.palette.table.headerBg,
+                                                borderRight: `1px solid ${theme.palette.table.headerBorder}`,
+                                                borderBottom: `1px solid ${theme.palette.table.headerBorder}`,
+                                                p: 1,
+                                            })}
+                                        />
+                                    ) : (
+                                        <TableCell
+                                            key={header.id}
+                                            colSpan={header.colSpan}
+                                            onClick={header.column.getToggleSortingHandler()}
+                                            sx={theme => ({
+                                                width: header.getSize(),
+                                                userSelect: "none",
+                                                fontWeight: "bold",
+                                                fontSize: 13,
+                                                color: theme.palette.table.headerColor,
+                                                background: theme.palette.table.headerBg,
+                                                borderRight: `1px solid ${theme.palette.table.headerBorder}`,
+                                                borderBottom: `1px solid ${theme.palette.table.headerBorder}`,
+                                                p: "5px 8px",
+                                                cursor: "pointer",
+                                                textAlign: "center",
+                                                lineHeight: 1.2,
+                                            })}
+                                        >
+                                            <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
+                                                {flexRender(header.column.columnDef.header, header.getContext())}
+                                                <Box component="span" sx={{ ml: 0.5 }}>
+                                                    {({ asc: " 🔼", desc: " 🔽" } as Record<string, string>)[header.column.getIsSorted() as string] ?? ""}
+                                                </Box>
+                                            </Box>
+                                        </TableCell>
+                                    )
+                                )}
+                            </TableRow>
+                        ))}
                     </TableHead>
                     <TableBody>
-                        {rows.map((food) => {
-                            const isSelected = food.id === selectedRowId;
-                            return (
-                                <TableRow
-                                    key={food.id}
-                                    hover
-                                    onClick={() => handleClick(food)}
-                                    sx={(theme: Theme) => ({
-                                        cursor: "pointer",
-                                        ...(isSelected ? { backgroundColor: `${theme.palette.table.rowSelectedBg} !important` } : {}),
-                                    })}
-                                >
-                                    <TableCell sx={cellSx} title={food.vendor ?? ''}>{food.vendor}</TableCell>
-                                    <TableCell sx={cellSx} title={food.name}>{food.name}</TableCell>
-                                    <TableCell sx={cellSx} title={food.subtype ?? ''}>{food.subtype}</TableCell>
-                                    <TableCell sx={cellSx} title={food.nutrition?.serving_size_description ?? ''}>{food.nutrition?.serving_size_description}</TableCell>
-                                    <TableCell sx={{ ...cellSx, textAlign: "right" }}>{food.nutrition?.calories ?? 0}</TableCell>
-                                </TableRow>
-                            );
-                        })}
-                        {rows.length === 0 && (
+                        {table.getRowModel().rows.map(row => (
+                            <TableRow
+                                key={row.id}
+                                hover
+                                onClick={() => handleClick(row)}
+                                sx={theme => ({
+                                    cursor: "pointer",
+                                    height: "2.5rem",
+                                    ...(row.original.id === selectedRowId
+                                        ? { backgroundColor: `${theme.palette.table.rowSelectedBg} !important` }
+                                        : {}),
+                                })}
+                            >
+                                {row.getVisibleCells().map(cell => (
+                                    <TableCell
+                                        key={cell.id}
+                                        sx={theme => ({
+                                            borderRight: `1px solid ${theme.palette.table.rowBorder}`,
+                                            borderBottom: `1px solid ${theme.palette.table.rowBorder}`,
+                                            fontSize: 13,
+                                            padding: "2px",
+                                            height: "2.5rem",
+                                            maxHeight: "2.5rem",
+                                            textAlign: "center",
+                                            whiteSpace: "normal",
+                                        })}
+                                    >
+                                        <TruncatedCell>
+                                            {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                                        </TruncatedCell>
+                                    </TableCell>
+                                ))}
+                            </TableRow>
+                        ))}
+                        {table.getRowModel().rows.length === 0 && (
                             <TableRow>
-                                <TableCell colSpan={5} sx={{ textAlign: "center", color: "text.secondary", py: 2 }}>
+                                <TableCell
+                                    colSpan={table.getVisibleLeafColumns().length || 1}
+                                    sx={{ textAlign: "center", color: "text.secondary", py: 2 }}
+                                >
                                     No foods match the filter.
                                 </TableCell>
                             </TableRow>
@@ -165,8 +491,8 @@ const FoodPickerTable: React.FC<FoodPickerTableProps> = ({setSelectedRowId, sele
                 <Box sx={{ display: "flex", justifyContent: "center", mt: 1 }}>
                     <MuiPagination
                         count={totalPages}
-                        page={currentPage}
-                        onChange={(_, p) => setPage(p)}
+                        page={pagination.pageIndex + 1}
+                        onChange={(_, p) => table.setPageIndex(p - 1)}
                         size="small"
                     />
                 </Box>

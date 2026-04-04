@@ -1,7 +1,29 @@
-import React, { useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+    Row,
+    SortingState,
+    TableOptions,
+    VisibilityState,
+    createColumnHelper,
+    flexRender,
+    getCoreRowModel,
+    getFilteredRowModel,
+    getPaginationRowModel,
+    getSortedRowModel,
+    useReactTable,
+} from "@tanstack/react-table";
 import { IRecipe } from "../contexts/DataProvider";
 import { useData } from "@/utils/useData";
+import {
+    enforceMandatoryColumns,
+    RECIPE_INGREDIENTS_COLUMNS_PREFERENCES_KEY,
+    getDefaultColumnsPreferences,
+    TABLE_PREFERENCES_DEBOUNCE_MS,
+    toVisibilityState,
+} from "@/utils/constants";
 import { getCuisineLabel } from "./Cuisines";
+import TruncatedCell from "./TruncatedCell";
+import ColumnVisibilityPicker from "./ColumnVisibilityPicker";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
 import TableCell from "@mui/material/TableCell";
@@ -10,151 +32,460 @@ import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import Paper from "@mui/material/Paper";
 import Box from "@mui/material/Box";
-import { Theme } from '@mui/material/styles';
 import MuiPagination from "@mui/material/Pagination";
 
-
 const PAGE_SIZE = 10;
+
+const columnHelper = createColumnHelper<IRecipe>();
+const recipePickerColumns = [
+    columnHelper.group({
+        id: "general_info",
+        header: () => <span>General Info</span>,
+        columns: [
+            columnHelper.accessor("id", {
+                header: () => <span>ID</span>,
+                cell: info => info.getValue(),
+                size: 55,
+            }),
+            columnHelper.accessor("cuisine", {
+                header: () => <span>Cuisine</span>,
+                cell: info => getCuisineLabel(info.getValue()),
+                size: 150,
+            }),
+            columnHelper.accessor("name", {
+                header: () => <span>Name</span>,
+                cell: info => info.getValue(),
+                size: 150,
+            }),
+            columnHelper.accessor("total_yield", {
+                header: () => <span>Yield</span>,
+                cell: info => info.getValue(),
+                size: 120,
+            }),
+            columnHelper.accessor("servings", {
+                header: () => <span>Servings</span>,
+                cell: info => info.getValue(),
+                size: 80,
+            }),
+        ],
+    }),
+    columnHelper.group({
+        id: "nutrition_data",
+        header: () => <span>Nutrition Info (per serving)</span>,
+        columns: [
+            columnHelper.accessor("nutrition_id", {
+                header: () => <span>Nutrition ID</span>,
+                cell: info => info.row.original.nutrition_id ?? "",
+                size: 80,
+            }),
+            columnHelper.accessor("nutrition.serving_size_description", {
+                header: () => <span>Serving Size Desc</span>,
+                cell: info => info.getValue(),
+                size: 120,
+            }),
+            columnHelper.accessor("nutrition.serving_size_oz", {
+                header: () => <span>Serving Size (oz)</span>,
+                cell: info => info.getValue(),
+                size: 80,
+            }),
+            columnHelper.accessor("nutrition.serving_size_g", {
+                header: () => <span>Serving Size (g)</span>,
+                cell: info => info.getValue(),
+                size: 80,
+            }),
+            columnHelper.accessor("nutrition.calories", {
+                header: () => <span>Calories</span>,
+                cell: info => {
+                    const servings = info.row.original.servings || 1;
+                    return (info.getValue() / servings).toFixed(0);
+                },
+                size: 80,
+            }),
+            columnHelper.accessor("nutrition.total_fat_g", {
+                header: () => <span>Total Fat (g)</span>,
+                cell: info => {
+                    const servings = info.row.original.servings || 1;
+                    return (info.getValue() / servings).toFixed(1);
+                },
+                size: 80,
+            }),
+            columnHelper.accessor("nutrition.saturated_fat_g", {
+                header: () => <span>Sat. Fat (g)</span>,
+                cell: info => {
+                    const servings = info.row.original.servings || 1;
+                    return (info.getValue() / servings).toFixed(1);
+                },
+                size: 80,
+            }),
+            columnHelper.accessor("nutrition.trans_fat_g", {
+                header: () => <span>Trans Fat (g)</span>,
+                cell: info => {
+                    const servings = info.row.original.servings || 1;
+                    return (info.getValue() / servings).toFixed(1);
+                },
+                size: 80,
+            }),
+            columnHelper.accessor("nutrition.cholesterol_mg", {
+                header: () => <span>Cholest. (mg)</span>,
+                cell: info => {
+                    const servings = info.row.original.servings || 1;
+                    return (info.getValue() / servings).toFixed(0);
+                },
+                size: 80,
+            }),
+            columnHelper.accessor("nutrition.sodium_mg", {
+                header: () => <span>Sodium (mg)</span>,
+                cell: info => {
+                    const servings = info.row.original.servings || 1;
+                    return (info.getValue() / servings).toFixed(0);
+                },
+                size: 80,
+            }),
+            columnHelper.accessor("nutrition.total_carbs_g", {
+                header: () => <span>Total Carbs (g)</span>,
+                cell: info => {
+                    const servings = info.row.original.servings || 1;
+                    return (info.getValue() / servings).toFixed(1);
+                },
+                size: 80,
+            }),
+            columnHelper.accessor("nutrition.fiber_g", {
+                header: () => <span>Fiber (g)</span>,
+                cell: info => {
+                    const servings = info.row.original.servings || 1;
+                    return (info.getValue() / servings).toFixed(1);
+                },
+                size: 80,
+            }),
+            columnHelper.accessor("nutrition.total_sugar_g", {
+                header: () => <span>Total Sugar (g)</span>,
+                cell: info => {
+                    const servings = info.row.original.servings || 1;
+                    return (info.getValue() / servings).toFixed(1);
+                },
+                size: 80,
+            }),
+            columnHelper.accessor("nutrition.added_sugar_g", {
+                header: () => <span>Added Sugar (g)</span>,
+                cell: info => {
+                    const servings = info.row.original.servings || 1;
+                    return (info.getValue() / servings).toFixed(1);
+                },
+                size: 80,
+            }),
+            columnHelper.accessor("nutrition.protein_g", {
+                header: () => <span>Protein (g)</span>,
+                cell: info => {
+                    const servings = info.row.original.servings || 1;
+                    return (info.getValue() / servings).toFixed(1);
+                },
+                size: 80,
+            }),
+            columnHelper.accessor("nutrition.vitamin_d_mcg", {
+                header: () => <span>Vitamin D (mcg)</span>,
+                cell: info => {
+                    const servings = info.row.original.servings || 1;
+                    return (info.getValue() / servings).toFixed(1);
+                },
+                size: 80,
+            }),
+            columnHelper.accessor("nutrition.calcium_mg", {
+                header: () => <span>Calcium (mg)</span>,
+                cell: info => {
+                    const servings = info.row.original.servings || 1;
+                    return (info.getValue() / servings).toFixed(0);
+                },
+                size: 80,
+            }),
+            columnHelper.accessor("nutrition.iron_mg", {
+                header: () => <span>Iron (mg)</span>,
+                cell: info => {
+                    const servings = info.row.original.servings || 1;
+                    return (info.getValue() / servings).toFixed(1);
+                },
+                size: 80,
+            }),
+            columnHelper.accessor("nutrition.potassium_mg", {
+                header: () => <span>Potassium (mg)</span>,
+                cell: info => {
+                    const servings = info.row.original.servings || 1;
+                    return (info.getValue() / servings).toFixed(0);
+                },
+                size: 80,
+            }),
+        ],
+    }),
+    columnHelper.group({
+        id: "price_info",
+        header: () => <span>Price Info</span>,
+        columns: [
+            columnHelper.accessor("price", {
+                header: () => <span>Total Price</span>,
+                cell: info => info.getValue(),
+                size: 80,
+            }),
+            columnHelper.accessor("price_per_serving" as keyof IRecipe, {
+                header: () => <span>Price / serving</span>,
+                cell: info => {
+                    const val = info.getValue();
+                    if (val !== undefined && val !== null) return Number(val).toFixed(2);
+                    const price = info.row.original.price ?? 0;
+                    const servings = info.row.original.servings || 1;
+                    return (price / servings).toFixed(2);
+                },
+                sortingFn: (rowA, rowB) => {
+                    const val1 = (rowA.original.price_per_serving !== undefined)
+                        ? rowA.original.price_per_serving
+                        : (rowA.original.price ?? 0) / (rowA.original.servings || 1);
+                    const val2 = (rowB.original.price_per_serving !== undefined)
+                        ? rowB.original.price_per_serving
+                        : (rowB.original.price ?? 0) / (rowB.original.servings || 1);
+                    return val1 < val2 ? -1 : val1 > val2 ? 1 : 0;
+                },
+                size: 80,
+            }),
+            columnHelper.accessor("price_per_calorie", {
+                header: () => <span>Price / 100 cal</span>,
+                cell: info =>
+                    info.row.original.nutrition.calories === 0
+                        ? "∞"
+                        : (info.row.original.price * 100 / info.row.original.servings / info.row.original.nutrition.calories).toFixed(2),
+                sortingFn: (rowA, rowB) => {
+                    const val1 = rowA.original.price / rowA.original.servings / rowA.original.nutrition.calories;
+                    const val2 = rowB.original.price / rowB.original.servings / rowB.original.nutrition.calories;
+                    return val1 < val2 ? -1 : val1 > val2 ? 1 : 0;
+                },
+                size: 80,
+            }),
+        ],
+    }),
+];
+
+const recipePickerGlobalFilter = (row: Row<IRecipe>, _columnId: string, filterValue: string): boolean => {
+    if (!filterValue) return true;
+    const q = filterValue.toLowerCase();
+    const recipe = row.original;
+    return (
+        recipe.name.toLowerCase().includes(q) ||
+        (getCuisineLabel(recipe.cuisine) ?? "").toLowerCase().includes(q)
+    );
+};
 
 interface RecipePickerTableProps {
     setSelectedRowId: (id: number | null) => void;
     selectedRowId: number | null;
-    excludeRecipeId?: number;   // optionally hide the recipe being edited (can't add itself)
+    excludeRecipeId?: number;
 }
 
 const RecipePickerTable: React.FC<RecipePickerTableProps> = ({ setSelectedRowId, selectedRowId, excludeRecipeId }) => {
-    const { recipes } = useData();
-    const [filter, setFilter] = useState("");
-    const [page, setPage] = useState(1);
-    const [sort, setSort] = useState<{ key: string; dir: 'asc' | 'desc' } | null>(null);
-
-    const handleSort = (key: string) => {
-        setSort(prev => {
-            if (prev?.key === key) return prev.dir === 'asc' ? { key, dir: 'desc' } : null;
-            return { key, dir: 'asc' };
-        });
-        setPage(1);
-    };
-
-    const filtered = recipes.filter((r: IRecipe) => {
-        if (excludeRecipeId !== undefined && r.id === excludeRecipeId) return false;
-        const q = filter.toLowerCase();
-        return (
-            !q ||
-            r.name.toLowerCase().includes(q) ||
-            (getCuisineLabel(r.cuisine) ?? "").toLowerCase().includes(q)
-        );
-    });
-
-    const sorted = sort ? [...filtered].sort((a, b) => {
-        let valA: string | number = '';
-        let valB: string | number = '';
-        switch (sort.key) {
-            case 'cuisine':  valA = getCuisineLabel(a.cuisine) ?? '';               valB = getCuisineLabel(b.cuisine) ?? '';               break;
-            case 'name':     valA = a.name;                                         valB = b.name;                                         break;
-            case 'serving':  valA = a.nutrition?.serving_size_description ?? '';   valB = b.nutrition?.serving_size_description ?? '';    break;
-            case 'calories': valA = a.servings > 0 ? (a.nutrition?.calories ?? 0) / a.servings : 0;
-                             valB = b.servings > 0 ? (b.nutrition?.calories ?? 0) / b.servings : 0; break;
+    const { recipes, preferences, updatePreferences } = useData();
+    const columnsPreferencesKey = RECIPE_INGREDIENTS_COLUMNS_PREFERENCES_KEY;
+    const [sorting, setSorting] = useState<SortingState>([]);
+    const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(() => {
+        const stored = preferences[columnsPreferencesKey];
+        if (stored?.columnVisibility) {
+            return enforceMandatoryColumns(columnsPreferencesKey, stored.columnVisibility as Record<string, boolean>) as VisibilityState;
         }
-        if (valA < valB) return sort.dir === 'asc' ? -1 : 1;
-        if (valA > valB) return sort.dir === 'asc' ? 1 : -1;
-        return 0;
-    }) : filtered;
+        const defaults = getDefaultColumnsPreferences(columnsPreferencesKey);
+        return defaults ? toVisibilityState(defaults.columnVisibility) as VisibilityState : {};
+    });
+    const [globalFilter, setGlobalFilter] = useState("");
+    const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: PAGE_SIZE });
+    const visibilitySaveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-    const totalPages = Math.max(1, Math.ceil(sorted.length / PAGE_SIZE));
-    const currentPage = Math.min(page, totalPages);
-    const rows = sorted.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+    const filteredRecipes = useMemo(
+        () => excludeRecipeId !== undefined ? recipes.filter(r => r.id !== excludeRecipeId) : recipes,
+        [recipes, excludeRecipeId]
+    );
 
-    const handleClick = (recipe: IRecipe) => {
-        const id = recipe.id ?? null;
+    const saveColumnVisibility = useCallback(
+        (next: VisibilityState) => {
+            const withMandatory = enforceMandatoryColumns(columnsPreferencesKey, next as Record<string, boolean>);
+            void updatePreferences(columnsPreferencesKey, { columnVisibility: withMandatory });
+        },
+        [columnsPreferencesKey, updatePreferences]
+    );
+
+    useEffect(() => {
+        const tablePreferences = preferences[columnsPreferencesKey];
+        if (!tablePreferences) return;
+        let nextVisibility: VisibilityState | null = null;
+        if (tablePreferences.columnVisibility) {
+            const loadedVisibility = tablePreferences.columnVisibility as Record<string, boolean>;
+            nextVisibility = enforceMandatoryColumns(columnsPreferencesKey, loadedVisibility) as VisibilityState;
+        } else {
+            const defaults = getDefaultColumnsPreferences(columnsPreferencesKey);
+            if (defaults) nextVisibility = toVisibilityState(defaults.columnVisibility) as VisibilityState;
+        }
+        if (!nextVisibility) return;
+        setColumnVisibility(prev => {
+            const prevKeys = Object.keys(prev);
+            const nextKeys = Object.keys(nextVisibility);
+            const same =
+                prevKeys.length === nextKeys.length
+                && prevKeys.every(key => prev[key] === nextVisibility[key]);
+            return same ? prev : nextVisibility;
+        });
+    }, [preferences, columnsPreferencesKey]);
+
+    useEffect(() => {
+        return () => {
+            if (visibilitySaveTimeoutRef.current) clearTimeout(visibilitySaveTimeoutRef.current);
+        };
+    }, []);
+
+    const tableOptions: TableOptions<IRecipe> = {
+        data: filteredRecipes,
+        columns: recipePickerColumns,
+        getCoreRowModel: getCoreRowModel(),
+        getSortedRowModel: getSortedRowModel(),
+        getFilteredRowModel: getFilteredRowModel(),
+        getPaginationRowModel: getPaginationRowModel(),
+        globalFilterFn: recipePickerGlobalFilter,
+        onSortingChange: setSorting,
+        onGlobalFilterChange: setGlobalFilter,
+        onPaginationChange: setPagination,
+        onColumnVisibilityChange: (updater) => {
+            setColumnVisibility(prev => {
+                const rawNext = typeof updater === "function" ? updater(prev) : updater;
+                const next = enforceMandatoryColumns(columnsPreferencesKey, rawNext as Record<string, boolean>) as VisibilityState;
+                if (visibilitySaveTimeoutRef.current) clearTimeout(visibilitySaveTimeoutRef.current);
+                visibilitySaveTimeoutRef.current = setTimeout(() => saveColumnVisibility(next), TABLE_PREFERENCES_DEBOUNCE_MS);
+                return next;
+            });
+        },
+        state: { sorting, columnVisibility, globalFilter, pagination },
+    };
+    // eslint-disable-next-line react-hooks/incompatible-library
+    const table = useReactTable(tableOptions);
+
+    const totalPages = table.getPageCount();
+
+    const handleClick = (row: Row<IRecipe>) => {
+        const id = row.original.id ?? null;
         setSelectedRowId(selectedRowId === id ? null : id);
     };
 
-    const headerSx = {
-        fontWeight: "bold",
-        fontSize: 13,
-        color: (theme: Theme) => theme.palette.table.headerColor,
-        background: (theme: Theme) => theme.palette.table.headerBg,
-        borderBottom: (theme: Theme) => `1px solid ${theme.palette.table.headerBorder}`,
-        borderRight: (theme: Theme) => `1px solid ${theme.palette.table.headerBorder}`,
-        p: "5px 8px",
-        cursor: "pointer",
-        userSelect: "none",
-    };
-
-    const sortIcon = (key: string) => sort?.key === key ? (sort.dir === 'asc' ? ' 🔼' : ' 🔽') : '';
-
-    const cellSx = {
-        fontSize: 13,
-        borderRight: (theme: Theme) => `1px solid ${theme.palette.table.rowBorder}`,
-        borderBottom: (theme: Theme) => `1px solid ${theme.palette.table.rowBorder}`,
-        p: "4px 8px",
-        whiteSpace: "nowrap",
-        overflow: "hidden",
-        textOverflow: "ellipsis",
-    };
-
     return (
-        <Box>
-            <Box sx={{ position: 'relative', width: '100%', mb: 1 }}>
-                <input
-                    type="text"
-                    style={{ width: '100%', boxSizing: 'border-box', paddingRight: filter ? 28 : 8, borderRadius: 4, border: '1px solid #ccc', fontSize: 16, height: 36 }}
-                    placeholder="Filter by name or cuisine…"
-                    value={filter}
-                    onChange={(e) => { setFilter(e.target.value); setPage(1); }}
-                />
-                {filter ? (
-                    <button
-                        onClick={() => { setFilter(""); setPage(1); }}
-                        style={{ position: 'absolute', right: 2, top: 10, background: 'none', border: 'none', cursor: 'pointer', fontSize: 16, padding: 0, lineHeight: 1 }}
-                        aria-label="Clear filter"
-                    >
-                        ❌
-                    </button>
-                ) : null}
+        <Box sx={{ display: "flex", flexDirection: "column" }}>
+            {/* Toolbar: search box + column visibility picker */}
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1 }}>
+                <Box sx={{ position: "relative", flex: 1 }}>
+                    <input
+                        type="text"
+                        style={{ width: "100%", boxSizing: "border-box", paddingRight: globalFilter ? 28 : 8, borderRadius: 4, border: "1px solid #ccc", fontSize: 16, height: 36 }}
+                        placeholder="Filter by name or cuisine…"
+                        value={globalFilter}
+                        onChange={e => { setGlobalFilter(e.target.value); table.setPageIndex(0); }}
+                    />
+                    {globalFilter ? (
+                        <button
+                            onClick={() => { setGlobalFilter(""); table.setPageIndex(0); }}
+                            style={{ position: "absolute", right: 2, top: 10, background: "none", border: "none", cursor: "pointer", fontSize: 16, padding: 0, lineHeight: 1 }}
+                            aria-label="Clear filter"
+                        >
+                            ❌
+                        </button>
+                    ) : null}
+                </Box>
+                <ColumnVisibilityPicker table={table} storageKey={columnsPreferencesKey} />
             </Box>
-            <TableContainer component={Paper} sx={{ borderRadius: 1, boxShadow: 1, overflowX: 'auto' }}>
+
+            <TableContainer component={Paper} sx={{ borderRadius: 1, boxShadow: 1, overflowX: "auto" }}>
                 <Table size="small" sx={{ minWidth: 450, tableLayout: "fixed", borderCollapse: "separate", borderSpacing: 0 }}>
                     <colgroup>
-                        <col style={{ width: 110 }} />
-                        <col style={{ width: 160 }} />
-                        <col style={{ width: 100 }} />
-                        <col style={{ width: 80 }} />
+                        {table.getVisibleLeafColumns().map(col => (
+                            <col key={col.id} style={{ width: col.getSize() }} />
+                        ))}
                     </colgroup>
                     <TableHead>
-                        <TableRow>
-                            <TableCell sx={headerSx} onClick={() => handleSort('cuisine')}>Cuisine{sortIcon('cuisine')}</TableCell>
-                            <TableCell sx={headerSx} onClick={() => handleSort('name')}>Name{sortIcon('name')}</TableCell>
-                            <TableCell sx={headerSx} onClick={() => handleSort('serving')}>Serving Size{sortIcon('serving')}</TableCell>
-                            <TableCell sx={headerSx} onClick={() => handleSort('calories')}>Cal/Srv{sortIcon('calories')}</TableCell>
-                        </TableRow>
+                        {table.getHeaderGroups().map(headerGroup => (
+                            <TableRow key={headerGroup.id} sx={{ height: "2.5rem" }}>
+                                {headerGroup.headers.map(header =>
+                                    header.isPlaceholder ? (
+                                        <TableCell
+                                            key={header.id}
+                                            colSpan={header.colSpan}
+                                            sx={theme => ({
+                                                background: theme.palette.table.headerBg,
+                                                borderRight: `1px solid ${theme.palette.table.headerBorder}`,
+                                                borderBottom: `1px solid ${theme.palette.table.headerBorder}`,
+                                                p: 1,
+                                            })}
+                                        />
+                                    ) : (
+                                        <TableCell
+                                            key={header.id}
+                                            colSpan={header.colSpan}
+                                            onClick={header.column.getToggleSortingHandler()}
+                                            sx={theme => ({
+                                                width: header.getSize(),
+                                                userSelect: "none",
+                                                fontWeight: "bold",
+                                                fontSize: 13,
+                                                color: theme.palette.table.headerColor,
+                                                background: theme.palette.table.headerBg,
+                                                borderRight: `1px solid ${theme.palette.table.headerBorder}`,
+                                                borderBottom: `1px solid ${theme.palette.table.headerBorder}`,
+                                                p: "5px 8px",
+                                                cursor: "pointer",
+                                                textAlign: "center",
+                                                lineHeight: 1.2,
+                                            })}
+                                        >
+                                            <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
+                                                {flexRender(header.column.columnDef.header, header.getContext())}
+                                                <Box component="span" sx={{ ml: 0.5 }}>
+                                                    {({ asc: " 🔼", desc: " 🔽" } as Record<string, string>)[header.column.getIsSorted() as string] ?? ""}
+                                                </Box>
+                                            </Box>
+                                        </TableCell>
+                                    )
+                                )}
+                            </TableRow>
+                        ))}
                     </TableHead>
                     <TableBody>
-                        {rows.map((recipe) => {
-                            const isSelected = recipe.id === selectedRowId;
-                            return (
-                                <TableRow
-                                    key={recipe.id}
-                                    hover
-                                    onClick={() => handleClick(recipe)}
-                                    sx={(theme: Theme) => ({
-                                        cursor: "pointer",
-                                        ...(isSelected ? { backgroundColor: `${theme.palette.table.rowSelectedBg} !important` } : {}),
-                                    })}
+                        {table.getRowModel().rows.map(row => (
+                            <TableRow
+                                key={row.id}
+                                hover
+                                onClick={() => handleClick(row)}
+                                sx={theme => ({
+                                    cursor: "pointer",
+                                    height: "2.5rem",
+                                    ...(row.original.id === selectedRowId
+                                        ? { backgroundColor: `${theme.palette.table.rowSelectedBg} !important` }
+                                        : {}),
+                                })}
+                            >
+                                {row.getVisibleCells().map(cell => (
+                                    <TableCell
+                                        key={cell.id}
+                                        sx={theme => ({
+                                            borderRight: `1px solid ${theme.palette.table.rowBorder}`,
+                                            borderBottom: `1px solid ${theme.palette.table.rowBorder}`,
+                                            fontSize: 13,
+                                            padding: "2px",
+                                            height: "2.5rem",
+                                            maxHeight: "2.5rem",
+                                            textAlign: "center",
+                                            whiteSpace: "normal",
+                                        })}
                                     >
-                                    <TableCell sx={cellSx} title={getCuisineLabel(recipe.cuisine) ?? ''}>{getCuisineLabel(recipe.cuisine)}</TableCell>
-                                    <TableCell sx={cellSx} title={recipe.name}>{recipe.name}</TableCell>
-                                    <TableCell sx={cellSx} title={recipe.nutrition?.serving_size_description ?? ''}>{recipe.nutrition?.serving_size_description}</TableCell>
-                                    <TableCell sx={{ ...cellSx, textAlign: "right" }}>
-                                        {recipe.servings > 0 ? ((recipe.nutrition?.calories ?? 0) / recipe.servings).toFixed(0) : 0}
+                                        <TruncatedCell>
+                                            {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                                        </TruncatedCell>
                                     </TableCell>
-                                </TableRow>
-                            );
-                        })}
-                        {rows.length === 0 && (
+                                ))}
+                            </TableRow>
+                        ))}
+                        {table.getRowModel().rows.length === 0 && (
                             <TableRow>
-                                <TableCell colSpan={4} sx={{ textAlign: "center", color: "text.secondary", py: 2 }}>
+                                <TableCell
+                                    colSpan={table.getVisibleLeafColumns().length || 1}
+                                    sx={{ textAlign: "center", color: "text.secondary", py: 2 }}
+                                >
                                     No recipes match the filter.
                                 </TableCell>
                             </TableRow>
@@ -166,8 +497,8 @@ const RecipePickerTable: React.FC<RecipePickerTableProps> = ({ setSelectedRowId,
                 <Box sx={{ display: "flex", justifyContent: "center", mt: 1 }}>
                     <MuiPagination
                         count={totalPages}
-                        page={currentPage}
-                        onChange={(_, p) => setPage(p)}
+                        page={pagination.pageIndex + 1}
+                        onChange={(_, p) => table.setPageIndex(p - 1)}
                         size="small"
                     />
                 </Box>
