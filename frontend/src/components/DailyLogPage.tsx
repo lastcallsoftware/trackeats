@@ -79,7 +79,7 @@ function DailyLogPage() {
 
     useEffect(() => {
         getDailyLogItems(toISODate(rangeStart), toISODate(rangeEnd));
-    }, [rangeStart, rangeEnd]); // eslint-disable-line react-hooks/exhaustive-deps
+    }, [rangeStart, rangeEnd, getDailyLogItems]);
 
     const navigatePeriod = (direction: -1 | 1) => {
         const next = new Date(anchorDate);

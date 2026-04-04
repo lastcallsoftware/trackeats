@@ -7,11 +7,18 @@ import {
     DEFAULT_RECIPES_COLUMNS_PREFERENCES,
     FOODS_COLUMNS_PREFERENCES_KEY,
     RECIPES_COLUMNS_PREFERENCES_KEY,
+    AUTH_CHANGED_EVENT
 } from '@/utils/constants';
 import { generateIngredientSummary } from "../utils/generateIngredientSummary";
 import { useSnackbar } from '@/utils/useSnackbar';
 
-const AUTH_CHANGED_EVENT = "trackeats-auth-changed"
+// The purpose of this component is to provide a context that can be used to share
+// data between components.  It wraps any child components in a context provider
+// that provides data and functions that can be used to manipulate it.
+// The data is stored in state variables.  Member functions update both the
+// back end and the state variables.  Note that the getters, counterintuitively,
+// don't actually return anything to the caller: they store the data they
+// retrieve in local state variables which the caller monitors via useEffect().
 
 const getStoredAccessToken = (): string => {
     const storedToken = sessionStorage.getItem("access_token")
@@ -35,12 +42,6 @@ const getDefaultPreferencesForContext = (context: string): Record<string, unknow
 
     return null
 }
-
-// The purpose of this component is to provide a context that can be used to share
-// data between components.  It wraps the children in a context provider that
-// provides data, and functions that can be used to manipulate the data.
-// The data is stored in state variables.  Member functions update both the
-// back end and the state variables.
 
 export type IPreferences = {
     id?: number
@@ -134,6 +135,7 @@ export type DataContextType = {
     dailyLogItems: IDailyLogItem[];
     isLoading: boolean;
     setErrorMessage: (msg: string) => void;
+    deleteAccount: () => Promise<boolean>,
     getPreferences: (context: string) => Promise<void>;
     updatePreferences: (context: string, prefs: Record<string, unknown>) => Promise<void>;
     addFood: (food: IFood) => Promise<void>;
@@ -179,29 +181,10 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
         setPreferences({})
     }
 
-    // "Loading screen"
-    const [isLoading, setLoading] = useState(false)
-
-    // Handle errors that occur when calling the back end.
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const handleError = useCallback((error: any) => {
-        console.log(error)
-        setLoading(false)
-        if (error.response?.status == 401) {
-            removeToken()
-            navigateRef.current("/login", { state: { message: "Your token has expired and you have been logged out." } });
-        }
-        else if (error.response)
-            setErrorMessage(error.response.data.msg)
-        else
-            setErrorMessage(error.message)
-    }, [setErrorMessage]); // navigateRef is a ref, so it's stable and doesn't need to be a dependency
-
     useEffect(() => {
         const syncAccessToken = () => {
             const nextAccessToken = getStoredAccessToken()
             setAccessToken(nextAccessToken)
-
             if (!nextAccessToken) {
                 setFoods([])
                 setRecipes([])
@@ -220,9 +203,49 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
         }
     }, [])
 
+    useEffect(() => {
+        const requestInterceptor = axios.interceptors.request.use((config) => {
+            const tok = sessionStorage.getItem("access_token");
+            if (tok) {
+                config.headers["Authorization"] = `Bearer ${JSON.parse(tok)}`;
+            }
+            return config;
+        });
+
+        const responseInterceptor = axios.interceptors.response.use(
+            (response) => response,
+            (error) => {
+                if (error.response?.status === 401) {
+                    removeToken();
+                    navigateRef.current("/login", { state: { message: "Your token has expired and you have been logged out." } });
+                }
+                return Promise.reject(error);
+            }
+        );
+
+        return () => {
+            axios.interceptors.request.eject(requestInterceptor);
+            axios.interceptors.response.eject(responseInterceptor);
+        };
+    }, []);
+
+    // "Loading screen"
+    const [isLoading, setLoading] = useState(false)
+
+    // Handle errors that occur when calling the back end.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const handleError = useCallback((error: any) => {
+        console.log(error)
+        setLoading(false)
+        if (error.response)
+            setErrorMessage(error.response.data.msg)
+        else
+            setErrorMessage(error.message)
+    }, [setErrorMessage]); // navigateRef is a ref, so it's stable and doesn't need to be a dependency
+
     const getPreferences = useCallback(async (context: string): Promise<void> => {
         try {
-            const response = await axios.get<IPreferences>("/api/preferences/" + context, {headers: { "Authorization": "Bearer " + accessToken}})
+            const response = await axios.get<IPreferences>("/api/preferences/" + context)
             const backendPreferences = response.data.preferences as Record<string, unknown> | undefined
             const hasBackendData = Boolean(backendPreferences && Object.keys(backendPreferences).length > 0)
             const defaultPreferences = getDefaultPreferencesForContext(context)
@@ -234,7 +257,7 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
         } catch (error) {
             handleError(error)
         }
-    }, [accessToken, handleError])
+    }, [handleError])
 
     useEffect(() => {
         // If there's no token, state is already initialized to empty defaults — just return.
@@ -245,7 +268,7 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
         // Get Foods
         const getFoods = async (): Promise<void> => {
             try {
-                const response = await axios.get<IFood[]>("/api/food", {headers: { "Authorization": "Bearer " + accessToken}})
+                const response = await axios.get<IFood[]>("/api/food")
                 setFoods(response.data);
             } catch(error) {
                 handleError(error)
@@ -255,7 +278,7 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
         // Get Recipes
         const getRecipes = async (): Promise<void> => {
             try {
-                const response = await axios.get<IRecipe[]>("/api/recipe", {headers: { "Authorization": "Bearer " + accessToken}})
+                const response = await axios.get<IRecipe[]>("/api/recipe")
                 setRecipes(response.data);
             } catch(error) {
                 handleError(error)
@@ -274,22 +297,33 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
         };
 
         fetchData();
-    }, [accessToken, handleError, setErrorMessage, getPreferences]);
+    }, [accessToken, handleError, getPreferences]);
 
+    // Delete Account
+    const deleteAccount = async (): Promise<boolean> => {
+        try {
+            await axios.delete<void>("/api/user")
+            removeToken()
+            return true
+        } catch (error) {
+            handleError(error)
+            return false
+        }
+    }
 
     const updatePreferences = useCallback(async (context: string, prefs: Record<string, unknown>): Promise<void> => {
         try {
-            await axios.put<IPreferences>("/api/preferences/" + context, prefs, {headers: { "Authorization": "Bearer " + accessToken}})
+            await axios.put<IPreferences>("/api/preferences/" + context, prefs)
             setPreferences(prev => ({ ...prev, [context]: prefs }));
         } catch (error) {
             handleError(error)
         } 
-    }, [accessToken, handleError])
+    }, [handleError])
 
     // Add Food
     const addFood = async (food: IFood): Promise<void> => {
         try {
-            const response = await axios.post<IFood>("/api/food", food, {headers: { "Authorization": "Bearer " + accessToken}})
+            const response = await axios.post<IFood>("/api/food", food)
             const newFood = response.data
             setFoods((prev_foods) => [...prev_foods, newFood])
         } catch (error) {
@@ -300,7 +334,7 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
     // Update Food
     const updateFood = async (food: IFood): Promise<void> => {
         try {
-            await axios.put<IFood>("/api/food", food, {headers: { "Authorization": "Bearer " + accessToken}})
+            await axios.put<IFood>("/api/food", food)
             setFoods(prevItems => prevItems.map(item => {
                 if (item.id === food.id) {
                     return food;
@@ -316,7 +350,7 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
     // Delete Food
     const deleteFood = async (id: number): Promise<void> => {
         try {
-            await axios.delete<void>("/api/food/" + id, {headers: { "Authorization": "Bearer " + accessToken}})
+            await axios.delete<void>("/api/food/" + id)
             setFoods(prevItems => prevItems.filter(_item => _item.id != id));
         } catch(error) {
             handleError(error)
@@ -328,7 +362,7 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
         let recipe_id = undefined
         try {
             const payload = { ...recipe, ingredients };
-            const response = await axios.post<IRecipe>("/api/recipe", payload, {headers: { "Authorization": "Bearer " + accessToken}})
+            const response = await axios.post<IRecipe>("/api/recipe", payload)
             const new_recipe = response.data
             recipe_id = new_recipe.id
             setRecipes((prev_recipes) => [...prev_recipes, new_recipe])
@@ -342,7 +376,7 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
     const updateRecipe = async (recipe: IRecipe, ingredients: IIngredient[]): Promise<void> => {
         try {
             const payload = { ...recipe, ingredients };
-            await axios.put<IRecipe>("/api/recipe", payload, {headers: { "Authorization": "Bearer " + accessToken}})
+            await axios.put<IRecipe>("/api/recipe", payload)
             setRecipes(prevItems => prevItems.map(item => {
                 if (item.id === recipe.id) {
                     return { ...recipe, ingredients };
@@ -358,7 +392,7 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
     // Delete Recipe
     const deleteRecipe = async (id: number): Promise<void> => {
         try {
-            await axios.delete<void>("/api/recipe/" + id, {headers: { "Authorization": "Bearer " + accessToken}})
+            await axios.delete<void>("/api/recipe/" + id)
             setRecipes(prevItems => prevItems.filter(_item => _item.id != id));
         } catch(error) {
             handleError(error)
@@ -366,9 +400,9 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
     }
 
     // Fetch Ingredients (get without updating the state)
-    const fetchIngredients = async (recipe_id: number): Promise<IIngredient[]> => {
+    const fetchIngredients = useCallback(async (recipe_id: number): Promise<IIngredient[]> => {
         try {
-            const response = await axios.get<IIngredient[]>(`/api/recipe/${recipe_id}/ingredient`, {headers: { "Authorization": "Bearer " + accessToken}});
+            const response = await axios.get<IIngredient[]>(`/api/recipe/${recipe_id}/ingredient`);
             return response.data.map((ing: IIngredient) => {
                 let food: IFood | undefined;
                 let recipe: IRecipe | undefined;
@@ -393,18 +427,18 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
             handleError(error);
             return [];
         }
-    }
+    }, [foods, recipes, handleError]);
 
     // Get Ingredients
-    const getIngredients = async (recipe_id: number): Promise<void> => {
+    const getIngredients = useCallback(async (recipe_id: number): Promise<void> => {
         const ingredients = await fetchIngredients(recipe_id);
         setIngredients(ingredients);
-    }
+    }, [fetchIngredients]);
 
     // Add Ingredient(s)
     const addIngredients = async (recipe_id: number, ingredients: IIngredient[]): Promise<void> => {
         try {
-            await axios.post<IIngredient>("/api/recipe/" + recipe_id + "/ingredient", ingredients, {headers: { "Authorization": "Bearer " + accessToken}})
+            await axios.post<IIngredient>("/api/recipe/" + recipe_id + "/ingredient", ingredients)
         } catch(error) {
             handleError(error)
         }
@@ -413,7 +447,7 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
     // Remove all Ingredients from a Recipe
     const removeIngredients = async (recipe_id: number): Promise<void> => {
         try {
-            await axios.delete<void>("/api/recipe/" + recipe_id + "/ingredient", {headers: { "Authorization": "Bearer " + accessToken}})
+            await axios.delete<void>("/api/recipe/" + recipe_id + "/ingredient")
             setIngredients([])
         } catch(error) {
             handleError(error)
@@ -424,26 +458,19 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
     // Unlike foods and recipes, daily log items are fetched on demand rather
     // than at login, because the dataset grows unboundedly over time and the
     // page only ever needs a narrow window (a day, week, or month).
-    const getDailyLogItems = async (start: string, end: string): Promise<void> => {
+    const getDailyLogItems = useCallback(async (start: string, end: string): Promise<void> => {
         try {
-            const response = await axios.get<IDailyLogItem[]>(
-                `/api/dailylogitem?start=${start}&end=${end}`,
-                { headers: { "Authorization": "Bearer " + accessToken } }
-            )
+            const response = await axios.get<IDailyLogItem[]>(`/api/dailylogitem?start=${start}&end=${end}`)
             setDailyLogItems(response.data)
         } catch (error) {
             handleError(error)
         }
-    }
+    }, [handleError]);
 
     // Add DailyLogItem
     const addDailyLogItem = async (item: IDailyLogItem): Promise<IDailyLogItem | null> => {
         try {
-            const response = await axios.post<IDailyLogItem>(
-                "/api/dailylogitem",
-                item,
-                { headers: { "Authorization": "Bearer " + accessToken } }
-            )
+            const response = await axios.post<IDailyLogItem>("/api/dailylogitem", item)
             const newItem = response.data
             setDailyLogItems(prev => [...prev, newItem])
             return newItem
@@ -456,11 +483,8 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
     // Update DailyLogItem (servings and/or notes)
     const updateDailyLogItem = async (item: IDailyLogItem): Promise<void> => {
         try {
-            const response = await axios.put<IDailyLogItem>(
-                `/api/dailylogitem/${item.id}`,
-                { servings: item.servings, notes: item.notes },
-                { headers: { "Authorization": "Bearer " + accessToken } }
-            )
+            const payload = { servings: item.servings, notes: item.notes };
+            const response = await axios.put<IDailyLogItem>(`/api/dailylogitem/${item.id}`, payload)
             const updatedItem = response.data
             setDailyLogItems(prev => prev.map(i => i.id === updatedItem.id ? updatedItem : i))
         } catch (error) {
@@ -471,10 +495,7 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
     // Delete DailyLogItem
     const deleteDailyLogItem = async (id: number): Promise<void> => {
         try {
-            await axios.delete<void>(
-                `/api/dailylogitem/${id}`,
-                { headers: { "Authorization": "Bearer " + accessToken } }
-            )
+            await axios.delete<void>(`/api/dailylogitem/${id}`)
             setDailyLogItems(prev => prev.filter(i => i.id !== id))
         } catch (error) {
             handleError(error)
@@ -490,6 +511,7 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
             dailyLogItems,
             isLoading,
             setErrorMessage,
+            deleteAccount,
             getPreferences,
             updatePreferences,
             addFood, 

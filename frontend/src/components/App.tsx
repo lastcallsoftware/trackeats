@@ -1,6 +1,6 @@
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { useTheme } from '@mui/material/styles';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useData } from '@/utils/useData';
 import { Routes, Route, Link as RouterLink, useNavigate } from 'react-router-dom';
 import trackEatsIcon from '../assets/trackeats-icon-32x32.png';
@@ -30,8 +30,7 @@ import DialogContentText from '@mui/material/DialogContentText';
 import DialogActions from '@mui/material/DialogActions';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import SettingsIcon from '@mui/icons-material/Settings';
-
-const AUTH_CHANGED_EVENT = "trackeats-auth-changed"
+import { AUTH_CHANGED_EVENT } from '@/utils/constants';
 
 console.log("process.env.NODE_ENV:", process.env.NODE_ENV)
 console.log("import.meta.env.MODE:", import.meta.env.MODE)
@@ -58,12 +57,20 @@ const buttonSx = {
 function App() {
     const theme = useTheme();
     const isNarrow = useMediaQuery(theme.breakpoints.down('md'));
-    const { setErrorMessage } = useData();
+    const { deleteAccount } = useData();
     const [isAuthenticated, setAuthenticated] = useState(sessionStorage.getItem("access_token") != null);
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
     const [optionsAnchorEl, setOptionsAnchorEl] = useState<null | HTMLElement>(null);
     const [confirmOpen, setConfirmOpen] = useState(false);
     const navigate = useNavigate();
+
+    useEffect(() => {
+        const syncAuth = () => {
+            setAuthenticated(sessionStorage.getItem("access_token") !== null);
+        };
+        window.addEventListener(AUTH_CHANGED_EVENT, syncAuth);
+        return () => window.removeEventListener(AUTH_CHANGED_EVENT, syncAuth);
+    }, []);
 
     const storeToken = (token: string): undefined => {
         sessionStorage.setItem("access_token", JSON.stringify(token))
@@ -93,24 +100,11 @@ function App() {
 
     const handleConfirmYes = async () => {
         setConfirmOpen(false);
-        try {
-            const tok = sessionStorage.getItem("access_token");
-            const access_token = tok ? JSON.parse(tok) : "";
-            await axios.delete("/api/user", {
-                headers: { "Authorization": "Bearer " + access_token }
-            });
-            sessionStorage.removeItem("access_token");
-            window.dispatchEvent(new Event(AUTH_CHANGED_EVENT))
-            setAuthenticated(false);
+        const deleted = await deleteAccount();
+        if (deleted) {
             navigate("/login", { state: { message: "Your account has been deleted." } });
-        } catch (error) {
-            if (axios.isAxiosError(error) && error.response?.data?.msg) {
-                setErrorMessage(error.response.data.msg);
-            } else {
-                setErrorMessage("Account deletion failed. Please try again.");
-            }
         }
-    };
+    }
 
     const handleAboutItem = (path: string) => {
         handleAboutClose();

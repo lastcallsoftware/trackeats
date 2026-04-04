@@ -2,6 +2,7 @@ export const TABLE_PREFERENCES_DEBOUNCE_MS = 600
 export const FOODS_COLUMNS_PREFERENCES_KEY = "foods.columns"
 export const RECIPES_COLUMNS_PREFERENCES_KEY = "recipes.columns"
 export const MANDATORY_COLUMN_VISIBILITY = "mandatory" as const
+export const AUTH_CHANGED_EVENT = "trackeats-auth-changed"
 
 export type ColumnVisibilityPreference = boolean | typeof MANDATORY_COLUMN_VISIBILITY
 
