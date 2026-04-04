@@ -252,3 +252,101 @@ def test_recipe_crud_and_ingredients_get(bare_flask_app: Flask, monkeypatch: pyt
     ]
 
     assert len(deleted) == 2
+
+
+def test_recalculate_recipe_success(bare_flask_app: Flask, monkeypatch: pytest.MonkeyPatch) -> None:
+    _mock_session(monkeypatch)
+    monkeypatch.setattr(routes, "get_jwt_identity", lambda: "testuser")
+
+    calls: list[tuple[int, int]] = []
+
+    def _get_id(username: str) -> int:
+        return 1
+
+    def _recalculate_nutrition(user_id: int, recipe_id: int) -> None:
+        calls.append((user_id, recipe_id))
+
+    monkeypatch.setattr(routes.User, "get_id", staticmethod(_get_id))
+    monkeypatch.setattr(routes.Recipe, "recalculate_nutrition", staticmethod(_recalculate_nutrition))
+
+    with bare_flask_app.test_request_context("/api/recipe/42/recalc", method="POST"):
+        resp, status = _as_response_status(_unwrap(routes.recalculate_recipe)(42))
+
+    assert status == 200
+    assert resp.get_json() == {"msg": "Recipe nutrition data recalculated for Recipe ID 42"}
+    assert calls == [(1, 42)]
+
+
+def test_recalculate_recipe_returns_400_on_error(bare_flask_app: Flask, monkeypatch: pytest.MonkeyPatch) -> None:
+    _mock_session(monkeypatch)
+    monkeypatch.setattr(routes, "get_jwt_identity", lambda: "testuser")
+
+    def _get_id(username: str) -> int:
+        return 1
+
+    def _recalculate_nutrition(user_id: int, recipe_id: int) -> None:
+        raise RuntimeError("boom")
+
+    monkeypatch.setattr(routes.User, "get_id", staticmethod(_get_id))
+    monkeypatch.setattr(routes.Recipe, "recalculate_nutrition", staticmethod(_recalculate_nutrition))
+
+    with bare_flask_app.test_request_context("/api/recipe/42/recalc", method="POST"):
+        resp, status = _as_response_status(_unwrap(routes.recalculate_recipe)(42))
+
+    assert status == 400
+    assert resp.get_json()["msg"] == "Recipe nutrition data could not be recalculated: boom"
+
+
+def test_recalculate_all_for_user_success(bare_flask_app: Flask, monkeypatch: pytest.MonkeyPatch) -> None:
+    _mock_session(monkeypatch)
+    monkeypatch.setattr(routes, "get_jwt_identity", lambda: "testuser")
+
+    calls: list[tuple[int, int, object]] = []
+    recipe1 = _JsonDao({"id": 10}, dao_id=10)
+    recipe2 = _JsonDao({"id": 11}, dao_id=11)
+
+    def _get_id(username: str) -> int:
+        return 1
+
+    def _get_all_for_user(user_id: int) -> list[_JsonDao]:
+        return [recipe1, recipe2]
+
+    def _recalculate_nutrition(user_id: int, recipe_id: int, recipe_dao: object) -> None:
+        calls.append((user_id, recipe_id, recipe_dao))
+
+    monkeypatch.setattr(routes.User, "get_id", staticmethod(_get_id))
+    monkeypatch.setattr(routes.Recipe, "get_all_for_user", staticmethod(_get_all_for_user))
+    monkeypatch.setattr(routes.Recipe, "recalculate_nutrition", staticmethod(_recalculate_nutrition))
+
+    with bare_flask_app.test_request_context("/api/recipe/recalc", method="POST"):
+        resp, status = _as_response_status(_unwrap(routes.recalculate_all_for_user)())
+
+    assert status == 200
+    assert resp.get_json() == {"msg": "Recipe nutrition data recalculated for all Recipes for user testuser"}
+    assert calls == [(1, 10, recipe1), (1, 11, recipe2)]
+
+
+def test_recalculate_all_for_user_returns_400_on_error(
+    bare_flask_app: Flask, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    _mock_session(monkeypatch)
+    monkeypatch.setattr(routes, "get_jwt_identity", lambda: "testuser")
+
+    def _get_id(username: str) -> int:
+        return 1
+
+    def _get_all_for_user(user_id: int) -> list[_JsonDao]:
+        return [_JsonDao({"id": 10}, dao_id=10)]
+
+    def _recalculate_nutrition(user_id: int, recipe_id: int, recipe_dao: object) -> None:
+        raise RuntimeError("boom")
+
+    monkeypatch.setattr(routes.User, "get_id", staticmethod(_get_id))
+    monkeypatch.setattr(routes.Recipe, "get_all_for_user", staticmethod(_get_all_for_user))
+    monkeypatch.setattr(routes.Recipe, "recalculate_nutrition", staticmethod(_recalculate_nutrition))
+
+    with bare_flask_app.test_request_context("/api/recipe/recalc", method="POST"):
+        resp, status = _as_response_status(_unwrap(routes.recalculate_all_for_user)())
+
+    assert status == 400
+    assert resp.get_json()["msg"] == "Recipe nutrition data could not be recalculated: boom"
