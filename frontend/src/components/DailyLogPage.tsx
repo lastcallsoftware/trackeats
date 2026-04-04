@@ -177,11 +177,6 @@ function DailyLogPage() {
     };
 
     const toggleAddForm = () => {
-        if (showAddForm) {
-            setShowAddForm(false);
-            return;
-        }
-
         setAddForm(prev => ({
             ...prev,
             date: selectedDateKey ?? toISODate(anchorDate),
@@ -278,16 +273,131 @@ function DailyLogPage() {
 
                 {/* ── Main content: table + nutrition panel ── */}
                 <Box sx={{ display: 'flex', gap: 2, alignItems: 'flex-start' }}>
-                    <Box sx={{ flex: 1, minWidth: 0, overflowX: 'auto', border: '1px solid', borderColor: 'divider', borderRadius: 1.5, boxShadow: '0 2px 12px 0 rgba(0,0,0,0.07)' }}>
-                        <DailyLogTable
-                            viewMode={viewMode}
-                            rangeStart={rangeStart}
-                            rangeEnd={rangeEnd}
-                            selectedDateKey={selectedDateKey}
-                            setSelectedDateKey={handleSelectDate}
-                            selectedItemId={selectedItemId}
-                            setSelectedItemId={handleSelectItem}
-                        />
+                    <Box sx={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
+                        <Box sx={{ overflowX: 'auto', border: '1px solid', borderColor: 'divider', borderRadius: 1.5, boxShadow: '0 2px 12px 0 rgba(0,0,0,0.07)' }}>
+                            <DailyLogTable
+                                viewMode={viewMode}
+                                rangeStart={rangeStart}
+                                rangeEnd={rangeEnd}
+                                selectedDateKey={selectedDateKey}
+                                setSelectedDateKey={handleSelectDate}
+                                selectedItemId={selectedItemId}
+                                setSelectedItemId={handleSelectItem}
+                            />
+                        </Box>
+                        {/* ── CRUD buttons ── */}
+                        <Stack direction="row" spacing={2} justifyContent="center" sx={{ mt: 3 }}>
+                            <Button
+                                variant="contained"
+                                color="success"
+                                startIcon={<MdAddCircleOutline />}
+                                onClick={toggleAddForm}
+                                disabled={showAddForm}
+                            >
+                                Add
+                            </Button>
+                            <Button
+                                variant="contained"
+                                color="warning"
+                                startIcon={<MdEdit />}
+                                disabled={!selectedItemId}
+                                onClick={handleEditOpen}
+                            >
+                                Edit
+                            </Button>
+                            <Button
+                                variant="contained"
+                                color="error"
+                                startIcon={<MdRemoveCircleOutline />}
+                                disabled={!selectedItemId}
+                                onClick={handleDelete}
+                            >
+                                Delete
+                            </Button>
+                        </Stack>
+
+                        {/* ── Add form ── */}
+                        {showAddForm && (
+                            <Paper variant="outlined" sx={{ mt: 2, pt: 1, px: 2, pb: 2 }}>
+                                <Typography variant="subtitle2" sx={{ mb: 1.5, fontWeight: 600 }}>Add Entry</Typography>
+                                <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems="flex-end">
+                                    <TextField
+                                        label="Date"
+                                        type="date"
+                                        size="small"
+                                        value={addForm.date}
+                                        onChange={e => setAddForm(prev => ({ ...prev, date: e.target.value }))}
+                                        InputLabelProps={{ shrink: true }}
+                                        sx={{ minWidth: 150 }}
+                                    />
+                                    <TextField
+                                        select
+                                        label="Recipe"
+                                        size="small"
+                                        value={addForm.recipe_id || ''}
+                                        onChange={e => setAddForm(prev => ({ ...prev, recipe_id: Number(e.target.value) }))}
+                                        sx={{ minWidth: 220 }}
+                                    >
+                                        {recipes.map(r => (
+                                            <MenuItem key={r.id} value={r.id}>{r.name}</MenuItem>
+                                        ))}
+                                    </TextField>
+                                    <TextField
+                                        label="Servings"
+                                        type="number"
+                                        size="small"
+                                        value={addForm.servings}
+                                        onChange={e => setAddForm(prev => ({ ...prev, servings: Number(e.target.value) }))}
+                                        inputProps={{ min: 0.25, step: 0.25 }}
+                                        sx={{ width: 100 }}
+                                    />
+                                    <TextField
+                                        label="Notes"
+                                        size="small"
+                                        value={addForm.notes ?? ''}
+                                        onChange={e => setAddForm(prev => ({ ...prev, notes: e.target.value }))}
+                                        sx={{ flex: 1, minWidth: 160 }}
+                                    />
+                                    <Button variant="contained" color="primary" onClick={handleAdd} disabled={!addForm.recipe_id || !addForm.servings}>
+                                        Save
+                                    </Button>
+                                    <Button variant="outlined" onClick={() => setShowAddForm(false)}>
+                                        Cancel
+                                    </Button>
+                                </Stack>
+                            </Paper>
+                        )}
+
+                        {/* ── Edit form ── */}
+                        {showEditForm && editForm && (
+                            <Paper variant="outlined" sx={{ mt: 2, p: 2 }}>
+                                <Typography variant="subtitle2" sx={{ mb: 1.5, fontWeight: 600 }}>Edit Entry</Typography>
+                                <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems="flex-end">
+                                    <TextField
+                                        label="Servings"
+                                        type="number"
+                                        size="small"
+                                        value={editForm.servings}
+                                        onChange={e => setEditForm(prev => prev ? ({ ...prev, servings: Number(e.target.value) }) : prev)}
+                                        inputProps={{ min: 0.25, step: 0.25 }}
+                                        sx={{ width: 100 }}
+                                    />
+                                    <TextField
+                                        label="Notes"
+                                        size="small"
+                                        value={editForm.notes ?? ''}
+                                        onChange={e => setEditForm(prev => prev ? ({ ...prev, notes: e.target.value }) : prev)}
+                                        sx={{ flex: 1, minWidth: 160 }}
+                                    />
+                                    <Button variant="contained" color="primary" onClick={handleEditSave}>
+                                        Save
+                                    </Button>
+                                    <Button variant="outlined" onClick={() => setShowEditForm(false)}>
+                                        Cancel
+                                    </Button>
+                                </Stack>
+                            </Paper>
+                        )}
                     </Box>
                     <Box
                         sx={{
@@ -306,119 +416,6 @@ function DailyLogPage() {
                         <NutritionLabel nutrition={panelNutrition} />
                     </Box>
                 </Box>
-
-                {/* ── CRUD buttons ── */}
-                <Stack direction="row" spacing={2} justifyContent="center" sx={{ mt: 3 }}>
-                    <Button
-                        variant="contained"
-                        color="success"
-                        startIcon={<MdAddCircleOutline />}
-                        onClick={toggleAddForm}
-                    >
-                        Add
-                    </Button>
-                    <Button
-                        variant="contained"
-                        color="warning"
-                        startIcon={<MdEdit />}
-                        disabled={!selectedItemId}
-                        onClick={handleEditOpen}
-                    >
-                        Edit
-                    </Button>
-                    <Button
-                        variant="contained"
-                        color="error"
-                        startIcon={<MdRemoveCircleOutline />}
-                        disabled={!selectedItemId}
-                        onClick={handleDelete}
-                    >
-                        Delete
-                    </Button>
-                </Stack>
-
-                {/* ── Add form ── */}
-                {showAddForm && (
-                    <Paper variant="outlined" sx={{ mt: 2, p: 2 }}>
-                        <Typography variant="subtitle2" sx={{ mb: 1.5, fontWeight: 600 }}>Add Entry</Typography>
-                        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems="flex-end">
-                            <TextField
-                                label="Date"
-                                type="date"
-                                size="small"
-                                value={addForm.date}
-                                onChange={e => setAddForm(prev => ({ ...prev, date: e.target.value }))}
-                                InputLabelProps={{ shrink: true }}
-                                sx={{ minWidth: 150 }}
-                            />
-                            <TextField
-                                select
-                                label="Recipe"
-                                size="small"
-                                value={addForm.recipe_id || ''}
-                                onChange={e => setAddForm(prev => ({ ...prev, recipe_id: Number(e.target.value) }))}
-                                sx={{ minWidth: 220 }}
-                            >
-                                {recipes.map(r => (
-                                    <MenuItem key={r.id} value={r.id}>{r.name}</MenuItem>
-                                ))}
-                            </TextField>
-                            <TextField
-                                label="Servings"
-                                type="number"
-                                size="small"
-                                value={addForm.servings}
-                                onChange={e => setAddForm(prev => ({ ...prev, servings: Number(e.target.value) }))}
-                                inputProps={{ min: 0.25, step: 0.25 }}
-                                sx={{ width: 100 }}
-                            />
-                            <TextField
-                                label="Notes"
-                                size="small"
-                                value={addForm.notes ?? ''}
-                                onChange={e => setAddForm(prev => ({ ...prev, notes: e.target.value }))}
-                                sx={{ flex: 1, minWidth: 160 }}
-                            />
-                            <Button variant="contained" color="primary" onClick={handleAdd} disabled={!addForm.recipe_id || !addForm.servings}>
-                                Save
-                            </Button>
-                            <Button variant="outlined" onClick={() => setShowAddForm(false)}>
-                                Cancel
-                            </Button>
-                        </Stack>
-                    </Paper>
-                )}
-
-                {/* ── Edit form ── */}
-                {showEditForm && editForm && (
-                    <Paper variant="outlined" sx={{ mt: 2, p: 2 }}>
-                        <Typography variant="subtitle2" sx={{ mb: 1.5, fontWeight: 600 }}>Edit Entry</Typography>
-                        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems="flex-end">
-                            <TextField
-                                label="Servings"
-                                type="number"
-                                size="small"
-                                value={editForm.servings}
-                                onChange={e => setEditForm(prev => prev ? ({ ...prev, servings: Number(e.target.value) }) : prev)}
-                                inputProps={{ min: 0.25, step: 0.25 }}
-                                sx={{ width: 100 }}
-                            />
-                            <TextField
-                                label="Notes"
-                                size="small"
-                                value={editForm.notes ?? ''}
-                                onChange={e => setEditForm(prev => prev ? ({ ...prev, notes: e.target.value }) : prev)}
-                                sx={{ flex: 1, minWidth: 160 }}
-                            />
-                            <Button variant="contained" color="primary" onClick={handleEditSave}>
-                                Save
-                            </Button>
-                            <Button variant="outlined" onClick={() => setShowEditForm(false)}>
-                                Cancel
-                            </Button>
-                        </Stack>
-                    </Paper>
-                )}
             </Paper>
         </Box>
     );

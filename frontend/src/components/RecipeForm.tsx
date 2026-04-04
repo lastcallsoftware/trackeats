@@ -689,6 +689,16 @@ function RecipeForm() {
                                     />
                                 )}
                             </Box>
+
+                            {/* ── Save / Cancel ── */}
+                            <Stack direction="row" spacing={2} justifyContent="center" sx={{ mt: 3 }}>
+                                <Button type="submit" variant="contained" color="primary" disabled={saveIsDisabled}>
+                                    Save
+                                </Button>
+                                <Button variant="outlined" color="secondary" onClick={handleCancel}>
+                                    Cancel
+                                </Button>
+                            </Stack>
                         </Box>
 
                         {/* Right: Serving Size + NutritionLabel (hidden on narrow) */}
@@ -721,17 +731,6 @@ function RecipeForm() {
                             </Box>
                         )}
                     </Box>
-
-                    {/* ── Save / Cancel ── */}
-                    <Divider sx={{ my: 3 }} />
-                    <Stack direction="row" spacing={2} justifyContent="center">
-                        <Button type="submit" variant="contained" color="primary" disabled={saveIsDisabled}>
-                            Save
-                        </Button>
-                        <Button variant="outlined" color="secondary" onClick={handleCancel}>
-                            Cancel
-                        </Button>
-                    </Stack>
                 </Box>
             </Paper>
         </Box>
