@@ -32,8 +32,10 @@ import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import SettingsIcon from '@mui/icons-material/Settings';
 import { AUTH_CHANGED_EVENT } from '@/utils/constants';
 
-console.log("process.env.NODE_ENV:", process.env.NODE_ENV)
+//console.log("process.env.NODE_ENV:", process.env.NODE_ENV)
 console.log("import.meta.env.MODE:", import.meta.env.MODE)
+console.log("import.meta.env.DEV:", import.meta.env.DEV)
+console.log("import.meta.env.PROD:", import.meta.env.PROD)
 
 const backendBaseUrl: string = import.meta.env.VITE_BACKEND_BASE_URL
 if (!backendBaseUrl || !backendBaseUrl.trim()) {
@@ -96,9 +98,9 @@ function App() {
         setConfirmOpen(true);
     };
 
-    const handleConfirmClose = () => setConfirmOpen(false);
+    const handleDeleteAccountConfirmClose = () => setConfirmOpen(false);
 
-    const handleConfirmYes = async () => {
+    const handleDeleteAccountConfirmYes = async () => {
         setConfirmOpen(false);
         const deleted = await deleteAccount();
         if (deleted) {
@@ -131,7 +133,7 @@ function App() {
                 <Button component={RouterLink} to="/dailylog" color="primary" sx={buttonSx}>
                     Daily Log
                 </Button>
-            )}            
+            )}
             <Button
                 color="primary"
                 onClick={handleAboutOpen}
@@ -222,7 +224,7 @@ function App() {
                                 </Menu>
                                 <Dialog
                                     open={confirmOpen}
-                                    onClose={handleConfirmClose}
+                                    onClose={handleDeleteAccountConfirmClose}
                                     aria-labelledby="confirm-dialog-title"
                                     aria-describedby="confirm-dialog-description"
                                 >
@@ -233,8 +235,8 @@ function App() {
                                         </DialogContentText>
                                     </DialogContent>
                                     <DialogActions>
-                                        <Button onClick={handleConfirmClose} color="primary">No</Button>
-                                        <Button onClick={handleConfirmYes} color="primary" autoFocus>Yes</Button>
+                                        <Button onClick={handleDeleteAccountConfirmClose} color="primary">No</Button>
+                                        <Button onClick={handleDeleteAccountConfirmYes} color="primary" autoFocus>Yes</Button>
                                     </DialogActions>
                                 </Dialog>
                             </>
