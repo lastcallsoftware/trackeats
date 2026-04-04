@@ -7,10 +7,10 @@ import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
 import MenuItem from '@mui/material/MenuItem';
 import Typography from '@mui/material/Typography';
-import Divider from '@mui/material/Divider';
 import IconButton from '@mui/material/IconButton';
 import TitleCard from './TitleCard';
 import DailyLogTable from './DailyLogTable';
+import NutritionLabel from './NutritionLabel';
 import { useData, DailyLogItem } from '@/utils/useData';
 import { IDailyLogItem, INutrition } from '../contexts/DataProvider';
 
@@ -289,7 +289,22 @@ function DailyLogPage() {
                             setSelectedItemId={handleSelectItem}
                         />
                     </Box>
-                    <NutritionPanel nutrition={panelNutrition} label={panelLabel} />
+                    <Box
+                        sx={{
+                            width: 310,
+                            flexShrink: 0,
+                            alignSelf: 'flex-start',
+                            position: 'sticky',
+                            top: 16,
+                        }}
+                    >
+                        {panelLabel && (
+                            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', textAlign: 'center', mb: 1, fontWeight: 500 }}>
+                                {panelLabel}
+                            </Typography>
+                        )}
+                        <NutritionLabel nutrition={panelNutrition} />
+                    </Box>
                 </Box>
 
                 {/* ── CRUD buttons ── */}
@@ -406,79 +421,6 @@ function DailyLogPage() {
                 )}
             </Paper>
         </Box>
-    );
-}
-
-// ---------------------------------------------------------------------------
-// NutritionPanel
-// ---------------------------------------------------------------------------
-
-interface NutritionPanelProps {
-    nutrition: INutrition | null;
-    label: string | null;
-}
-
-function NutritionPanel({ nutrition: n, label }: NutritionPanelProps) {
-    return (
-        <Paper
-            variant="outlined"
-            sx={{
-                width: 200,
-                flexShrink: 0,
-                p: 1.5,
-                alignSelf: 'flex-start',
-                position: 'sticky',
-                top: 16,
-            }}
-        >
-            <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 0.5, textAlign: 'center' }}>
-                Nutrition
-            </Typography>
-            {label && (
-                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', textAlign: 'center', mb: 1 }}>
-                    {label}
-                </Typography>
-            )}
-            <Divider sx={{ mb: 1 }} />
-            {!n ? (
-                <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', py: 2, fontSize: 12 }}>
-                    Select a date or entry to see nutrition details
-                </Typography>
-            ) : (
-                <Box component="table" sx={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
-                    <tbody>
-                        {([
-                            ['Calories',      n.calories,        ''],
-                            ['Total Fat',     n.total_fat_g,     'g'],
-                            ['Saturated Fat', n.saturated_fat_g, 'g'],
-                            ['Trans Fat',     n.trans_fat_g,     'g'],
-                            ['Cholesterol',   n.cholesterol_mg,  'mg'],
-                            ['Sodium',        n.sodium_mg,       'mg'],
-                            ['Total Carbs',   n.total_carbs_g,   'g'],
-                            ['Fiber',         n.fiber_g,         'g'],
-                            ['Total Sugar',   n.total_sugar_g,   'g'],
-                            ['Added Sugar',   n.added_sugar_g,   'g'],
-                            ['Protein',       n.protein_g,       'g'],
-                            ['Vitamin D',     n.vitamin_d_mcg,   'mcg'],
-                            ['Calcium',       n.calcium_mg,      'mg'],
-                            ['Iron',          n.iron_mg,         'mg'],
-                            ['Potassium',     n.potassium_mg,    'mg'],
-                        ] as [string, number | undefined, string][]).map(([label, value, unit], i) => (
-                            <Box
-                                component="tr"
-                                key={label}
-                                sx={{ backgroundColor: i % 2 === 0 ? 'grey.50' : 'transparent' }}
-                            >
-                                <Box component="td" sx={{ py: 0.3, px: 0.5, color: 'text.secondary' }}>{label}</Box>
-                                <Box component="td" sx={{ py: 0.3, px: 0.5, textAlign: 'right', fontWeight: 500 }}>
-                                    {value != null ? `${value}${unit}` : '—'}
-                                </Box>
-                            </Box>
-                        ))}
-                    </tbody>
-                </Box>
-            )}
-        </Paper>
     );
 }
 
