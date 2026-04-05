@@ -2,6 +2,11 @@ import { useState, useEffect, useMemo } from 'react';
 import { MdAddCircleOutline, MdRemoveCircleOutline, MdEdit, MdChevronLeft, MdChevronRight } from 'react-icons/md';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
+import Dialog from '@mui/material/Dialog';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
+import DialogContentText from '@mui/material/DialogContentText';
+import DialogTitle from '@mui/material/DialogTitle';
 import Paper from '@mui/material/Paper';
 import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
@@ -188,6 +193,7 @@ function DailyLogPage() {
     // -- Edit form -- (item selection only)
     const [showEditForm, setShowEditForm] = useState(false);
     const [editForm, setEditForm] = useState<IDailyLogItem | null>(null);
+    const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
     const handleEditOpen = () => {
         if (!selectedItem) return;
@@ -203,14 +209,21 @@ function DailyLogPage() {
         setSelectedItemId(null);
     };
 
-    const handleDelete = async () => {
+    const handleDeleteOpen = () => {
         if (!selectedItemId) return;
-        const confirmed = confirm('Delete this entry? This cannot be undone.');
-        if (confirmed) {
-            await deleteDailyLogItem(selectedItemId);
-            setSelectedItemId(null);
-        }
+        setShowDeleteDialog(true);
     };
+
+    const handleDeleteConfirm = async () => {
+        if (!selectedItemId) return;
+        await deleteDailyLogItem(selectedItemId);
+        setSelectedItemId(null);
+        setShowDeleteDialog(false);
+    };
+
+    const isAddInProgress = showAddForm;
+    const isEditInProgress = showEditForm;
+    const isFormInProgress = isAddInProgress || isEditInProgress;
 
     return (
         <Box
@@ -292,7 +305,7 @@ function DailyLogPage() {
                                 color="success"
                                 startIcon={<MdAddCircleOutline />}
                                 onClick={toggleAddForm}
-                                disabled={showAddForm}
+                                disabled={isFormInProgress}
                             >
                                 Add
                             </Button>
@@ -300,7 +313,7 @@ function DailyLogPage() {
                                 variant="contained"
                                 color="warning"
                                 startIcon={<MdEdit />}
-                                disabled={!selectedItemId}
+                                disabled={isFormInProgress || !selectedItemId}
                                 onClick={handleEditOpen}
                             >
                                 Edit
@@ -309,12 +322,36 @@ function DailyLogPage() {
                                 variant="contained"
                                 color="error"
                                 startIcon={<MdRemoveCircleOutline />}
-                                disabled={!selectedItemId}
-                                onClick={handleDelete}
+                                disabled={isFormInProgress || !selectedItemId}
+                                onClick={handleDeleteOpen}
                             >
                                 Delete
                             </Button>
                         </Stack>
+
+                        <Dialog
+                            open={showDeleteDialog}
+                            onClose={() => setShowDeleteDialog(false)}
+                            aria-labelledby="daily-log-delete-dialog-title"
+                            aria-describedby="daily-log-delete-dialog-description"
+                        >
+                            <DialogTitle id="daily-log-delete-dialog-title">
+                                Delete Entry?
+                            </DialogTitle>
+                            <DialogContent>
+                                <DialogContentText id="daily-log-delete-dialog-description">
+                                    This will permanently remove the selected daily log entry. This action cannot be undone.
+                                </DialogContentText>
+                            </DialogContent>
+                            <DialogActions>
+                                <Button onClick={() => setShowDeleteDialog(false)}>
+                                    Cancel
+                                </Button>
+                                <Button color="error" variant="contained" onClick={handleDeleteConfirm}>
+                                    Delete
+                                </Button>
+                            </DialogActions>
+                        </Dialog>
 
                         {/* ── Add form ── */}
                         {showAddForm && (

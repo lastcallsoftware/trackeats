@@ -1,4 +1,3 @@
-import React, { useMemo } from 'react';
 import {
     VisibilityState,
     ExpandedState,
@@ -7,12 +6,19 @@ import {
     getCoreRowModel,
     getExpandedRowModel,
     getSortedRowModel,
-    Row,
     SortingState,
     useReactTable,
 } from '@tanstack/react-table';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { IDailyLogItem, INutrition } from '../contexts/DataProvider';
 import { useData } from '@/utils/useData';
+import {
+    enforceMandatoryColumns,
+    DAILYLOG_COLUMNS_PREFERENCES_KEY,
+    getDefaultColumnsPreferences,
+    TABLE_PREFERENCES_DEBOUNCE_MS,
+    toVisibilityState,
+} from '@/utils/constants';
 import ColumnVisibilityPicker from './ColumnVisibilityPicker';
 import TruncatedCell from './TruncatedCell';
 import Table from '@mui/material/Table';
@@ -23,23 +29,12 @@ import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import Paper from '@mui/material/Paper';
 import Box from '@mui/material/Box';
-import { Theme } from '@mui/material/styles';
 
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
 
 type ViewMode = 'day' | 'week' | 'month';
-
-interface DailyLogTableProps {
-    viewMode: ViewMode;
-    rangeStart: Date;
-    rangeEnd: Date;
-    selectedDateKey: string | null;
-    setSelectedDateKey: (key: string | null) => void;
-    selectedItemId: number | null;
-    setSelectedItemId: (id: number | null) => void;
-}
 
 // Every row in the table is a DisplayRow.
 // Date rows have subRows (the items for that day); item rows do not.
@@ -217,14 +212,10 @@ function buildDisplayRows(
     return dateRows;
 }
 
-// ---------------------------------------------------------------------------
-// Column definitions
-// ---------------------------------------------------------------------------
-
+// Define the table's columns
 const columnHelper = createColumnHelper<DisplayRow>();
-const DAILY_LOG_VISIBILITY_STORAGE = 'daily_log_visibility_storage';
 
-// Helper: pull a nutrition value from whichever field is populated
+// Helper: pull a numeric nutrition value from whichever field is populated
 function nutVal(row: DisplayRow, key: keyof INutrition): number | null {
     const n = row.item?.nutrition ?? row.nutrition;
     if (!n) return null;
@@ -233,119 +224,175 @@ function nutVal(row: DisplayRow, key: keyof INutrition): number | null {
 }
 
 const columns = [
-    // Expand/collapse + label column
-    columnHelper.accessor('label', {
-        id: 'label',
-        header: () => <span>Date / Recipe</span>,
-        cell: ({ row }) => {
-            const dr = row.original;
-            const canExpand = row.getCanExpand();
-            return (
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5,
-                           pl: dr.type === 'item' ? 3 : dr.type === 'date' && row.depth > 0 ? 2 : 0 }}>
-                    {canExpand ? (
-                        <Box
-                            component="span"
-                            onClick={(e) => { e.stopPropagation(); row.toggleExpanded(); }}
-                            sx={{ cursor: 'pointer', fontWeight: 700, fontSize: 16, lineHeight: 1,
-                                  color: 'primary.main', userSelect: 'none', px: 0.5 }}
-                        >
-                            {row.getIsExpanded() ? '−' : '+'}
+    columnHelper.group({
+        id: "general_info",
+        header: () => <span>General Info</span>,
+        columns: [
+            columnHelper.accessor(row => row.item?.id ?? null, {
+                id: 'id',
+                header: () => <span>ID</span>,
+                cell: info => info.getValue() ?? '',
+                size: 55,
+            }),
+            columnHelper.accessor('label', {
+                id: 'label',
+                header: () => <span>Date / Recipe</span>,
+                cell: ({ row }) => {
+                    const dr = row.original;
+                    const canExpand = row.getCanExpand();
+                    return (
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5,
+                                   pl: dr.type === 'item' ? 3 : dr.type === 'date' && row.depth > 0 ? 2 : 0 }}>
+                            {canExpand ? (
+                                <Box
+                                    component="span"
+                                    onClick={(e) => { e.stopPropagation(); row.toggleExpanded(); }}
+                                    sx={{ cursor: 'pointer', fontWeight: 700, fontSize: 16, lineHeight: 1,
+                                          color: 'primary.main', userSelect: 'none', px: 0.5 }}
+                                >
+                                    {row.getIsExpanded() ? '−' : '+'}
+                                </Box>
+                            ) : (
+                                <Box component="span" sx={{ display: 'inline-block', width: 24 }} />
+                            )}
+                            <TruncatedCell>
+                                {dr.type === 'item' ? dr.recipeName : dr.label}
+                            </TruncatedCell>
                         </Box>
-                    ) : (
-                        <Box component="span" sx={{ display: 'inline-block', width: 24 }} />
-                    )}
-                    <TruncatedCell>
-                        {dr.type === 'item' ? dr.recipeName : dr.label}
-                    </TruncatedCell>
-                </Box>
-            );
-        },
-        size: 220,
+                    );
+                },
+                size: 220,
+            }),
+            columnHelper.accessor(row => row.item?.servings ?? null, {
+                id: 'servings',
+                header: () => <span>Servings</span>,
+                cell: info => info.getValue() ?? '',
+                size: 75,
+            }),
+        ]
     }),
-    columnHelper.accessor(row => row.item?.servings ?? null, {
-        id: 'servings',
-        header: () => <span>Servings</span>,
-        cell: info => info.getValue() ?? '',
-        size: 75,
-    }),
-    columnHelper.accessor(row => nutVal(row, 'calories'), {
-        id: 'calories',
-        header: () => <span>Calories</span>,
-        cell: info => info.getValue() ?? '—',
-        size: 80,
-    }),
-    columnHelper.accessor(row => nutVal(row, 'total_fat_g'), {
-        id: 'total_fat_g',
-        header: () => <span>Fat (g)</span>,
-        cell: info => info.getValue() ?? '—',
-        size: 70,
-    }),
-    columnHelper.accessor(row => nutVal(row, 'saturated_fat_g'), {
-        id: 'saturated_fat_g',
-        header: () => <span>Sat. Fat (g)</span>,
-        cell: info => info.getValue() ?? '—',
-        size: 85,
-    }),
-    columnHelper.accessor(row => nutVal(row, 'cholesterol_mg'), {
-        id: 'cholesterol_mg',
-        header: () => <span>Chol. (mg)</span>,
-        cell: info => info.getValue() ?? '—',
-        size: 80,
-    }),
-    columnHelper.accessor(row => nutVal(row, 'sodium_mg'), {
-        id: 'sodium_mg',
-        header: () => <span>Sodium (mg)</span>,
-        cell: info => info.getValue() ?? '—',
-        size: 90,
-    }),
-    columnHelper.accessor(row => nutVal(row, 'total_carbs_g'), {
-        id: 'total_carbs_g',
-        header: () => <span>Carbs (g)</span>,
-        cell: info => info.getValue() ?? '—',
-        size: 80,
-    }),
-    columnHelper.accessor(row => nutVal(row, 'fiber_g'), {
-        id: 'fiber_g',
-        header: () => <span>Fiber (g)</span>,
-        cell: info => info.getValue() ?? '—',
-        size: 70,
-    }),
-    columnHelper.accessor(row => nutVal(row, 'total_sugar_g'), {
-        id: 'total_sugar_g',
-        header: () => <span>Sugar (g)</span>,
-        cell: info => info.getValue() ?? '—',
-        size: 75,
-    }),
-    columnHelper.accessor(row => nutVal(row, 'protein_g'), {
-        id: 'protein_g',
-        header: () => <span>Protein (g)</span>,
-        cell: info => info.getValue() ?? '—',
-        size: 80,
-    }),
-    columnHelper.accessor(row => nutVal(row, 'vitamin_d_mcg'), {
-        id: 'vitamin_d_mcg',
-        header: () => <span>Vit. D (mcg)</span>,
-        cell: info => info.getValue() ?? '—',
-        size: 85,
-    }),
-    columnHelper.accessor(row => nutVal(row, 'calcium_mg'), {
-        id: 'calcium_mg',
-        header: () => <span>Calcium (mg)</span>,
-        cell: info => info.getValue() ?? '—',
-        size: 90,
-    }),
-    columnHelper.accessor(row => nutVal(row, 'iron_mg'), {
-        id: 'iron_mg',
-        header: () => <span>Iron (mg)</span>,
-        cell: info => info.getValue() ?? '—',
-        size: 75,
-    }),
-    columnHelper.accessor(row => nutVal(row, 'potassium_mg'), {
-        id: 'potassium_mg',
-        header: () => <span>Potassium (mg)</span>,
-        cell: info => info.getValue() ?? '—',
-        size: 100,
+    columnHelper.group({
+        id: "nutrition_data",
+        header: () => <span>Nutrition Info</span>,
+        columns: [
+            columnHelper.accessor(row => row.item?.nutrition_id ?? null, {
+                id: 'nutrition_id',
+                header: () => <span>Nutrition ID</span>,
+                cell: info => info.getValue() ?? '',
+                size: 80,
+            }),
+            columnHelper.accessor(row => {
+                const n = row.item?.nutrition ?? row.nutrition;
+                return n?.serving_size_description ?? '';
+            }, {
+                id: 'nutrition_serving_size_description',
+                header: () => <span>Serving Size Desc</span>,
+                cell: info => info.getValue() || '',
+                size: 120,
+            }),
+            columnHelper.accessor(row => nutVal(row, 'serving_size_oz'), {
+                id: 'nutrition_serving_size_oz',
+                header: () => <span>Serving Size (oz)</span>,
+                cell: info => info.getValue() ?? '',
+                size: 80,
+            }),
+            columnHelper.accessor(row => nutVal(row, 'serving_size_g'), {
+                id: 'nutrition_serving_size_g',
+                header: () => <span>Serving Size (g)</span>,
+                cell: info => info.getValue() ?? '',
+                size: 80,
+            }),
+            columnHelper.accessor(row => nutVal(row, 'calories'), {
+                id: 'nutrition_calories',
+                header: () => <span>Calories</span>,
+                cell: info => info.getValue() ?? '—',
+                size: 80,
+            }),
+            columnHelper.accessor(row => nutVal(row, 'total_fat_g'), {
+                id: 'nutrition_total_fat_g',
+                header: () => <span>Total Fat (g)</span>,
+                cell: info => info.getValue() ?? '—',
+                size: 80,
+            }),
+            columnHelper.accessor(row => nutVal(row, 'saturated_fat_g'), {
+                id: 'nutrition_saturated_fat_g',
+                header: () => <span>Sat. Fat (g)</span>,
+                cell: info => info.getValue() ?? '—',
+                size: 80,
+            }),
+            columnHelper.accessor(row => nutVal(row, 'trans_fat_g'), {
+                id: 'nutrition_trans_fat_g',
+                header: () => <span>Trans Fat (g)</span>,
+                cell: info => info.getValue() ?? '—',
+                size: 80,
+            }),
+            columnHelper.accessor(row => nutVal(row, 'cholesterol_mg'), {
+                id: 'nutrition_cholesterol_mg',
+                header: () => <span>Cholest. (mg)</span>,
+                cell: info => info.getValue() ?? '—',
+                size: 80,
+            }),
+            columnHelper.accessor(row => nutVal(row, 'sodium_mg'), {
+                id: 'nutrition_sodium_mg',
+                header: () => <span>Sodium (mg)</span>,
+                cell: info => info.getValue() ?? '—',
+                size: 80,
+            }),
+            columnHelper.accessor(row => nutVal(row, 'total_carbs_g'), {
+                id: 'nutrition_total_carbs_g',
+                header: () => <span>Total Carbs (g)</span>,
+                cell: info => info.getValue() ?? '—',
+                size: 80,
+            }),
+            columnHelper.accessor(row => nutVal(row, 'fiber_g'), {
+                id: 'nutrition_fiber_g',
+                header: () => <span>Fiber (g)</span>,
+                cell: info => info.getValue() ?? '—',
+                size: 80,
+            }),
+            columnHelper.accessor(row => nutVal(row, 'total_sugar_g'), {
+                id: 'nutrition_total_sugar_g',
+                header: () => <span>Total Sugar (g)</span>,
+                cell: info => info.getValue() ?? '—',
+                size: 80,
+            }),
+            columnHelper.accessor(row => nutVal(row, 'added_sugar_g'), {
+                id: 'nutrition_added_sugar_g',
+                header: () => <span>Added Sugar (g)</span>,
+                cell: info => info.getValue() ?? '—',
+                size: 80,
+            }),
+            columnHelper.accessor(row => nutVal(row, 'protein_g'), {
+                id: 'nutrition_protein_g',
+                header: () => <span>Protein (g)</span>,
+                cell: info => info.getValue() ?? '—',
+                size: 80,
+            }),
+            columnHelper.accessor(row => nutVal(row, 'vitamin_d_mcg'), {
+                id: 'nutrition_vitamin_d_mcg',
+                header: () => <span>Vitamin D (mcg)</span>,
+                cell: info => info.getValue() ?? '—',
+                size: 80,
+            }),
+            columnHelper.accessor(row => nutVal(row, 'calcium_mg'), {
+                id: 'nutrition_calcium_mg',
+                header: () => <span>Calcium (mg)</span>,
+                cell: info => info.getValue() ?? '—',
+                size: 80,
+            }),
+            columnHelper.accessor(row => nutVal(row, 'iron_mg'), {
+                id: 'nutrition_iron_mg',
+                header: () => <span>Iron (mg)</span>,
+                cell: info => info.getValue() ?? '—',
+                size: 80,
+            }),
+            columnHelper.accessor(row => nutVal(row, 'potassium_mg'), {
+                id: 'nutrition_potassium_mg',
+                header: () => <span>Potassium (mg)</span>,
+                cell: info => info.getValue() ?? '—',
+                size: 80,
+            }),
+        ]
     }),
     columnHelper.accessor(row => row.item?.notes ?? null, {
         id: 'notes',
@@ -355,41 +402,78 @@ const columns = [
             : null,
         size: 180,
     }),
-];
+]
 
-// ---------------------------------------------------------------------------
-// DailyLogTable
-// ---------------------------------------------------------------------------
+interface DailyLogTableProps {
+    viewMode: ViewMode;
+    rangeStart: Date;
+    rangeEnd: Date;
+    selectedDateKey: string | null;
+    setSelectedDateKey: (key: string | null) => void;
+    selectedItemId: number | null;
+    setSelectedItemId: (id: number | null) => void;
+}
 
+// Declare the DailyLog table itself
 const DailyLogTable: React.FC<DailyLogTableProps> = ({
     viewMode, rangeStart, rangeEnd,
     selectedDateKey, setSelectedDateKey,
     selectedItemId, setSelectedItemId,
 }) => {
-    "use no memo"; // React Compiler: useReactTable() returns non-memoizable functions
-
-    const { dailyLogItems, recipes } = useData();
+    const { dailyLogItems, recipes, preferences, updatePreferences } = useData();
     const [sorting, setSorting] = React.useState<SortingState>([]);
     // Day view: expand all by default (each day is the primary unit).
     // Week/month view: collapsed by default so the user sees the summary first.
     const [expanded, setExpanded] = React.useState<ExpandedState>(() => (viewMode === 'day' ? true : {}));
+    const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
+    const [preferencesReady, setPreferencesReady] = React.useState(false);
+    const preferencesLoadedRef = useRef(false);
+    const visibilitySaveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const columnsPreferencesKey = DAILYLOG_COLUMNS_PREFERENCES_KEY;
 
-    React.useEffect(() => {
+    const saveColumnVisibility = useCallback((next: VisibilityState) => {
+        const withMandatory = enforceMandatoryColumns(columnsPreferencesKey, next as Record<string, boolean>)
+        void updatePreferences(columnsPreferencesKey, {
+            columnVisibility: withMandatory,
+        })
+    }, [columnsPreferencesKey, updatePreferences])
+
+    useEffect(() => {
+        const tablePreferences = preferences[columnsPreferencesKey]
+
+        if (!tablePreferences || preferencesLoadedRef.current) {
+            return
+        }
+
+        preferencesLoadedRef.current = true
+        setPreferencesReady(true)
+
+        if (tablePreferences.columnVisibility) {
+            const loadedVisibility = tablePreferences.columnVisibility as Record<string, boolean>
+            setColumnVisibility(enforceMandatoryColumns(columnsPreferencesKey, loadedVisibility) as VisibilityState)
+        } else {
+            const defaults = getDefaultColumnsPreferences(columnsPreferencesKey)
+            if (defaults) {
+                setColumnVisibility(toVisibilityState(defaults.columnVisibility) as VisibilityState)
+            }
+        }
+
+        if (tablePreferences.columnFilters) {
+            saveColumnVisibility((tablePreferences.columnVisibility as VisibilityState | undefined) ?? {})
+        }
+    }, [preferences, columnsPreferencesKey, saveColumnVisibility])
+
+    useEffect(() => {
+        return () => {
+            if (visibilitySaveTimeoutRef.current) {
+                clearTimeout(visibilitySaveTimeoutRef.current)
+            }
+        }
+    }, [])
+
+    useEffect(() => {
         setExpanded(() => viewMode === 'day' ? true : {});
     }, [viewMode]);
-
-    const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>(() => {
-        const saved = sessionStorage.getItem(DAILY_LOG_VISIBILITY_STORAGE);
-        const defaults: VisibilityState = {
-            saturated_fat_g: false,
-            cholesterol_mg:  false,
-            vitamin_d_mcg:   false,
-            calcium_mg:      false,
-            iron_mg:         false,
-            potassium_mg:    false,
-        };
-        return saved ? JSON.parse(saved) : defaults;
-    });
 
     const displayRows = useMemo(
         () => buildDisplayRows(dailyLogItems, viewMode, rangeStart, rangeEnd, recipes),
@@ -408,8 +492,14 @@ const DailyLogTable: React.FC<DailyLogTableProps> = ({
         onExpandedChange: setExpanded,
         onColumnVisibilityChange: (updater) => {
             setColumnVisibility(prev => {
-                const next = typeof updater === 'function' ? updater(prev) : updater;
-                sessionStorage.setItem(DAILY_LOG_VISIBILITY_STORAGE, JSON.stringify(next));
+                const rawNext = typeof updater === 'function' ? updater(prev) : updater;
+                const next = enforceMandatoryColumns(columnsPreferencesKey, rawNext as Record<string, boolean>) as VisibilityState
+                if (visibilitySaveTimeoutRef.current) {
+                    clearTimeout(visibilitySaveTimeoutRef.current)
+                }
+                visibilitySaveTimeoutRef.current = setTimeout(() => {
+                    saveColumnVisibility(next)
+                }, TABLE_PREFERENCES_DEBOUNCE_MS)
                 return next;
             });
         },
@@ -417,98 +507,78 @@ const DailyLogTable: React.FC<DailyLogTableProps> = ({
         getRowId: row => row.rowKey,
     });
 
-    // ---------------------------------------------------------------------------
-    // Styles
-    // ---------------------------------------------------------------------------
-
-    const headerSx = (theme: Theme) => ({
-        userSelect: 'none' as const,
-        fontWeight: 'bold',
-        fontSize: 13,
-        color: theme.palette.table.headerColor,
-        background: theme.palette.table.headerBg,
-        borderRight: `1px solid ${theme.palette.table.headerBorder}`,
-        borderBottom: `1px solid ${theme.palette.table.headerBorder}`,
-        p: '4px 6px',
-        textAlign: 'center' as const,
-        whiteSpace: 'nowrap' as const,
-        cursor: 'pointer',
-    });
-
-    const cellSx = (theme: Theme) => ({
-        fontSize: 13,
-        borderRight: `1px solid ${theme.palette.table.rowBorder}`,
-        borderBottom: `1px solid ${theme.palette.table.rowBorder}`,
-        padding: '2px 4px',
-        height: '2.2rem',
-        textAlign: 'center' as const,
-    });
-
-    const rowSx = (row: Row<DisplayRow>, isSelected: boolean, isDateSelected: boolean) => (theme: Theme) => {
-        const dr = row.original;
-        if (dr.type === 'week') return {
-            backgroundColor: theme.palette.table.headerBg,
-            fontWeight: 700,
-            fontSize: 13,
-            cursor: 'pointer',
-        };
-        if (dr.type === 'date') return {
-            backgroundColor: isDateSelected
-                ? `${theme.palette.table.rowSelectedBg} !important`
-                : theme.palette.grey[100],
-            fontWeight: 600,
-            cursor: 'pointer',
-        };
-        // item row
-        return {
-            cursor: 'pointer',
-            ...(isSelected
-                ? { backgroundColor: `${theme.palette.table.rowSelectedBg} !important` }
-                : row.parentId != null  // item is visible only when its parent is expanded
-                    ? { backgroundColor: `${theme.palette.primary.main}0A` } // ~4% opacity tint via hex alpha
-                    : {}
-            ),
-        };
-    };
-
     const visibleColCount = table.getVisibleLeafColumns().length;
 
-    // ---------------------------------------------------------------------------
-    // Render
-    // ---------------------------------------------------------------------------
-
     return (
-        <Box>
+        <Box sx={{ visibility: preferencesReady ? 'visible' : 'hidden' }}>
+            {/* Column visibility picker toolbar */}
             <Box sx={{ display: 'flex', justifyContent: 'flex-end', px: 1, py: 0.75 }}>
-                <ColumnVisibilityPicker table={table} storageKey={DAILY_LOG_VISIBILITY_STORAGE} />
+                <ColumnVisibilityPicker table={table} storageKey={columnsPreferencesKey} />
             </Box>
 
-            <TableContainer component={Paper} sx={{ overflowX: 'auto', borderRadius: 2, boxShadow: 2 }}>
+            <TableContainer
+                component={Paper}
+                sx={{
+                    overflowX: 'auto',
+                    borderRadius: 2,
+                    boxShadow: 2,
+                }}
+            >
                 <Table size="small" sx={{ tableLayout: 'fixed', borderCollapse: 'separate', borderSpacing: 0 }}>
                     <colgroup>
                         {table.getVisibleLeafColumns().map(col => (
                             <col key={col.id} style={{ width: col.getSize() }} />
                         ))}
                     </colgroup>
-
                     <TableHead>
                         {table.getHeaderGroups().map(headerGroup => (
-                            <TableRow key={headerGroup.id}>
-                                {headerGroup.headers.map(header => (
-                                    <TableCell
-                                        key={header.id}
-                                        colSpan={header.colSpan}
-                                        sx={headerSx}
-                                        onClick={header.column.getToggleSortingHandler()}
-                                    >
-                                        {flexRender(header.column.columnDef.header, header.getContext())}
-                                        {({ asc: ' 🔼', desc: ' 🔽' } as Record<string, string>)[header.column.getIsSorted() as string] ?? null}
-                                    </TableCell>
-                                ))}
+                            <TableRow key={headerGroup.id} sx={{ height: '2.5rem' }}>
+                                {headerGroup.headers.map(header =>
+                                    header.isPlaceholder ? (
+                                        <TableCell
+                                            key={header.id}
+                                            colSpan={header.colSpan}
+                                            sx={theme => ({
+                                                background: theme.palette.table.headerBg,
+                                                borderRight: `1px solid ${theme.palette.table.headerBorder}`,
+                                                borderBottom: `1px solid ${theme.palette.table.headerBorder}`,
+                                                p: 1,
+                                            })}
+                                        />
+                                    ) : (
+                                        <TableCell
+                                            key={header.id}
+                                            sx={theme => ({
+                                                width: header.getSize(),
+                                                userSelect: 'none',
+                                                fontWeight: 'bold',
+                                                fontSize: 14,
+                                                color: theme.palette.table.headerColor,
+                                                background: theme.palette.table.headerBg,
+                                                borderRight: `1px solid ${theme.palette.table.headerBorder}`,
+                                                borderBottom: `1px solid ${theme.palette.table.headerBorder}`,
+                                                p: 1,
+                                                cursor: 'pointer',
+                                                textAlign: 'center',
+                                                lineHeight: 1.2,
+                                            })}
+                                            colSpan={header.colSpan}
+                                            onClick={header.column.getToggleSortingHandler()}
+                                        >
+                                            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
+                                                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%' }}>
+                                                    {flexRender(header.column.columnDef.header, header.getContext())}
+                                                    <Box component="span" sx={{ ml: 1 }}>
+                                                        {{asc: '🔼', desc: '🔽'}[header.column.getIsSorted() as string] ?? null}
+                                                    </Box>
+                                                </Box>
+                                            </Box>
+                                        </TableCell>
+                                    )
+                                )}
                             </TableRow>
                         ))}
                     </TableHead>
-
                     <TableBody>
                         {displayRows.length === 0 ? (
                             <TableRow>
@@ -535,15 +605,46 @@ const DailyLogTable: React.FC<DailyLogTableProps> = ({
                                             }
                                             // week rows: +/- button handles expansion only
                                         }}
-                                        sx={rowSx(row, isSelected, isDateSelected)}
+                                        sx={theme => {
+                                            if (dr.type === 'week') return {
+                                                backgroundColor: theme.palette.table.headerBg,
+                                                fontWeight: 700,
+                                                cursor: 'pointer',
+                                                height: '2.5rem',
+                                            };
+                                            if (dr.type === 'date') return {
+                                                backgroundColor: isDateSelected
+                                                    ? `${theme.palette.table.rowSelectedBg} !important`
+                                                    : theme.palette.grey[100],
+                                                fontWeight: 600,
+                                                cursor: 'pointer',
+                                                height: '2.5rem',
+                                            };
+                                            // item row
+                                            return {
+                                                cursor: 'pointer',
+                                                height: '2.5rem',
+                                                ...(isSelected
+                                                    ? { backgroundColor: `${theme.palette.table.rowSelectedBg} !important` }
+                                                    : row.parentId != null  // item is visible only when its parent is expanded
+                                                        ? { backgroundColor: `${theme.palette.primary.main}0A` } // ~4% opacity tint via hex alpha
+                                                        : {}
+                                                ),
+                                            };
+                                        }}
                                     >
                                         {row.getVisibleCells().map(cell => (
                                             <TableCell
                                                 key={cell.id}
                                                 sx={theme => ({
-                                                    ...cellSx(theme),
-                                                    // Left-align the label column; centre everything else
+                                                    borderRight: `1px solid ${theme.palette.table.rowBorder}`,
+                                                    borderBottom: `1px solid ${theme.palette.table.rowBorder}`,
+                                                    fontSize: 14,
+                                                    padding: '2px',
+                                                    height: '2.5rem',
+                                                    maxHeight: '2.5rem',
                                                     textAlign: cell.column.id === 'label' ? 'left' : 'center',
+                                                    whiteSpace: 'normal',
                                                     fontWeight: isChildExpanded ? 600 : 'inherit',
                                                 })}
                                             >
@@ -559,6 +660,6 @@ const DailyLogTable: React.FC<DailyLogTableProps> = ({
             </TableContainer>
         </Box>
     );
-};
+}
 
 export default DailyLogTable;
