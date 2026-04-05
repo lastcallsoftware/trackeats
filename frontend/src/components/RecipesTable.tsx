@@ -517,6 +517,7 @@ const RecipesTable: React.FC<IRecipesTableProps> = ({setSelectedRowId, paginatio
                                             maxHeight: '2.5rem',
                                             textAlign: 'center',
                                             whiteSpace: 'normal',
+                                            color: row.getIsSelected() ? theme.palette.common.white : 'inherit',
                                         })}
                                     >
                                         <TruncatedCell>

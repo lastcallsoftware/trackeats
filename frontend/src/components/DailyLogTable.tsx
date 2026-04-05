@@ -735,6 +735,7 @@ const DailyLogTable: React.FC<DailyLogTableProps> = ({
                                                 backgroundColor: isWeekSelected
                                                     ? `${theme.palette.table.rowSelectedBg} !important`
                                                     : theme.palette.table.rowUnselectedBg.dark,
+                                                color: isWeekSelected ? theme.palette.common.white : 'inherit',
                                             };
                                             if (dr.type === 'date') return {
                                                 fontWeight: 600,
@@ -743,6 +744,7 @@ const DailyLogTable: React.FC<DailyLogTableProps> = ({
                                                 backgroundColor: isDateSelected
                                                     ? `${theme.palette.table.rowSelectedBg} !important`
                                                     : theme.palette.table.rowUnselectedBg.medium,
+                                                color: isDateSelected ? theme.palette.common.white : 'inherit',
                                             };
                                             // item row
                                             return {
@@ -751,6 +753,7 @@ const DailyLogTable: React.FC<DailyLogTableProps> = ({
                                                 backgroundColor: isSelected
                                                     ? `${theme.palette.table.rowSelectedBg} !important`
                                                     : theme.palette.table.rowUnselectedBg.light,
+                                                color: isSelected ? theme.palette.common.white : 'inherit',
                                             };
                                         }}
                                     >
@@ -767,6 +770,7 @@ const DailyLogTable: React.FC<DailyLogTableProps> = ({
                                                     textAlign: cell.column.id === 'label' ? 'left' : 'center',
                                                     whiteSpace: 'normal',
                                                     fontWeight: isChildExpanded ? 600 : 'inherit',
+                                                    color: (isSelected || isDateSelected || isWeekSelected) ? theme.palette.common.white : 'inherit',
                                                 })}
                                             >
                                                 {flexRender(cell.column.columnDef.cell, cell.getContext())}

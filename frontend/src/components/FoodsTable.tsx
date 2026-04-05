@@ -504,6 +504,7 @@ const FoodsTable: React.FC<FoodsTableProps> = ({setSelectedRowId, pagination, se
                                             maxHeight: '2.5rem',
                                             textAlign: 'center',
                                             whiteSpace: 'normal',
+                                            color: row.getIsSelected() ? theme.palette.common.white : 'inherit',
                                         })}
                                     >
                                     <TruncatedCell>
