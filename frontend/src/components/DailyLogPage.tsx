@@ -41,6 +41,15 @@ function endOfMonth(d: Date): Date {
     return new Date(d.getFullYear(), d.getMonth() + 1, 0);
 }
 
+function fromISODate(isoDate: string): Date {
+    const [year, month, day] = isoDate.split('-').map(Number);
+    return new Date(year, month - 1, day);
+}
+
+function weekSundayIso(isoDate: string): string {
+    return toISODate(startOfWeek(fromISODate(isoDate)));
+}
+
 function formatDateRange(start: Date, end: Date, mode: ViewMode): string {
     const opts: Intl.DateTimeFormatOptions = { month: 'short', day: 'numeric', year: 'numeric' };
     if (mode === 'day') return start.toLocaleDateString('en-US', opts);
@@ -96,19 +105,29 @@ function DailyLogPage() {
 
     const goToToday = () => setAnchorDate(new Date());
 
-    // -- Two-level selection --
+    // -- Selection state --
     // selectedDateKey: ISO date string of the selected date row, e.g. "2026-04-02"
+    // selectedWeekKey: ISO date string for the Sunday that starts the selected week row
     // selectedItemId:  id of the selected leaf item row
-    // Selecting a date clears the item selection; selecting an item clears the date selection.
+    // Selecting a summary row clears item selection; selecting an item clears summary selection.
+    const [selectedWeekKey, setSelectedWeekKey] = useState<string | null>(null);
     const [selectedDateKey, setSelectedDateKey] = useState<string | null>(null);
     const [selectedItemId, setSelectedItemId] = useState<number | null>(null);
 
     const handleSelectDate = (dateKey: string | null) => {
+        setSelectedWeekKey(null);
         setSelectedDateKey(dateKey);
         setSelectedItemId(null);
     };
 
+    const handleSelectWeek = (weekKey: string | null) => {
+        setSelectedWeekKey(weekKey);
+        setSelectedDateKey(null);
+        setSelectedItemId(null);
+    };
+
     const handleSelectItem = (itemId: number | null) => {
+        setSelectedWeekKey(null);
         setSelectedItemId(itemId);
         setSelectedDateKey(null);
     };
@@ -156,12 +175,62 @@ function DailyLogPage() {
         } as INutrition);
     }, [selectedDateKey, dailyLogItems]);
 
-    const panelNutrition = selectedItem?.nutrition ?? selectedDateNutrition;
+    const activeSelectedWeekKey = viewMode === 'month' ? selectedWeekKey : null;
+
+    const selectedWeekNutrition: INutrition | null = useMemo(() => {
+        if (!activeSelectedWeekKey) return null;
+        const weekItems = dailyLogItems.filter(i => weekSundayIso(i.date) === activeSelectedWeekKey && i.nutrition);
+        if (weekItems.length === 0) return null;
+        return weekItems.reduce((acc, i) => {
+            const n = i.nutrition!;
+            return {
+                serving_size_description: '',
+                serving_size_oz: acc.serving_size_oz + (n.serving_size_oz ?? 0),
+                serving_size_g: acc.serving_size_g + (n.serving_size_g ?? 0),
+                calories: acc.calories + (n.calories ?? 0),
+                total_fat_g: acc.total_fat_g + (n.total_fat_g ?? 0),
+                saturated_fat_g: acc.saturated_fat_g + (n.saturated_fat_g ?? 0),
+                trans_fat_g: acc.trans_fat_g + (n.trans_fat_g ?? 0),
+                cholesterol_mg: acc.cholesterol_mg + (n.cholesterol_mg ?? 0),
+                sodium_mg: acc.sodium_mg + (n.sodium_mg ?? 0),
+                total_carbs_g: acc.total_carbs_g + (n.total_carbs_g ?? 0),
+                fiber_g: acc.fiber_g + (n.fiber_g ?? 0),
+                total_sugar_g: acc.total_sugar_g + (n.total_sugar_g ?? 0),
+                added_sugar_g: acc.added_sugar_g + (n.added_sugar_g ?? 0),
+                protein_g: acc.protein_g + (n.protein_g ?? 0),
+                vitamin_d_mcg: acc.vitamin_d_mcg + (n.vitamin_d_mcg ?? 0),
+                calcium_mg: acc.calcium_mg + (n.calcium_mg ?? 0),
+                iron_mg: acc.iron_mg + (n.iron_mg ?? 0),
+                potassium_mg: acc.potassium_mg + (n.potassium_mg ?? 0),
+            };
+        }, {
+            serving_size_description: '',
+            serving_size_oz: 0, serving_size_g: 0, calories: 0,
+            total_fat_g: 0, saturated_fat_g: 0, trans_fat_g: 0,
+            cholesterol_mg: 0, sodium_mg: 0, total_carbs_g: 0,
+            fiber_g: 0, total_sugar_g: 0, added_sugar_g: 0,
+            protein_g: 0, vitamin_d_mcg: 0, calcium_mg: 0,
+            iron_mg: 0, potassium_mg: 0,
+        } as INutrition);
+    }, [activeSelectedWeekKey, dailyLogItems]);
+
+    const selectedWeekLabel = useMemo(() => {
+        if (!activeSelectedWeekKey) return null;
+
+        const weekStart = fromISODate(activeSelectedWeekKey);
+        const weekEnd = new Date(weekStart);
+        weekEnd.setDate(weekStart.getDate() + 6);
+        const clampedStart = weekStart < rangeStart ? rangeStart : weekStart;
+        const clampedEnd = weekEnd > rangeEnd ? rangeEnd : weekEnd;
+        return `Total for ${formatDateRange(clampedStart, clampedEnd, 'week')}`;
+    }, [activeSelectedWeekKey, rangeEnd, rangeStart]);
+
+    const panelNutrition = selectedItem?.nutrition ?? selectedDateNutrition ?? selectedWeekNutrition;
     const panelLabel = selectedItem
         ? recipes.find(r => r.id === selectedItem.recipe_id)?.name ?? 'Selected Entry'
         : selectedDateKey
             ? `Total for ${selectedDateKey}`
-            : null;
+            : selectedWeekLabel;
 
     // -- Add form --
     const [showAddForm, setShowAddForm] = useState(false);
@@ -176,6 +245,7 @@ function DailyLogPage() {
 
         const newItemId = newItem.id ?? null;
         setAnchorDate(new Date(`${newItem.date}T00:00:00`));
+        setSelectedWeekKey(null);
         setSelectedDateKey(newItemId ? null : newItem.date);
         setSelectedItemId(newItemId);
         setShowAddForm(false);
@@ -386,6 +456,8 @@ function DailyLogPage() {
                             viewMode={viewMode}
                             rangeStart={rangeStart}
                             rangeEnd={rangeEnd}
+                            selectedWeekKey={activeSelectedWeekKey}
+                            setSelectedWeekKey={handleSelectWeek}
                             selectedDateKey={selectedDateKey}
                             setSelectedDateKey={handleSelectDate}
                             selectedItemId={selectedItemId}

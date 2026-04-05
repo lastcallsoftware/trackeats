@@ -46,6 +46,7 @@ interface DisplayRow {
     // Date rows + week rows
     label?: string;
     date?: string;                 // ISO date string, present on date rows only
+    weekKey?: string;              // ISO date string of Sunday, present on week rows only
     nutrition?: INutrition;       // totalled nutrition for this date/week
     price?: number;               // totalled price for this date/week
     // Item rows only
@@ -234,6 +235,7 @@ function buildDisplayRows(
                 return {
                     type: 'week' as const,
                     rowKey: `week-${sundayIso}`,
+                    weekKey: sundayIso,
                     label: formatWeekLabel(firstDate, lastDate),
                     nutrition: weekNutrition,
                     price: roundToCents(weekPrice),
@@ -486,6 +488,8 @@ interface DailyLogTableProps {
     viewMode: ViewMode;
     rangeStart: Date;
     rangeEnd: Date;
+    selectedWeekKey: string | null;
+    setSelectedWeekKey: (key: string | null) => void;
     selectedDateKey: string | null;
     setSelectedDateKey: (key: string | null) => void;
     selectedItemId: number | null;
@@ -495,6 +499,7 @@ interface DailyLogTableProps {
 // Declare the DailyLog table itself
 const DailyLogTable: React.FC<DailyLogTableProps> = ({
     viewMode, rangeStart, rangeEnd,
+    selectedWeekKey, setSelectedWeekKey,
     selectedDateKey, setSelectedDateKey,
     selectedItemId, setSelectedItemId,
 }) => {
@@ -697,6 +702,7 @@ const DailyLogTable: React.FC<DailyLogTableProps> = ({
                                 const dr = row.original;
                                 const isSelected = dr.item?.id === selectedItemId;
                                 const isDateSelected = dr.type === 'date' && dr.date === selectedDateKey;
+                                const isWeekSelected = dr.type === 'week' && dr.weekKey === selectedWeekKey;
                                 const isChildExpanded = dr.type !== 'item' && row.getIsExpanded();
 
                                 return (
@@ -708,12 +714,15 @@ const DailyLogTable: React.FC<DailyLogTableProps> = ({
                                                 setSelectedItemId(isSelected ? null : (dr.item?.id ?? null));
                                             } else if (dr.type === 'date') {
                                                 setSelectedDateKey(isDateSelected ? null : (dr.date ?? null));
+                                            } else if (dr.type === 'week') {
+                                                setSelectedWeekKey(isWeekSelected ? null : (dr.weekKey ?? null));
                                             }
-                                            // week rows: +/- button handles expansion only
                                         }}
                                         sx={theme => {
                                             if (dr.type === 'week') return {
-                                                backgroundColor: theme.palette.table.headerBg,
+                                                backgroundColor: isWeekSelected
+                                                    ? `${theme.palette.table.rowSelectedBg} !important`
+                                                    : theme.palette.table.headerBg,
                                                 fontWeight: 700,
                                                 cursor: 'pointer',
                                                 height: '2.5rem',
