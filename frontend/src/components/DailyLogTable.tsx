@@ -622,6 +622,7 @@ const DailyLogTable: React.FC<DailyLogTableProps> = ({
 
     return (
         <Box sx={{ visibility: preferencesReady ? 'visible' : 'hidden' }}>
+            {/* Hide table until preferences are loaded to avoid column flicker. */}
             {/* Column visibility picker toolbar */}
             <Box sx={{ display: 'flex', justifyContent: 'flex-end', px: 1, py: 0.75 }}>
                 <ColumnVisibilityPicker table={table} storageKey={columnsPreferencesKey} />
@@ -636,15 +637,19 @@ const DailyLogTable: React.FC<DailyLogTableProps> = ({
                 }}
             >
                 <Table size="small" sx={{ tableLayout: 'fixed', borderCollapse: 'separate', borderSpacing: 0 }}>
+                    {/* Fixed column widths keep grouped headers and data cells aligned. */}
                     <colgroup>
                         {table.getVisibleLeafColumns().map(col => (
                             <col key={col.id} style={{ width: col.getSize() }} />
                         ))}
                     </colgroup>
+                    {/* Multi-row/group header rendering from TanStack header groups. */}
                     <TableHead>
                         {table.getHeaderGroups().map(headerGroup => (
                             <TableRow key={headerGroup.id} sx={{ height: '2.5rem' }}>
                                 {headerGroup.headers.map(header =>
+                                    // TanStack emits placeholder headers to keep colSpan math aligned
+                                    // when a parent group spans children that render on deeper header rows.
                                     header.isPlaceholder ? (
                                         <TableCell
                                             key={header.id}
@@ -657,6 +662,7 @@ const DailyLogTable: React.FC<DailyLogTableProps> = ({
                                             })}
                                         />
                                     ) : (
+                                        // Real header cells render grouped labels/leaf labels and handle sorting.
                                         <TableCell
                                             key={header.id}
                                             sx={theme => ({
@@ -676,6 +682,7 @@ const DailyLogTable: React.FC<DailyLogTableProps> = ({
                                             colSpan={header.colSpan}
                                             onClick={header.column.getToggleSortingHandler()}
                                         >
+                                            {/* Keep header text + sort indicator centered even when wrapped. */}
                                             <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
                                                 <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%' }}>
                                                     {flexRender(header.column.columnDef.header, header.getContext())}
@@ -690,6 +697,8 @@ const DailyLogTable: React.FC<DailyLogTableProps> = ({
                             </TableRow>
                         ))}
                     </TableHead>
+
+                    {/* Body: either an empty-state row or hierarchical week/date/item rows. */}
                     <TableBody>
                         {displayRows.length === 0 ? (
                             <TableRow>
@@ -720,31 +729,28 @@ const DailyLogTable: React.FC<DailyLogTableProps> = ({
                                         }}
                                         sx={theme => {
                                             if (dr.type === 'week') return {
-                                                backgroundColor: isWeekSelected
-                                                    ? `${theme.palette.table.rowSelectedBg} !important`
-                                                    : theme.palette.table.headerBg,
                                                 fontWeight: 700,
                                                 cursor: 'pointer',
                                                 height: '2.5rem',
+                                                backgroundColor: isWeekSelected
+                                                    ? `${theme.palette.table.rowSelectedBg} !important`
+                                                    : theme.palette.table.rowUnselectedBg.dark,
                                             };
                                             if (dr.type === 'date') return {
-                                                backgroundColor: isDateSelected
-                                                    ? `${theme.palette.table.rowSelectedBg} !important`
-                                                    : theme.palette.grey[100],
                                                 fontWeight: 600,
                                                 cursor: 'pointer',
                                                 height: '2.5rem',
+                                                backgroundColor: isDateSelected
+                                                    ? `${theme.palette.table.rowSelectedBg} !important`
+                                                    : theme.palette.table.rowUnselectedBg.medium,
                                             };
                                             // item row
                                             return {
                                                 cursor: 'pointer',
                                                 height: '2.5rem',
-                                                ...(isSelected
-                                                    ? { backgroundColor: `${theme.palette.table.rowSelectedBg} !important` }
-                                                    : row.parentId != null  // item is visible only when its parent is expanded
-                                                        ? { backgroundColor: `${theme.palette.primary.main}0A` } // ~4% opacity tint via hex alpha
-                                                        : {}
-                                                ),
+                                                backgroundColor: isSelected
+                                                    ? `${theme.palette.table.rowSelectedBg} !important`
+                                                    : theme.palette.table.rowUnselectedBg.light,
                                             };
                                         }}
                                     >
