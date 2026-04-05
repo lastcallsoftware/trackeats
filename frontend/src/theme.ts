@@ -1,9 +1,10 @@
-// Augment the Palette type to include 'table'
+type Shade = { light: string, medium: string, dark: string };
 
 type TablePalette = {
     headerBg: string;
     headerColor: string;
     headerBorder: string;
+    rowUnselectedBg: Shade;
     rowSelectedBg: string;
     rowBorder: string;
 }
@@ -33,18 +34,16 @@ const theme = createTheme({
             paper: '#ffffff',
         },
         table: {
-            headerBg: '#66C2E0',
+            headerBg: '#29b6f6',
             headerColor: '#000',
             headerBorder: 'black',
-            rowSelectedBg: 'lightblue',
+            rowUnselectedBg: {
+                light: 'white',
+                medium: '#b3e5fc',
+                dark: '#81d4fa',
+            },
+            rowSelectedBg: '#03a9f4',
             rowBorder: 'black',
-        },
-        tableAlt: {
-            headerBg: '#42A5F5',
-            headerColor: '#FFF',
-            headerBorder: '#1976D2',
-            rowSelectedBg: '#E3F2FD',
-            rowBorder: '#EEE',
         },
     },
     shape: {
