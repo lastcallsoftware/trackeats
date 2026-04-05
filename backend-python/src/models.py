@@ -1383,6 +1383,8 @@ class DailyLogItem(db.Model):
       date       - the calendar date the item was consumed
       recipe_id  - the Recipe that was consumed
       servings   - how many servings were consumed
+        price      - denormalized total price for this consumed quantity,
+                 captured at log time to preserve historical values
       ordinal    - display order within the day
       notes      - optional free-text note on this specific item
                    (e.g. "late night snack", "skipped half of it")
@@ -1409,6 +1411,7 @@ class DailyLogItem(db.Model):
     notes: Mapped[str | None] = mapped_column(db.String(200), nullable=True)
     nutrition_id: Mapped[int | None] = mapped_column(db.Integer, db.ForeignKey("nutrition.id"), nullable=True)
     nutrition: Mapped["Nutrition | None"] = relationship("Nutrition")
+    price: Mapped[float | None] = mapped_column(db.Float, default=0, nullable=True)
 
     def __init__(
         self,
@@ -1431,6 +1434,12 @@ class DailyLogItem(db.Model):
     def __str__(self) -> str:
         return str(vars(self))
 
+    @staticmethod
+    def calculate_price(recipe_price: float | None, recipe_servings: float, consumed_servings: float) -> float:
+        if not recipe_price or recipe_servings <= 0:
+            return 0.0
+        return round((recipe_price / recipe_servings) * consumed_servings, 2)
+
     def json(self) -> dict[str, Any]:
         return {
             "id": self.id,
@@ -1442,6 +1451,7 @@ class DailyLogItem(db.Model):
             "notes": self.notes,
             "nutrition_id": self.nutrition_id,
             "nutrition": self.nutrition.json() if self.nutrition else None,
+            "price": self.price,
         }
 
 
@@ -1526,6 +1536,7 @@ class DailyLogItem(db.Model):
         ) or 0
 
         log_dao = DailyLogItem(user_id, log_request, ordinal=ordinal, nutrition_id=snapshot.id)
+        log_dao.price = DailyLogItem.calculate_price(recipe_dao.price, recipe_dao.servings, log_request.servings)
         db.session.add(log_dao)
         db.session.flush()
 
@@ -1564,6 +1575,7 @@ class DailyLogItem(db.Model):
 
             log_dao.servings = servings
             log_dao.notes = notes
+            log_dao.price = DailyLogItem.calculate_price(recipe_dao.price, recipe_dao.servings, servings)
 
             return log_dao
 

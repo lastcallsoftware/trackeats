@@ -47,6 +47,7 @@ interface DisplayRow {
     label?: string;
     date?: string;                 // ISO date string, present on date rows only
     nutrition?: INutrition;       // totalled nutrition for this date/week
+    price?: number;               // totalled price for this date/week
     // Item rows only
     item?: IDailyLogItem;
     recipeName?: string;
@@ -112,6 +113,10 @@ function addNutrition(acc: INutrition, n: INutrition | undefined): INutrition {
     };
 }
 
+function addPrice(acc: number, price: number | undefined): number {
+    return acc + (price ?? 0);
+}
+
 function weekSundayIso(isoDate: string): string {
     const [y, m, d] = isoDate.split('-').map(Number);
     const date = new Date(y, m - 1, d);
@@ -150,9 +155,11 @@ function buildDisplayRows(
     const dateRows: DisplayRow[] = sortedDates.map(date => {
         const dateItems = byDate.get(date)!;
         let dateNutrition = zeroNutrition();
+        let datePrice = 0;
 
         const itemSubRows: DisplayRow[] = dateItems.map(item => {
             dateNutrition = addNutrition(dateNutrition, item.nutrition);
+            datePrice = addPrice(datePrice, item.price);
             const recipeName = recipes.find(r => r.id === item.recipe_id)?.name
                 ?? `Recipe ${item.recipe_id}`;
             return {
@@ -169,6 +176,7 @@ function buildDisplayRows(
             date,
             label: formatDate(date),
             nutrition: dateItems.length > 0 ? dateNutrition : undefined,
+            price: dateItems.length > 0 ? roundToCents(datePrice) : undefined,
             subRows: itemSubRows,
         };
     });
@@ -192,6 +200,10 @@ function buildDisplayRows(
                     (acc, dr) => addNutrition(acc, dr.nutrition),
                     zeroNutrition()
                 );
+                const weekPrice = children.reduce(
+                    (acc, dr) => addPrice(acc, dr.price),
+                    0
+                );
                 // Use the actual first and last dates present in this week group
                 // (clamped to the month range) rather than always Sunday-Saturday.
                 const childDates = children
@@ -204,6 +216,7 @@ function buildDisplayRows(
                     rowKey: `week-${sundayIso}`,
                     label: formatWeekLabel(firstDate, lastDate),
                     nutrition: weekNutrition,
+                    price: roundToCents(weekPrice),
                     subRows: children,
                 };
             });
@@ -221,6 +234,27 @@ function nutVal(row: DisplayRow, key: keyof INutrition): number | null {
     if (!n) return null;
     const v = n[key];
     return typeof v === 'number' ? v : null;
+}
+
+function roundToCents(value: number): number {
+    return Math.round((value + Number.EPSILON) * 100) / 100;
+}
+
+function priceVal(row: DisplayRow): number | null {
+    if (row.type === 'item') {
+        return typeof row.item?.price === 'number' ? row.item.price : null;
+    }
+    return typeof row.price === 'number' ? row.price : null;
+}
+
+function pricePerServingVal(row: DisplayRow): number | null {
+    if (row.type !== 'item') return null;
+    const price = row.item?.price;
+    const servings = row.item?.servings;
+    if (typeof price !== 'number' || typeof servings !== 'number' || servings <= 0) {
+        return null;
+    }
+    return roundToCents(price / servings);
 }
 
 const columns = [
@@ -391,6 +425,30 @@ const columns = [
                 header: () => <span>Potassium (mg)</span>,
                 cell: info => info.getValue() ?? '—',
                 size: 80,
+            }),
+        ]
+    }),
+    columnHelper.group({
+        id: "price_info",
+        header: () => <span>Price Info</span>,
+        columns: [
+            columnHelper.accessor(row => priceVal(row), {
+                id: 'price',
+                header: () => <span>Total Price</span>,
+                cell: info => {
+                    const value = info.getValue();
+                    return typeof value === 'number' ? value.toFixed(2) : '—';
+                },
+                size: 90,
+            }),
+            columnHelper.accessor(row => pricePerServingVal(row), {
+                id: 'price_per_serving',
+                header: () => <span>Price / serving</span>,
+                cell: info => {
+                    const value = info.getValue();
+                    return typeof value === 'number' ? value.toFixed(2) : '—';
+                },
+                size: 95,
             }),
         ]
     }),

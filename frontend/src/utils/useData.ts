@@ -67,6 +67,7 @@ export class DailyLogItem implements IDailyLogItem {
     date = new Date().toISOString().slice(0, 10); // today as "YYYY-MM-DD"
     recipe_id = 0;
     servings = 1;
+    price?: number = undefined;
     ordinal = 0;
     notes?: string = undefined;
     nutrition_id?: number = undefined;

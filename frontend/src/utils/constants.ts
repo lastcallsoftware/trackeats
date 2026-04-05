@@ -183,6 +183,8 @@ export const DEFAULT_DAILYLOG_COLUMNS_PREFERENCES: TableColumnsPreferences = {
 		"nutrition_calcium_mg": false,
 		"nutrition_iron_mg": false,
 		"nutrition_potassium_mg": false,
+		"price": true,
+		"price_per_serving": true,
 		"notes": true,
 	},
 }

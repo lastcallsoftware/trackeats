@@ -147,6 +147,7 @@ export type IDailyLogItem = {
     date: string           // ISO date string, e.g. "2026-04-02"
     recipe_id: number
     servings: number
+    price?: number
     ordinal: number
     notes?: string
     nutrition_id?: number
