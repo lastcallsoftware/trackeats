@@ -171,7 +171,7 @@ export type DataContextType = {
     addRecipe: (recipe: IRecipe, ingredients: IIngredient[]) => Promise<number|undefined>;
     updateRecipe: (recipe: IRecipe, ingredients: IIngredient[]) => Promise<void>;
     deleteRecipe: (recipe_id: number) => Promise<void>;
-    recalculateRecipeNutrition: (recipe_id: number) => Promise<void>;
+    recalculateRecipeNutrition: (recipe_id: number | null) => Promise<void>;
     fetchIngredients: (recipe_id: number) => Promise<IIngredient[]>
     getIngredients: (recipe_id: number) => Promise<void>;
     addIngredients: (recipe_id: number, ingredients: IIngredient[]) => Promise<void>;
@@ -491,6 +491,7 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
                 await axios.post<void>("/api/recipe/recalc")
             }
             await getRecipes()
+            showSnackbar("Nutrition recalculated for all user recipes", "success")
         } catch(error) {
             handleError(error)
         }

@@ -60,7 +60,7 @@ const buttonSx = {
 function App() {
     const theme = useTheme();
     const isNarrow = useMediaQuery(theme.breakpoints.down('md'));
-    const { deleteAccount } = useData();
+    const { deleteAccount, recalculateRecipeNutrition } = useData();
     const [isAuthenticated, setAuthenticated] = useState(sessionStorage.getItem("access_token") != null);
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
     const [optionsAnchorEl, setOptionsAnchorEl] = useState<null | HTMLElement>(null);
@@ -221,6 +221,7 @@ function App() {
                                     onClose={handleOptionsClose}
                                 >
                                     <MenuItem onClick={() => { handleOptionsClose(); removeToken(); }}>Log out</MenuItem>
+                                    <MenuItem onClick={() => { recalculateRecipeNutrition(null) }}>Recalculate recipes</MenuItem>
                                     <MenuItem onClick={handleDeleteAccountClick}>Delete my account</MenuItem>
                                 </Menu>
                                 <Dialog
