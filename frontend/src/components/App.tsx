@@ -6,9 +6,10 @@ import { Routes, Route, Link as RouterLink, useNavigate } from 'react-router-dom
 import trackEatsIcon from '../assets/trackeats-icon-32x32.png';
 import HomePage from './HomePage';
 import AboutPage from './AboutPage';
-import FoodsPage from './FoodsPage';
-import RecipesPage from './RecipesPage';
-import DailyLogPage from './DailyLogPage';
+import React, { Suspense, lazy } from 'react';
+const FoodsPage = lazy(() => import('./FoodsPage'));
+const RecipesPage = lazy(() => import('./RecipesPage'));
+const DailyLogPage = lazy(() => import('./DailyLogPage'));
 import LoginPage from './LoginPage';
 import RegisterPage from './RegisterPage';
 import Footer from './Footer';
@@ -264,21 +265,23 @@ function App() {
             </AppBar>
 
             <Box sx={{ px: { xs: 1, sm: 2 } }}>
-                <Routes>
-                    <Route path="/" element={<HomePage />} />
-                    <Route path="/home" element={<HomePage />} />
-                    <Route path="/foods" element={<FoodsPage />} />
-                    <Route path="/recipes" element={<RecipesPage />} />
-                    <Route path="/dailylog" element={<DailyLogPage />} />
-                    <Route path="/about" element={<AboutPage />} />
-                    <Route path="/login" element={<LoginPage storeTokenFunction={storeToken} />} />
-                    <Route path="/register" element={<RegisterPage />} />
-                    <Route path="/confirm" element={<ConfirmUserPage />} />
-                    <Route path="/food/add" element={<FoodForm />} />
-                    <Route path="/food/edit/:id" element={<FoodForm />} />
-                    <Route path="/recipe/add" element={<RecipeForm />} />
-                    <Route path="/recipe/edit/:id" element={<RecipeForm />} />
-                </Routes>
+                <Suspense fallback={<div>Loading...</div>}>
+                    <Routes>
+                        <Route path="/" element={<HomePage />} />
+                        <Route path="/home" element={<HomePage />} />
+                        <Route path="/foods" element={<FoodsPage />} />
+                        <Route path="/recipes" element={<RecipesPage />} />
+                        <Route path="/dailylog" element={<DailyLogPage />} />
+                        <Route path="/about" element={<AboutPage />} />
+                        <Route path="/login" element={<LoginPage storeTokenFunction={storeToken} />} />
+                        <Route path="/register" element={<RegisterPage />} />
+                        <Route path="/confirm" element={<ConfirmUserPage />} />
+                        <Route path="/food/add" element={<FoodForm />} />
+                        <Route path="/food/edit/:id" element={<FoodForm />} />
+                        <Route path="/recipe/add" element={<RecipeForm />} />
+                        <Route path="/recipe/edit/:id" element={<RecipeForm />} />
+                    </Routes>
+                </Suspense>
             </Box>
             <Footer />
         </>

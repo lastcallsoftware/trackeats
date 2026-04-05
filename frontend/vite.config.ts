@@ -42,8 +42,22 @@ export default defineConfig({
     host: true,
   //  origin: "http://0.0.0.0:80",
   },
+  // Bundle MUI as a separate chunk.  This greatly reduces the app's max 
+  // chunk size.  This shuts up the compiler warning about big chunks and it
+  // does has some real benefits:
+  // - modern browsers load an app's chunks in parallel
+  // - on subsequent visits after an app update, the MUI bundle will be 
+  //   cached and the user won't have to download it again
+  // I also tried bundling React separately but that had no effect.
   build: {
-    chunkSizeWarningLimit: 750
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          mui: ['@mui/material', '@mui/icons-material'],
+          icons: ['react-icons/md'],
+          table: ['@tanstack/react-table'],        }
+      }
+    }
   }
 })
  
