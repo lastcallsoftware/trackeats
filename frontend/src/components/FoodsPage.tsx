@@ -12,11 +12,13 @@ import MuiPagination from "@mui/material/Pagination";
 import TitleCard from './TitleCard';
 
 const FoodsPage = () => {
+    // -- State and navigation --
     const navigate = useNavigate();
     const [selectedRowId, setSelectedRowId] = useState<number|null>(null)
     const [filteredCount, setFilteredCount] = useState<number>(0)
     const { foods, deleteFood, isLoading } = useData();
 
+    // -- Pagination management --
     // Read page from URL as 1-based, convert to 0-based for state
     const [searchParams, setSearchParams] = useSearchParams();
     const currentPage = Math.max(1, Number(searchParams.get("page")) || 1);
@@ -33,6 +35,7 @@ const FoodsPage = () => {
         });
     }
 
+    // -- CRUD action handlers --
     const addRecord = () => {
         navigate("/food/add");
     }
@@ -78,62 +81,29 @@ const FoodsPage = () => {
                     background: '#fff',
                     borderRadius: 2.25,
                     boxShadow: '0 4px 24px 0 rgba(25, 118, 210, 0.10)',
-                    px: { xs: 1, sm: 2.5 },
+                    px: { xs: 2, sm: 5 },
                     py: { xs: 2, sm: 3 },
                     width: { xs: '98%', md: '90%' },
                     maxWidth: 1600,
                     display: 'flex',
-                    flexDirection: { xs: 'column', md: 'row' },
+                    flexDirection: 'column',
                     alignItems: 'stretch',
                     gap: 1.5,
                 }}
             >
-                <Box sx={{ flex: 3, minWidth: 0 }}>
-                    {foods.length === 0 ? (
-                        <Box sx={{ textAlign: 'center', py: 8, color: 'text.secondary', fontSize: 20 }}>
-                            Looks like you haven't added any foods yet.<br />
-                            Click <b>Add</b> to get started!
-                        </Box>
-                    ) : (
-                        <>
-                            <Box
-                                sx={{
-                                    my: 0,
-                                    mx: { xs: 0, sm: 2 },
-                                    overflowX: 'auto',
-                                    border: '1px solid',
-                                    borderColor: 'divider',
-                                    borderRadius: 1.5,
-                                    background: '#fff',
-                                    boxShadow: '0 2px 12px 0 rgba(0,0,0,0.07)',
-                                }}
-                            >
-                                <FoodsTable
-                                    setSelectedRowId={setSelectedRowId}
-                                    pagination={pagination}
-                                    setPagination={setPagination}
-                                    setFilteredCount={setFilteredCount}
-                                />
-                            </Box>
-                            {Math.ceil(filteredCount / pageSize) > 1 && (
-                                <Box sx={{ display: "flex", justifyContent: "center", mt: 1 }}>
-                                    <MuiPagination
-                                        count={Math.ceil(filteredCount / pageSize)}
-                                        page={currentPage}
-                                        onChange={(_, p) => setPagination({ pageIndex: p - 1, pageSize })}
-                                        size="small"
-                                    />
-                                </Box>
-                            )}
-                        </>
-                    )}
-
-                    <Stack
-                        direction="row"
-                        spacing={2}
-                        justifyContent="center"
-                        sx={{ mt: 3 }}
-                    >
+                {/* ── Control bar ── */}
+                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2, minHeight: 40, mb: 2, flexWrap: 'wrap' }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', minHeight: 40 }}>
+                        {foods.length > 0 && Math.ceil(filteredCount / pageSize) > 1 && (
+                            <MuiPagination
+                                count={Math.ceil(filteredCount / pageSize)}
+                                page={currentPage}
+                                onChange={(_, p) => setPagination({ pageIndex: p - 1, pageSize })}
+                                size="small"
+                            />
+                        )}
+                    </Box>
+                    <Stack direction="row" spacing={2} justifyContent="center">
                         <Button
                             variant="contained"
                             color="success"
@@ -165,9 +135,43 @@ const FoodsPage = () => {
                         </Button>
                     </Stack>
                 </Box>
-                {/* Nutrition label panel */}
-                <Box sx={{ flex: 1, minWidth: 280, maxWidth: 310, display: { xs: 'none', md: 'block' }, pl: 1, mt: 3 }}>
-                    <NutritionLabel nutrition={foods.find(f => f.id === selectedRowId)?.nutrition || null} />
+
+                {/* ── Main content: table + nutrition panel ── */}
+                <Box sx={{ display: 'flex', gap: 2, alignItems: 'flex-start' }}>
+                    <Box sx={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
+                        {/* ── Empty state check ── */}
+                        {foods.length === 0 ? (
+                            <Box sx={{ textAlign: 'center', py: 8, color: 'text.secondary', fontSize: 20 }}>
+                                Looks like you haven't added any foods yet.<br />
+                                Click <b>Add</b> to get started!
+                            </Box>
+                        ) : (
+                            <>
+                                {/* ── Table ── */}
+                                <Box
+                                    sx={{
+                                        overflowX: 'auto',
+                                        border: '1px solid',
+                                        borderColor: 'divider',
+                                        borderRadius: 1.5,
+                                        boxShadow: '0 2px 12px 0 rgba(0,0,0,0.07)',
+                                    }}
+                                >
+                                    <FoodsTable
+                                        setSelectedRowId={setSelectedRowId}
+                                        pagination={pagination}
+                                        setPagination={setPagination}
+                                        setFilteredCount={setFilteredCount}
+                                    />
+                                </Box>
+                            </>
+                        )}
+
+                    </Box>
+                    {/* ── Nutrition panel ── */}
+                    <Box sx={{ flex: 1, minWidth: 280, maxWidth: 310, display: { xs: 'none', md: 'block' }, pl: 1, mt: 0 }}>
+                        <NutritionLabel nutrition={foods.find(f => f.id === selectedRowId)?.nutrition || null} />
+                    </Box>
                 </Box>
             </Paper>
         </Box>
