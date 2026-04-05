@@ -124,6 +124,26 @@ function weekSundayIso(isoDate: string): string {
     return toISODate(date);
 }
 
+function findExpansionPath(
+    rows: DisplayRow[],
+    predicate: (row: DisplayRow) => boolean,
+): string[] | null {
+    for (const row of rows) {
+        if (predicate(row)) {
+            return [];
+        }
+
+        if (row.subRows && row.subRows.length > 0) {
+            const childPath = findExpansionPath(row.subRows, predicate);
+            if (childPath) {
+                return [row.rowKey, ...childPath];
+            }
+        }
+    }
+
+    return null;
+}
+
 // ---------------------------------------------------------------------------
 // Build hierarchical display rows
 // ---------------------------------------------------------------------------
@@ -537,6 +557,34 @@ const DailyLogTable: React.FC<DailyLogTableProps> = ({
         () => buildDisplayRows(dailyLogItems, viewMode, rangeStart, rangeEnd, recipes),
         [dailyLogItems, viewMode, rangeStart, rangeEnd, recipes],
     );
+
+    useEffect(() => {
+        if (viewMode === 'day') return;
+
+        const expansionPath = selectedItemId != null
+            ? findExpansionPath(displayRows, row => row.type === 'item' && row.item?.id === selectedItemId)
+            : selectedDateKey
+                ? findExpansionPath(displayRows, row => row.type === 'date' && row.date === selectedDateKey)
+                : null;
+
+        if (!expansionPath || expansionPath.length === 0) return;
+
+        setExpanded(prev => {
+            if (prev === true) return prev;
+
+            const next = { ...prev };
+            let changed = false;
+
+            for (const rowKey of expansionPath) {
+                if (!next[rowKey]) {
+                    next[rowKey] = true;
+                    changed = true;
+                }
+            }
+
+            return changed ? next : prev;
+        });
+    }, [displayRows, selectedDateKey, selectedItemId, viewMode]);
 
     // eslint-disable-next-line react-hooks/incompatible-library
     const table = useReactTable({

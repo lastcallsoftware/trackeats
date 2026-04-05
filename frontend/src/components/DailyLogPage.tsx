@@ -174,9 +174,10 @@ function DailyLogPage() {
         const newItem = await addDailyLogItem(addForm);
         if (!newItem) return;
 
+        const newItemId = newItem.id ?? null;
         setAnchorDate(new Date(`${newItem.date}T00:00:00`));
-        setSelectedDateKey(newItem.date);
-        setSelectedItemId(newItem.id ?? null);
+        setSelectedDateKey(newItemId ? null : newItem.date);
+        setSelectedItemId(newItemId);
         setShowAddForm(false);
         setAddForm({ ...new DailyLogItem(), date: toISODate(anchorDate) });
     };
