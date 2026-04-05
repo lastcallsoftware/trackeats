@@ -102,21 +102,21 @@ export const DEFAULT_FOOD_INGREDIENTS_COLUMNS_PREFERENCES: TableColumnsPreferenc
 		"nutrition_serving_size_g": false,
 		"nutrition_calories": true,
 		"nutrition_total_fat_g": false,
-		"nutrition_saturated_fat_g": false,
+		"nutrition_saturated_fat_g": true,
 		"nutrition_trans_fat_g": false,
-		"nutrition_cholesterol_mg": false,
-		"nutrition_sodium_mg": false,
+		"nutrition_cholesterol_mg": true,
+		"nutrition_sodium_mg": true,
 		"nutrition_total_carbs_g": false,
 		"nutrition_fiber_g": false,
 		"nutrition_total_sugar_g": false,
-		"nutrition_added_sugar_g": false,
-		"nutrition_protein_g": false,
+		"nutrition_added_sugar_g": true,
+		"nutrition_protein_g": true,
 		"nutrition_vitamin_d_mcg": false,
 		"nutrition_calcium_mg": false,
 		"nutrition_iron_mg": false,
 		"nutrition_potassium_mg": false,
 		"price": false,
-		"price_per_serving": false,
+		"price_per_serving": true,
 		"price_per_oz": false,
 		"price_per_calorie": false,
 		"price_date": false,
@@ -129,7 +129,7 @@ export const RECIPE_INGREDIENTS_COLUMNS_PREFERENCES_KEY = "recipe.ingredient.col
 export const DEFAULT_RECIPE_INGREDIENTS_COLUMNS_PREFERENCES: TableColumnsPreferences = {
 	columnVisibility: {
 		"id": false,
-		"cuisine": true,
+		"cuisine": false,
 		"name": MANDATORY_COLUMN_VISIBILITY,
 		"total_yield": false,
 		"servings": false,
@@ -139,21 +139,21 @@ export const DEFAULT_RECIPE_INGREDIENTS_COLUMNS_PREFERENCES: TableColumnsPrefere
 		"nutrition_serving_size_g": false,
 		"nutrition_calories": true,
 		"nutrition_total_fat_g": false,
-		"nutrition_saturated_fat_g": false,
+		"nutrition_saturated_fat_g": true,
 		"nutrition_trans_fat_g": false,
-		"nutrition_cholesterol_mg": false,
-		"nutrition_sodium_mg": false,
+		"nutrition_cholesterol_mg": true,
+		"nutrition_sodium_mg": true,
 		"nutrition_total_carbs_g": false,
 		"nutrition_fiber_g": false,
 		"nutrition_total_sugar_g": false,
-		"nutrition_added_sugar_g": false,
-		"nutrition_protein_g": false,
+		"nutrition_added_sugar_g": true,
+		"nutrition_protein_g": true,
 		"nutrition_vitamin_d_mcg": false,
 		"nutrition_calcium_mg": false,
 		"nutrition_iron_mg": false,
 		"nutrition_potassium_mg": false,
 		"price": false,
-		"price_per_serving": false,
+		"price_per_serving": true,
 		"price_per_calorie": false,
 	},
 }
@@ -161,6 +161,29 @@ export const DEFAULT_RECIPE_INGREDIENTS_COLUMNS_PREFERENCES: TableColumnsPrefere
 export const DAILYLOG_COLUMNS_PREFERENCES_KEY = "dailylog.columns"
 export const DEFAULT_DAILYLOG_COLUMNS_PREFERENCES: TableColumnsPreferences = {
 	columnVisibility: {
+		"id": false,
+		"label": MANDATORY_COLUMN_VISIBILITY,
+		"servings": false,
+		"nutrition_id": false,
+		"nutrition_serving_size_description": true,
+		"nutrition_serving_size_oz": false,
+		"nutrition_serving_size_g": false,
+		"nutrition_calories": true,
+		"nutrition_total_fat_g": false,
+		"nutrition_saturated_fat_g": true,
+		"nutrition_trans_fat_g": false,
+		"nutrition_cholesterol_mg": true,
+		"nutrition_sodium_mg": true,
+		"nutrition_total_carbs_g": false,
+		"nutrition_fiber_g": false,
+		"nutrition_total_sugar_g": false,
+		"nutrition_added_sugar_g": true,
+		"nutrition_protein_g": true,
+		"nutrition_vitamin_d_mcg": false,
+		"nutrition_calcium_mg": false,
+		"nutrition_iron_mg": false,
+		"nutrition_potassium_mg": false,
+		"notes": true,
 	},
 }
 
@@ -177,6 +200,9 @@ export const getDefaultColumnsPreferences = (storageKey: string): TableColumnsPr
 	}
 	if (storageKey === RECIPE_INGREDIENTS_COLUMNS_PREFERENCES_KEY) {
 		return DEFAULT_RECIPE_INGREDIENTS_COLUMNS_PREFERENCES
+	}
+	if (storageKey === DAILYLOG_COLUMNS_PREFERENCES_KEY) {
+		return DEFAULT_DAILYLOG_COLUMNS_PREFERENCES
 	}
 	return null
 }
