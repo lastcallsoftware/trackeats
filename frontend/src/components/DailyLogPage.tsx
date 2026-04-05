@@ -13,7 +13,7 @@ import TextField from '@mui/material/TextField';
 import MenuItem from '@mui/material/MenuItem';
 import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
-import TitleCard from './TitleCard';
+import DataPageLayout from './DataPageLayout';
 import DailyLogTable from './DailyLogTable';
 import NutritionLabel from './NutritionLabel';
 import { useData, DailyLogItem } from '@/utils/useData';
@@ -226,229 +226,207 @@ function DailyLogPage() {
     const isFormInProgress = isAddInProgress || isEditInProgress;
 
     return (
-        <Box
-            sx={{
-                minHeight: '100vh',
-                background: 'linear-gradient(135deg, #e3f2fd 0%, #fce4ec 100%)',
-                py: { xs: 3, sm: 5 },
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-            }}
-        >
-            <TitleCard title="Daily Log" subtitle="Track your daily nutritional intake" />
-
-            <Paper
-                elevation={4}
-                sx={{
-                    background: '#fff',
-                    borderRadius: 2.25,
-                    boxShadow: '0 4px 24px 0 rgba(25, 118, 210, 0.10)',
-                    px: { xs: 2, sm: 5 },
-                    py: { xs: 2, sm: 3 },
-                    width: { xs: '98%', md: '90%' },
-                    maxWidth: 1600,
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'stretch',
-                    gap: 1.5,
-                }}
-            >
-                {/* ── Control bar ── */}
-                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2, mb: 2, flexWrap: 'wrap' }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
-                        <Stack direction="row" spacing={0}>
-                            {(['day', 'week', 'month'] as ViewMode[]).map(mode => (
-                                <Button
-                                    key={mode}
-                                    variant={viewMode === mode ? 'contained' : 'outlined'}
-                                    size="small"
-                                    onClick={() => setViewMode(mode)}
-                                    sx={{
-                                        textTransform: 'capitalize',
-                                        borderRadius: 0,
-                                        '&:first-of-type': { borderRadius: '4px 0 0 4px' },
-                                        '&:last-of-type':  { borderRadius: '0 4px 4px 0' },
-                                    }}
-                                >
-                                    {mode}
-                                </Button>
-                            ))}
-                        </Stack>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                            <IconButton size="small" onClick={() => navigatePeriod(-1)}><MdChevronLeft size={22} /></IconButton>
-                            <Typography variant="body1" sx={{ minWidth: 200, textAlign: 'center', fontWeight: 500 }}>
-                                {formatDateRange(rangeStart, rangeEnd, viewMode)}
-                            </Typography>
-                            <IconButton size="small" onClick={() => navigatePeriod(1)}><MdChevronRight size={22} /></IconButton>
-                        </Box>
-                        <Button size="small" variant="outlined" onClick={goToToday} sx={{ textTransform: 'none' }}>
-                            Today
-                        </Button>
-                    </Box>
-                    <Stack direction="row" spacing={2} justifyContent="center">
-                        <Button
-                            variant="contained"
-                            color="success"
-                            startIcon={<MdAddCircleOutline />}
-                            onClick={toggleAddForm}
-                            disabled={isFormInProgress}
-                        >
-                            Add
-                        </Button>
-                        <Button
-                            variant="contained"
-                            color="warning"
-                            startIcon={<MdEdit />}
-                            disabled={isFormInProgress || !selectedItemId}
-                            onClick={handleEditOpen}
-                        >
-                            Edit
-                        </Button>
-                        <Button
-                            variant="contained"
-                            color="error"
-                            startIcon={<MdRemoveCircleOutline />}
-                            disabled={isFormInProgress || !selectedItemId}
-                            onClick={handleDeleteOpen}
-                        >
-                            Delete
-                        </Button>
-                    </Stack>
-                </Box>
-
-                {/* ── Add form ── */}
-                {showAddForm && (
-                    <Paper variant="outlined" sx={{ mt: 0, pt: 1, px: 2, pb: 2, mb: 2 }}>
-                        <Typography variant="subtitle2" sx={{ mb: 1.5, fontWeight: 600 }}>Add Entry</Typography>
-                        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems="flex-end">
-                            <TextField
-                                label="Date"
-                                type="date"
+        <DataPageLayout
+            title="Daily Log"
+            subtitle="Track your daily nutritional intake"
+            controlBarLeft={
+                <>
+                    <Stack direction="row" spacing={0}>
+                        {(['day', 'week', 'month'] as ViewMode[]).map(mode => (
+                            <Button
+                                key={mode}
+                                variant={viewMode === mode ? 'contained' : 'outlined'}
                                 size="small"
-                                value={addForm.date}
-                                onChange={e => setAddForm(prev => ({ ...prev, date: e.target.value }))}
-                                InputLabelProps={{ shrink: true }}
-                                sx={{ minWidth: 150 }}
-                            />
-                            <TextField
-                                select
-                                label="Recipe"
-                                size="small"
-                                value={addForm.recipe_id || ''}
-                                onChange={e => setAddForm(prev => ({ ...prev, recipe_id: Number(e.target.value) }))}
-                                sx={{ minWidth: 220 }}
+                                onClick={() => setViewMode(mode)}
+                                sx={{
+                                    textTransform: 'capitalize',
+                                    borderRadius: 0,
+                                    '&:first-of-type': { borderRadius: '4px 0 0 4px' },
+                                    '&:last-of-type': { borderRadius: '0 4px 4px 0' },
+                                }}
                             >
-                                {recipes.map(r => (
-                                    <MenuItem key={r.id} value={r.id}>{r.name}</MenuItem>
-                                ))}
-                            </TextField>
-                            <TextField
-                                label="Servings"
-                                type="number"
-                                size="small"
-                                value={addForm.servings}
-                                onChange={e => setAddForm(prev => ({ ...prev, servings: Number(e.target.value) }))}
-                                inputProps={{ min: 0.25, step: 0.25 }}
-                                sx={{ width: 100 }}
-                            />
-                            <TextField
-                                label="Notes"
-                                size="small"
-                                value={addForm.notes ?? ''}
-                                onChange={e => setAddForm(prev => ({ ...prev, notes: e.target.value }))}
-                                sx={{ flex: 1, minWidth: 160 }}
-                            />
-                            <Button variant="contained" color="primary" onClick={handleAdd} disabled={!addForm.recipe_id || !addForm.servings}>
-                                Save
+                                {mode}
                             </Button>
-                            <Button variant="outlined" onClick={() => setShowAddForm(false)}>
-                                Cancel
-                            </Button>
-                        </Stack>
-                    </Paper>
-                )}
-
-                {/* ── Edit form ── */}
-                {showEditForm && editForm && (
-                    <Paper variant="outlined" sx={{ mt: 0, p: 2, mb: 2 }}>
-                        <Typography variant="subtitle2" sx={{ mb: 1.5, fontWeight: 600 }}>Edit Entry</Typography>
-                        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems="flex-end">
-                            <TextField
-                                label="Servings"
-                                type="number"
-                                size="small"
-                                value={editForm.servings}
-                                onChange={e => setEditForm(prev => prev ? ({ ...prev, servings: Number(e.target.value) }) : prev)}
-                                inputProps={{ min: 0.25, step: 0.25 }}
-                                sx={{ width: 100 }}
-                            />
-                            <TextField
-                                label="Notes"
-                                size="small"
-                                value={editForm.notes ?? ''}
-                                onChange={e => setEditForm(prev => prev ? ({ ...prev, notes: e.target.value }) : prev)}
-                                sx={{ flex: 1, minWidth: 160 }}
-                            />
-                            <Button variant="contained" color="primary" onClick={handleEditSave}>
-                                Save
-                            </Button>
-                            <Button variant="outlined" onClick={() => setShowEditForm(false)}>
-                                Cancel
-                            </Button>
-                        </Stack>
-                    </Paper>
-                )}
-
-                {/* ── Main content: table + nutrition panel ── */}
-                <Box sx={{ display: 'flex', gap: 2, alignItems: 'flex-start' }}>
-                    <Box sx={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
-                        <Box sx={{ overflowX: 'auto', border: '1px solid', borderColor: 'divider', borderRadius: 1.5, boxShadow: '0 2px 12px 0 rgba(0,0,0,0.07)' }}>
-                            <DailyLogTable
-                                viewMode={viewMode}
-                                rangeStart={rangeStart}
-                                rangeEnd={rangeEnd}
-                                selectedDateKey={selectedDateKey}
-                                setSelectedDateKey={handleSelectDate}
-                                selectedItemId={selectedItemId}
-                                setSelectedItemId={handleSelectItem}
-                            />
-                        </Box>
-                        <Dialog
-                            open={showDeleteDialog}
-                            onClose={() => setShowDeleteDialog(false)}
-                            aria-labelledby="daily-log-delete-dialog-title"
-                            aria-describedby="daily-log-delete-dialog-description"
-                        >
-                            <DialogTitle id="daily-log-delete-dialog-title">
-                                Delete Entry?
-                            </DialogTitle>
-                            <DialogContent>
-                                <DialogContentText id="daily-log-delete-dialog-description">
-                                    This will permanently remove the selected daily log entry. This action cannot be undone.
-                                </DialogContentText>
-                            </DialogContent>
-                            <DialogActions>
-                                <Button onClick={() => setShowDeleteDialog(false)}>
+                        ))}
+                    </Stack>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                        <IconButton size="small" onClick={() => navigatePeriod(-1)}><MdChevronLeft size={22} /></IconButton>
+                        <Typography variant="body1" sx={{ minWidth: 200, textAlign: 'center', fontWeight: 500 }}>
+                            {formatDateRange(rangeStart, rangeEnd, viewMode)}
+                        </Typography>
+                        <IconButton size="small" onClick={() => navigatePeriod(1)}><MdChevronRight size={22} /></IconButton>
+                    </Box>
+                    <Button size="small" variant="outlined" onClick={goToToday} sx={{ textTransform: 'none' }}>
+                        Today
+                    </Button>
+                </>
+            }
+            controlBarRight={
+                <Stack direction="row" spacing={2} justifyContent="center">
+                    <Button
+                        variant="contained"
+                        color="success"
+                        startIcon={<MdAddCircleOutline />}
+                        onClick={toggleAddForm}
+                        disabled={isFormInProgress}
+                    >
+                        Add
+                    </Button>
+                    <Button
+                        variant="contained"
+                        color="warning"
+                        startIcon={<MdEdit />}
+                        disabled={isFormInProgress || !selectedItemId}
+                        onClick={handleEditOpen}
+                    >
+                        Edit
+                    </Button>
+                    <Button
+                        variant="contained"
+                        color="error"
+                        startIcon={<MdRemoveCircleOutline />}
+                        disabled={isFormInProgress || !selectedItemId}
+                        onClick={handleDeleteOpen}
+                    >
+                        Delete
+                    </Button>
+                </Stack>
+            }
+            aboveMain={
+                <>
+                    {/* ── Add form ── */}
+                    {showAddForm && (
+                        <Paper variant="outlined" sx={{ mt: 0, pt: 1, px: 2, pb: 2, mb: 2 }}>
+                            <Typography variant="subtitle2" sx={{ mb: 1.5, fontWeight: 600 }}>Add Entry</Typography>
+                            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems="flex-end">
+                                <TextField
+                                    label="Date"
+                                    type="date"
+                                    size="small"
+                                    value={addForm.date}
+                                    onChange={e => setAddForm(prev => ({ ...prev, date: e.target.value }))}
+                                    InputLabelProps={{ shrink: true }}
+                                    sx={{ minWidth: 150 }}
+                                />
+                                <TextField
+                                    select
+                                    label="Recipe"
+                                    size="small"
+                                    value={addForm.recipe_id || ''}
+                                    onChange={e => setAddForm(prev => ({ ...prev, recipe_id: Number(e.target.value) }))}
+                                    sx={{ minWidth: 220 }}
+                                >
+                                    {recipes.map(r => (
+                                        <MenuItem key={r.id} value={r.id}>{r.name}</MenuItem>
+                                    ))}
+                                </TextField>
+                                <TextField
+                                    label="Servings"
+                                    type="number"
+                                    size="small"
+                                    value={addForm.servings}
+                                    onChange={e => setAddForm(prev => ({ ...prev, servings: Number(e.target.value) }))}
+                                    inputProps={{ min: 0.25, step: 0.25 }}
+                                    sx={{ width: 100 }}
+                                />
+                                <TextField
+                                    label="Notes"
+                                    size="small"
+                                    value={addForm.notes ?? ''}
+                                    onChange={e => setAddForm(prev => ({ ...prev, notes: e.target.value }))}
+                                    sx={{ flex: 1, minWidth: 160 }}
+                                />
+                                <Button variant="contained" color="primary" onClick={handleAdd} disabled={!addForm.recipe_id || !addForm.servings}>
+                                    Save
+                                </Button>
+                                <Button variant="outlined" onClick={() => setShowAddForm(false)}>
                                     Cancel
                                 </Button>
-                                <Button color="error" variant="contained" onClick={handleDeleteConfirm}>
-                                    Delete
+                            </Stack>
+                        </Paper>
+                    )}
+
+                    {/* ── Edit form ── */}
+                    {showEditForm && editForm && (
+                        <Paper variant="outlined" sx={{ mt: 0, p: 2, mb: 2 }}>
+                            <Typography variant="subtitle2" sx={{ mb: 1.5, fontWeight: 600 }}>Edit Entry</Typography>
+                            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems="flex-end">
+                                <TextField
+                                    label="Servings"
+                                    type="number"
+                                    size="small"
+                                    value={editForm.servings}
+                                    onChange={e => setEditForm(prev => prev ? ({ ...prev, servings: Number(e.target.value) }) : prev)}
+                                    inputProps={{ min: 0.25, step: 0.25 }}
+                                    sx={{ width: 100 }}
+                                />
+                                <TextField
+                                    label="Notes"
+                                    size="small"
+                                    value={editForm.notes ?? ''}
+                                    onChange={e => setEditForm(prev => prev ? ({ ...prev, notes: e.target.value }) : prev)}
+                                    sx={{ flex: 1, minWidth: 160 }}
+                                />
+                                <Button variant="contained" color="primary" onClick={handleEditSave}>
+                                    Save
                                 </Button>
-                            </DialogActions>
-                        </Dialog>
+                                <Button variant="outlined" onClick={() => setShowEditForm(false)}>
+                                    Cancel
+                                </Button>
+                            </Stack>
+                        </Paper>
+                    )}
+                </>
+            }
+            main={
+                <>
+                    <Box sx={{ overflowX: 'auto', border: '1px solid', borderColor: 'divider', borderRadius: 1.5, boxShadow: '0 2px 12px 0 rgba(0,0,0,0.07)' }}>
+                        <DailyLogTable
+                            viewMode={viewMode}
+                            rangeStart={rangeStart}
+                            rangeEnd={rangeEnd}
+                            selectedDateKey={selectedDateKey}
+                            setSelectedDateKey={handleSelectDate}
+                            selectedItemId={selectedItemId}
+                            setSelectedItemId={handleSelectItem}
+                        />
                     </Box>
-                    <Box sx={{ flex: 1, minWidth: 280, maxWidth: 310, display: { xs: 'none', md: 'block' }, pl: 1, mt: 0 }}>
-                        {panelLabel && (
-                            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', textAlign: 'center', mb: 1, fontWeight: 500 }}>
-                                {panelLabel}
-                            </Typography>
-                        )}
-                        <NutritionLabel nutrition={panelNutrition} />
-                    </Box>
-                </Box>
-            </Paper>
-        </Box>
+                    <Dialog
+                        open={showDeleteDialog}
+                        onClose={() => setShowDeleteDialog(false)}
+                        aria-labelledby="daily-log-delete-dialog-title"
+                        aria-describedby="daily-log-delete-dialog-description"
+                    >
+                        <DialogTitle id="daily-log-delete-dialog-title">
+                            Delete Entry?
+                        </DialogTitle>
+                        <DialogContent>
+                            <DialogContentText id="daily-log-delete-dialog-description">
+                                This will permanently remove the selected daily log entry. This action cannot be undone.
+                            </DialogContentText>
+                        </DialogContent>
+                        <DialogActions>
+                            <Button onClick={() => setShowDeleteDialog(false)}>
+                                Cancel
+                            </Button>
+                            <Button color="error" variant="contained" onClick={handleDeleteConfirm}>
+                                Delete
+                            </Button>
+                        </DialogActions>
+                    </Dialog>
+                </>
+            }
+            sidebar={
+                <>
+                    {panelLabel && (
+                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', textAlign: 'center', mb: 1, fontWeight: 500 }}>
+                            {panelLabel}
+                        </Typography>
+                    )}
+                    <NutritionLabel nutrition={panelNutrition} />
+                </>
+            }
+        />
     );
 }
 
