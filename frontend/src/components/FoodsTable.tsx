@@ -9,7 +9,6 @@ import {
     getSortedRowModel, 
     Row, 
     SortingState, 
-    TableOptions, 
     useReactTable 
 } from '@tanstack/react-table';
 import React, { useCallback, useEffect, useRef } from 'react';
@@ -323,7 +322,8 @@ const FoodsTable: React.FC<FoodsTableProps> = ({setSelectedRowId, pagination, se
     }, [])
 
     // Define the table's properties.
-    const tableOptions: TableOptions<IFood> = {
+    // eslint-disable-next-line react-hooks/incompatible-library
+    const table = useReactTable({
         data: foods,
         columns: foodColumns,
         getCoreRowModel: getCoreRowModel(),
@@ -355,9 +355,7 @@ const FoodsTable: React.FC<FoodsTableProps> = ({setSelectedRowId, pagination, se
                 pageSize: 10
             }
         }
-    }
-    // eslint-disable-next-line react-hooks/incompatible-library
-    const table = useReactTable(tableOptions)
+    })
 
     // If a column filter causes the list to shrink such that the current page
     // is greater than the maximum page, go to the last page.

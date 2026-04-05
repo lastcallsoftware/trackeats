@@ -9,7 +9,6 @@ import {
     getSortedRowModel, 
     Row,
     SortingState, 
-    TableOptions, 
     useReactTable
 } from '@tanstack/react-table';
 import React, { useCallback, useEffect, useRef } from 'react';
@@ -337,7 +336,8 @@ const RecipesTable: React.FC<IRecipesTableProps> = ({setSelectedRowId, paginatio
     }, [])
 
     // Define the table's properties.
-    const tableOptions: TableOptions<IRecipe> = {
+    // eslint-disable-next-line react-hooks/incompatible-library
+    const table = useReactTable({
         data: recipes,
         columns: columns,
         getCoreRowModel: getCoreRowModel(),
@@ -363,9 +363,7 @@ const RecipesTable: React.FC<IRecipesTableProps> = ({setSelectedRowId, paginatio
         },
         filterFns: {},
         state: { sorting, columnFilters, columnVisibility }
-    }
-    // eslint-disable-next-line react-hooks/incompatible-library
-    const table = useReactTable(tableOptions)
+    })
 
     // Pagination state for the table
     React.useEffect(() => {
