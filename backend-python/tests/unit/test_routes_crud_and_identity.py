@@ -92,7 +92,7 @@ def test_food_crud_endpoints(bare_flask_app: Flask, monkeypatch: pytest.MonkeyPa
     def _get_id(username: str) -> int:
         return 1
 
-    def _get_by_user(user_id: int) -> list[_JsonDao]:
+    def _get_all_for_user(user_id: int) -> list[_JsonDao]:
         return [_JsonDao({"id": 10, "name": "A"}), _JsonDao({"id": 11, "name": "B"})]
 
     def _get_food(user_id: int, food_id: int) -> _JsonDao:
@@ -107,7 +107,7 @@ def test_food_crud_endpoints(bare_flask_app: Flask, monkeypatch: pytest.MonkeyPa
         return _JsonDao({"id": payload_id, "name": "new"})
 
     monkeypatch.setattr(routes.User, "get_id", staticmethod(_get_id))
-    monkeypatch.setattr(routes.Food, "get_by_user", staticmethod(_get_by_user))
+    monkeypatch.setattr(routes.Food, "get_all_for_user", staticmethod(_get_all_for_user))
     monkeypatch.setattr(routes.Food, "get", staticmethod(_get_food))
     monkeypatch.setattr(routes.Food, "add", staticmethod(_add_food))
     monkeypatch.setattr(routes.Food, "update", staticmethod(_update_food))
@@ -263,11 +263,11 @@ def test_recalculate_recipe_success(bare_flask_app: Flask, monkeypatch: pytest.M
     def _get_id(username: str) -> int:
         return 1
 
-    def _recalculate_nutrition(user_id: int, recipe_id: int) -> None:
+    def _recalculate(user_id: int, recipe_id: int) -> None:
         calls.append((user_id, recipe_id))
 
     monkeypatch.setattr(routes.User, "get_id", staticmethod(_get_id))
-    monkeypatch.setattr(routes.Recipe, "recalculate_nutrition", staticmethod(_recalculate_nutrition))
+    monkeypatch.setattr(routes.Recipe, "recalculate", staticmethod(_recalculate))
 
     with bare_flask_app.test_request_context("/api/recipe/42/recalc", method="POST"):
         resp, status = _as_response_status(_unwrap(routes.recalculate_recipe)(42))
@@ -284,11 +284,11 @@ def test_recalculate_recipe_returns_400_on_error(bare_flask_app: Flask, monkeypa
     def _get_id(username: str) -> int:
         return 1
 
-    def _recalculate_nutrition(user_id: int, recipe_id: int) -> None:
+    def _recalculate(user_id: int, recipe_id: int) -> None:
         raise RuntimeError("boom")
 
     monkeypatch.setattr(routes.User, "get_id", staticmethod(_get_id))
-    monkeypatch.setattr(routes.Recipe, "recalculate_nutrition", staticmethod(_recalculate_nutrition))
+    monkeypatch.setattr(routes.Recipe, "recalculate", staticmethod(_recalculate))
 
     with bare_flask_app.test_request_context("/api/recipe/42/recalc", method="POST"):
         resp, status = _as_response_status(_unwrap(routes.recalculate_recipe)(42))
@@ -311,12 +311,12 @@ def test_recalculate_all_for_user_success(bare_flask_app: Flask, monkeypatch: py
     def _get_all_for_user(user_id: int) -> list[_JsonDao]:
         return [recipe1, recipe2]
 
-    def _recalculate_nutrition(user_id: int, recipe_id: int, recipe_dao: object) -> None:
+    def _recalculate(user_id: int, recipe_id: int, recipe_dao: object) -> None:
         calls.append((user_id, recipe_id, recipe_dao))
 
     monkeypatch.setattr(routes.User, "get_id", staticmethod(_get_id))
     monkeypatch.setattr(routes.Recipe, "get_all_for_user", staticmethod(_get_all_for_user))
-    monkeypatch.setattr(routes.Recipe, "recalculate_nutrition", staticmethod(_recalculate_nutrition))
+    monkeypatch.setattr(routes.Recipe, "recalculate", staticmethod(_recalculate))
 
     with bare_flask_app.test_request_context("/api/recipe/recalc", method="POST"):
         resp, status = _as_response_status(_unwrap(routes.recalculate_all_for_user)())
@@ -338,12 +338,12 @@ def test_recalculate_all_for_user_returns_400_on_error(
     def _get_all_for_user(user_id: int) -> list[_JsonDao]:
         return [_JsonDao({"id": 10}, dao_id=10)]
 
-    def _recalculate_nutrition(user_id: int, recipe_id: int, recipe_dao: object) -> None:
+    def _recalculate(user_id: int, recipe_id: int, recipe_dao: object) -> None:
         raise RuntimeError("boom")
 
     monkeypatch.setattr(routes.User, "get_id", staticmethod(_get_id))
     monkeypatch.setattr(routes.Recipe, "get_all_for_user", staticmethod(_get_all_for_user))
-    monkeypatch.setattr(routes.Recipe, "recalculate_nutrition", staticmethod(_recalculate_nutrition))
+    monkeypatch.setattr(routes.Recipe, "recalculate", staticmethod(_recalculate))
 
     with bare_flask_app.test_request_context("/api/recipe/recalc", method="POST"):
         resp, status = _as_response_status(_unwrap(routes.recalculate_all_for_user)())

@@ -54,7 +54,7 @@ class _SessionStub:
         self.flushed = True
 
 
-def test_recipe_recalculate_nutrition_sums_food_and_recipe_ingredients(
+def test_recipe_recalculate_sums_food_and_recipe_ingredients(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     ingredient_rows: list[object] = [
@@ -97,7 +97,7 @@ def test_recipe_recalculate_nutrition_sums_food_and_recipe_ingredients(
     recipe_dao = cast(models.Recipe, SimpleNamespace(id=99, nutrition_id=500))
     recipe_nutrition_dao = _NutritionAccumulator()
 
-    result = models.Recipe.recalculate_nutrition(
+    result = models.Recipe.recalculate(
         user_id=1,
         recipe_id=99,
         recipe_dao=recipe_dao,
@@ -112,7 +112,7 @@ def test_recipe_recalculate_nutrition_sums_food_and_recipe_ingredients(
     ]
 
 
-def test_recipe_recalculate_nutrition_raises_for_invalid_ingredient_link(
+def test_recipe_recalculate_raises_for_invalid_ingredient_link(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     # Invalid row has both food_ingredient_id and recipe_ingredient_id set.
@@ -133,7 +133,7 @@ def test_recipe_recalculate_nutrition_raises_for_invalid_ingredient_link(
     recipe_nutrition_dao = _NutritionAccumulator()
 
     with pytest.raises(ValueError, match="Either food ID or recipe ID"):
-        models.Recipe.recalculate_nutrition(
+        models.Recipe.recalculate(
             user_id=1,
             recipe_id=99,
             recipe_dao=recipe_dao,
@@ -141,7 +141,7 @@ def test_recipe_recalculate_nutrition_raises_for_invalid_ingredient_link(
         )
 
 
-def test_recipe_recalculate_nutrition_raises_when_ingredient_nutrition_missing(
+def test_recipe_recalculate_raises_when_ingredient_nutrition_missing(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     ingredient_rows: list[object] = [
@@ -173,7 +173,7 @@ def test_recipe_recalculate_nutrition_raises_when_ingredient_nutrition_missing(
     recipe_nutrition_dao = _NutritionAccumulator()
 
     with pytest.raises(ValueError, match="Nutrition record 101 not found"):
-        models.Recipe.recalculate_nutrition(
+        models.Recipe.recalculate(
             user_id=1,
             recipe_id=99,
             recipe_dao=recipe_dao,
