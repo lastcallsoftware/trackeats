@@ -505,8 +505,6 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
                 timeout: RECIPE_RECALC_TIMEOUT_MS,
             })
             setRecipes(response.data)
-
-            showSnackbar("Recipe data recalculated", "success")
         } catch(error) {
             handleError(error)
         } finally {
