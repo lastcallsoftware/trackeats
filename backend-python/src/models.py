@@ -1279,6 +1279,12 @@ class Recipe(db.Model):
                 # Add its nutrition data to the total
                 recipe_nutrition_dao.sum(ingredient_nutrition_dao, ingredient_dao.servings)
 
+                # Add its price total
+                if food_ingredient_dao and food_ingredient_dao.price:
+                    recipe_dao.price += (food_ingredient_dao.price/food_ingredient_dao.servings * ingredient_dao.servings)
+                elif recipe_ingredient_dao and recipe_ingredient_dao.price:
+                    recipe_dao.price += (recipe_ingredient_dao.price/recipe_ingredient_dao.servings * ingredient_dao.servings)
+
             return recipe_dao
         
         except Exception as e:
