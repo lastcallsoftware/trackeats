@@ -106,6 +106,7 @@ export type IFood = {
     subtype: string
     description: string
     size_description: string
+    size_description_2: string | null
     size_oz: number
     size_g: number
     servings: number

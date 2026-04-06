@@ -47,6 +47,7 @@ const foodSchema = z.object({
     subtype: z.string().max(50, "Must be 50 characters or fewer"),
     description: z.string().max(100, "Must be 100 characters or fewer"),
     size_description: z.string().max(50, "Must be 50 characters or fewer"),
+    size_description_2: z.string().max(50, "Must be 50 characters or fewer").nullable().optional(),
     size_oz: z.coerce.number().min(0, "Must be 0 or greater"),
     size_g: z.coerce.number().min(0, "Must be 0 or greater"),
     servings: z.coerce.number().gt(0, "Servings must be greater than 0"),
@@ -96,11 +97,18 @@ function FoodForm() {
     }, []);
 
     const onSubmit = async (data: FoodFormValues) => {
+        const payload = {
+            ...data,
+            size_description_2: data.size_description_2 && data.size_description_2.trim().length > 0
+                ? data.size_description_2
+                : null,
+        };
+
         // Save the new Food
         if (isEditMode)
-            await updateFood(data as IFood);
+            await updateFood(payload as IFood);
         else
-            await addFood(data as IFood);
+            await addFood(payload as IFood);
         
         // Return to the Foods page
         const returnPath = searchParams.get("returnTo") || "/foods"
@@ -216,6 +224,17 @@ function FoodForm() {
                             fullWidth
                         />
                     </Grid>
+                    <Grid size={{ xs: 12, sm: 6 }}>
+                        <TextField
+                            label="Size Description 2"
+                            id="size_description_2"
+                            {...register("size_description_2")}
+                            error={!!errors.size_description_2}
+                            helperText={errors.size_description_2?.message}
+                            inputProps={{ maxLength: 50 }}
+                            fullWidth
+                        />
+                    </Grid>
                     <Grid size={{ xs: 6, sm: 3 }}>
                         <TextField
                             label="Size (oz)"
@@ -253,7 +272,7 @@ function FoodForm() {
                             required
                         />
                     </Grid>
-                    <Grid size={{ xs: 12, sm: 9 }}>
+                    <Grid size={{ xs: 12 }}>
                         <TextField
                             label="Shelf Life"
                             id="shelf_life"
@@ -290,6 +309,7 @@ function FoodForm() {
                             fullWidth
                         />
                     </Grid>
+                    <Grid size={{ xs: 12, sm: 3 }} />
 
                     <Grid size={{ xs: 12 }}>
                         <Divider sx={{ my: 1.5 }} />

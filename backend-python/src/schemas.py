@@ -96,6 +96,7 @@ class FoodRequest(BaseModel):
     subtype: str | None = None
     description: str | None = None
     size_description: str | None = None
+    size_description_2: str | None = None
     size_oz: float | None = None
     size_g: int | None = None
     price: float | None = None

@@ -769,6 +769,7 @@ class Food(db.Model):
     description: Mapped[str | None] = mapped_column(db.String(100), nullable=True)
     vendor: Mapped[str] = mapped_column(db.String(50), nullable=False)
     size_description: Mapped[str | None] = mapped_column(db.String(50), nullable=True)
+    size_description_2: Mapped[str | None] = mapped_column(db.String(50), nullable=True)
     size_oz: Mapped[float | None] = mapped_column(db.Float, nullable=True)
     size_g: Mapped[int | None] = mapped_column(db.Integer, nullable=True)
     servings: Mapped[float] = mapped_column(db.Float, nullable=False)
@@ -796,6 +797,7 @@ class Food(db.Model):
         self.description = food_request.description
         self.vendor = food_request.vendor
         self.size_description = food_request.size_description
+        self.size_description_2 = food_request.size_description_2
         self.size_oz = food_request.size_oz
         self.size_g = food_request.size_g
         self.servings = food_request.servings
@@ -820,6 +822,7 @@ class Food(db.Model):
             "description": self.description,
             "vendor": self.vendor,
             "size_description": self.size_description,
+            "size_description_2": self.size_description_2,
             "size_oz": self.size_oz,
             "size_g": self.size_g,
             "servings": self.servings,

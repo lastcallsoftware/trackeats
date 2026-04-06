@@ -39,6 +39,7 @@ export class Food implements IFood {
     description = "";
     vendor= "";
     size_description= "";
+    size_description_2: string | null = null;
     size_oz = 0;
     size_g= 0;
     servings = 0;
