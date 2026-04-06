@@ -583,7 +583,6 @@ class Ingredient(db.Model):
         self.recipe_ingredient_id = ingredient_request.recipe_ingredient_id
         self.ordinal = ingredient_request.ordinal
         self.servings = ingredient_request.servings
-        self.summary = ingredient_request.summary
 
     def json(self) -> dict[str,Any]:
         return {
@@ -594,7 +593,6 @@ class Ingredient(db.Model):
             "recipe_ingredient_id": self.recipe_ingredient_id,
             "ordinal": self.ordinal,
             "servings": self.servings,
-            "summary": self.summary
         }
     
 
@@ -648,7 +646,6 @@ class Ingredient(db.Model):
         food_ingredient_id = ingredient_request.food_ingredient_id
         recipe_ingredient_id = ingredient_request.recipe_ingredient_id
         servings = ingredient_request.servings
-        summary = ingredient_request.summary
         ordinal = ingredient_request.ordinal
 
         if recipe_id is None:
@@ -683,7 +680,7 @@ class Ingredient(db.Model):
             if not recipe_nutrition_dao:
                 raise ValueError(f"Nutrition record {recipe_id}/{recipe_dao.nutrition_id} not found")
 
-            # Generate a summary and sum ingredient nutrition into recipe nutrition
+            # Sum ingredient nutrition into recipe nutrition
             if food_ingredient_id:
                 food_ingredient_dao = Food.get(user_id, food_ingredient_id)
 
@@ -691,7 +688,6 @@ class Ingredient(db.Model):
                 if not ingredient_nutrition_dao:
                     raise ValueError(f"Ingredient record {food_ingredient_id}/{food_ingredient_dao.nutrition_id} not found")
 
-                summary = Ingredient.generate_summary(food_ingredient_dao, servings)
                 recipe_nutrition_dao.sum(ingredient_nutrition_dao, servings)
                 price_per_serving = (food_ingredient_dao.price or 0) / food_ingredient_dao.servings
                 recipe_dao.price = (recipe_dao.price or 0) + round(price_per_serving * servings, 2)
@@ -703,7 +699,6 @@ class Ingredient(db.Model):
                 if not ingredient_nutrition_dao:
                     raise ValueError(f"Ingredient record {recipe_ingredient_id}/{recipe_ingredient_dao.nutrition_id} not found")
 
-                summary = Ingredient.generate_summary(recipe_ingredient_dao, servings)
                 recipe_nutrition_dao.sum(
                     ingredient_nutrition_dao,
                     servings,
@@ -728,7 +723,6 @@ class Ingredient(db.Model):
                     "recipe_ingredient_id": recipe_ingredient_id,
                     "ordinal": ordinal,
                     "servings": servings,
-                    "summary": summary,
                 }
             )
             ingredient_dao = Ingredient(user_id, ingredient_payload)
@@ -740,30 +734,6 @@ class Ingredient(db.Model):
             raise ValueError(
                 f"Ingredient record {recipe_id}/{food_ingredient_id}/{recipe_ingredient_id} could not be added: {str(e)}"
             )
-
-
-    @staticmethod
-    def generate_summary(ingredient: Food | Recipe, servings: float) -> str:
-        """
-        Generate a short text summary of an Ingredient for the Recipe list.
-        """
-        # Get the Nutrition record
-        nutrition_id = ingredient.nutrition_id
-        nutrition_dao = db.session.get(Nutrition, nutrition_id)
-        if not nutrition_dao:
-            raise ValueError(f"Nutrition record {nutrition_id} not found")
-
-        ss_oz: float = round((nutrition_dao.serving_size_oz or 0) * servings, 1)
-        ss_g: int = round((nutrition_dao.serving_size_g or 0) * servings)
-
-        if type(ingredient) == Food:
-            food: Food = ingredient
-            subtype = "" if (food.subtype is None or food.subtype == "") else f", {food.subtype}" 
-            return f"{servings} x ({food.nutrition.serving_size_description}) {food.name}{subtype} ({ss_oz} oz/{ss_g} g)"
-        elif type(ingredient) == Recipe:
-            recipe: Recipe = ingredient
-            return f"{servings} x {recipe.name} ({ss_oz} oz/{ss_g} g)"
-        raise ValueError(f"Unknown ingredient type: {type(ingredient)}")
 
 
 ##############################
@@ -1137,8 +1107,8 @@ class Recipe(db.Model):
 
             db.session.flush()
 
-            recipe_dao = Recipe.recalculate_nutrition(user_id, recipe_id, recipe_dao, recipe_dao.nutrition)
-            recipe_dao.nutrition.serving_size_description = recipe_request.nutrition.serving_size_description
+            recipe_dao = Recipe.recalculate(user_id, recipe_id, recipe_dao, recipe_dao.nutrition)
+            #recipe_dao.nutrition.serving_size_description = recipe_request.nutrition.serving_size_description
 
             return recipe_dao
         except Exception as e:
@@ -1157,8 +1127,8 @@ class Recipe(db.Model):
             # Update it
             ingredient_dao.servings = servings
 
-            # Recompute the Recipe's Nutrition data
-            recipe_dao = Recipe.recalculate_nutrition(user_id, recipe_id)
+            # Recompute the Recipe's Nutrition and price data
+            recipe_dao = Recipe.recalculate(user_id, recipe_id)
 
             return recipe_dao
         except Exception as e:
@@ -1177,8 +1147,8 @@ class Recipe(db.Model):
             # Delete it
             db.session.delete(ingredient_dao)
 
-            # Recompute the Recipe's Nutrition data
-            recipe_dao = Recipe.recalculate_nutrition(user_id, recipe_id)
+            # Recompute the Recipe's Nutrition and price data
+            recipe_dao = Recipe.recalculate(user_id, recipe_id)
 
             return recipe_dao
         except Exception as e:
@@ -1257,7 +1227,7 @@ class Recipe(db.Model):
 
 
     @staticmethod
-    def recalculate_nutrition(user_id: int, recipe_id: int, recipe_dao: Recipe | None = None, recipe_nutrition_dao: Nutrition | None = None) -> Recipe:
+    def recalculate(user_id: int, recipe_id: int, recipe_dao: Recipe | None = None, recipe_nutrition_dao: Nutrition | None = None) -> Recipe:
         """
         Recompute a Recipe's Nutrition data.  Intended to be called after one or more
         of the Recipe's Ingredients has been added, updated or deleted.
@@ -1275,8 +1245,9 @@ class Recipe(db.Model):
                 if not recipe_nutrition_dao:
                     raise ValueError(f"Nutrition record {recipe_id}/{recipe_dao.nutrition_id} not found")
 
-            # Reset the nutrition totals
+            # Reset the nutrition and price otals
             recipe_nutrition_dao.reset()
+            recipe_dao.price = 0
 
             # Get the Recipe's Ingredients
             ingredient_daos: list[Ingredient] = Ingredient.get_all_for_recipe(user_id, recipe_id)

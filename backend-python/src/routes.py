@@ -913,7 +913,7 @@ def recalculate_recipe(recipe_id:int):
             username = get_jwt_identity()
             user_id = User.get_id(username)
 
-            Recipe.recalculate_nutrition(user_id, recipe_id)
+            Recipe.recalculate(user_id, recipe_id)
 
     except Exception as e:
         msg = f"Recipe nutrition data could not be recalculated: {str(e)}"
@@ -940,7 +940,7 @@ def recalculate_all_for_user():
 
             recipe_daos = Recipe.get_all_for_user(user_id)
             for recipe_dao in recipe_daos:
-                Recipe.recalculate_nutrition(user_id, recipe_dao.id, recipe_dao)
+                Recipe.recalculate(user_id, recipe_dao.id, recipe_dao)
 
     except Exception as e:
         msg = f"Recipe nutrition data could not be recalculated: {str(e)}"
