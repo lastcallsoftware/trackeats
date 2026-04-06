@@ -243,10 +243,7 @@ function RecipeForm() {
     const updateIngredient = (e: { preventDefault: () => void; }) => {
         e.preventDefault();
         if (!selectedIngredientRowId) return
-        if (ingredientServings === 0) {
-            removeIngredient(e)
-            return
-        }
+        // No longer remove ingredient if servings is 0
 
         let summary: string|undefined = undefined
         let food: IFood|undefined = undefined
