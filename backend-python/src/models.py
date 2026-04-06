@@ -1535,18 +1535,18 @@ class DailyLogItem(db.Model):
 
 
     @staticmethod
-    def delete(user_id: int, log_id: int) -> None:
+    def delete(user_id: int, daily_log_id: int) -> None:
         """
         Delete a DailyLogItem entry and its Nutrition snapshot.
         Re-ordinals the remaining entries for that date so there are no gaps.
         """
         try:
-            log_dao = DailyLogItem.get(user_id, log_id)
+            log_dao = DailyLogItem.get(user_id, daily_log_id)
 
             # Close the ordinal gap left by this deletion
             siblings = DailyLogItem.get_by_date(user_id, log_dao.date)
             for sibling in siblings:
-                if sibling.id != log_id and sibling.ordinal > log_dao.ordinal:
+                if sibling.id != daily_log_id and sibling.ordinal > log_dao.ordinal:
                     sibling.ordinal -= 1
 
             # Delete the entry and its snapshot
@@ -1558,7 +1558,7 @@ class DailyLogItem(db.Model):
                     db.session.delete(nutrition_dao)
 
         except Exception as e:
-            raise ValueError(f"DailyLogItem entry {log_id} could not be deleted: {str(e)}")
+            raise ValueError(f"DailyLogItem entry {daily_log_id} could not be deleted: {str(e)}")
 
 
     @staticmethod
@@ -1567,7 +1567,6 @@ class DailyLogItem(db.Model):
         Delete all DailyLogItem entries for a user, including their Nutrition
         snapshots.  Called during account deletion.
         """
-        logging.info(f"Deleting DailyLogItem records for user {user_id}")
         try:
             daily_log_daos = db.session.scalars(
                 db.select(DailyLogItem).where(DailyLogItem.user_id == user_id)
@@ -1580,10 +1579,5 @@ class DailyLogItem(db.Model):
                     if nutrition_dao:
                         db.session.delete(nutrition_dao)
 
-            
-
         except Exception as e:
-            raise ValueError(
-                f"DailyLogItem records could not be deleted for user {user_id}: {str(e)}"
-            )
-        logging.info("DailyLogItem records deleted")
+            raise ValueError(f"DailyLogItem records could not be deleted for user {user_id}: {str(e)}")
