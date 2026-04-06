@@ -127,8 +127,10 @@ function FoodForm() {
             }}
         >
             <TitleCard title={isEditMode ? 'Edit Food' : 'Add Food'} subtitle="Enter food and nutrition details" />
-            <Paper elevation={3} sx={{ maxWidth: 700, width: '100%', p: 4 }}>
+            <Paper elevation={3} sx={{ maxWidth: 1200, width: '95%', p: 4 }}>
             <form onSubmit={handleSubmit(onSubmit)} autoComplete="off" noValidate>
+                <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: 3, alignItems: 'flex-start' }}>
+                <Box sx={{ flex: 1, minWidth: 0, width: '100%' }}>
                 <Grid container spacing={2}>
                     <Grid size={{ xs: 12, sm: 6 }}>
                         <Controller
@@ -289,212 +291,6 @@ function FoodForm() {
                         />
                     </Grid>
 
-                    {/* Nutrition Section */}
-                    <Grid container spacing={2}>
-                        <Grid size={{ xs: 12 }}>
-                            <Divider sx={{ my: 2 }} />
-                            <Typography variant="subtitle1" sx={{ fontWeight: 500, mb: 1 }}>
-                                Nutrition
-                            </Typography>
-                        </Grid>
-                        <Grid size={{ xs: 12, sm: 6 }}>
-                            <TextField
-                                label="Serving Size Description"
-                                id="serving_size_description"
-                                {...register("nutrition.serving_size_description")}
-                                error={!!errors.nutrition?.serving_size_description}
-                                helperText={errors.nutrition?.serving_size_description?.message}
-                                inputProps={{ maxLength: 50 }}
-                                fullWidth
-                            />
-                        </Grid>
-                        <Grid size={{ xs: 6, sm: 3 }}>
-                            <TextField
-                                label="Serving Size (oz)"
-                                id="serving_size_oz"
-                                type="number"
-                                {...register("nutrition.serving_size_oz", { valueAsNumber: true })}
-                                error={!!errors.nutrition?.serving_size_oz}
-                                helperText={errors.nutrition?.serving_size_oz?.message}
-                                inputProps={{ min: 0, step: 0.01 }}
-                                fullWidth
-                            />
-                        </Grid>
-                        <Grid size={{ xs: 6, sm: 3 }}>
-                            <TextField
-                                label="Serving Size (g)"
-                                id="serving_size_g"
-                                type="number"
-                                {...register("nutrition.serving_size_g", { valueAsNumber: true })}
-                                error={!!errors.nutrition?.serving_size_g}
-                                helperText={errors.nutrition?.serving_size_g?.message}
-                                inputProps={{ min: 0 }}
-                                fullWidth
-                            />
-                        </Grid>
-                        <Grid size={{ xs: 6, sm: 3 }}>
-                            <TextField
-                                label="Calories"
-                                id="calories"
-                                type="number"
-                                {...register("nutrition.calories", { valueAsNumber: true })}
-                                error={!!errors.nutrition?.calories}
-                                helperText={errors.nutrition?.calories?.message}
-                                inputProps={{ min: 0 }}
-                                fullWidth
-                            />
-                        </Grid>
-                        {/* Start Total Fat on a new row */}
-                        <Grid size={{ xs: 12 }} />
-                        <Grid size={{ xs: 6, sm: 3 }}>
-                            <TextField
-                                label="Total Fat (g)"
-                                id="total_fat_g"
-                                type="number"
-                                {...register("nutrition.total_fat_g", { valueAsNumber: true })}
-                                error={!!errors.nutrition?.total_fat_g}
-                                helperText={errors.nutrition?.total_fat_g?.message}
-                                inputProps={{ min: 0, step: 0.1 }}
-                                fullWidth
-                            />
-                        </Grid>
-                        <Grid size={{ xs: 6, sm: 3 }}>
-                            <TextField
-                                label="Saturated Fat (g)"
-                                id="saturated_fat_g"
-                                type="number"
-                                {...register("nutrition.saturated_fat_g", { valueAsNumber: true })}
-                                error={!!errors.nutrition?.saturated_fat_g}
-                                helperText={errors.nutrition?.saturated_fat_g?.message}
-                                inputProps={{ min: 0, step: 0.1 }}
-                                fullWidth
-                            />
-                        </Grid>
-                        <Grid size={{ xs: 6, sm: 3 }}>
-                            <TextField
-                                label="Cholesterol (mg)"
-                                id="cholesterol_mg"
-                                type="number"
-                                {...register("nutrition.cholesterol_mg", { valueAsNumber: true })}
-                                error={!!errors.nutrition?.cholesterol_mg}
-                                helperText={errors.nutrition?.cholesterol_mg?.message}
-                                inputProps={{ min: 0 }}
-                                fullWidth
-                            />
-                        </Grid>
-                        <Grid size={{ xs: 6, sm: 3 }}>
-                            <TextField
-                                label="Sodium (mg)"
-                                id="sodium_mg"
-                                type="number"
-                                {...register("nutrition.sodium_mg", { valueAsNumber: true })}
-                                error={!!errors.nutrition?.sodium_mg}
-                                helperText={errors.nutrition?.sodium_mg?.message}
-                                inputProps={{ min: 0 }}
-                                fullWidth
-                            />
-                        </Grid>
-                        {/* Start Total Carbs on a new row */}
-                        <Grid size={{ xs: 12 }} />
-                        <Grid size={{ xs: 6, sm: 3 }}>
-                            <TextField
-                                label="Total Carbs (g)"
-                                id="total_carbs_g"
-                                type="number"
-                                {...register("nutrition.total_carbs_g", { valueAsNumber: true })}
-                                error={!!errors.nutrition?.total_carbs_g}
-                                helperText={errors.nutrition?.total_carbs_g?.message}
-                                inputProps={{ min: 0, step: 0.1 }}
-                                fullWidth
-                            />
-                        </Grid>
-                        <Grid size={{ xs: 6, sm: 3 }}>
-                            <TextField
-                                label="Total Fiber (g)"
-                                id="fiber_g"
-                                type="number"
-                                {...register("nutrition.fiber_g", { valueAsNumber: true })}
-                                error={!!errors.nutrition?.fiber_g}
-                                helperText={errors.nutrition?.fiber_g?.message}
-                                inputProps={{ min: 0, step: 0.1 }}
-                                fullWidth
-                            />
-                        </Grid>
-                        <Grid size={{ xs: 6, sm: 3 }}>
-                            <TextField
-                                label="Total Sugar (g)"
-                                id="total_sugar_g"
-                                type="number"
-                                {...register("nutrition.total_sugar_g", { valueAsNumber: true })}
-                                error={!!errors.nutrition?.total_sugar_g}
-                                helperText={errors.nutrition?.total_sugar_g?.message}
-                                inputProps={{ min: 0, step: 0.1 }}
-                                fullWidth
-                            />
-                        </Grid>
-                        <Grid size={{ xs: 6, sm: 3 }}>
-                            <TextField
-                                label="Added Sugar (g)"
-                                id="added_sugar_g"
-                                type="number"
-                                {...register("nutrition.added_sugar_g", { valueAsNumber: true })}
-                                error={!!errors.nutrition?.added_sugar_g}
-                                helperText={errors.nutrition?.added_sugar_g?.message}
-                                inputProps={{ min: 0, step: 0.1 }}
-                                fullWidth
-                            />
-                        </Grid>
-                        {/* Start Vitamin D on a new row */}
-                        <Grid size={{ xs: 12 }} />
-                        <Grid size={{ xs: 6, sm: 3 }}>
-                            <TextField
-                                label="Vitamin D (mcg)"
-                                id="vitamin_d_mcg"
-                                type="number"
-                                {...register("nutrition.vitamin_d_mcg", { valueAsNumber: true })}
-                                error={!!errors.nutrition?.vitamin_d_mcg}
-                                helperText={errors.nutrition?.vitamin_d_mcg?.message}
-                                inputProps={{ min: 0, step: 0.1 }}
-                                fullWidth
-                            />
-                        </Grid>
-                        <Grid size={{ xs: 6, sm: 3 }}>
-                            <TextField
-                                label="Calcium (mg)"
-                                id="calcium_mg"
-                                type="number"
-                                {...register("nutrition.calcium_mg", { valueAsNumber: true })}
-                                error={!!errors.nutrition?.calcium_mg}
-                                helperText={errors.nutrition?.calcium_mg?.message}
-                                inputProps={{ min: 0, step: 0.1 }}
-                                fullWidth
-                            />
-                        </Grid>
-                        <Grid size={{ xs: 6, sm: 3 }}>
-                            <TextField
-                                label="Iron (mg)"
-                                id="iron_mg"
-                                type="number"
-                                {...register("nutrition.iron_mg", { valueAsNumber: true })}
-                                error={!!errors.nutrition?.iron_mg}
-                                helperText={errors.nutrition?.iron_mg?.message}
-                                inputProps={{ min: 0, step: 0.1 }}
-                                fullWidth
-                            />
-                        </Grid>
-                        <Grid size={{ xs: 6, sm: 3 }}>
-                            <TextField
-                                label="Potassium (mg)"
-                                id="potassium_mg"
-                                type="number"
-                                {...register("nutrition.potassium_mg", { valueAsNumber: true })}
-                                error={!!errors.nutrition?.potassium_mg}
-                                helperText={errors.nutrition?.potassium_mg?.message}
-                                inputProps={{ min: 0, step: 0.1 }}
-                                fullWidth
-                            />
-                        </Grid>
-                    </Grid>
                     <Grid size={{ xs: 12 }}>
                         <Divider sx={{ my: 1.5 }} />
                     </Grid>
@@ -511,6 +307,162 @@ function FoodForm() {
                         </Button>
                     </Grid>
                 </Grid>
+                </Box>
+
+                <Box
+                    sx={{
+                        width: { xs: '100%', md: 380 },
+                        boxSizing: 'border-box',
+                        bgcolor: '#fff',
+                        color: '#222',
+                        border: '2px solid #222',
+                        borderRadius: 2,
+                        p: 2,
+                        boxShadow: 2,
+                        fontFamily: 'Arial Narrow, Arial, sans-serif',
+                        '& .MuiInputLabel-root': {
+                            fontSize: '0.72rem',
+                        },
+                        '& .MuiInputBase-input': {
+                            fontSize: '0.72rem',
+                            py: 0.35,
+                        },
+                        '& .MuiFormHelperText-root': {
+                            fontSize: '0.62rem',
+                            lineHeight: 1.1,
+                            mt: 0.25,
+                        },
+                        '& .nutrition-input-rows .MuiTypography-root': {
+                            fontSize: '0.78rem',
+                            lineHeight: 1.1,
+                        },
+                    }}
+                >
+                    <Typography variant="h5" sx={{ fontWeight: 900, letterSpacing: 1, mb: 1 }}>
+                        Nutrition Facts
+                    </Typography>
+                    <Divider sx={{ borderBottomWidth: 4, mb: 1 }} />
+
+                    <TextField
+                        label="Serving Size Description"
+                        id="serving_size_description"
+                        {...register("nutrition.serving_size_description")}
+                        error={!!errors.nutrition?.serving_size_description}
+                        helperText={errors.nutrition?.serving_size_description?.message}
+                        inputProps={{ maxLength: 50 }}
+                        size="small"
+                        fullWidth
+                        sx={{ mb: 1 }}
+                    />
+
+                    <Box sx={{ display: 'flex', gap: 1, mb: 1 }}>
+                        <TextField
+                            label="Serving Size (oz)"
+                            id="serving_size_oz"
+                            type="number"
+                            {...register("nutrition.serving_size_oz", { valueAsNumber: true })}
+                            error={!!errors.nutrition?.serving_size_oz}
+                            helperText={errors.nutrition?.serving_size_oz?.message}
+                            inputProps={{ min: 0, step: 0.01 }}
+                            size="small"
+                            fullWidth
+                        />
+                        <TextField
+                            label="Serving Size (g)"
+                            id="serving_size_g"
+                            type="number"
+                            {...register("nutrition.serving_size_g", { valueAsNumber: true })}
+                            error={!!errors.nutrition?.serving_size_g}
+                            helperText={errors.nutrition?.serving_size_g?.message}
+                            inputProps={{ min: 0 }}
+                            size="small"
+                            fullWidth
+                        />
+                    </Box>
+
+                    <Divider sx={{ borderBottomWidth: 2, my: 1 }} />
+
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 0.5 }}>
+                        <Typography variant="h5" sx={{ fontWeight: 900 }}>
+                            Calories
+                        </Typography>
+                        <TextField
+                            id="calories"
+                            type="number"
+                            {...register("nutrition.calories", { valueAsNumber: true })}
+                            error={!!errors.nutrition?.calories}
+                            inputProps={{ min: 0 }}
+                            size="small"
+                            sx={{ width: 110 }}
+                        />
+                    </Box>
+
+                    <Divider sx={{ borderBottomWidth: 2, my: 1 }} />
+
+                    <Typography variant="subtitle2" sx={{ fontWeight: 700, fontSize: '0.78rem', mb: 0.75 }}>
+                        Nutrition Inputs
+                    </Typography>
+
+                    <Box className="nutrition-input-rows" sx={{ display: 'flex', flexDirection: 'column', gap: 0.45 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                            <Typography sx={{ fontWeight: 700 }}>Total Fat</Typography>
+                            <TextField id="total_fat_g" type="number" {...register("nutrition.total_fat_g", { valueAsNumber: true })} error={!!errors.nutrition?.total_fat_g} inputProps={{ min: 0, step: 0.1 }} size="small" sx={{ width: 110 }} />
+                        </Box>
+                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', pl: 2 }}>
+                            <Typography>Saturated Fat</Typography>
+                            <TextField id="saturated_fat_g" type="number" {...register("nutrition.saturated_fat_g", { valueAsNumber: true })} error={!!errors.nutrition?.saturated_fat_g} inputProps={{ min: 0, step: 0.1 }} size="small" sx={{ width: 110 }} />
+                        </Box>
+                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', pl: 2 }}>
+                            <Typography>Trans Fat</Typography>
+                            <TextField id="trans_fat_g" type="number" {...register("nutrition.trans_fat_g", { valueAsNumber: true })} error={!!errors.nutrition?.trans_fat_g} inputProps={{ min: 0, step: 0.1 }} size="small" sx={{ width: 110 }} />
+                        </Box>
+                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                            <Typography sx={{ fontWeight: 700 }}>Cholesterol</Typography>
+                            <TextField id="cholesterol_mg" type="number" {...register("nutrition.cholesterol_mg", { valueAsNumber: true })} error={!!errors.nutrition?.cholesterol_mg} inputProps={{ min: 0 }} size="small" sx={{ width: 110 }} />
+                        </Box>
+                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                            <Typography sx={{ fontWeight: 700 }}>Sodium</Typography>
+                            <TextField id="sodium_mg" type="number" {...register("nutrition.sodium_mg", { valueAsNumber: true })} error={!!errors.nutrition?.sodium_mg} inputProps={{ min: 0 }} size="small" sx={{ width: 110 }} />
+                        </Box>
+                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                            <Typography sx={{ fontWeight: 700 }}>Total Carbohydrate</Typography>
+                            <TextField id="total_carbs_g" type="number" {...register("nutrition.total_carbs_g", { valueAsNumber: true })} error={!!errors.nutrition?.total_carbs_g} inputProps={{ min: 0, step: 0.1 }} size="small" sx={{ width: 110 }} />
+                        </Box>
+                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', pl: 2 }}>
+                            <Typography>Dietary Fiber</Typography>
+                            <TextField id="fiber_g" type="number" {...register("nutrition.fiber_g", { valueAsNumber: true })} error={!!errors.nutrition?.fiber_g} inputProps={{ min: 0, step: 0.1 }} size="small" sx={{ width: 110 }} />
+                        </Box>
+                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', pl: 2 }}>
+                            <Typography>Total Sugars</Typography>
+                            <TextField id="total_sugar_g" type="number" {...register("nutrition.total_sugar_g", { valueAsNumber: true })} error={!!errors.nutrition?.total_sugar_g} inputProps={{ min: 0, step: 0.1 }} size="small" sx={{ width: 110 }} />
+                        </Box>
+                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', pl: 2 }}>
+                            <Typography>Added Sugars</Typography>
+                            <TextField id="added_sugar_g" type="number" {...register("nutrition.added_sugar_g", { valueAsNumber: true })} error={!!errors.nutrition?.added_sugar_g} inputProps={{ min: 0, step: 0.1 }} size="small" sx={{ width: 110 }} />
+                        </Box>
+                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                            <Typography sx={{ fontWeight: 700 }}>Protein</Typography>
+                            <TextField id="protein_g" type="number" {...register("nutrition.protein_g", { valueAsNumber: true })} error={!!errors.nutrition?.protein_g} inputProps={{ min: 0, step: 0.1 }} size="small" sx={{ width: 110 }} />
+                        </Box>
+                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                            <Typography sx={{ fontWeight: 700 }}>Vitamin D</Typography>
+                            <TextField id="vitamin_d_mcg" type="number" {...register("nutrition.vitamin_d_mcg", { valueAsNumber: true })} error={!!errors.nutrition?.vitamin_d_mcg} inputProps={{ min: 0, step: 0.1 }} size="small" sx={{ width: 110 }} />
+                        </Box>
+                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                            <Typography sx={{ fontWeight: 700 }}>Calcium</Typography>
+                            <TextField id="calcium_mg" type="number" {...register("nutrition.calcium_mg", { valueAsNumber: true })} error={!!errors.nutrition?.calcium_mg} inputProps={{ min: 0, step: 0.1 }} size="small" sx={{ width: 110 }} />
+                        </Box>
+                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                            <Typography sx={{ fontWeight: 700 }}>Iron</Typography>
+                            <TextField id="iron_mg" type="number" {...register("nutrition.iron_mg", { valueAsNumber: true })} error={!!errors.nutrition?.iron_mg} inputProps={{ min: 0, step: 0.1 }} size="small" sx={{ width: 110 }} />
+                        </Box>
+                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                            <Typography sx={{ fontWeight: 700 }}>Potassium</Typography>
+                            <TextField id="potassium_mg" type="number" {...register("nutrition.potassium_mg", { valueAsNumber: true })} error={!!errors.nutrition?.potassium_mg} inputProps={{ min: 0, step: 0.1 }} size="small" sx={{ width: 110 }} />
+                        </Box>
+                    </Box>
+                </Box>
+                </Box>
             </form>
             </Paper>
         </Box>
