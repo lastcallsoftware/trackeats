@@ -91,6 +91,22 @@ const recipeSchema = z.object({
 type RecipeFormInput = z.input<typeof recipeSchema>;
 type RecipeFormValues = z.output<typeof recipeSchema>;
 
+const normalizeNutritionForApi = (nutrition: RecipeFormValues["nutrition"]): RecipeFormValues["nutrition"] => ({
+    ...nutrition,
+    serving_size_g: Math.round(nutrition.serving_size_g),
+    calories: Math.round(nutrition.calories),
+    cholesterol_mg: Math.round(nutrition.cholesterol_mg),
+    sodium_mg: Math.round(nutrition.sodium_mg),
+    total_carbs_g: Math.round(nutrition.total_carbs_g),
+    fiber_g: Math.round(nutrition.fiber_g),
+    total_sugar_g: Math.round(nutrition.total_sugar_g),
+    added_sugar_g: Math.round(nutrition.added_sugar_g),
+    protein_g: Math.round(nutrition.protein_g),
+    vitamin_d_mcg: Math.round(nutrition.vitamin_d_mcg),
+    calcium_mg: Math.round(nutrition.calcium_mg),
+    potassium_mg: Math.round(nutrition.potassium_mg),
+});
+
 function RecipeForm() {
     const navigate = useNavigate()
     const theme = useTheme();
@@ -142,6 +158,7 @@ function RecipeForm() {
     const onSubmit = async (data: RecipeFormValues) => {
         const recipeToSave = {
             ...data,
+            nutrition: normalizeNutritionForApi(data.nutrition),
             price: totalRecipePrice,
         };
 
