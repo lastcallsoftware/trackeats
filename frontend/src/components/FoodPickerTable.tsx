@@ -278,6 +278,21 @@ interface FoodPickerTableProps {
 
 const FoodPickerTable: React.FC<FoodPickerTableProps> = ({ setSelectedRowId, selectedRowId }) => {
     const { foods, preferences, updatePreferences } = useData();
+    // Sort foods by group, then by name (both alphabetically)
+    const sortedFoods = React.useMemo(() => {
+        if (!foods) return [];
+        return [...foods].sort((a, b) => {
+            const groupA = (a.group || "").toLowerCase();
+            const groupB = (b.group || "").toLowerCase();
+            if (groupA < groupB) return -1;
+            if (groupA > groupB) return 1;
+            const nameA = (a.name || "").toLowerCase();
+            const nameB = (b.name || "").toLowerCase();
+            if (nameA < nameB) return -1;
+            if (nameA > nameB) return 1;
+            return 0;
+        });
+    }, [foods]);
     const columnsPreferencesKey = FOOD_INGREDIENTS_COLUMNS_PREFERENCES_KEY;
     const [sorting, setSorting] = useState<SortingState>([]);
     const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(() => {
@@ -329,7 +344,7 @@ const FoodPickerTable: React.FC<FoodPickerTableProps> = ({ setSelectedRowId, sel
     }, []);
 
     const tableOptions: TableOptions<IFood> = {
-        data: foods,
+        data: sortedFoods,
         columns: foodPickerColumns,
         getCoreRowModel: getCoreRowModel(),
         getSortedRowModel: getSortedRowModel(),

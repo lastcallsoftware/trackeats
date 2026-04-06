@@ -293,10 +293,21 @@ const RecipePickerTable: React.FC<RecipePickerTableProps> = ({ setSelectedRowId,
     const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: PAGE_SIZE });
     const visibilitySaveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-    const filteredRecipes = useMemo(
-        () => excludeRecipeId !== undefined ? recipes.filter(r => r.id !== excludeRecipeId) : recipes,
-        [recipes, excludeRecipeId]
-    );
+    // Sort recipes by cuisine, then by name (both alphabetically)
+    const filteredRecipes = useMemo(() => {
+        let arr = excludeRecipeId !== undefined ? recipes.filter(r => r.id !== excludeRecipeId) : recipes;
+        return [...arr].sort((a, b) => {
+            const cuisineA = (a.cuisine || "").toLowerCase();
+            const cuisineB = (b.cuisine || "").toLowerCase();
+            if (cuisineA < cuisineB) return -1;
+            if (cuisineA > cuisineB) return 1;
+            const nameA = (a.name || "").toLowerCase();
+            const nameB = (b.name || "").toLowerCase();
+            if (nameA < nameB) return -1;
+            if (nameA > nameB) return 1;
+            return 0;
+        });
+    }, [recipes, excludeRecipeId]);
 
     const saveColumnVisibility = useCallback(
         (next: VisibilityState) => {
