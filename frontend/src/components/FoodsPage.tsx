@@ -67,12 +67,17 @@ const FoodsPage = () => {
             subtitle="Manage your ingredients and nutrition data"
             controlBarLeft={
                 foods.length > 0 && Math.ceil(filteredCount / pageSize) > 1 ? (
-                    <MuiPagination
-                        count={Math.ceil(filteredCount / pageSize)}
-                        page={currentPage}
-                        onChange={(_, p) => setPagination({ pageIndex: p - 1, pageSize })}
-                        size="small"
-                    />
+                    <Stack direction="row" spacing={1} alignItems="center">
+                        <Box component="span" sx={{fontSize: 20, fontWeight: 'bold' }}>
+                            Page:
+                        </Box>
+                        <MuiPagination
+                            count={Math.ceil(filteredCount / pageSize)}
+                            page={currentPage}
+                            onChange={(_, p) => setPagination({ pageIndex: p - 1, pageSize })}
+                            size="small"
+                        />
+                    </Stack>
                 ) : null
             }
             controlBarRight={
