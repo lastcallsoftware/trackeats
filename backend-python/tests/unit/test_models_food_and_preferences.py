@@ -1,6 +1,5 @@
 import datetime
 from types import SimpleNamespace
-from typing import Any
 
 import pytest
 
