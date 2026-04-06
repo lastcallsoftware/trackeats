@@ -4,6 +4,11 @@ import { MdAddCircleOutline, MdEdit, MdRemoveCircleOutline } from "react-icons/m
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Stack from '@mui/material/Stack';
+import Dialog from '@mui/material/Dialog';
+import DialogTitle from '@mui/material/DialogTitle';
+import DialogContent from '@mui/material/DialogContent';
+import DialogContentText from '@mui/material/DialogContentText';
+import DialogActions from '@mui/material/DialogActions';
 import { useData } from "@/utils/useData";
 import RecipesTable from "./RecipesTable";
 import NutritionLabel from "./NutritionLabel";
@@ -15,6 +20,7 @@ function RecipesPage() {
     const navigate = useNavigate();
     const [selectedRowId, setSelectedRowId] = useState<number|null>(null)
     const [filteredCount, setFilteredCount] = useState<number>(0)
+    const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false)
     const { recipes, deleteRecipe } = useData();
 
     // -- Pagination management --
@@ -49,13 +55,19 @@ function RecipesPage() {
 
     const deleteRecord = () => {
         if (selectedRowId) {
-            // Confirm the deletion request
-            const confirmed = confirm("Delete record.  Are you sure?  This cannot be undone.")
-            if (confirmed) {
-                // Delete the record from the database and the foods list.
-                deleteRecipe(selectedRowId);
-            }
+            setConfirmDeleteOpen(true)
         }
+    }
+
+    const cancelDelete = () => {
+        setConfirmDeleteOpen(false)
+    }
+
+    const confirmDelete = () => {
+        if (selectedRowId) {
+            deleteRecipe(selectedRowId)
+        }
+        setConfirmDeleteOpen(false)
     }
 
     return (
@@ -136,6 +148,21 @@ function RecipesPage() {
                             />
                         </Box>
                     )}
+
+                    <Dialog open={confirmDeleteOpen} onClose={cancelDelete}>
+                        <DialogTitle>Delete record?</DialogTitle>
+                        <DialogContent>
+                            <DialogContentText>
+                                Are you sure? This action cannot be undone.
+                            </DialogContentText>
+                        </DialogContent>
+                        <DialogActions>
+                            <Button onClick={cancelDelete}>Cancel</Button>
+                            <Button onClick={confirmDelete} color="error" variant="contained">
+                                Delete
+                            </Button>
+                        </DialogActions>
+                    </Dialog>
                 </>
             }
             sidebar={(() => {
