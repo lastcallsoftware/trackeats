@@ -1060,6 +1060,21 @@ class Recipe(db.Model):
             db.session.add(new_recipe_dao)
             db.session.flush()
 
+            # Persist child Ingredient records whenever they are provided.
+            if recipe_request.ingredients:
+                if not new_recipe_dao.nutrition:
+                    raise ValueError("Nutrition record for new Recipe not found")
+
+                new_recipe_dao.nutrition.reset()
+                for ingredient_request in recipe_request.ingredients:
+                    if keylists is not None and ingredient_request.recipe_id is not None:
+                        Ingredient.add_from_schema(user_id, ingredient_request, keylists=keylists)
+                    else:
+                        Ingredient.add_from_schema(user_id, ingredient_request, recipe_id_override=new_recipe_dao.id)
+
+                db.session.flush()
+                new_recipe_dao = Recipe.recalculate(user_id, new_recipe_dao.id, new_recipe_dao, new_recipe_dao.nutrition)
+
             # Save the old ID to new ID mapping when available.
             if keylists is not None and recipe_request.id is not None:
                 if not keylists.get("recipes"):
