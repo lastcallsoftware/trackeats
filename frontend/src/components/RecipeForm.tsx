@@ -4,6 +4,9 @@ import { useTheme } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { IFood, IRecipe, IIngredient, INutrition } from "../contexts/DataProvider";
 import { useData, Recipe } from "@/utils/useData";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { cuisines } from "./Cuisines";
 import IngredientsTable from "./IngredientsTable";
 import { NutritionLabel } from "./NutritionLabel";
@@ -51,6 +54,43 @@ const emptyNutritionTotals = (): Omit<INutrition, 'serving_size_description' | '
     potassium_mg: 0,
 });
 
+const nutritionSchema = z.object({
+    serving_size_description: z.string().max(100, "Must be 100 characters or fewer"),
+    serving_size_oz: z.coerce.number().min(0, "Must be 0 or greater"),
+    serving_size_g: z.coerce.number().min(0, "Must be 0 or greater"),
+    calories: z.coerce.number().min(0, "Must be 0 or greater"),
+    total_fat_g: z.coerce.number().min(0, "Must be 0 or greater"),
+    saturated_fat_g: z.coerce.number().min(0, "Must be 0 or greater"),
+    trans_fat_g: z.coerce.number().min(0, "Must be 0 or greater"),
+    cholesterol_mg: z.coerce.number().min(0, "Must be 0 or greater"),
+    sodium_mg: z.coerce.number().min(0, "Must be 0 or greater"),
+    total_carbs_g: z.coerce.number().min(0, "Must be 0 or greater"),
+    fiber_g: z.coerce.number().min(0, "Must be 0 or greater"),
+    total_sugar_g: z.coerce.number().min(0, "Must be 0 or greater"),
+    added_sugar_g: z.coerce.number().min(0, "Must be 0 or greater"),
+    protein_g: z.coerce.number().min(0, "Must be 0 or greater"),
+    vitamin_d_mcg: z.coerce.number().min(0, "Must be 0 or greater"),
+    calcium_mg: z.coerce.number().min(0, "Must be 0 or greater"),
+    iron_mg: z.coerce.number().min(0, "Must be 0 or greater"),
+    potassium_mg: z.coerce.number().min(0, "Must be 0 or greater"),
+});
+
+const recipeSchema = z.object({
+    id: z.number().optional(),
+    cuisine: z.string(),
+    name: z.string().trim().min(1, "Name is required").max(50, "Must be 50 characters or fewer"),
+    total_yield: z.string().trim().min(1, "Total yield is required").max(50, "Must be 50 characters or fewer"),
+    servings: z.coerce.number().gt(0, "Servings must be greater than 0"),
+    nutrition_id: z.number().optional(),
+    nutrition: nutritionSchema,
+    price: z.coerce.number().min(0, "Must be 0 or greater").optional().default(0),
+    price_per_serving: z.coerce.number().optional(),
+    price_per_calorie: z.coerce.number().min(0, "Must be 0 or greater").optional().default(0),
+});
+
+type RecipeFormInput = z.input<typeof recipeSchema>;
+type RecipeFormValues = z.output<typeof recipeSchema>;
+
 function RecipeForm() {
     const navigate = useNavigate()
     const theme = useTheme();
@@ -61,9 +101,26 @@ function RecipeForm() {
     const { id } = useParams();
     const isEditMode = Boolean(id)
     const recipe = isEditMode ? recipes.find(f => f.id === Number(id)) : null;
-    const [formData, setFormData] = useState<IRecipe>(() => {
+    const initialRecipe = useMemo<IRecipe>(() => {
         return recipe ? cloneRecipe(recipe) : new Recipe();
+    }, [recipe]);
+    const {
+        register,
+        handleSubmit,
+        reset,
+        setValue,
+        getValues,
+        watch,
+        formState: { errors },
+    } = useForm<RecipeFormInput, unknown, RecipeFormValues>({
+        mode: "onBlur",
+        reValidateMode: "onChange",
+        resolver: zodResolver(recipeSchema),
+        defaultValues: initialRecipe as RecipeFormInput,
     });
+    const recipeId = watch("id") as number | undefined;
+    const recipeServings = Number((watch("servings") as number | undefined) ?? 0);
+    const recipeNutrition = (watch("nutrition") as RecipeFormValues["nutrition"] | undefined) ?? initialRecipe.nutrition;
 
     const [selectedIngredientRowId, setSelectedIngredientRowId] = useState<number[] | null>(null)
     const [ingredientServings, setIngredientServings] = useState<number>(1)
@@ -77,11 +134,13 @@ function RecipeForm() {
 
     const [ingredients, setIngredients] = useState<IIngredient[]>([])
 
-    const handleSubmit = async (e: { preventDefault: () => void; }) => {
-        e.preventDefault();
+    useEffect(() => {
+        reset(initialRecipe as RecipeFormInput);
+    }, [initialRecipe, reset]);
 
+    const onSubmit = async (data: RecipeFormValues) => {
         const recipeToSave = {
-            ...formData,
+            ...data,
             price: totalRecipePrice,
         };
 
@@ -201,14 +260,16 @@ function RecipeForm() {
             priceTotal += ingredientServingPrice * servings;
         }
 
-        setFormData(prev => ({
-            ...prev,
-            price: priceTotal,
-            nutrition: {
-                ...prev.nutrition,
+        const currentNutrition = getValues("nutrition") as RecipeFormValues["nutrition"];
+        setValue("price", priceTotal, { shouldDirty: true });
+        setValue(
+            "nutrition",
+            {
+                ...currentNutrition,
                 ...totals,
             },
-        }));
+            { shouldDirty: true }
+        );
     };
 
     const addIngredient = (e: { preventDefault: () => void; }) => {
@@ -329,10 +390,10 @@ function RecipeForm() {
     }
 
     useEffect(() => {
-        if (formData.id) {
-            fetchIngredients(formData.id).then(setIngredients);
+        if (recipeId) {
+            fetchIngredients(recipeId).then(setIngredients);
         }
-    }, [formData.id, fetchIngredients]);
+    }, [recipeId, fetchIngredients]);
 
     
     const noIngredientSelected = selectedIngredientRowId == null;
@@ -371,36 +432,36 @@ function RecipeForm() {
     }, 0);
 
     const pricePerServing = useMemo(() => {
-        if (formData.servings <= 0) {
+        if (recipeServings <= 0) {
             return "0.00";
         }
 
-        return (totalRecipePrice / formData.servings).toFixed(2);
-    }, [totalRecipePrice, formData.servings]);
+        return (totalRecipePrice / recipeServings).toFixed(2);
+    }, [totalRecipePrice, recipeServings]);
 
     const perServingNutrition: INutrition = useMemo(() => {
-        const s = formData.servings > 0 ? formData.servings : 1;
+        const s = recipeServings > 0 ? recipeServings : 1;
         return {
-            serving_size_description: formData.nutrition.serving_size_description,
-            serving_size_oz: formData.nutrition.serving_size_oz / s,
-            serving_size_g: formData.nutrition.serving_size_g / s,
-            calories: formData.nutrition.calories / s,
-            total_fat_g: formData.nutrition.total_fat_g / s,
-            saturated_fat_g: formData.nutrition.saturated_fat_g / s,
-            trans_fat_g: formData.nutrition.trans_fat_g / s,
-            cholesterol_mg: formData.nutrition.cholesterol_mg / s,
-            sodium_mg: formData.nutrition.sodium_mg / s,
-            total_carbs_g: formData.nutrition.total_carbs_g / s,
-            fiber_g: formData.nutrition.fiber_g / s,
-            total_sugar_g: formData.nutrition.total_sugar_g / s,
-            added_sugar_g: formData.nutrition.added_sugar_g / s,
-            protein_g: formData.nutrition.protein_g / s,
-            vitamin_d_mcg: formData.nutrition.vitamin_d_mcg / s,
-            calcium_mg: formData.nutrition.calcium_mg / s,
-            iron_mg: formData.nutrition.iron_mg / s,
-            potassium_mg: formData.nutrition.potassium_mg / s,
+            serving_size_description: recipeNutrition.serving_size_description,
+            serving_size_oz: recipeNutrition.serving_size_oz / s,
+            serving_size_g: recipeNutrition.serving_size_g / s,
+            calories: recipeNutrition.calories / s,
+            total_fat_g: recipeNutrition.total_fat_g / s,
+            saturated_fat_g: recipeNutrition.saturated_fat_g / s,
+            trans_fat_g: recipeNutrition.trans_fat_g / s,
+            cholesterol_mg: recipeNutrition.cholesterol_mg / s,
+            sodium_mg: recipeNutrition.sodium_mg / s,
+            total_carbs_g: recipeNutrition.total_carbs_g / s,
+            fiber_g: recipeNutrition.fiber_g / s,
+            total_sugar_g: recipeNutrition.total_sugar_g / s,
+            added_sugar_g: recipeNutrition.added_sugar_g / s,
+            protein_g: recipeNutrition.protein_g / s,
+            vitamin_d_mcg: recipeNutrition.vitamin_d_mcg / s,
+            calcium_mg: recipeNutrition.calcium_mg / s,
+            iron_mg: recipeNutrition.iron_mg / s,
+            potassium_mg: recipeNutrition.potassium_mg / s,
         };
-    }, [formData.nutrition, formData.servings]);
+    }, [recipeNutrition, recipeServings]);
 
     return (
         <Box
@@ -452,7 +513,7 @@ function RecipeForm() {
                     flexDirection: 'column',
                 }}
             >
-                <Box component="form" onSubmit={handleSubmit} sx={{ width: '100%' }}>
+                <Box component="form" onSubmit={handleSubmit(onSubmit)} noValidate sx={{ width: '100%' }}>
 
                     {/* ── Basic Info ── */}
                     <Grid container spacing={2} sx={{ mb: 3 }}>
@@ -461,8 +522,7 @@ function RecipeForm() {
                                 select
                                 label="Cuisine"
                                 id="cuisine"
-                                value={formData.cuisine}
-                                onChange={(e) => setFormData(prev => ({ ...prev, cuisine: e.target.value }))}
+                                {...register("cuisine")}
                                 fullWidth
                             >
                                 {cuisines.map((option) => (
@@ -474,20 +534,24 @@ function RecipeForm() {
                             <TextField
                                 label="Name"
                                 id="name"
-                                value={formData.name}
-                                onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                                inputProps={{ maxLength: 100 }}
+                                {...register("name")}
+                                error={!!errors.name}
+                                helperText={errors.name?.message}
+                                inputProps={{ maxLength: 50 }}
                                 fullWidth
+                                required
                             />
                         </Grid>
                         <Grid size={{ xs: 12, sm: 3 }}>
                             <TextField
                                 label="Total Yield"
                                 id="totalyield"
-                                value={formData.total_yield}
-                                onChange={(e) => setFormData(prev => ({ ...prev, total_yield: e.target.value }))}
-                                inputProps={{ maxLength: 100 }}
+                                {...register("total_yield")}
+                                error={!!errors.total_yield}
+                                helperText={errors.total_yield?.message}
+                                inputProps={{ maxLength: 50 }}
                                 fullWidth
+                                required
                             />
                         </Grid>
                         <Grid size={{ xs: 12, sm: 1 }}>
@@ -495,10 +559,12 @@ function RecipeForm() {
                                 label="Servings"
                                 id="servings"
                                 type="number"
-                                value={formData.servings}
-                                onChange={(e) => setFormData(prev => ({ ...prev, servings: Number(e.target.value) }))}
+                                {...register("servings", { valueAsNumber: true })}
+                                error={!!errors.servings}
+                                helperText={errors.servings?.message}
                                 inputProps={{ min: 0 }}
                                 fullWidth
+                                required
                             />
                         </Grid>
                     </Grid>
@@ -516,8 +582,9 @@ function RecipeForm() {
                                 <TextField
                                     label="Serving Size"
                                     id="serving_size_description_narrow"
-                                    value={formData.nutrition.serving_size_description}
-                                    onChange={(e) => setFormData(prev => ({ ...prev, nutrition: { ...prev.nutrition, serving_size_description: e.target.value } }))}
+                                    {...register("nutrition.serving_size_description")}
+                                    error={!!errors.nutrition?.serving_size_description}
+                                    helperText={errors.nutrition?.serving_size_description?.message}
                                     inputProps={{ maxLength: 100 }}
                                     size="small"
                                     fullWidth
@@ -583,6 +650,7 @@ function RecipeForm() {
                                 <Tooltip title="Add the selected Food or Recipe to the ingredient list" placement="top" arrow>
                                     <span>
                                         <Button
+                                            type="button"
                                             variant="contained"
                                             size="small"
                                             disabled={noFoodOrRecipeSelected || noServingsForAdd}
@@ -598,6 +666,7 @@ function RecipeForm() {
                                 <Tooltip title="Update the servings for the selected ingredient" placement="top" arrow>
                                     <span>
                                         <Button
+                                            type="button"
                                             variant="contained"
                                             size="small"
                                             disabled={noIngredientSelected || invalidServingsForUpdate}
@@ -613,6 +682,7 @@ function RecipeForm() {
                                 <Tooltip title="Remove the selected ingredient from the recipe" placement="top" arrow>
                                     <span>
                                         <Button
+                                            type="button"
                                             variant="contained"
                                             size="small"
                                             disabled={noIngredientSelected}
@@ -630,6 +700,7 @@ function RecipeForm() {
                                 <Tooltip title="Move the selected ingredient up in the list" placement="top" arrow>
                                     <span>
                                         <Button
+                                            type="button"
                                             variant="outlined"
                                             size="small"
                                             disabled={noIngredientSelected}
@@ -645,6 +716,7 @@ function RecipeForm() {
                                 <Tooltip title="Move the selected ingredient down in the list" placement="top" arrow>
                                     <span>
                                         <Button
+                                            type="button"
                                             variant="outlined"
                                             size="small"
                                             disabled={noIngredientSelected}
@@ -682,7 +754,7 @@ function RecipeForm() {
                                     <RecipePickerTable
                                         setSelectedRowId={handleFoodOrRecipeRowSelect}
                                         selectedRowId={selectedFoodOrRecipeRowId}
-                                        excludeRecipeId={formData.id}
+                                            excludeRecipeId={recipeId}
                                     />
                                 )}
                             </Box>
@@ -692,7 +764,7 @@ function RecipeForm() {
                                 <Button type="submit" variant="contained" color="primary" disabled={saveIsDisabled}>
                                     Save
                                 </Button>
-                                <Button variant="outlined" color="secondary" onClick={handleCancel}>
+                                <Button type="button" variant="outlined" color="secondary" onClick={handleCancel}>
                                     Cancel
                                 </Button>
                             </Stack>
@@ -707,8 +779,9 @@ function RecipeForm() {
                                 <TextField
                                     label="Serving Size"
                                     id="serving_size_description"
-                                    value={formData.nutrition.serving_size_description}
-                                    onChange={(e) => setFormData(prev => ({ ...prev, nutrition: { ...prev.nutrition, serving_size_description: e.target.value } }))}
+                                    {...register("nutrition.serving_size_description")}
+                                    error={!!errors.nutrition?.serving_size_description}
+                                    helperText={errors.nutrition?.serving_size_description?.message}
                                     inputProps={{ maxLength: 100 }}
                                     size="small"
                                     fullWidth

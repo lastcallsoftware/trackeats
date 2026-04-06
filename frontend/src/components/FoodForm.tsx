@@ -1,10 +1,12 @@
 import { useEffect } from "react";
-import { useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { IFood } from "../contexts/DataProvider";
 import { foodGroups } from "./FoodGroups";
 import TitleCard from "./TitleCard";
 import { useData, Food } from "@/utils/useData";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
 import {
     Grid,
     Paper,
@@ -16,6 +18,53 @@ import {
     Box
 } from '@mui/material';
 
+const nutritionSchema = z.object({
+    serving_size_description: z.string().max(50, "Must be 50 characters or fewer"),
+    serving_size_oz: z.coerce.number().min(0, "Must be 0 or greater"),
+    serving_size_g: z.coerce.number().min(0, "Must be 0 or greater"),
+    calories: z.coerce.number().min(0, "Must be 0 or greater"),
+    total_fat_g: z.coerce.number().min(0, "Must be 0 or greater"),
+    saturated_fat_g: z.coerce.number().min(0, "Must be 0 or greater"),
+    trans_fat_g: z.coerce.number().min(0, "Must be 0 or greater"),
+    cholesterol_mg: z.coerce.number().min(0, "Must be 0 or greater"),
+    sodium_mg: z.coerce.number().min(0, "Must be 0 or greater"),
+    total_carbs_g: z.coerce.number().min(0, "Must be 0 or greater"),
+    fiber_g: z.coerce.number().min(0, "Must be 0 or greater"),
+    total_sugar_g: z.coerce.number().min(0, "Must be 0 or greater"),
+    added_sugar_g: z.coerce.number().min(0, "Must be 0 or greater"),
+    protein_g: z.coerce.number().min(0, "Must be 0 or greater"),
+    vitamin_d_mcg: z.coerce.number().min(0, "Must be 0 or greater"),
+    calcium_mg: z.coerce.number().min(0, "Must be 0 or greater"),
+    iron_mg: z.coerce.number().min(0, "Must be 0 or greater"),
+    potassium_mg: z.coerce.number().min(0, "Must be 0 or greater"),
+});
+
+const foodSchema = z.object({
+    id: z.number().optional(),
+    group: z.string().min(1, "Food group is required"),
+    vendor: z.string().trim().min(1, "Vendor is required").max(50, "Must be 50 characters or fewer"),
+    name: z.string().trim().min(1, "Name is required").max(50, "Must be 50 characters or fewer"),
+    subtype: z.string().max(50, "Must be 50 characters or fewer"),
+    description: z.string().max(100, "Must be 100 characters or fewer"),
+    size_description: z.string().max(50, "Must be 50 characters or fewer"),
+    size_oz: z.coerce.number().min(0, "Must be 0 or greater"),
+    size_g: z.coerce.number().min(0, "Must be 0 or greater"),
+    servings: z.coerce.number().gt(0, "Servings must be greater than 0"),
+    nutrition_id: z.number().optional(),
+    nutrition: nutritionSchema,
+    price: z.coerce.number().min(0, "Must be 0 or greater"),
+    price_per_serving: z.coerce.number().optional().default(0),
+    price_per_oz: z.coerce.number().optional().default(0),
+    price_per_calorie: z.coerce.number().optional().default(0),
+    price_date: z
+        .string()
+        .refine((value) => value === "" || /^\d{4}-\d{2}-\d{2}$/.test(value), "Invalid date format"),
+    shelf_life: z.string().max(150, "Must be 150 characters or fewer"),
+});
+
+type FoodFormInput = z.input<typeof foodSchema>;
+type FoodFormValues = z.output<typeof foodSchema>;
+
 function FoodForm() {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
@@ -24,23 +73,33 @@ function FoodForm() {
     const { id } = useParams();
     const isEditMode = Boolean(id)
     const food = isEditMode ? foods.find(f => f.id === Number(id)) : null;
-    const [formData, setFormData] = useState<IFood>(() => {
-        return food || new Food();
+    const {
+        register,
+        handleSubmit,
+        reset,
+        formState: { errors },
+    } = useForm<FoodFormInput, unknown, FoodFormValues>({
+        mode: "onBlur",
+        reValidateMode: "onChange",
+        resolver: zodResolver(foodSchema),
+        defaultValues: (food || new Food()) as FoodFormInput,
     });
+
+    useEffect(() => {
+        reset((food || new Food()) as FoodFormInput);
+    }, [food, reset]);
     
     // Scroll to top on mount
     useEffect(() => {
         window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
     }, []);
 
-    const handleSubmit = async (e: { preventDefault: () => void; }) => {
-        e.preventDefault();
-
+    const onSubmit = async (data: FoodFormValues) => {
         // Save the new Food
         if (isEditMode)
-            await updateFood(formData);
+            await updateFood(data as IFood);
         else
-            await addFood(formData);
+            await addFood(data as IFood);
         
         // Return to the Foods page
         const returnPath = searchParams.get("returnTo") || "/foods"
@@ -68,15 +127,16 @@ function FoodForm() {
         >
             <TitleCard title={isEditMode ? 'Edit Food' : 'Add Food'} subtitle="Enter food and nutrition details" />
             <Paper elevation={3} sx={{ maxWidth: 700, width: '100%', p: 4 }}>
-            <form onSubmit={handleSubmit} autoComplete="off">
+            <form onSubmit={handleSubmit(onSubmit)} autoComplete="off" noValidate>
                 <Grid container spacing={2}>
                     <Grid size={{ xs: 12, sm: 6 }}>
                         <TextField
                             select
                             label="Food Group"
                             id="food-group"
-                            value={formData.group}
-                            onChange={e => setFormData(prev => ({ ...prev, group: e.target.value }))}
+                            {...register("group")}
+                            error={!!errors.group}
+                            helperText={errors.group?.message}
                             fullWidth
                             required
                         >
@@ -89,8 +149,9 @@ function FoodForm() {
                         <TextField
                             label="Name"
                             id="name"
-                            value={formData.name}
-                            onChange={e => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                            {...register("name")}
+                            error={!!errors.name}
+                            helperText={errors.name?.message}
                             inputProps={{ maxLength: 50 }}
                             fullWidth
                             required
@@ -100,8 +161,9 @@ function FoodForm() {
                         <TextField
                             label="Subtype"
                             id="subtype"
-                            value={formData.subtype}
-                            onChange={e => setFormData(prev => ({ ...prev, subtype: e.target.value }))}
+                            {...register("subtype")}
+                            error={!!errors.subtype}
+                            helperText={errors.subtype?.message}
                             inputProps={{ maxLength: 50 }}
                             fullWidth
                         />
@@ -110,18 +172,21 @@ function FoodForm() {
                         <TextField
                             label="Vendor"
                             id="vendor"
-                            value={formData.vendor}
-                            onChange={e => setFormData(prev => ({ ...prev, vendor: e.target.value }))}
+                            {...register("vendor")}
+                            error={!!errors.vendor}
+                            helperText={errors.vendor?.message}
                             inputProps={{ maxLength: 50 }}
                             fullWidth
+                            required
                         />
                     </Grid>
                     <Grid size={{ xs: 12 }}>
                         <TextField
                             label="Description"
                             id="description"
-                            value={formData.description}
-                            onChange={e => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                            {...register("description")}
+                            error={!!errors.description}
+                            helperText={errors.description?.message}
                             inputProps={{ maxLength: 100 }}
                             fullWidth
                             multiline
@@ -132,8 +197,9 @@ function FoodForm() {
                         <TextField
                             label="Size Description"
                             id="size_description"
-                            value={formData.size_description}
-                            onChange={e => setFormData(prev => ({ ...prev, size_description: e.target.value }))}
+                            {...register("size_description")}
+                            error={!!errors.size_description}
+                            helperText={errors.size_description?.message}
                             inputProps={{ maxLength: 50 }}
                             fullWidth
                         />
@@ -143,8 +209,9 @@ function FoodForm() {
                             label="Size (oz)"
                             id="size_oz"
                             type="number"
-                            value={formData.size_oz}
-                            onChange={e => setFormData(prev => ({ ...prev, size_oz: Number(e.target.value) }))}
+                            {...register("size_oz", { valueAsNumber: true })}
+                            error={!!errors.size_oz}
+                            helperText={errors.size_oz?.message}
                             inputProps={{ min: 0, step: 0.01 }}
                             fullWidth
                         />
@@ -154,8 +221,9 @@ function FoodForm() {
                             label="Size (g)"
                             id="size_g"
                             type="number"
-                            value={formData.size_g}
-                            onChange={e => setFormData(prev => ({ ...prev, size_g: Number(e.target.value) }))}
+                            {...register("size_g", { valueAsNumber: true })}
+                            error={!!errors.size_g}
+                            helperText={errors.size_g?.message}
                             inputProps={{ min: 0 }}
                             fullWidth
                         />
@@ -165,18 +233,21 @@ function FoodForm() {
                             label="Servings"
                             id="servings"
                             type="number"
-                            value={formData.servings}
-                            onChange={e => setFormData(prev => ({ ...prev, servings: Number(e.target.value) }))}
+                            {...register("servings", { valueAsNumber: true })}
+                            error={!!errors.servings}
+                            helperText={errors.servings?.message}
                             inputProps={{ min: 0, step: 0.01 }}
                             fullWidth
+                            required
                         />
                     </Grid>
                     <Grid size={{ xs: 12, sm: 9 }}>
                         <TextField
                             label="Shelf Life"
                             id="shelf_life"
-                            value={formData.shelf_life}
-                            onChange={e => setFormData(prev => ({ ...prev, shelf_life: e.target.value }))}
+                            {...register("shelf_life")}
+                            error={!!errors.shelf_life}
+                            helperText={errors.shelf_life?.message}
                             inputProps={{ maxLength: 150 }}
                             fullWidth
                             multiline
@@ -188,8 +259,9 @@ function FoodForm() {
                             label="Price ($)"
                             id="price"
                             type="number"
-                            value={formData.price}
-                            onChange={e => setFormData(prev => ({ ...prev, price: Number(e.target.value) }))}
+                            {...register("price", { valueAsNumber: true })}
+                            error={!!errors.price}
+                            helperText={errors.price?.message}
                             inputProps={{ min: 0, step: 0.01 }}
                             fullWidth
                         />
@@ -199,8 +271,9 @@ function FoodForm() {
                             label="Price Date"
                             id="price_date"
                             type="date"
-                            value={formData.price_date}
-                            onChange={e => setFormData(prev => ({ ...prev, price_date: e.target.value }))}
+                            {...register("price_date")}
+                            error={!!errors.price_date}
+                            helperText={errors.price_date?.message}
                             InputLabelProps={{ shrink: true }}
                             fullWidth
                         />
@@ -218,8 +291,9 @@ function FoodForm() {
                             <TextField
                                 label="Serving Size Description"
                                 id="serving_size_description"
-                                value={formData.nutrition.serving_size_description}
-                                onChange={e => setFormData(prev => ({ ...prev, nutrition: { ...prev.nutrition, serving_size_description: e.target.value } }))}
+                                {...register("nutrition.serving_size_description")}
+                                error={!!errors.nutrition?.serving_size_description}
+                                helperText={errors.nutrition?.serving_size_description?.message}
                                 inputProps={{ maxLength: 50 }}
                                 fullWidth
                             />
@@ -229,8 +303,9 @@ function FoodForm() {
                                 label="Serving Size (oz)"
                                 id="serving_size_oz"
                                 type="number"
-                                value={formData.nutrition.serving_size_oz}
-                                onChange={e => setFormData(prev => ({ ...prev, nutrition: { ...prev.nutrition, serving_size_oz: Number(e.target.value) } }))}
+                                {...register("nutrition.serving_size_oz", { valueAsNumber: true })}
+                                error={!!errors.nutrition?.serving_size_oz}
+                                helperText={errors.nutrition?.serving_size_oz?.message}
                                 inputProps={{ min: 0, step: 0.01 }}
                                 fullWidth
                             />
@@ -240,8 +315,9 @@ function FoodForm() {
                                 label="Serving Size (g)"
                                 id="serving_size_g"
                                 type="number"
-                                value={formData.nutrition.serving_size_g}
-                                onChange={e => setFormData(prev => ({ ...prev, nutrition: { ...prev.nutrition, serving_size_g: Number(e.target.value) } }))}
+                                {...register("nutrition.serving_size_g", { valueAsNumber: true })}
+                                error={!!errors.nutrition?.serving_size_g}
+                                helperText={errors.nutrition?.serving_size_g?.message}
                                 inputProps={{ min: 0 }}
                                 fullWidth
                             />
@@ -251,8 +327,9 @@ function FoodForm() {
                                 label="Calories"
                                 id="calories"
                                 type="number"
-                                value={formData.nutrition.calories}
-                                onChange={e => setFormData(prev => ({ ...prev, nutrition: { ...prev.nutrition, calories: Number(e.target.value) } }))}
+                                {...register("nutrition.calories", { valueAsNumber: true })}
+                                error={!!errors.nutrition?.calories}
+                                helperText={errors.nutrition?.calories?.message}
                                 inputProps={{ min: 0 }}
                                 fullWidth
                             />
@@ -264,8 +341,9 @@ function FoodForm() {
                                 label="Total Fat (g)"
                                 id="total_fat_g"
                                 type="number"
-                                value={formData.nutrition.total_fat_g}
-                                onChange={e => setFormData(prev => ({ ...prev, nutrition: { ...prev.nutrition, total_fat_g: Number(e.target.value) } }))}
+                                {...register("nutrition.total_fat_g", { valueAsNumber: true })}
+                                error={!!errors.nutrition?.total_fat_g}
+                                helperText={errors.nutrition?.total_fat_g?.message}
                                 inputProps={{ min: 0, step: 0.1 }}
                                 fullWidth
                             />
@@ -275,8 +353,9 @@ function FoodForm() {
                                 label="Saturated Fat (g)"
                                 id="saturated_fat_g"
                                 type="number"
-                                value={formData.nutrition.saturated_fat_g}
-                                onChange={e => setFormData(prev => ({ ...prev, nutrition: { ...prev.nutrition, saturated_fat_g: Number(e.target.value) } }))}
+                                {...register("nutrition.saturated_fat_g", { valueAsNumber: true })}
+                                error={!!errors.nutrition?.saturated_fat_g}
+                                helperText={errors.nutrition?.saturated_fat_g?.message}
                                 inputProps={{ min: 0, step: 0.1 }}
                                 fullWidth
                             />
@@ -286,8 +365,9 @@ function FoodForm() {
                                 label="Cholesterol (mg)"
                                 id="cholesterol_mg"
                                 type="number"
-                                value={formData.nutrition.cholesterol_mg}
-                                onChange={e => setFormData(prev => ({ ...prev, nutrition: { ...prev.nutrition, cholesterol_mg: Number(e.target.value) } }))}
+                                {...register("nutrition.cholesterol_mg", { valueAsNumber: true })}
+                                error={!!errors.nutrition?.cholesterol_mg}
+                                helperText={errors.nutrition?.cholesterol_mg?.message}
                                 inputProps={{ min: 0 }}
                                 fullWidth
                             />
@@ -297,8 +377,9 @@ function FoodForm() {
                                 label="Sodium (mg)"
                                 id="sodium_mg"
                                 type="number"
-                                value={formData.nutrition.sodium_mg}
-                                onChange={e => setFormData(prev => ({ ...prev, nutrition: { ...prev.nutrition, sodium_mg: Number(e.target.value) } }))}
+                                {...register("nutrition.sodium_mg", { valueAsNumber: true })}
+                                error={!!errors.nutrition?.sodium_mg}
+                                helperText={errors.nutrition?.sodium_mg?.message}
                                 inputProps={{ min: 0 }}
                                 fullWidth
                             />
@@ -310,8 +391,9 @@ function FoodForm() {
                                 label="Total Carbs (g)"
                                 id="total_carbs_g"
                                 type="number"
-                                value={formData.nutrition.total_carbs_g}
-                                onChange={e => setFormData(prev => ({ ...prev, nutrition: { ...prev.nutrition, total_carbs_g: Number(e.target.value) } }))}
+                                {...register("nutrition.total_carbs_g", { valueAsNumber: true })}
+                                error={!!errors.nutrition?.total_carbs_g}
+                                helperText={errors.nutrition?.total_carbs_g?.message}
                                 inputProps={{ min: 0, step: 0.1 }}
                                 fullWidth
                             />
@@ -321,8 +403,9 @@ function FoodForm() {
                                 label="Total Fiber (g)"
                                 id="fiber_g"
                                 type="number"
-                                value={formData.nutrition.fiber_g}
-                                onChange={e => setFormData(prev => ({ ...prev, nutrition: { ...prev.nutrition, fiber_g: Number(e.target.value) } }))}
+                                {...register("nutrition.fiber_g", { valueAsNumber: true })}
+                                error={!!errors.nutrition?.fiber_g}
+                                helperText={errors.nutrition?.fiber_g?.message}
                                 inputProps={{ min: 0, step: 0.1 }}
                                 fullWidth
                             />
@@ -332,8 +415,9 @@ function FoodForm() {
                                 label="Total Sugar (g)"
                                 id="total_sugar_g"
                                 type="number"
-                                value={formData.nutrition.total_sugar_g}
-                                onChange={e => setFormData(prev => ({ ...prev, nutrition: { ...prev.nutrition, total_sugar_g: Number(e.target.value) } }))}
+                                {...register("nutrition.total_sugar_g", { valueAsNumber: true })}
+                                error={!!errors.nutrition?.total_sugar_g}
+                                helperText={errors.nutrition?.total_sugar_g?.message}
                                 inputProps={{ min: 0, step: 0.1 }}
                                 fullWidth
                             />
@@ -343,8 +427,9 @@ function FoodForm() {
                                 label="Added Sugar (g)"
                                 id="added_sugar_g"
                                 type="number"
-                                value={formData.nutrition.added_sugar_g}
-                                onChange={e => setFormData(prev => ({ ...prev, nutrition: { ...prev.nutrition, added_sugar_g: Number(e.target.value) } }))}
+                                {...register("nutrition.added_sugar_g", { valueAsNumber: true })}
+                                error={!!errors.nutrition?.added_sugar_g}
+                                helperText={errors.nutrition?.added_sugar_g?.message}
                                 inputProps={{ min: 0, step: 0.1 }}
                                 fullWidth
                             />
@@ -356,8 +441,9 @@ function FoodForm() {
                                 label="Vitamin D (mcg)"
                                 id="vitamin_d_mcg"
                                 type="number"
-                                value={formData.nutrition.vitamin_d_mcg}
-                                onChange={e => setFormData(prev => ({ ...prev, nutrition: { ...prev.nutrition, vitamin_d_mcg: Number(e.target.value) } }))}
+                                {...register("nutrition.vitamin_d_mcg", { valueAsNumber: true })}
+                                error={!!errors.nutrition?.vitamin_d_mcg}
+                                helperText={errors.nutrition?.vitamin_d_mcg?.message}
                                 inputProps={{ min: 0, step: 0.1 }}
                                 fullWidth
                             />
@@ -367,8 +453,9 @@ function FoodForm() {
                                 label="Calcium (mg)"
                                 id="calcium_mg"
                                 type="number"
-                                value={formData.nutrition.calcium_mg}
-                                onChange={e => setFormData(prev => ({ ...prev, nutrition: { ...prev.nutrition, calcium_mg: Number(e.target.value) } }))}
+                                {...register("nutrition.calcium_mg", { valueAsNumber: true })}
+                                error={!!errors.nutrition?.calcium_mg}
+                                helperText={errors.nutrition?.calcium_mg?.message}
                                 inputProps={{ min: 0, step: 0.1 }}
                                 fullWidth
                             />
@@ -378,8 +465,9 @@ function FoodForm() {
                                 label="Iron (mg)"
                                 id="iron_mg"
                                 type="number"
-                                value={formData.nutrition.iron_mg}
-                                onChange={e => setFormData(prev => ({ ...prev, nutrition: { ...prev.nutrition, iron_mg: Number(e.target.value) } }))}
+                                {...register("nutrition.iron_mg", { valueAsNumber: true })}
+                                error={!!errors.nutrition?.iron_mg}
+                                helperText={errors.nutrition?.iron_mg?.message}
                                 inputProps={{ min: 0, step: 0.1 }}
                                 fullWidth
                             />
@@ -389,8 +477,9 @@ function FoodForm() {
                                 label="Potassium (mg)"
                                 id="potassium_mg"
                                 type="number"
-                                value={formData.nutrition.potassium_mg}
-                                onChange={e => setFormData(prev => ({ ...prev, nutrition: { ...prev.nutrition, potassium_mg: Number(e.target.value) } }))}
+                                {...register("nutrition.potassium_mg", { valueAsNumber: true })}
+                                error={!!errors.nutrition?.potassium_mg}
+                                helperText={errors.nutrition?.potassium_mg?.message}
                                 inputProps={{ min: 0, step: 0.1 }}
                                 fullWidth
                             />
