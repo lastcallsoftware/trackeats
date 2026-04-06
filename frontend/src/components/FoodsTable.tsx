@@ -39,6 +39,7 @@ import Box from '@mui/material/Box';
 
 // Define the table's columns
 const columnHelper = createColumnHelper<IFood>()
+const formatPrice = (value: number): string => Number.isFinite(value) ? value.toFixed(2) : "0.00"
 const foodColumns = [
     columnHelper.group({
         id: "general_info",
@@ -208,12 +209,12 @@ const foodColumns = [
         columns: [
             columnHelper.accessor("price", {
                 header: () => <span>Total Price</span>,
-                cell: info => (info.getValue() ?? 0).toFixed(2),
+                cell: info => formatPrice(info.getValue() ?? 0),
                 size: 65
             }),
             columnHelper.accessor("price_per_serving", {
                 header: () => <span>Price / serving</span>,
-                cell: info => ((info.row.original.price ?? 0)/info.row.original.servings).toFixed(2),
+                cell: info => formatPrice((info.row.original.price ?? 0) / info.row.original.servings),
                 sortingFn: (rowA, rowB) => {
                     const val1 = rowA.original.price/rowA.original.servings
                     const val2 = rowB.original.price/rowB.original.servings
@@ -223,7 +224,7 @@ const foodColumns = [
             }),
             columnHelper.accessor("price_per_oz", {
                 header: () => <span>Price / oz</span>,
-                cell: info => ((info.row.original.price ?? 0)/info.row.original.size_oz).toFixed(2),
+                cell: info => formatPrice((info.row.original.price ?? 0) / info.row.original.size_oz),
                 sortingFn: (rowA, rowB) => {
                     const val1 = rowA.original.price/rowA.original.size_oz
                     const val2 = rowB.original.price/rowB.original.size_oz
@@ -233,7 +234,11 @@ const foodColumns = [
             }),
             columnHelper.accessor("price_per_calorie", {
                 header: () => <span>Price / 100 cal</span>,
-                cell: info => (info.row.original.nutrition.calories == 0 ? Infinity : info.row.original.price*100/info.row.original.servings/info.row.original.nutrition.calories).toFixed(2),
+                cell: info => formatPrice(
+                    info.row.original.nutrition.calories == 0
+                        ? 0
+                        : info.row.original.price * 100 / info.row.original.servings / info.row.original.nutrition.calories
+                ),
                 sortingFn: (rowA, rowB) => {
                     const val1 = rowA.original.price/rowA.original.servings/rowA.original.nutrition.calories
                     const val2 = rowB.original.price/rowB.original.servings/rowB.original.nutrition.calories

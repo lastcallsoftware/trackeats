@@ -1281,9 +1281,17 @@ class Recipe(db.Model):
 
                 # Add its price total
                 if food_ingredient_dao and food_ingredient_dao.price:
-                    recipe_dao.price += (food_ingredient_dao.price/food_ingredient_dao.servings * ingredient_dao.servings)
+                    recipe_dao.price = round(
+                        recipe_dao.price + (food_ingredient_dao.price/food_ingredient_dao.servings * ingredient_dao.servings),
+                        2,
+                    )
                 elif recipe_ingredient_dao and recipe_ingredient_dao.price:
-                    recipe_dao.price += (recipe_ingredient_dao.price/recipe_ingredient_dao.servings * ingredient_dao.servings)
+                    recipe_dao.price = round(
+                        recipe_dao.price + (recipe_ingredient_dao.price/recipe_ingredient_dao.servings * ingredient_dao.servings),
+                        2,
+                    )
+
+            recipe_dao.price = round(recipe_dao.price, 2)
 
             return recipe_dao
         

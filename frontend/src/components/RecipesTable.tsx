@@ -38,6 +38,7 @@ import FilterWidget from './FilterWidget';
 
 // Define the table's columns
 const columnHelper = createColumnHelper<IRecipe>()
+const formatPrice = (value: number): string => Number.isFinite(value) ? value.toFixed(2) : "0.00"
 const columns = [
     columnHelper.group({
         id: "general_info",
@@ -239,17 +240,17 @@ const columns = [
         columns: [
             columnHelper.accessor("price", {
                 header: () => <span>Total Price</span>,
-                cell: info => info.getValue(),
+                cell: info => formatPrice(info.getValue() ?? 0),
                 size: 80
             }),
             columnHelper.accessor("price_per_serving" as keyof IRecipe, {
                 header: () => <span>Price / serving</span>,
                 cell: info => {
                     const val = info.getValue();
-                    if (val !== undefined && val !== null) return Number(val).toFixed(2);
+                    if (val !== undefined && val !== null) return formatPrice(Number(val));
                     const price = info.row.original.price ?? 0;
                     const servings = info.row.original.servings || 1;
-                    return (price / servings).toFixed(2);
+                    return formatPrice(price / servings);
                 },
                 sortingFn: (rowA, rowB) => {
                     const val1 = (rowA.original.price_per_serving !== undefined)
@@ -264,7 +265,11 @@ const columns = [
             }),
             columnHelper.accessor("price_per_calorie", {
                 header: () => <span>Price / 100 cal</span>,
-                cell: info => (info.row.original.nutrition.calories == 0 ? Infinity : info.row.original.price * 100 / info.row.original.servings / info.row.original.nutrition.calories).toFixed(2),
+                cell: info => formatPrice(
+                    info.row.original.nutrition.calories == 0
+                        ? 0
+                        : info.row.original.price * 100 / info.row.original.servings / info.row.original.nutrition.calories
+                ),
                 sortingFn: (rowA, rowB) => {
                     const val1 = rowA.original.price / rowA.original.servings / rowA.original.nutrition.calories;
                     const val2 = rowB.original.price / rowB.original.servings / rowB.original.nutrition.calories;
