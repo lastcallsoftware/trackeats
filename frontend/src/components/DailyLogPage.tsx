@@ -387,7 +387,7 @@ function DailyLogPage() {
                                     onChange={e => setAddForm(prev => ({ ...prev, recipe_id: Number(e.target.value) }))}
                                     sx={{ minWidth: 220 }}
                                 >
-                                    {recipes.map(r => (
+                                    {[...recipes].sort((a, b) => a.name.localeCompare(b.name)).map(r => (
                                         <MenuItem key={r.id} value={r.id}>{r.name}</MenuItem>
                                     ))}
                                 </TextField>
