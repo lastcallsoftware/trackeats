@@ -55,7 +55,7 @@ const emptyNutritionTotals = (): Omit<INutrition, 'serving_size_description' | '
 });
 
 const nutritionSchema = z.object({
-    serving_size_description: z.string().max(100, "Must be 100 characters or fewer"),
+    serving_size_description: z.string().trim().min(1, "Serving size is required").max(100, "Must be 100 characters or fewer"),
     serving_size_oz: z.coerce.number().min(0, "Must be 0 or greater"),
     serving_size_g: z.coerce.number().min(0, "Must be 0 or greater"),
     calories: z.coerce.number().min(0, "Must be 0 or greater"),
@@ -77,7 +77,7 @@ const nutritionSchema = z.object({
 
 const recipeSchema = z.object({
     id: z.number().optional(),
-    cuisine: z.string(),
+    cuisine: z.string().trim().min(1, "Cuisine is required"),
     name: z.string().trim().min(1, "Name is required").max(50, "Must be 50 characters or fewer"),
     total_yield: z.string().trim().min(1, "Total yield is required").max(50, "Must be 50 characters or fewer"),
     servings: z.coerce.number().gt(0, "Servings must be greater than 0"),
@@ -523,9 +523,13 @@ function RecipeForm() {
                                 label="Cuisine"
                                 id="cuisine"
                                 {...register("cuisine")}
+                                error={!!errors.cuisine}
+                                helperText={errors.cuisine?.message}
                                 fullWidth
+                                required
                             >
-                                {cuisines.map((option) => (
+                                <MenuItem value="">-- select one --</MenuItem>
+                                {cuisines.filter(option => option.value !== "").map((option) => (
                                     <MenuItem key={option.value} value={option.value}>{option.label}</MenuItem>
                                 ))}
                             </TextField>
@@ -588,6 +592,7 @@ function RecipeForm() {
                                     inputProps={{ maxLength: 100 }}
                                     size="small"
                                     fullWidth
+                                    required
                                 />
                             )}
 
@@ -785,6 +790,7 @@ function RecipeForm() {
                                     inputProps={{ maxLength: 100 }}
                                     size="small"
                                     fullWidth
+                                    required
                                 />
                                 <TextField
                                     label="Price ($/serving)"
