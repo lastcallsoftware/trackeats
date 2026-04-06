@@ -1,6 +1,7 @@
 export const TABLE_PREFERENCES_DEBOUNCE_MS = 600
 export const MANDATORY_COLUMN_VISIBILITY = "mandatory" as const
 export const AUTH_CHANGED_EVENT = "trackeats-auth-changed"
+export const RECIPE_RECALC_TIMEOUT_MS = 10_000
 
 export type ColumnVisibilityPreference = boolean | typeof MANDATORY_COLUMN_VISIBILITY
 
