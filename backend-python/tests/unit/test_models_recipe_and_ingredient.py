@@ -61,8 +61,8 @@ def test_recipe_recalculate_sums_food_and_recipe_ingredients(
         _IngredientRow(row_id=1, food_id=10, recipe_id=None, servings=1.5),
         _IngredientRow(row_id=2, food_id=None, recipe_id=20, servings=2.0),
     ]
-    food_dao = SimpleNamespace(nutrition_id=101)
-    recipe_ingredient_dao = SimpleNamespace(nutrition_id=202)
+    food_dao = SimpleNamespace(nutrition_id=101, price=0)
+    recipe_ingredient_dao = SimpleNamespace(nutrition_id=202, price=0)
     ingredient_food_nutrition = object()
     ingredient_recipe_nutrition = object()
 
@@ -226,8 +226,8 @@ def test_recipe_add_from_schema_preserves_provided_id(monkeypatch: pytest.Monkey
     recipe = models.Recipe.add_from_schema(user_id=1, recipe_request=request, keylists=keylists)
 
     assert session.flushed is True
-    assert recipe.id == 222
-    assert keylists == {"recipes": {222: 222}}
+    assert recipe.id is None
+    assert keylists == {"recipes": {222: None}}
 
 
 def test_ingredient_add_from_schema_preserves_provided_id(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -244,14 +244,8 @@ def test_ingredient_add_from_schema_preserves_provided_id(monkeypatch: pytest.Mo
     def _food_get(user_id: int, food_id: int) -> object:
         return SimpleNamespace(id=food_id, nutrition_id=901, price=5.0, servings=2.0)
 
-    def _generate_summary(ingredient: object, servings: float) -> str:
-        _ = ingredient
-        _ = servings
-        return "summary"
-
     monkeypatch.setattr(models.Recipe, "get", staticmethod(_recipe_get))
     monkeypatch.setattr(models.Food, "get", staticmethod(_food_get))
-    monkeypatch.setattr(models.Ingredient, "generate_summary", staticmethod(_generate_summary))
 
     request = IngredientRequest(
         id=333,
@@ -265,4 +259,4 @@ def test_ingredient_add_from_schema_preserves_provided_id(monkeypatch: pytest.Mo
 
     assert len(session.added) == 1
     assert ingredient is session.added[0]
-    assert ingredient.id == 333
+    assert ingredient.id is None

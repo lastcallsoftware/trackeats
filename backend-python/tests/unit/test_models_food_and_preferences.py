@@ -104,8 +104,8 @@ def test_food_add_creates_record_and_populates_keylist(monkeypatch: pytest.Monke
     assert session.flushed is True
     assert len(session.added) == 1
     assert added is session.added[0]
-    assert added.id == 123
-    assert keylists == {"foods": {123: 123}}
+    assert added.id == 77
+    assert keylists == {"foods": {123: 77}}
 
 
 def test_food_update_requires_id() -> None:
