@@ -22,6 +22,9 @@ import AppBar from '@mui/material/AppBar';
 import Toolbar from '@mui/material/Toolbar';
 import Button from '@mui/material/Button';
 import Box from '@mui/material/Box';
+import Backdrop from '@mui/material/Backdrop';
+import CircularProgress from '@mui/material/CircularProgress';
+import Typography from '@mui/material/Typography';
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 import Dialog from '@mui/material/Dialog';
@@ -60,7 +63,7 @@ const buttonSx = {
 function App() {
     const theme = useTheme();
     const isNarrow = useMediaQuery(theme.breakpoints.down('md'));
-    const { deleteAccount, recalculateRecipeNutrition } = useData();
+    const { deleteAccount, recalculateRecipeNutrition, isLoading, isRecalculatingRecipes } = useData();
     const [isAuthenticated, setAuthenticated] = useState(sessionStorage.getItem("access_token") != null);
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
     const [optionsAnchorEl, setOptionsAnchorEl] = useState<null | HTMLElement>(null);
@@ -108,6 +111,14 @@ function App() {
             navigate("/login", { state: { message: "Your account has been deleted." } });
         }
     }
+
+    const handleRecalculateRecipes = async () => {
+        handleOptionsClose();
+        await recalculateRecipeNutrition(null);
+    }
+
+    const overlayOpen = isLoading || isRecalculatingRecipes
+    const overlayMessage = isRecalculatingRecipes ? "Recalculating recipes..." : "Loading data..."
 
     const handleAboutItem = (path: string) => {
         handleAboutClose();
@@ -221,7 +232,7 @@ function App() {
                                     onClose={handleOptionsClose}
                                 >
                                     <MenuItem onClick={() => { handleOptionsClose(); removeToken(); }}>Log out</MenuItem>
-                                    <MenuItem onClick={() => { recalculateRecipeNutrition(null) }}>Recalculate recipes</MenuItem>
+                                    <MenuItem onClick={handleRecalculateRecipes} disabled={isRecalculatingRecipes}>Recalculate recipes</MenuItem>
                                     <MenuItem onClick={handleDeleteAccountClick}>Delete my account</MenuItem>
                                 </Menu>
                                 <Dialog
@@ -284,6 +295,19 @@ function App() {
                     </Routes>
                 </Suspense>
             </Box>
+            <Backdrop
+                open={overlayOpen}
+                sx={(muiTheme) => ({
+                    color: '#fff',
+                    zIndex: muiTheme.zIndex.modal + 1,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 2,
+                })}
+            >
+                <CircularProgress color="inherit" />
+                <Typography variant="body1">{overlayMessage}</Typography>
+            </Backdrop>
             <Footer />
         </>
     );
