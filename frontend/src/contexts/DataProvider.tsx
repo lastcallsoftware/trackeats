@@ -13,7 +13,8 @@ import {
     DEFAULT_RECIPE_INGREDIENTS_COLUMNS_PREFERENCES,
     DAILYLOG_COLUMNS_PREFERENCES_KEY,
     DEFAULT_DAILYLOG_COLUMNS_PREFERENCES,
-    AUTH_CHANGED_EVENT
+    AUTH_CHANGED_EVENT,
+    RECIPE_RECALC_TIMEOUT_MS,
 } from '@/utils/constants';
 import { generateIngredientSummary } from "../utils/generateIngredientSummary";
 import { useSnackbar } from '@/utils/useSnackbar';
@@ -161,6 +162,7 @@ export type DataContextType = {
     ingredients: IIngredient[];
     dailyLogItems: IDailyLogItem[];
     isLoading: boolean;
+    isRecalculatingRecipes: boolean;
     setErrorMessage: (msg: string) => void;
     deleteAccount: () => Promise<boolean>,
     getPreferences: (context: string) => Promise<void>;
@@ -259,6 +261,7 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
 
     // "Loading screen"
     const [isLoading, setLoading] = useState(false)
+    const [isRecalculatingRecipes, setIsRecalculatingRecipes] = useState(false)
 
     // Handle errors that occur when calling the back end.
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -362,10 +365,11 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
     // Update Food
     const updateFood = async (food: IFood): Promise<void> => {
         try {
-            await axios.put<IFood>("/api/food", food)
+            const response = await axios.put<IFood>("/api/food", food)
+            const updatedFood = response.data
             setFoods(prevItems => prevItems.map(item => {
-                if (item.id === food.id) {
-                    return food;
+                if (item.id === updatedFood.id) {
+                    return updatedFood;
                 } else {
                     return item;
                 }
@@ -404,10 +408,11 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
     const updateRecipe = async (recipe: IRecipe, ingredients: IIngredient[]): Promise<void> => {
         try {
             const payload = { ...recipe, ingredients };
-            await axios.put<IRecipe>("/api/recipe", payload)
+            const response = await axios.put<IRecipe>("/api/recipe", payload)
+            const updatedRecipe = response.data
             setRecipes(prevItems => prevItems.map(item => {
-                if (item.id === recipe.id) {
-                    return { ...recipe, ingredients };
+                if (item.id === updatedRecipe.id) {
+                    return updatedRecipe;
                 } else {
                     return item;
                 }
@@ -484,16 +489,28 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
 
     // Recalculate nutrition totals for Recipes
     const recalculateRecipeNutrition = async (recipe_id: number | null): Promise<void> => {
+        setIsRecalculatingRecipes(true)
         try {
             if (recipe_id) {
-                await axios.post<void>(`/api/recipe/${recipe_id}/recalc`)
+                await axios.post<void>(`/api/recipe/${recipe_id}/recalc`, undefined, {
+                    timeout: RECIPE_RECALC_TIMEOUT_MS,
+                })
             } else {
-                await axios.post<void>("/api/recipe/recalc")
+                await axios.post<void>("/api/recipe/recalc", undefined, {
+                    timeout: RECIPE_RECALC_TIMEOUT_MS,
+                })
             }
-            await getRecipes()
-            showSnackbar("Nutrition recalculated for all user recipes", "success")
+
+            const response = await axios.get<IRecipe[]>("/api/recipe", {
+                timeout: RECIPE_RECALC_TIMEOUT_MS,
+            })
+            setRecipes(response.data)
+
+            showSnackbar("Recipe data recalculated", "success")
         } catch(error) {
             handleError(error)
+        } finally {
+            setIsRecalculatingRecipes(false)
         }
     }
 
@@ -553,6 +570,7 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
             ingredients,
             dailyLogItems,
             isLoading,
+            isRecalculatingRecipes,
             setErrorMessage,
             deleteAccount,
             getPreferences,
