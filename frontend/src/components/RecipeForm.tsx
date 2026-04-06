@@ -4,7 +4,7 @@ import { useTheme } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { IFood, IRecipe, IIngredient, INutrition } from "../contexts/DataProvider";
 import { useData, Recipe } from "@/utils/useData";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { cuisines } from "./Cuisines";
@@ -110,7 +110,7 @@ function RecipeForm() {
         reset,
         setValue,
         getValues,
-        watch,
+        control,
         formState: { errors },
     } = useForm<RecipeFormInput, unknown, RecipeFormValues>({
         mode: "onBlur",
@@ -118,9 +118,10 @@ function RecipeForm() {
         resolver: zodResolver(recipeSchema),
         defaultValues: initialRecipe as RecipeFormInput,
     });
-    const recipeId = watch("id") as number | undefined;
-    const recipeServings = Number((watch("servings") as number | undefined) ?? 0);
-    const recipeNutrition = (watch("nutrition") as RecipeFormValues["nutrition"] | undefined) ?? initialRecipe.nutrition;
+    const recipeId = useWatch({ control, name: "id" }) as number | undefined;
+    const recipeServings = Number((useWatch({ control, name: "servings" }) as number | undefined) ?? 0);
+    const recipeNutrition =
+        (useWatch({ control, name: "nutrition" }) as RecipeFormValues["nutrition"] | undefined) ?? initialRecipe.nutrition;
 
     const [selectedIngredientRowId, setSelectedIngredientRowId] = useState<number[] | null>(null)
     const [ingredientServings, setIngredientServings] = useState<number>(1)
@@ -431,37 +432,28 @@ function RecipeForm() {
         return total;
     }, 0);
 
-    const pricePerServing = useMemo(() => {
-        if (recipeServings <= 0) {
-            return "0.00";
-        }
+    const pricePerServing = recipeServings <= 0 ? "0.00" : (totalRecipePrice / recipeServings).toFixed(2);
 
-        return (totalRecipePrice / recipeServings).toFixed(2);
-    }, [totalRecipePrice, recipeServings]);
-
-    const perServingNutrition: INutrition = useMemo(() => {
-        const s = recipeServings > 0 ? recipeServings : 1;
-        return {
-            serving_size_description: recipeNutrition.serving_size_description,
-            serving_size_oz: recipeNutrition.serving_size_oz / s,
-            serving_size_g: recipeNutrition.serving_size_g / s,
-            calories: recipeNutrition.calories / s,
-            total_fat_g: recipeNutrition.total_fat_g / s,
-            saturated_fat_g: recipeNutrition.saturated_fat_g / s,
-            trans_fat_g: recipeNutrition.trans_fat_g / s,
-            cholesterol_mg: recipeNutrition.cholesterol_mg / s,
-            sodium_mg: recipeNutrition.sodium_mg / s,
-            total_carbs_g: recipeNutrition.total_carbs_g / s,
-            fiber_g: recipeNutrition.fiber_g / s,
-            total_sugar_g: recipeNutrition.total_sugar_g / s,
-            added_sugar_g: recipeNutrition.added_sugar_g / s,
-            protein_g: recipeNutrition.protein_g / s,
-            vitamin_d_mcg: recipeNutrition.vitamin_d_mcg / s,
-            calcium_mg: recipeNutrition.calcium_mg / s,
-            iron_mg: recipeNutrition.iron_mg / s,
-            potassium_mg: recipeNutrition.potassium_mg / s,
-        };
-    }, [recipeNutrition, recipeServings]);
+    const perServingNutrition: INutrition = {
+        serving_size_description: recipeNutrition.serving_size_description,
+        serving_size_oz: recipeNutrition.serving_size_oz / (recipeServings > 0 ? recipeServings : 1),
+        serving_size_g: recipeNutrition.serving_size_g / (recipeServings > 0 ? recipeServings : 1),
+        calories: recipeNutrition.calories / (recipeServings > 0 ? recipeServings : 1),
+        total_fat_g: recipeNutrition.total_fat_g / (recipeServings > 0 ? recipeServings : 1),
+        saturated_fat_g: recipeNutrition.saturated_fat_g / (recipeServings > 0 ? recipeServings : 1),
+        trans_fat_g: recipeNutrition.trans_fat_g / (recipeServings > 0 ? recipeServings : 1),
+        cholesterol_mg: recipeNutrition.cholesterol_mg / (recipeServings > 0 ? recipeServings : 1),
+        sodium_mg: recipeNutrition.sodium_mg / (recipeServings > 0 ? recipeServings : 1),
+        total_carbs_g: recipeNutrition.total_carbs_g / (recipeServings > 0 ? recipeServings : 1),
+        fiber_g: recipeNutrition.fiber_g / (recipeServings > 0 ? recipeServings : 1),
+        total_sugar_g: recipeNutrition.total_sugar_g / (recipeServings > 0 ? recipeServings : 1),
+        added_sugar_g: recipeNutrition.added_sugar_g / (recipeServings > 0 ? recipeServings : 1),
+        protein_g: recipeNutrition.protein_g / (recipeServings > 0 ? recipeServings : 1),
+        vitamin_d_mcg: recipeNutrition.vitamin_d_mcg / (recipeServings > 0 ? recipeServings : 1),
+        calcium_mg: recipeNutrition.calcium_mg / (recipeServings > 0 ? recipeServings : 1),
+        iron_mg: recipeNutrition.iron_mg / (recipeServings > 0 ? recipeServings : 1),
+        potassium_mg: recipeNutrition.potassium_mg / (recipeServings > 0 ? recipeServings : 1),
+    };
 
     return (
         <Box
