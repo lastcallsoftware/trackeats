@@ -101,25 +101,7 @@ class FoodRequest(BaseModel):
     price: float | None = None
     price_date: str | None = None
     shelf_life: str | None = None
-    # Nutrition fields (denormalized)
-    serving_size_description: str
-    serving_size_oz: float | None = None
-    serving_size_g: int | None = None
-    calories: int = 0
-    total_fat_g: float | None = None
-    saturated_fat_g: float | None = None
-    trans_fat_g: float | None = None
-    cholesterol_mg: int | None = None
-    sodium_mg: int | None = None
-    total_carbs_g: int | None = None
-    fiber_g: int | None = None
-    total_sugar_g: int | None = None
-    added_sugar_g: int | None = None
-    protein_g: int | None = None
-    vitamin_d_mcg: int | None = None
-    calcium_mg: int | None = None
-    iron_mg: float | None = None
-    potassium_mg: int | None = None
+    nutrition: NutritionRequest
 
     @field_validator("group")
     @classmethod
@@ -209,25 +191,7 @@ class RecipeRequest(BaseModel):
     name: str
     total_yield: str
     servings: float
-    # Nutrition fields (denormalized)
-    serving_size_description: str
-    serving_size_oz: float | None = None
-    serving_size_g: int | None = None
-    calories: int = 0
-    total_fat_g: float | None = None
-    saturated_fat_g: float | None = None
-    trans_fat_g: float | None = None
-    cholesterol_mg: int | None = None
-    sodium_mg: int | None = None
-    total_carbs_g: int | None = None
-    fiber_g: int | None = None
-    total_sugar_g: int | None = None
-    added_sugar_g: int | None = None
-    protein_g: int | None = None
-    vitamin_d_mcg: int | None = None
-    calcium_mg: int | None = None
-    iron_mg: float | None = None
-    potassium_mg: int | None = None
+    nutrition: NutritionRequest
     price: float | None = None
     # Ingredients (passed through to model layer as typed objects)
     ingredients: list[IngredientRequest] = Field(default_factory=_empty_ingredient_requests)

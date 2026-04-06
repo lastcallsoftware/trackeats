@@ -4,7 +4,7 @@ from typing import cast
 import pytest
 
 import models
-from schemas import IngredientRequest, RecipeRequest
+from schemas import IngredientRequest, NutritionRequest, RecipeRequest
 
 
 class _NutritionAccumulator:
@@ -215,8 +215,10 @@ def test_recipe_add_from_schema_preserves_provided_id(monkeypatch: pytest.Monkey
         name="Pasta",
         total_yield="4 servings",
         servings=4.0,
-        serving_size_description="1 serving",
-        calories=400,
+        nutrition=NutritionRequest(
+            serving_size_description="1 serving",
+            calories=400,
+        ),
         ingredients=[],
     )
     keylists: dict[str, dict[int, int]] = {}

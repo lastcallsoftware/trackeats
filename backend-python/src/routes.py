@@ -19,6 +19,22 @@ from sqlalchemy.sql import text
 bp = Blueprint("auth", __name__)
 
 
+def _format_validation_error_message(error: ValidationError) -> str:
+    """Build a concise, user-facing message from Pydantic validation errors."""
+    details: list[str] = []
+    for err in error.errors(include_context=False):
+        loc = err["loc"]
+        field = ".".join(str(part) for part in loc) if loc else "field"
+
+        message = str(err.get("msg", "Invalid value"))
+        details.append(f"{field}: {message}")
+
+    if not details:
+        return "Invalid request"
+
+    return "Invalid request: " + "; ".join(details)
+
+
 ##############################
 # HEALTH
 ##############################
@@ -51,7 +67,7 @@ def db_init():
     INIT - Wipe the database and recreate all the tables using the ORM classes in 
     models.py.  Note that the tables will be EMPTY!
     """
-    logging.info("/db/init")
+    logging.info("/api/db/init")
     try:
         with db.session.begin():
             override_str = str(request.args.get("override", "false"))
@@ -75,7 +91,7 @@ def db_purge():
     LOAD - Populate the (presumably newly created) database with test data.
     Be aware that this API first deletes the contents of tables it populates!
     """
-    logging.info(f"/db/purge")
+    logging.info(f"/api/db/purge")
     try:
         with db.session.begin():
             # Get the user_id for the user identified by the token
@@ -103,14 +119,14 @@ def db_load():
     LOAD - Populate the (presumably newly created) database with test data.
     Be aware that this API first deletes the contents of tables it populates!
     """
-    logging.info("/db/load")
+    logging.info("/api/db/load")
     try:
         with db.session.begin():
             # Get the user_id for the user identified by the token
             username = get_jwt_identity()
             user_id = User.get_id(username)
         
-            Data.load_db(user_id)
+            Data.load(user_id)
     except Exception as e:
         msg = "Data load failed: " + str(e)
         logging.error(msg)
@@ -127,10 +143,14 @@ def db_export():
     """
     EXPORT - Export selected data to JSON files for long-term storage and reloading purposes.
     """
-    logging.info("/db/export")
+    logging.info("/api/db/export")
     try:
         with db.session.begin():
-            Data.export_db()
+            # Get the user_id for the user identified by the token
+            username = get_jwt_identity()
+            user_id = User.get_id(username)
+
+            Data.export(user_id)
     except Exception as e:
         msg = "Data export failed: " + str(e)
         logging.error(msg)
@@ -216,9 +236,9 @@ def register():
             user.confirmation_sent_at = datetime.now()
 
     except ValidationError as e:
-        msg = f"Invalid request: {e.error_count()} validation error(s)"
+        msg = _format_validation_error_message(e)
         logging.error(msg)
-        return jsonify({"msg": msg, "errors": e.errors()}), 422
+        return jsonify({"msg": msg, "errors": e.errors(include_context=False)}), 422
     except Exception as e:
         msg = str(e)
         logging.error(msg)
@@ -383,9 +403,9 @@ def login():
             token_duration = int(os.environ.get("ACCESS_TOKEN_DURATION", 120))
             access_token = create_access_token(identity=username, expires_delta=timedelta(minutes=token_duration))
     except ValidationError as e:
-        msg = f"Invalid request: {e.error_count()} validation error(s)"
+        msg = _format_validation_error_message(e)
         logging.error(msg)
-        return jsonify({"msg": msg, "errors": e.errors()}), 422
+        return jsonify({"msg": msg, "errors": e.errors(include_context=False)}), 422
     except Exception as e:
         msg = str(e)
         logging.error(msg)
@@ -529,9 +549,9 @@ def save_preferences(context: str):
             
             Preferences.save(user_id, context, prefs)
     except ValidationError as e:
-        msg = f"Invalid request: {e.error_count()} validation error(s)"
+        msg = _format_validation_error_message(e)
         logging.error(msg)
-        return jsonify({"msg": msg, "errors": e.errors()}), 422
+        return jsonify({"msg": msg, "errors": e.errors(include_context=False)}), 422
     except Exception as e:
         msg = f"Preference records could not be saved: {str(e)}"
         logging.error(msg)
@@ -584,7 +604,7 @@ def get_foods():
             user_id = User.get_id(username)
 
             # Get all the Foods associated with that user_id
-            food_daos = Food.get_by_user(user_id)
+            food_daos = Food.get_all_for_user(user_id)
             for food_dao in food_daos:
                 foods.append(food_dao.json())
     except Exception as e:
@@ -643,9 +663,9 @@ def add_food():
             food_id = new_food_dao.id
             new_food = new_food_dao.json()
     except ValidationError as e:
-        msg = f"Invalid request: {e.error_count()} validation error(s)"
+        msg = _format_validation_error_message(e)
         logging.error(msg)
-        return jsonify({"msg": msg, "errors": e.errors()}), 422
+        return jsonify({"msg": msg, "errors": e.errors(include_context=False)}), 422
     except Exception as e:
         msg = f"Food record could not be added: {str(e)}"
         logging.error(msg)
@@ -678,9 +698,9 @@ def update_food():
             updated_food_dao = Food.update(user_id, food_data)
             updated_food = updated_food_dao.json()
     except ValidationError as e:
-        msg = f"Invalid request: {e.error_count()} validation error(s)"
+        msg = _format_validation_error_message(e)
         logging.error(msg)
-        return jsonify({"msg": msg, "errors": e.errors()}), 422
+        return jsonify({"msg": msg, "errors": e.errors(include_context=False)}), 422
     except Exception as e:
         msg = f"Food record could not be updated: {str(e)}"
         logging.error(msg)
@@ -799,9 +819,9 @@ def add_recipe():
             new_recipe_id = new_recipe_dao.id
             new_recipe = new_recipe_dao.json()
     except ValidationError as e:
-        msg = f"Invalid request: {e.error_count()} validation error(s)"
+        msg = _format_validation_error_message(e)
         logging.error(msg)
-        return jsonify({"msg": msg, "errors": e.errors()}), 422
+        return jsonify({"msg": msg, "errors": e.errors(include_context=False)}), 422
     except Exception as e:
         msg = f"Recipe record could not be added: {str(e)}"
         logging.error(msg)
@@ -834,9 +854,9 @@ def update_recipe():
             updated_recipe_dao = Recipe.update_from_schema(user_id, recipe_data)
             updated_recipe = updated_recipe_dao.json()
     except ValidationError as e:
-        msg = f"Invalid request: {e.error_count()} validation error(s)"
+        msg = _format_validation_error_message(e)
         logging.error(msg)
-        return jsonify({"msg": msg, "errors": e.errors()}), 422
+        return jsonify({"msg": msg, "errors": e.errors(include_context=False)}), 422
     except Exception as e:
         msg = f"Recipe record could not be updated: {str(e)}"
         logging.error(msg)
@@ -1069,9 +1089,9 @@ def add_daily_log_entry():
             new_log_id = new_log_dao.id
             new_entry = new_log_dao.json()
     except ValidationError as e:
-        msg = f"Invalid request: {e.error_count()} validation error(s)"
+        msg = _format_validation_error_message(e)
         logging.error(msg)
-        return jsonify({"msg": msg, "errors": e.errors()}), 422
+        return jsonify({"msg": msg, "errors": e.errors(include_context=False)}), 422
     except Exception as e:
         msg = f"DailyLogItem entry could not be added: {str(e)}"
         logging.error(msg)
@@ -1111,9 +1131,9 @@ def update_daily_log_entry(log_id: int):
             updated_log_dao = DailyLogItem.update_from_schema(user_id, log_id, update_data)
             updated_entry = updated_log_dao.json()
     except ValidationError as e:
-        msg = f"Invalid request: {e.error_count()} validation error(s)"
+        msg = _format_validation_error_message(e)
         logging.error(msg)
-        return jsonify({"msg": msg, "errors": e.errors()}), 422
+        return jsonify({"msg": msg, "errors": e.errors(include_context=False)}), 422
     except Exception as e:
         msg = f"DailyLogItem entry could not be updated: {str(e)}"
         logging.error(msg)

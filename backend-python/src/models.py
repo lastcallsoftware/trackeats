@@ -192,8 +192,8 @@ class User(db.Model):
     @staticmethod
     def get(username: str) -> User:
         user = db.session.scalar(db.select(User).where(User.username == username))
-        if not user:
-            raise ValueError(f"Invalid username '{username}'")
+        #if not user:
+        #    raise ValueError(f"Invalid username '{username}'")
         return user
 
 
@@ -226,7 +226,7 @@ class User(db.Model):
         status: UserStatus = data.get("status", UserStatus.pending)
         confirmation_token: str|None = data.get("token")
         confirmation_sent_at: datetime.datetime|None = data.get("confirmation_sent_at")
-        seed_requested: bool = data["seed_requested"]
+        seed_requested: bool = data.get("seed_requested", False)
         seed_version: int|None = data.get("seed_version")
         seeded_at: datetime.datetime|None = data.get("seeded_at")
 
@@ -722,6 +722,7 @@ class Ingredient(db.Model):
 
             ingredient_payload = ingredient_request.model_copy(
                 update={
+                    "id": None,
                     "recipe_id": recipe_id,
                     "food_ingredient_id": food_ingredient_id,
                     "recipe_ingredient_id": recipe_ingredient_id,
@@ -831,27 +832,10 @@ class Food(db.Model):
         self.price = food_request.price
         self.price_date = datetime.date.fromisoformat(food_request.price_date) if food_request.price_date else None
         self.shelf_life = food_request.shelf_life
-        # Create nutrition record with schema fields
+        # Create nutrition record from nested schema
         if not self.nutrition:
             self.nutrition = Nutrition(user_id)
-        self.nutrition.serving_size_description = food_request.serving_size_description
-        self.nutrition.serving_size_oz = food_request.serving_size_oz
-        self.nutrition.serving_size_g = food_request.serving_size_g
-        self.nutrition.calories = food_request.calories
-        self.nutrition.total_fat_g = food_request.total_fat_g
-        self.nutrition.saturated_fat_g = food_request.saturated_fat_g
-        self.nutrition.trans_fat_g = food_request.trans_fat_g
-        self.nutrition.cholesterol_mg = food_request.cholesterol_mg
-        self.nutrition.sodium_mg = food_request.sodium_mg
-        self.nutrition.total_carbs_g = food_request.total_carbs_g
-        self.nutrition.fiber_g = food_request.fiber_g
-        self.nutrition.total_sugar_g = food_request.total_sugar_g
-        self.nutrition.added_sugar_g = food_request.added_sugar_g
-        self.nutrition.protein_g = food_request.protein_g
-        self.nutrition.vitamin_d_mcg = food_request.vitamin_d_mcg
-        self.nutrition.calcium_mg = food_request.calcium_mg
-        self.nutrition.iron_mg = food_request.iron_mg
-        self.nutrition.potassium_mg = food_request.potassium_mg
+        self.nutrition.from_schema(user_id, food_request.nutrition)
 
     def __str__(self):
         return str(vars(self))
@@ -885,7 +869,7 @@ class Food(db.Model):
 
 
     @staticmethod
-    def get_by_user(user_id: int) -> list[Food]:
+    def get_all_for_user(user_id: int) -> list[Food]:
         food_daos = db.session.scalars(db.select(Food).where(Food.user_id == user_id).order_by("group", "name", "subtype")).all()
         return list(food_daos)
 
@@ -908,7 +892,9 @@ class Food(db.Model):
             new_food_dao = Food(user_id)
 
             old_food_id = food.id
-            new_food_dao.from_schema(user_id, food)
+            # For import paths, keep old IDs only for mapping and let DB assign PKs.
+            food_payload = food.model_copy(update={"id": None}) if keylists is not None else food
+            new_food_dao.from_schema(user_id, food_payload)
 
             # Add the new record to the database
             db.session.add(new_food_dao)
@@ -1046,49 +1032,10 @@ class Recipe(db.Model):
         self.servings = recipe_request.servings
         self.price = recipe_request.price
 
-        # Ensure a Nutrition child exists, then map schema nutrition fields.
+        # Create nutrition record from nested schema
         if not self.nutrition:
-            self.nutrition = Nutrition(
-                user_id,
-                NutritionRequest(
-                    serving_size_description=recipe_request.serving_size_description,
-                    serving_size_oz=recipe_request.serving_size_oz,
-                    serving_size_g=recipe_request.serving_size_g,
-                    calories=recipe_request.calories,
-                    total_fat_g=recipe_request.total_fat_g,
-                    saturated_fat_g=recipe_request.saturated_fat_g,
-                    trans_fat_g=recipe_request.trans_fat_g,
-                    cholesterol_mg=recipe_request.cholesterol_mg,
-                    sodium_mg=recipe_request.sodium_mg,
-                    total_carbs_g=recipe_request.total_carbs_g,
-                    fiber_g=recipe_request.fiber_g,
-                    total_sugar_g=recipe_request.total_sugar_g,
-                    added_sugar_g=recipe_request.added_sugar_g,
-                    protein_g=recipe_request.protein_g,
-                    vitamin_d_mcg=recipe_request.vitamin_d_mcg,
-                    calcium_mg=recipe_request.calcium_mg,
-                    iron_mg=recipe_request.iron_mg,
-                    potassium_mg=recipe_request.potassium_mg,
-                ),
-            )
-        self.nutrition.serving_size_description = recipe_request.serving_size_description
-        self.nutrition.serving_size_oz = recipe_request.serving_size_oz
-        self.nutrition.serving_size_g = recipe_request.serving_size_g
-        self.nutrition.calories = recipe_request.calories
-        self.nutrition.total_fat_g = recipe_request.total_fat_g
-        self.nutrition.saturated_fat_g = recipe_request.saturated_fat_g
-        self.nutrition.trans_fat_g = recipe_request.trans_fat_g
-        self.nutrition.cholesterol_mg = recipe_request.cholesterol_mg
-        self.nutrition.sodium_mg = recipe_request.sodium_mg
-        self.nutrition.total_carbs_g = recipe_request.total_carbs_g
-        self.nutrition.fiber_g = recipe_request.fiber_g
-        self.nutrition.total_sugar_g = recipe_request.total_sugar_g
-        self.nutrition.added_sugar_g = recipe_request.added_sugar_g
-        self.nutrition.protein_g = recipe_request.protein_g
-        self.nutrition.vitamin_d_mcg = recipe_request.vitamin_d_mcg
-        self.nutrition.calcium_mg = recipe_request.calcium_mg
-        self.nutrition.iron_mg = recipe_request.iron_mg
-        self.nutrition.potassium_mg = recipe_request.potassium_mg
+            self.nutrition = Nutrition(user_id)
+        self.nutrition.from_schema(user_id, recipe_request.nutrition)
 
     def __str__(self):
         return str(vars(self))
@@ -1136,7 +1083,9 @@ class Recipe(db.Model):
         try:
             # Create a fresh Recipe DAO and populate directly from schema.
             new_recipe_dao = Recipe(user_id, None)
-            new_recipe_dao.from_schema(user_id, recipe_request)
+            # For import paths, keep old IDs only for mapping and let DB assign PKs.
+            recipe_payload = recipe_request.model_copy(update={"id": None}) if keylists is not None else recipe_request
+            new_recipe_dao.from_schema(user_id, recipe_payload)
 
             db.session.add(new_recipe_dao)
             db.session.flush()
@@ -1189,16 +1138,12 @@ class Recipe(db.Model):
             db.session.flush()
 
             recipe_dao = Recipe.recalculate_nutrition(user_id, recipe_id, recipe_dao, recipe_dao.nutrition)
-            recipe_dao.nutrition.serving_size_description = recipe_request.serving_size_description
+            recipe_dao.nutrition.serving_size_description = recipe_request.nutrition.serving_size_description
 
             return recipe_dao
         except Exception as e:
             raise ValueError("Recipe record could not be updated: " + str(e))
 
-
-    @staticmethod
-
-    
 
     @staticmethod
     def update_recipe_ingredient(user_id: int, recipe_id: int, ingredient_id: int, servings: float) -> Recipe:
@@ -1460,6 +1405,27 @@ class DailyLogItem(db.Model):
     # ------------------------------------------------------------------
 
     @staticmethod
+    def get_all() -> list[DailyLogItem]:
+        """
+        Get one specific DailyLogItem entry.
+        """
+        log_daos = db.session.scalars(db.select(DailyLogItem)).all()
+        return list(log_daos)
+        
+    
+    @staticmethod
+    def get_all_for_user(user_id: int) -> list[DailyLogItem]:
+        """
+        Get one specific DailyLogItem entry.
+        """
+        log_daos = db.session.scalars(
+            db.select(DailyLogItem)
+            .where(DailyLogItem.user_id == user_id)
+        ).all()
+        return list(log_daos)
+    
+
+    @staticmethod
     def get(user_id: int, log_id: int) -> DailyLogItem:
         """
         Get one specific DailyLogItem entry.
@@ -1618,16 +1584,19 @@ class DailyLogItem(db.Model):
         """
         logging.info(f"Deleting DailyLogItem records for user {user_id}")
         try:
-            log_daos = db.session.scalars(
+            daily_log_daos = db.session.scalars(
                 db.select(DailyLogItem).where(DailyLogItem.user_id == user_id)
             ).all()
-            for log_dao in log_daos:
-                nutrition_id = log_dao.nutrition_id
-                db.session.delete(log_dao)
+            for daily_log_dao in daily_log_daos:
+                nutrition_id = daily_log_dao.nutrition_id
+                db.session.delete(daily_log_dao)
                 if nutrition_id:
                     nutrition_dao = db.session.get(Nutrition, nutrition_id)
                     if nutrition_dao:
                         db.session.delete(nutrition_dao)
+
+            
+
         except Exception as e:
             raise ValueError(
                 f"DailyLogItem records could not be deleted for user {user_id}: {str(e)}"

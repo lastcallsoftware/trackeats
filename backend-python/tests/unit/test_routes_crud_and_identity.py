@@ -123,7 +123,7 @@ def test_food_crud_endpoints(bare_flask_app: Flask, monkeypatch: pytest.MonkeyPa
         "name": "orange",
         "vendor": "farmers market",
         "servings": 1.0,
-        "serving_size_description": "1 medium"
+        "nutrition": {"serving_size_description": "1 medium"}
     }):
         add_resp, add_status = _as_response_status(_unwrap(routes.add_food)())
 
@@ -133,7 +133,7 @@ def test_food_crud_endpoints(bare_flask_app: Flask, monkeypatch: pytest.MonkeyPa
         "name": "new",
         "vendor": "market",
         "servings": 1.0,
-        "serving_size_description": "1 unit"
+        "nutrition": {"serving_size_description": "1 unit"}
     }):
         update_resp, update_status = _as_response_status(_unwrap(routes.update_food)())
 
@@ -210,7 +210,7 @@ def test_recipe_crud_and_ingredients_get(bare_flask_app: Flask, monkeypatch: pyt
         "name": "r1",
         "total_yield": "4 servings",
         "servings": 4.0,
-        "serving_size_description": "1 serving"
+        "nutrition": {"serving_size_description": "1 serving"}
     }):
         add_resp, add_status = _as_response_status(_unwrap(routes.add_recipe)())
 
@@ -219,7 +219,7 @@ def test_recipe_crud_and_ingredients_get(bare_flask_app: Flask, monkeypatch: pyt
         "name": "r2",
         "total_yield": "4 servings",
         "servings": 4.0,
-        "serving_size_description": "1 serving"
+        "nutrition": {"serving_size_description": "1 serving"}
     }):
         update_resp, update_status = _as_response_status(_unwrap(routes.update_recipe)())
 

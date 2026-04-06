@@ -1,5 +1,5 @@
-from sqlalchemy import select, delete, inspect
-from models import db, User, UserStatus, Food, Recipe, Ingredient, Nutrition
+from sqlalchemy import delete, inspect
+from models import db, User, UserStatus, Food, Recipe, Ingredient, Nutrition, DailyLogItem
 from schemas import FoodRequest, RecipeRequest, IngredientRequest
 #from sqlalchemy import select
 import json
@@ -56,17 +56,20 @@ class Data:
 
 
     @staticmethod
-    def load_db(user_id: int):
+    def load(user_id: int):
         """
         Load all the data in the /data subdirectory, overwriting the user_id fields 
         in the raw data so the stored data will be for this user only.
         """
-        # Delete all Food and Recipe records for this User.
+        # Delete all Food and Recipe and Daiyl Log records for this User.
         # The Recipe deletion code also deletes the associated Ingrdient records,
         # and the child Nutrition records of the Foods and Recipes are deleted 
         # automatically by SQLAlchemy as a result of the record setup.
+        DailyLogItem.delete_all_for_user(user_id)
         Recipe.delete_all_for_user(user_id)
         Food.delete_all_for_user(user_id)
+
+        db.session.flush()
 
         # Now add all the data
         keylists: dict[str, dict[int,int]] = {}
@@ -79,9 +82,9 @@ class Data:
     def purge_data(user_id: int, for_user_id: int|None):
         """
         Delete all previous data
-        TODO: Delete data per user
         """
         logging.debug("DELETING ALL DATA")
+        db.session.execute(delete(DailyLogItem))
         db.session.execute(delete(Ingredient))
         db.session.execute(delete(Recipe))
         db.session.execute(delete(Food))
@@ -147,42 +150,7 @@ class Data:
         with open("./data/foods.json") as f:
             foods: list[dict[str,Any]] = json.load(f)
             for food in foods:
-                nutrition: dict[str, Any] = food.get("nutrition", {})
-                food_request = FoodRequest.model_validate(
-                    {
-                        "id": food.get("id"),
-                        "group": food.get("group"),
-                        "name": food.get("name"),
-                        "vendor": food.get("vendor"),
-                        "servings": food.get("servings"),
-                        "subtype": food.get("subtype"),
-                        "description": food.get("description"),
-                        "size_description": food.get("size_description"),
-                        "size_oz": food.get("size_oz"),
-                        "size_g": food.get("size_g"),
-                        "price": food.get("price"),
-                        "price_date": food.get("price_date"),
-                        "shelf_life": food.get("shelf_life"),
-                        "serving_size_description": nutrition.get("serving_size_description"),
-                        "serving_size_oz": nutrition.get("serving_size_oz"),
-                        "serving_size_g": nutrition.get("serving_size_g"),
-                        "calories": nutrition.get("calories", 0),
-                        "total_fat_g": nutrition.get("total_fat_g"),
-                        "saturated_fat_g": nutrition.get("saturated_fat_g"),
-                        "trans_fat_g": nutrition.get("trans_fat_g"),
-                        "cholesterol_mg": nutrition.get("cholesterol_mg"),
-                        "sodium_mg": nutrition.get("sodium_mg"),
-                        "total_carbs_g": nutrition.get("total_carbs_g"),
-                        "fiber_g": nutrition.get("fiber_g"),
-                        "total_sugar_g": nutrition.get("total_sugar_g"),
-                        "added_sugar_g": nutrition.get("added_sugar_g"),
-                        "protein_g": nutrition.get("protein_g"),
-                        "vitamin_d_mcg": nutrition.get("vitamin_d_mcg"),
-                        "calcium_mg": nutrition.get("calcium_mg"),
-                        "iron_mg": nutrition.get("iron_mg"),
-                        "potassium_mg": nutrition.get("potassium_mg"),
-                    }
-                )
+                food_request = FoodRequest.model_validate(food)
                 Food.add(user_id, food_request, keylists)
         logging.info("Food records imported")
 
@@ -196,36 +164,7 @@ class Data:
         with open("./data/recipes.json") as f:
             recipes: list[dict[str,Any]] = json.load(f)
             for recipe in recipes:
-                nutrition: dict[str, Any] = recipe.get("nutrition", {})
-                recipe_request = RecipeRequest.model_validate(
-                    {
-                        "id": recipe.get("id"),
-                        "cuisine": recipe.get("cuisine"),
-                        "name": recipe.get("name"),
-                        "total_yield": recipe.get("total_yield"),
-                        "servings": recipe.get("servings"),
-                        "serving_size_description": nutrition.get("serving_size_description"),
-                        "serving_size_oz": nutrition.get("serving_size_oz"),
-                        "serving_size_g": nutrition.get("serving_size_g"),
-                        "calories": nutrition.get("calories", 0),
-                        "total_fat_g": nutrition.get("total_fat_g"),
-                        "saturated_fat_g": nutrition.get("saturated_fat_g"),
-                        "trans_fat_g": nutrition.get("trans_fat_g"),
-                        "cholesterol_mg": nutrition.get("cholesterol_mg"),
-                        "sodium_mg": nutrition.get("sodium_mg"),
-                        "total_carbs_g": nutrition.get("total_carbs_g"),
-                        "fiber_g": nutrition.get("fiber_g"),
-                        "total_sugar_g": nutrition.get("total_sugar_g"),
-                        "added_sugar_g": nutrition.get("added_sugar_g"),
-                        "protein_g": nutrition.get("protein_g"),
-                        "vitamin_d_mcg": nutrition.get("vitamin_d_mcg"),
-                        "calcium_mg": nutrition.get("calcium_mg"),
-                        "iron_mg": nutrition.get("iron_mg"),
-                        "potassium_mg": nutrition.get("potassium_mg"),
-                        "price": recipe.get("price"),
-                        "ingredients": [],
-                    }
-                )
+                recipe_request = RecipeRequest.model_validate(recipe)
                 Recipe.add_from_schema(user_id, recipe_request, keylists)
         logging.info("Recipe records imported")
 
@@ -254,6 +193,21 @@ class Data:
         logging.info("Ingredient records imported")
 
 
+    @staticmethod
+    def import_daily_logs(user_id: int):
+        """
+        Import DailyLogItem records from JSON
+        """
+        logging.info("Importing Daily Log records...")
+        from schemas import DailyLogItemRequest
+        with open("./data/daily_logs.json") as f:
+            logs: list[dict[str, Any]] = json.load(f)
+            for log in logs:
+                log_request = DailyLogItemRequest.model_validate(log)
+                DailyLogItem.add_from_schema(user_id, log_request)
+        logging.info("Daily Log records imported")
+
+
     ###################
     # EXPORT DATA
     ###################
@@ -268,11 +222,13 @@ class Data:
             return obj.json()
         elif isinstance(obj, Food):
             return obj.json()
+        elif isinstance(obj, DailyLogItem):
+            return obj.json()
         raise TypeError(f"Object of type {obj.__class__.__name__} is not JSON serializable")
 
 
     @staticmethod
-    def export_db(user_id: int|None = None):
+    def export(user_id: int|None = None):
         """
         Save selected data to JSON files.
         """
@@ -281,12 +237,13 @@ class Data:
         Data.export_foods(user_id)
         Data.export_ingredients(user_id)
         Data.export_recipes(user_id)
+        Data.export_daily_logs(user_id)
 
 
     @staticmethod
     def export_foods(user_id: int):
         logging.info("Exporting Food records...")
-        foods = db.session.scalars(select(Food)).all()
+        foods = Food.get_all_for_user(user_id)
         os.makedirs("./data", exist_ok=True)
         with open(file="./data/foods.json", mode="w") as f:
             json.dump(obj=foods, fp=f, indent=4, default=Data.serialize_data)
@@ -296,7 +253,7 @@ class Data:
     @staticmethod
     def export_ingredients(user_id: int):
         logging.info("Exporting Ingredient records...")
-        ingredients = db.session.scalars(select(Ingredient)).all()
+        ingredients = Ingredient.get_all_for_user(user_id)
         os.makedirs("./data", exist_ok=True)
         with open(file="./data/ingredients.json", mode="w") as f:
             json.dump(obj=ingredients, fp=f, indent=4, default=Data.serialize_data)
@@ -306,8 +263,18 @@ class Data:
     @staticmethod
     def export_recipes(user_id: int):
         logging.info("Exporting Recipe records...")
-        recipes = db.session.scalars(select(Recipe)).all()
+        recipes = Recipe.get_all_for_user(user_id)
         os.makedirs("./data", exist_ok=True)
         with open(file="./data/recipes.json", mode="w") as f:
             json.dump(obj=recipes, fp=f, indent=4, default=Data.serialize_data)
         logging.info("Recipe records exported")
+
+
+    @staticmethod
+    def export_daily_logs(user_id: int):
+        logging.info("Exporting Daily Log records...")
+        daily_logs = DailyLogItem.get_all_for_user(user_id)
+        os.makedirs("./data", exist_ok=True)
+        with open(file="./data/daily_logs.json", mode="w") as f:
+            json.dump(obj=daily_logs, fp=f, indent=4, default=Data.serialize_data)
+        logging.info("Daily Log records exported")        

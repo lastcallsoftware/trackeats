@@ -5,7 +5,7 @@ from typing import Any
 import pytest
 
 import models
-from schemas import FoodRequest
+from schemas import FoodRequest, NutritionRequest
 
 
 class _SessionStub:
@@ -52,24 +52,26 @@ def _food_request(food_id: int | None = None) -> FoodRequest:
         price=4.99,
         price_date="2026-04-01",
         shelf_life="7 days",
-        serving_size_description="1 orange",
-        serving_size_oz=4.0,
-        serving_size_g=113,
-        calories=62,
-        total_fat_g=0.2,
-        saturated_fat_g=0.0,
-        trans_fat_g=0.0,
-        cholesterol_mg=0,
-        sodium_mg=1,
-        total_carbs_g=15,
-        fiber_g=3,
-        total_sugar_g=12,
-        added_sugar_g=0,
-        protein_g=1,
-        vitamin_d_mcg=0,
-        calcium_mg=52,
-        iron_mg=0.1,
-        potassium_mg=237,
+        nutrition=NutritionRequest(
+            serving_size_description="1 orange",
+            serving_size_oz=4.0,
+            serving_size_g=113,
+            calories=62,
+            total_fat_g=0.2,
+            saturated_fat_g=0.0,
+            trans_fat_g=0.0,
+            cholesterol_mg=0,
+            sodium_mg=1,
+            total_carbs_g=15,
+            fiber_g=3,
+            total_sugar_g=12,
+            added_sugar_g=0,
+            protein_g=1,
+            vitamin_d_mcg=0,
+            calcium_mg=52,
+            iron_mg=0.1,
+            potassium_mg=237,
+        ),
     )
 
 
