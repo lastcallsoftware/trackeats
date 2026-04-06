@@ -4,7 +4,7 @@ import { useTheme } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { IFood, IRecipe, IIngredient, INutrition } from "../contexts/DataProvider";
 import { useData, Recipe } from "@/utils/useData";
-import { useForm, useWatch } from "react-hook-form";
+import { Controller, useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { cuisines } from "./Cuisines";
@@ -527,21 +527,30 @@ function RecipeForm() {
                     {/* ── Basic Info ── */}
                     <Grid container spacing={2} sx={{ mb: 3 }}>
                         <Grid size={{ xs: 12, sm: 3 }}>
-                            <TextField
-                                select
-                                label="Cuisine"
-                                id="cuisine"
-                                {...register("cuisine")}
-                                error={!!errors.cuisine}
-                                helperText={errors.cuisine?.message}
-                                fullWidth
-                                required
-                            >
-                                <MenuItem value="">-- select one --</MenuItem>
-                                {cuisines.filter(option => option.value !== "").map((option) => (
-                                    <MenuItem key={option.value} value={option.value}>{option.label}</MenuItem>
-                                ))}
-                            </TextField>
+                            <Controller
+                                name="cuisine"
+                                control={control}
+                                render={({ field }) => (
+                                    <TextField
+                                        select
+                                        label="Cuisine"
+                                        id="cuisine"
+                                        value={field.value ?? ""}
+                                        onChange={field.onChange}
+                                        onBlur={field.onBlur}
+                                        inputRef={field.ref}
+                                        error={!!errors.cuisine}
+                                        helperText={errors.cuisine?.message}
+                                        fullWidth
+                                        required
+                                    >
+                                        <MenuItem value="">-- select one --</MenuItem>
+                                        {cuisines.filter(option => option.value !== "").map((option) => (
+                                            <MenuItem key={option.value} value={option.value}>{option.label}</MenuItem>
+                                        ))}
+                                    </TextField>
+                                )}
+                            />
                         </Grid>
                         <Grid size={{ xs: 12, sm: 5 }}>
                             <TextField

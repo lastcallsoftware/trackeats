@@ -4,7 +4,7 @@ import { IFood } from "../contexts/DataProvider";
 import { foodGroups } from "./FoodGroups";
 import TitleCard from "./TitleCard";
 import { useData, Food } from "@/utils/useData";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -77,6 +77,7 @@ function FoodForm() {
         register,
         handleSubmit,
         reset,
+        control,
         formState: { errors },
     } = useForm<FoodFormInput, unknown, FoodFormValues>({
         mode: "onBlur",
@@ -130,20 +131,29 @@ function FoodForm() {
             <form onSubmit={handleSubmit(onSubmit)} autoComplete="off" noValidate>
                 <Grid container spacing={2}>
                     <Grid size={{ xs: 12, sm: 6 }}>
-                        <TextField
-                            select
-                            label="Food Group"
-                            id="food-group"
-                            {...register("group")}
-                            error={!!errors.group}
-                            helperText={errors.group?.message}
-                            fullWidth
-                            required
-                        >
-                            {foodGroups.map(option => (
-                                <MenuItem key={option.value} value={option.value}>{option.label}</MenuItem>
-                            ))}
-                        </TextField>
+                        <Controller
+                            name="group"
+                            control={control}
+                            render={({ field }) => (
+                                <TextField
+                                    select
+                                    label="Food Group"
+                                    id="food-group"
+                                    value={field.value ?? ""}
+                                    onChange={field.onChange}
+                                    onBlur={field.onBlur}
+                                    inputRef={field.ref}
+                                    error={!!errors.group}
+                                    helperText={errors.group?.message}
+                                    fullWidth
+                                    required
+                                >
+                                    {foodGroups.map(option => (
+                                        <MenuItem key={option.value} value={option.value}>{option.label}</MenuItem>
+                                    ))}
+                                </TextField>
+                            )}
+                        />
                     </Grid>
                     <Grid size={{ xs: 12 }}>
                         <TextField
