@@ -268,11 +268,15 @@ const columns = [
                 cell: info => formatPrice(
                     info.row.original.nutrition.calories == 0
                         ? 0
-                        : info.row.original.price * 100 / info.row.original.servings / info.row.original.nutrition.calories
+                        : info.row.original.price * 100 / info.row.original.nutrition.calories
                 ),
                 sortingFn: (rowA, rowB) => {
-                    const val1 = rowA.original.price / rowA.original.servings / rowA.original.nutrition.calories;
-                    const val2 = rowB.original.price / rowB.original.servings / rowB.original.nutrition.calories;
+                    const val1 = rowA.original.nutrition.calories === 0
+                        ? 0
+                        : rowA.original.price * 100 / rowA.original.nutrition.calories;
+                    const val2 = rowB.original.nutrition.calories === 0
+                        ? 0
+                        : rowB.original.price * 100 / rowB.original.nutrition.calories;
                     return val1 < val2 ? -1 : (val1 > val2 ? 1 : 0);
                 },
                 size: 80
