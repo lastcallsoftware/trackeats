@@ -1,2 +1,2 @@
 #!/bin/bash
-scp paul@trackeats.com:*.json ~/dev/trackeats/backend/data/
+scp paul@trackeats.com:~/trackeats/data/*.json ~/dev/trackeats/backend-python/data/
