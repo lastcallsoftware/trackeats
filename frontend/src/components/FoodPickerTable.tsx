@@ -482,6 +482,7 @@ const FoodPickerTable: React.FC<FoodPickerTableProps> = ({ setSelectedRowId, sel
                                             p: '4px 8px',
                                             textAlign: "center",
                                             whiteSpace: "normal",
+                                            color: row.original.id === selectedRowId ? theme.palette.common.white : 'inherit',
                                         })}
                                     >
                                         <TruncatedCell>

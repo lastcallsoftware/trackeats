@@ -145,6 +145,7 @@ const IngredientsTable: React.FC<IngredientsTableProps> = ({ data, setSelectedRo
                                             whiteSpace: 'nowrap',
                                             overflow: 'hidden',
                                             textOverflow: 'ellipsis',
+                                            color: isSelected ? theme.palette.common.white : 'inherit',
                                         })}
                                     >
                                         {flexRender(cell.column.columnDef.cell, cell.getContext())}

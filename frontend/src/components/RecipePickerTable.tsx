@@ -295,7 +295,7 @@ const RecipePickerTable: React.FC<RecipePickerTableProps> = ({ setSelectedRowId,
 
     // Sort recipes by cuisine, then by name (both alphabetically)
     const filteredRecipes = useMemo(() => {
-        let arr = excludeRecipeId !== undefined ? recipes.filter(r => r.id !== excludeRecipeId) : recipes;
+        const arr = excludeRecipeId !== undefined ? recipes.filter(r => r.id !== excludeRecipeId) : recipes;
         return [...arr].sort((a, b) => {
             const cuisineA = (a.cuisine || "").toLowerCase();
             const cuisineB = (b.cuisine || "").toLowerCase();
@@ -479,6 +479,7 @@ const RecipePickerTable: React.FC<RecipePickerTableProps> = ({ setSelectedRowId,
                                             p: '4px 8px',
                                             textAlign: "center",
                                             whiteSpace: "normal",
+                                            color: row.original.id === selectedRowId ? theme.palette.common.white : 'inherit',
                                         })}
                                     >
                                         <TruncatedCell>
