@@ -10,19 +10,20 @@ from schemas import IngredientRequest, NutritionRequest, RecipeRequest
 class _NutritionAccumulator:
     def __init__(self) -> None:
         self.reset_called = False
-        self.sum_calls: list[tuple[object, float]] = []
+        self.sum_calls: list[tuple[object, float, float]] = []
 
     def reset(self) -> None:
         self.reset_called = True
 
-    def sum(self, nutrition: object, servings: float) -> None:
-        self.sum_calls.append((nutrition, servings))
+    def sum(self, nutrition: object, servings: float, modifier: float = 1.0) -> None:
+        self.sum_calls.append((nutrition, servings, modifier))
 
 
 class _RecipeNutritionStub:
-    def sum(self, nutrition: object, servings: float) -> None:
+    def sum(self, nutrition: object, servings: float, modifier: float = 1.0) -> None:
         _ = nutrition
         _ = servings
+        _ = modifier
 
 
 class _IngredientRow:
@@ -62,7 +63,7 @@ def test_recipe_recalculate_sums_food_and_recipe_ingredients(
         _IngredientRow(row_id=2, food_id=None, recipe_id=20, servings=2.0),
     ]
     food_dao = SimpleNamespace(nutrition_id=101, price=0)
-    recipe_ingredient_dao = SimpleNamespace(nutrition_id=202, price=0)
+    recipe_ingredient_dao = SimpleNamespace(nutrition_id=202, price=0, servings=4.0)
     ingredient_food_nutrition = object()
     ingredient_recipe_nutrition = object()
 
@@ -107,8 +108,8 @@ def test_recipe_recalculate_sums_food_and_recipe_ingredients(
     assert result is recipe_dao
     assert recipe_nutrition_dao.reset_called is True
     assert recipe_nutrition_dao.sum_calls == [
-        (ingredient_food_nutrition, 1.5),
-        (ingredient_recipe_nutrition, 2.0),
+        (ingredient_food_nutrition, 1.5, 1.0),
+        (ingredient_recipe_nutrition, 2.0, 0.25),
     ]
 
 

@@ -843,7 +843,11 @@ class Food(db.Model):
 
     @staticmethod
     def get_all_for_user(user_id: int) -> list[Food]:
-        food_daos = db.session.scalars(db.select(Food).where(Food.user_id == user_id).order_by("group", "name", "subtype")).all()
+        food_daos = db.session.scalars(
+            db.select(Food)
+            .where(Food.user_id == user_id)
+            .order_by(Food.group, Food.name, Food.subtype)
+        ).all()
         return list(food_daos)
 
 
@@ -1038,7 +1042,11 @@ class Recipe(db.Model):
 
     @staticmethod
     def get_all_for_user(user_id: int) -> list[Recipe]:
-        recipe_daos = db.session.scalars(db.select(Recipe).where(Recipe.user_id == user_id)).all()
+        recipe_daos = db.session.scalars(
+            db.select(Recipe)
+            .where(Recipe.user_id == user_id)
+            .order_by(Recipe.cuisine, Recipe.name)
+        ).all()
         return list(recipe_daos)
 
 
@@ -1294,8 +1302,13 @@ class Recipe(db.Model):
                 if not ingredient_nutrition_dao:
                     raise ValueError(f"Nutrition record {ingredient_nutrition_id} not found")
 
-                # Add its nutrition data to the total
-                recipe_nutrition_dao.sum(ingredient_nutrition_dao, ingredient_dao.servings)
+                # Add its nutrition data to the total. Recipe ingredients store
+                # whole-recipe nutrition, so scale by 1 / child servings first.
+                if recipe_ingredient_dao:
+                    modifier = 1 / recipe_ingredient_dao.servings if recipe_ingredient_dao.servings else 0
+                    recipe_nutrition_dao.sum(ingredient_nutrition_dao, ingredient_dao.servings, modifier)
+                else:
+                    recipe_nutrition_dao.sum(ingredient_nutrition_dao, ingredient_dao.servings)
 
                 # Add its price total
                 if food_ingredient_dao and food_ingredient_dao.price:
