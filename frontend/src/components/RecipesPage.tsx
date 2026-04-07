@@ -11,7 +11,7 @@ import DialogContentText from '@mui/material/DialogContentText';
 import DialogActions from '@mui/material/DialogActions';
 import { useData } from "@/utils/useData";
 import RecipesTable from "./RecipesTable";
-import NutritionLabel from "./NutritionLabel";
+import { NutritionLabel } from "./NutritionLabel";
 import MuiPagination from "@mui/material/Pagination";
 import DataPageLayout from './DataPageLayout';
 
