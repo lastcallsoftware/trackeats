@@ -279,6 +279,15 @@ function pricePerServingVal(row: DisplayRow): number | null {
     return roundToCents(price / servings);
 }
 
+function pricePer100CalVal(row: DisplayRow): number | null {
+    const price = priceVal(row);
+    const calories = nutVal(row, 'calories');
+    if (typeof price !== 'number' || typeof calories !== 'number' || calories <= 0) {
+        return null;
+    }
+    return roundToCents(price / calories * 100);
+}
+
 const columns = [
     columnHelper.group({
         id: "general_info",
@@ -472,6 +481,15 @@ const columns = [
                 },
                 size: 95,
             }),
+            columnHelper.accessor(row => pricePer100CalVal(row), {
+                id: 'price_per_100_cal',
+                header: () => <span>Price / 100 cal</span>,
+                cell: info => {
+                    const value = info.getValue();
+                    return typeof value === 'number' ? value.toFixed(2) : '—';
+                },
+                size: 95,
+            }),
         ]
     }),
     columnHelper.accessor(row => row.item?.notes ?? null, {
@@ -590,6 +608,38 @@ const DailyLogTable: React.FC<DailyLogTableProps> = ({
             return changed ? next : prev;
         });
     }, [displayRows, selectedDateKey, selectedItemId, viewMode]);
+
+    // Auto-expand today's date row when it is in the visible range and has items.
+    useEffect(() => {
+        if (viewMode === 'day') return;
+
+        const todayIso = toISODate(new Date());
+        const todayRowKey = `date-${todayIso}`;
+
+        // findExpansionPath returns the list of *parent* row keys needed to reach
+        // the target row. We also include the target row itself so its items show.
+        const path = findExpansionPath(
+            displayRows,
+            row => row.rowKey === todayRowKey && (row.subRows?.length ?? 0) > 0,
+        );
+
+        if (path === null) return; // today not in range, or today has no items
+
+        const keysToExpand = [...path, todayRowKey];
+
+        setExpanded(prev => {
+            if (prev === true) return prev;
+            const next = { ...prev };
+            let changed = false;
+            for (const key of keysToExpand) {
+                if (!next[key]) {
+                    next[key] = true;
+                    changed = true;
+                }
+            }
+            return changed ? next : prev;
+        });
+    }, [displayRows, viewMode]);
 
     // eslint-disable-next-line react-hooks/incompatible-library
     const table = useReactTable({

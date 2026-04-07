@@ -166,7 +166,7 @@ export const DEFAULT_DAILYLOG_COLUMNS_PREFERENCES: TableColumnsPreferences = {
 	columnVisibility: {
 		"id": false,
 		"label": MANDATORY_COLUMN_VISIBILITY,
-		"servings": false,
+		"servings": true,
 		"nutrition_id": false,
 		"nutrition_serving_size_description": true,
 		"nutrition_serving_size_oz": false,
@@ -188,7 +188,8 @@ export const DEFAULT_DAILYLOG_COLUMNS_PREFERENCES: TableColumnsPreferences = {
 		"nutrition_potassium_mg": false,
 		"price": true,
 		"price_per_serving": true,
-		"notes": true,
+		"price_per_100_cal": true,
+		"notes": false,
 	},
 }
 
