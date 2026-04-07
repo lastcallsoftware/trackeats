@@ -83,7 +83,32 @@ export const NutritionLabel: React.FC<{ nutrition: INutrition | null, dvDivisor?
   );
 };
 
-
 type LabelRowProps = {
+  label: string;
+  value: number;
+  unit: string;
+  dv?: number | null;
+  indent?: boolean;
+  dvDivisor?: number;
+};
 
-export default NutritionLabel;
+const LabelRow: React.FC<LabelRowProps> = ({ label, value, unit, dv, indent, dvDivisor }) => {
+  // Compute %DV if dv is a positive number and not null/undefined/0
+  let percent: string | null = null;
+  const divisor = dvDivisor && dvDivisor > 0 ? dvDivisor : 1;
+  if (dv && dv > 0) {
+    percent = Math.round((value / (dv * divisor)) * 100) + "%";
+  }
+  const rounded = Math.round(value);
+  return (
+    <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", pl: indent ? 2 : 0, fontSize: 15, fontWeight: indent ? 400 : 700, mb: 0.2 }}>
+      <span>
+        <span style={{ fontWeight: "inherit" }}>{label} </span>
+        <span style={{ fontWeight: 400 }}>{rounded}{unit}</span>
+      </span>
+      <span style={{ fontWeight: 700, minWidth: 36, textAlign: "right" }}>{percent ?? ""}</span>
+    </Box>
+  );
+};
+
+
