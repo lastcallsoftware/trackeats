@@ -58,7 +58,7 @@ function AboutPage() {
                     <ListItem sx={{ display: 'list-item', py: 0.25 }}>Spring Boot</ListItem>
                     <ListItem sx={{ display: 'list-item', py: 0.25 }}>Hibernate</ListItem>
                 </List>
-                <Typography sx={{ mb: 1 }}>Add to that the various techs and services used in the design and deployment process (DevOps and DevSecOps):</Typography>
+                <Typography sx={{ mb: 1 }}>Add to that the various techs and services used to deploy, secure and maintain the app (DevOps and DevSecOps):</Typography>
                 <List sx={{ listStyleType: 'disc', pl: 3.5, mb: 2 }}>
                     <ListItem sx={{ display: 'list-item', py: 0.25 }}>Docker - for "containerizing" the app</ListItem>
                     <ListItem sx={{ display: 'list-item', py: 0.25 }}>Amazon Web Services (AWS) - for provisioning the server on which the app runs</ListItem>
