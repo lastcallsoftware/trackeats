@@ -1,5 +1,4 @@
 import { 
-    ColumnFiltersState,
     VisibilityState,
     createColumnHelper, 
     flexRender, 
@@ -33,7 +32,10 @@ import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import Paper from '@mui/material/Paper';
 import Box from '@mui/material/Box';
-import FilterWidget from './FilterWidget';
+import TextField from '@mui/material/TextField';
+import InputAdornment from '@mui/material/InputAdornment';
+import IconButton from '@mui/material/IconButton';
+import ClearIcon from '@mui/icons-material/Clear';
 
 
 // Define the table's columns
@@ -53,13 +55,11 @@ const columns = [
                 header: () => <span>Cuisine</span>,
                 cell: info => getCuisineLabel(info.getValue()),
                 size: 150,
-                meta: { filterVariant: "text" }
             }),
             columnHelper.accessor("name", {
                 header: () => <span>Name</span>,
                 cell: info => info.getValue(),
                 size: 150,
-                meta: { filterVariant: "text" }
             }),
             columnHelper.accessor("total_yield", {
                 header: () => <span>Yield</span>,
@@ -296,7 +296,7 @@ interface IRecipesTableProps {
 const RecipesTable: React.FC<IRecipesTableProps> = ({setSelectedRowId, pagination, setPagination, setFilteredCount}) => {
     const navigate = useNavigate()
     const [sorting, setSorting] = React.useState<SortingState>([])
-    const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
+    const [globalFilter, setGlobalFilter] = React.useState("");
     const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({})
     const [preferencesReady, setPreferencesReady] = React.useState(false)
     const preferencesLoadedRef = useRef(false)
@@ -344,6 +344,17 @@ const RecipesTable: React.FC<IRecipesTableProps> = ({setSelectedRowId, paginatio
         }
     }, [])
 
+    // Global filter function for recipes
+    const recipesGlobalFilter = (row: Row<IRecipe>, _columnId: string, filterValue: string): boolean => {
+        if (!filterValue) return true;
+        const q = filterValue.toLowerCase();
+        const recipe = row.original;
+        return (
+            (recipe.name ?? "").toLowerCase().includes(q) ||
+            (getCuisineLabel(recipe.cuisine ?? "") ?? "").toLowerCase().includes(q)
+        );
+    };
+
     // Define the table's properties.
     // eslint-disable-next-line react-hooks/incompatible-library
     const table = useReactTable({
@@ -353,10 +364,11 @@ const RecipesTable: React.FC<IRecipesTableProps> = ({setSelectedRowId, paginatio
         getSortedRowModel: getSortedRowModel(),
         getFilteredRowModel: getFilteredRowModel(),
         getPaginationRowModel: getPaginationRowModel(),
+        globalFilterFn: recipesGlobalFilter,
         autoResetPageIndex: false,
         enableMultiRowSelection: false,
         onSortingChange: setSorting,
-        onColumnFiltersChange: setColumnFilters,
+        onGlobalFilterChange: setGlobalFilter,
         onColumnVisibilityChange: (updater) => {
             setColumnVisibility(prev => {
                 const rawNext = typeof updater === 'function' ? updater(prev) : updater;
@@ -370,8 +382,7 @@ const RecipesTable: React.FC<IRecipesTableProps> = ({setSelectedRowId, paginatio
                 return next;
             });
         },
-        filterFns: {},
-        state: { sorting, columnFilters, columnVisibility }
+        state: { sorting, columnVisibility, globalFilter },
     })
 
     // Pagination state for the table
@@ -389,7 +400,7 @@ const RecipesTable: React.FC<IRecipesTableProps> = ({setSelectedRowId, paginatio
 
     useEffect(() => {
         setFilteredCount(table.getFilteredRowModel().rows.length)
-    }, [table, columnFilters, setFilteredCount])
+    }, [table, globalFilter, setFilteredCount])
 
     const handleClick = (row: Row<IRecipe>) => {
         row.toggleSelected()
@@ -408,14 +419,7 @@ const RecipesTable: React.FC<IRecipesTableProps> = ({setSelectedRowId, paginatio
         navigate(editUrl);
     }
 
-    const updateFilter = (id: string, value: string) => {
-        setColumnFilters((prev) => {
-            const updatedFilters = prev.filter((f) => f.id !== id);
-            if (value)
-                updatedFilters.push({ id, value });
-            return updatedFilters;
-        });
-    };
+
 
     return (
         <Box
@@ -426,8 +430,30 @@ const RecipesTable: React.FC<IRecipesTableProps> = ({setSelectedRowId, paginatio
                 height: 680,
             }}
         >
-            {/* Column visibility picker toolbar */}
-            <Box sx={{ display: 'flex', justifyContent: 'flex-end', px: 1, py: 0.75 }}>
+            {/* Toolbar: search box + column visibility picker */}
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, px: 1, py: 0.75 }}>
+                <TextField
+                    variant="outlined"
+                    size="small"
+                    fullWidth
+                    placeholder="Filter by name, cuisine, description…"
+                    value={globalFilter}
+                    onChange={e => { setGlobalFilter(e.target.value); table.setPageIndex(0); }}
+                    InputProps={{
+                        endAdornment: globalFilter ? (
+                            <InputAdornment position="end">
+                                <IconButton
+                                    aria-label="Clear filter"
+                                    onClick={() => { setGlobalFilter(""); table.setPageIndex(0); }}
+                                    edge="end"
+                                    size="small"
+                                >
+                                    <ClearIcon fontSize="small" />
+                                </IconButton>
+                            </InputAdornment>
+                        ) : null,
+                    }}
+                />
                 <ColumnVisibilityPicker table={table} storageKey={columnsPreferencesKey} />
             </Box>
 
@@ -490,11 +516,6 @@ const RecipesTable: React.FC<IRecipesTableProps> = ({setSelectedRowId, paginatio
                                                         {({asc: '🔼', desc: '🔽'} as Record<string, string>)[header.column.getIsSorted() as string] ?? null}
                                                     </Box>
                                                 </Box>
-                                                {header.column.getCanFilter() && header.column.columnDef.meta?.filterVariant === "text" ? (
-                                                    <Box sx={{ mt: 0.5, width: '100%' }} onClick={e => e.stopPropagation()}>
-                                                        <FilterWidget column={header.column} updateFilterFunction={updateFilter} />
-                                                    </Box>
-                                                ) : null}
                                             </Box>
                                         </TableCell>
                                     )

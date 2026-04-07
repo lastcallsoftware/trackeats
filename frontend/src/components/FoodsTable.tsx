@@ -1,5 +1,4 @@
 import {
-    ColumnFiltersState,
     VisibilityState,
     createColumnHelper, 
     flexRender,
@@ -23,7 +22,6 @@ import {
     toVisibilityState,
 } from "@/utils/constants";
 import { getFoodGroupLabel } from './FoodGroups';
-import FilterWidget from './FilterWidget';
 //import TruncatedCellWithTooltip from './TruncatedCellWithTooltip';
 import TruncatedCell from './TruncatedCell';
 import ColumnVisibilityPicker from './ColumnVisibilityPicker';
@@ -35,6 +33,10 @@ import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import Paper from '@mui/material/Paper';
 import Box from '@mui/material/Box';
+import TextField from '@mui/material/TextField';
+import InputAdornment from '@mui/material/InputAdornment';
+import IconButton from '@mui/material/IconButton';
+import ClearIcon from '@mui/icons-material/Clear';
 
 
 // Define the table's columns
@@ -54,31 +56,26 @@ const foodColumns = [
                 header: () => <span>Group</span>,
                 cell: info => getFoodGroupLabel(info.getValue()),
                 size: 85,
-                meta: { filterVariant: "text" }
             }),
             columnHelper.accessor("vendor", {
                 header: () => <span>Vendor</span>,
                 cell: info => info.getValue(),
                 size: 150,
-                meta: { filterVariant: "text" }
             }),
             columnHelper.accessor("name", {
                 header: () => <span>Name</span>,
                 cell: info => info.getValue(),
                 size: 150,
-                meta: { filterVariant: "text" }
             }),
             columnHelper.accessor("subtype", {
                 header: () => <span>Subtype</span>,
                 cell: info => info.getValue(),
                 size: 100,
-                meta: { filterVariant: "text" }
             }),
             columnHelper.accessor("description", {
                 header: () => <span>Description</span>,
                 cell: info => info.getValue(),
                 size: 200,
-                meta: { filterVariant: "text" }
             }),
             columnHelper.accessor("size_description", {
                 header: () => <span>Size Desc</span>,
@@ -283,7 +280,7 @@ interface FoodsTableProps {
 const FoodsTable: React.FC<FoodsTableProps> = ({setSelectedRowId, pagination, setPagination, setFilteredCount, isRecipesForm = false}) => {
     const navigate = useNavigate()
     const [sorting, setSorting] = React.useState<SortingState>([])
-    const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
+    const [globalFilter, setGlobalFilter] = React.useState("");
     const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({})
     const [preferencesReady, setPreferencesReady] = React.useState(false)
     const preferencesLoadedRef = useRef(false)
@@ -331,6 +328,19 @@ const FoodsTable: React.FC<FoodsTableProps> = ({setSelectedRowId, pagination, se
         }
     }, [])
 
+    // Global filter function for foods
+    const foodsGlobalFilter = (row: Row<IFood>, _columnId: string, filterValue: string): boolean => {
+        if (!filterValue) return true;
+        const q = filterValue.toLowerCase();
+        const food = row.original;
+        return (
+            (food.name ?? "").toLowerCase().includes(q) ||
+            (food.vendor ?? "").toLowerCase().includes(q) ||
+            (food.subtype ?? "").toLowerCase().includes(q) ||
+            (food.description ?? "").toLowerCase().includes(q)
+        );
+    };
+
     // Define the table's properties.
     // eslint-disable-next-line react-hooks/incompatible-library
     const table = useReactTable({
@@ -340,10 +350,11 @@ const FoodsTable: React.FC<FoodsTableProps> = ({setSelectedRowId, pagination, se
         getSortedRowModel: getSortedRowModel(),
         getFilteredRowModel: getFilteredRowModel(),
         getPaginationRowModel: getPaginationRowModel(),
+        globalFilterFn: foodsGlobalFilter,
         autoResetPageIndex: false,
         enableMultiRowSelection: false,
         onSortingChange: setSorting,
-        onColumnFiltersChange: setColumnFilters,
+        onGlobalFilterChange: setGlobalFilter,
         onPaginationChange: setPagination,
         onColumnVisibilityChange: (updater) => {
             setColumnVisibility(prev => {
@@ -358,8 +369,7 @@ const FoodsTable: React.FC<FoodsTableProps> = ({setSelectedRowId, pagination, se
                 return next;
             });
         },
-        filterFns: {},
-        state: { sorting, columnFilters, pagination, columnVisibility },
+        state: { sorting, columnVisibility, globalFilter, pagination },
         initialState: {
             pagination: {
                 pageSize: 10
@@ -378,7 +388,7 @@ const FoodsTable: React.FC<FoodsTableProps> = ({setSelectedRowId, pagination, se
 
     useEffect(() => {
         setFilteredCount(table.getFilteredRowModel().rows.length)
-    }, [table, columnFilters, setFilteredCount])
+    }, [table, globalFilter, setFilteredCount])
 
     const handleClick = (row: Row<IFood>) => {
         row.toggleSelected()
@@ -397,14 +407,7 @@ const FoodsTable: React.FC<FoodsTableProps> = ({setSelectedRowId, pagination, se
         navigate(editUrl);
     }
 
-    const updateFilter = (id: string, value: string) => {
-        setColumnFilters((prev) => {
-            const updatedFilters = prev.filter((f) => f.id !== id);
-            if (value)
-                updatedFilters.push({ id, value });
-            return updatedFilters;
-        });
-    };
+
     
     return (
         <Box
@@ -412,11 +415,33 @@ const FoodsTable: React.FC<FoodsTableProps> = ({setSelectedRowId, pagination, se
                 visibility: preferencesReady ? 'visible' : 'hidden',
                 display: 'flex',
                 flexDirection: 'column',
-                height: 680,
+                height: 695,
             }}
         >
-            {/* Column visibility picker toolbar */}
-            <Box sx={{ display: 'flex', justifyContent: 'flex-end', px: 1, py: 0.75 }}>
+            {/* Toolbar: search box + column visibility picker */}
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, px: 1, py: 0.75 }}>
+                <TextField
+                    variant="outlined"
+                    size="small"
+                    fullWidth
+                    placeholder="Filter by name, vendor, subtype, description…"
+                    value={globalFilter}
+                    onChange={e => { setGlobalFilter(e.target.value); table.setPageIndex(0); }}
+                    InputProps={{
+                        endAdornment: globalFilter ? (
+                            <InputAdornment position="end">
+                                <IconButton
+                                    aria-label="Clear filter"
+                                    onClick={() => { setGlobalFilter(""); table.setPageIndex(0); }}
+                                    edge="end"
+                                    size="small"
+                                >
+                                    <ClearIcon fontSize="small" />
+                                </IconButton>
+                            </InputAdornment>
+                        ) : null,
+                    }}
+                />
                 <ColumnVisibilityPicker table={table} storageKey={columnsPreferencesKey} />
             </Box>
 
@@ -478,11 +503,6 @@ const FoodsTable: React.FC<FoodsTableProps> = ({setSelectedRowId, pagination, se
                                                         {{asc: '🔼', desc: '🔽'}[header.column.getIsSorted() as string] ?? null}
                                                     </Box>
                                                 </Box>
-                                                {header.column.getCanFilter() && header.column.columnDef.meta?.filterVariant === "text" ? (
-                                                    <Box sx={{ mt: 0.5, width: '100%' }} onClick={e => e.stopPropagation()}>
-                                                        <FilterWidget column={header.column} updateFilterFunction={updateFilter} />
-                                                    </Box>
-                                                ) : null}
                                             </Box>
                                         </TableCell>
                                     )

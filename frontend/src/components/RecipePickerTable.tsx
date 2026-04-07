@@ -33,6 +33,10 @@ import TableRow from "@mui/material/TableRow";
 import Paper from "@mui/material/Paper";
 import Box from "@mui/material/Box";
 import MuiPagination from "@mui/material/Pagination";
+import TextField from "@mui/material/TextField";
+import InputAdornment from "@mui/material/InputAdornment";
+import IconButton from "@mui/material/IconButton";
+import ClearIcon from "@mui/icons-material/Clear";
 
 const PAGE_SIZE = 10;
 
@@ -381,24 +385,28 @@ const RecipePickerTable: React.FC<RecipePickerTableProps> = ({ setSelectedRowId,
         <Box sx={{ display: "flex", flexDirection: "column" }}>
             {/* Toolbar: search box + column visibility picker */}
             <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1 }}>
-                <Box sx={{ position: "relative", flex: 1 }}>
-                    <input
-                        type="text"
-                        style={{ width: "100%", boxSizing: "border-box", paddingRight: globalFilter ? 28 : 8, borderRadius: 4, border: "1px solid #ccc", fontSize: 16, height: 36 }}
-                        placeholder="Filter by name or cuisine…"
-                        value={globalFilter}
-                        onChange={e => { setGlobalFilter(e.target.value); table.setPageIndex(0); }}
-                    />
-                    {globalFilter ? (
-                        <button
-                            onClick={() => { setGlobalFilter(""); table.setPageIndex(0); }}
-                            style={{ position: "absolute", right: 2, top: 10, background: "none", border: "none", cursor: "pointer", fontSize: 16, padding: 0, lineHeight: 1 }}
-                            aria-label="Clear filter"
-                        >
-                            ❌
-                        </button>
-                    ) : null}
-                </Box>
+                <TextField
+                    variant="outlined"
+                    size="small"
+                    fullWidth
+                    placeholder="Filter by name or cuisine…"
+                    value={globalFilter}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => { setGlobalFilter(e.target.value); table.setPageIndex(0); }}
+                    InputProps={{
+                        endAdornment: globalFilter ? (
+                            <InputAdornment position="end">
+                                <IconButton
+                                    aria-label="Clear filter"
+                                    onClick={() => { setGlobalFilter(""); table.setPageIndex(0); }}
+                                    edge="end"
+                                    size="small"
+                                >
+                                    <ClearIcon fontSize="small" />
+                                </IconButton>
+                            </InputAdornment>
+                        ) : null,
+                    }}
+                />
                 <ColumnVisibilityPicker table={table} storageKey={columnsPreferencesKey} />
             </Box>
 
