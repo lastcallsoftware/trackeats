@@ -15,7 +15,7 @@ import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
 import DataPageLayout from './DataPageLayout';
 import DailyLogTable from './DailyLogTable';
-import NutritionLabel from './NutritionLabel';
+import { NutritionLabel } from './NutritionLabel';
 import { useData, DailyLogItem } from '@/utils/useData';
 import { IDailyLogItem, INutrition } from '../contexts/DataProvider';
 
@@ -231,6 +231,20 @@ function DailyLogPage() {
         : selectedDateKey
             ? `Total for ${selectedDateKey}`
             : selectedWeekLabel;
+
+    // For week selection in month view, count days with calories > 0
+    let weekDvDivisor: number | undefined = undefined;
+    if (viewMode === 'month' && activeSelectedWeekKey && !selectedItem && !selectedDateKey) {
+        const weekDates = Array.from({ length: 7 }, (_, i) => {
+            const d = new Date(fromISODate(activeSelectedWeekKey));
+            d.setDate(d.getDate() + i);
+            return toISODate(d);
+        });
+        weekDvDivisor = weekDates.filter(date => {
+            return dailyLogItems.some(i => i.date === date && i.nutrition && (i.nutrition.calories ?? 0) > 0);
+        }).length;
+        if (weekDvDivisor === 0) weekDvDivisor = undefined;
+    }
 
     // -- Add form --
     const [showAddForm, setShowAddForm] = useState(false);
@@ -496,7 +510,7 @@ function DailyLogPage() {
                             {panelLabel}
                         </Typography>
                     )}
-                    <NutritionLabel nutrition={panelNutrition} />
+                    <NutritionLabel nutrition={panelNutrition} dvDivisor={weekDvDivisor} />
                 </>
             }
         />
