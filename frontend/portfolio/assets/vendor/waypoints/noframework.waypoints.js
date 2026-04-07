@@ -316,11 +316,9 @@ https://github.com/imakewebthings/waypoints/blob/master/licenses.txt
 
   /* Private */
   Context.prototype.innerHeight = function() {
-    /*eslint-disable eqeqeq */
     if (this.element == this.element.window) {
       return Waypoint.viewportHeight()
     }
-    /*eslint-enable eqeqeq */
     return this.adapter.innerHeight()
   }
 
@@ -332,11 +330,9 @@ https://github.com/imakewebthings/waypoints/blob/master/licenses.txt
 
   /* Private */
   Context.prototype.innerWidth = function() {
-    /*eslint-disable eqeqeq */
     if (this.element == this.element.window) {
       return Waypoint.viewportWidth()
     }
-    /*eslint-enable eqeqeq */
     return this.adapter.innerWidth()
   }
 
@@ -357,9 +353,7 @@ https://github.com/imakewebthings/waypoints/blob/master/licenses.txt
   /* Public */
   /* http://imakewebthings.com/waypoints/api/context-refresh */
   Context.prototype.refresh = function() {
-    /*eslint-disable eqeqeq */
     var isWindow = this.element == this.element.window
-    /*eslint-enable eqeqeq */
     var contextOffset = isWindow ? undefined : this.adapter.offset()
     var triggeredGroups = {}
     var axes

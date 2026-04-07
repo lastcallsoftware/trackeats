@@ -31,7 +31,6 @@
       // make it clear we only want one instance per element
       // can be removed later when multiple key/instances are fine to be used
       if (!instanceMap.has(key) && instanceMap.size !== 0) {
-        // eslint-disable-next-line no-console
         console.error(`Bootstrap doesn't allow more than one instance per element. Bound instance: ${Array.from(instanceMap.keys())[0]}.`);
         return;
       }
@@ -208,7 +207,7 @@
    * @see https://www.harrytheo.com/blog/2021/02/restart-a-css-animation-with-javascript/#restarting-a-css-animation
    */
   const reflow = element => {
-    element.offsetHeight; // eslint-disable-line no-unused-expressions
+    element.offsetHeight;
   };
   const getjQuery = () => {
     if (window.jQuery && !document.body.hasAttribute('data-bs-no-jquery')) {
@@ -1824,7 +1823,7 @@
         });
       });
     };
-  } // eslint-disable-next-line import/no-unused-modules
+  }
 
 
   const applyStyles$1 = {
@@ -2139,7 +2138,7 @@
     }
 
     state.elements.arrow = arrowElement;
-  } // eslint-disable-next-line import/no-unused-modules
+  }
 
 
   const arrow$1 = {
@@ -2306,7 +2305,7 @@
     state.attributes.popper = Object.assign({}, state.attributes.popper, {
       'data-popper-placement': state.placement
     });
-  } // eslint-disable-next-line import/no-unused-modules
+  }
 
 
   const computeStyles$1 = {
@@ -2353,7 +2352,7 @@
         window.removeEventListener('resize', instance.update, passive);
       }
     };
-  } // eslint-disable-next-line import/no-unused-modules
+  }
 
 
   const eventListeners = {
@@ -2858,7 +2857,7 @@
       state.placement = firstFittingPlacement;
       state.reset = true;
     }
-  } // eslint-disable-next-line import/no-unused-modules
+  }
 
 
   const flip$1 = {
@@ -2920,7 +2919,7 @@
       'data-popper-reference-hidden': isReferenceHidden,
       'data-popper-escaped': hasPopperEscaped
     });
-  } // eslint-disable-next-line import/no-unused-modules
+  }
 
 
   const hide$1 = {
@@ -2972,7 +2971,7 @@
     }
 
     state.modifiersData[name] = data;
-  } // eslint-disable-next-line import/no-unused-modules
+  }
 
 
   const offset$1 = {
@@ -2995,7 +2994,7 @@
       element: state.rects.popper,
       placement: state.placement
     });
-  } // eslint-disable-next-line import/no-unused-modules
+  }
 
 
   const popperOffsets$1 = {
@@ -3130,7 +3129,7 @@
     }
 
     state.modifiersData[name] = data;
-  } // eslint-disable-next-line import/no-unused-modules
+  }
 
 
   const preventOverflow$1 = {
@@ -3467,17 +3466,17 @@
       return instance;
     };
   }
-  var createPopper$2 = /*#__PURE__*/popperGenerator(); // eslint-disable-next-line import/no-unused-modules
+  var createPopper$2 = /*#__PURE__*/popperGenerator();
 
   var defaultModifiers$1 = [eventListeners, popperOffsets$1, computeStyles$1, applyStyles$1];
   var createPopper$1 = /*#__PURE__*/popperGenerator({
     defaultModifiers: defaultModifiers$1
-  }); // eslint-disable-next-line import/no-unused-modules
+  });
 
   var defaultModifiers = [eventListeners, popperOffsets$1, computeStyles$1, applyStyles$1, offset$1, flip$1, preventOverflow$1, arrow$1, hide$1];
   var createPopper = /*#__PURE__*/popperGenerator({
     defaultModifiers: defaultModifiers
-  }); // eslint-disable-next-line import/no-unused-modules
+  });
 
   const Popper = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty({
     __proto__: null,
@@ -4800,7 +4799,6 @@
    *
    * Shout-out to Angular https://github.com/angular/angular/blob/15.2.8/packages/core/src/sanitization/url_sanitizer.ts#L38
    */
-  // eslint-disable-next-line unicorn/better-regex
   const SAFE_URL_PATTERN = /^(?!javascript:)(?:[a-z0-9+.-]+:|[^&:/?#]*(?:[/?#]|$))/i;
   const allowedAttribute = (attribute, allowedAttributeList) => {
     const attributeName = attribute.nodeName.toLowerCase();
