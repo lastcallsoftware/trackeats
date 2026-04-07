@@ -296,7 +296,10 @@ interface IRecipesTableProps {
 const RecipesTable: React.FC<IRecipesTableProps> = ({setSelectedRowId, pagination, setPagination, setFilteredCount}) => {
     const navigate = useNavigate()
     const [sorting, setSorting] = React.useState<SortingState>([])
-    const [globalFilter, setGlobalFilter] = React.useState("");
+    const SESSION_KEY = 'RecipesTable.globalFilter';
+    const [globalFilter, setGlobalFilter] = React.useState(() => {
+        return sessionStorage.getItem(SESSION_KEY) || "";
+    });
     const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({})
     const [preferencesReady, setPreferencesReady] = React.useState(false)
     const preferencesLoadedRef = useRef(false)
@@ -343,6 +346,11 @@ const RecipesTable: React.FC<IRecipesTableProps> = ({setSelectedRowId, paginatio
             }
         }
     }, [])
+
+    // Persist globalFilter to sessionStorage
+    React.useEffect(() => {
+        sessionStorage.setItem(SESSION_KEY, globalFilter);
+    }, [globalFilter]);
 
     // Global filter function for recipes
     const recipesGlobalFilter = (row: Row<IRecipe>, _columnId: string, filterValue: string): boolean => {
