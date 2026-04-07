@@ -1,10 +1,12 @@
-import { useState, useRef, useEffect, isValidElement } from 'react';
+import { useState, useRef, isValidElement } from 'react';
 import { Table } from '@tanstack/react-table';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Checkbox from '@mui/material/Checkbox';
+import ClickAwayListener from '@mui/material/ClickAwayListener';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import Paper from '@mui/material/Paper';
+import Popper from '@mui/material/Popper';
 import Typography from '@mui/material/Typography';
 import Divider from '@mui/material/Divider';
 import ViewColumnIcon from '@mui/icons-material/ViewColumn';
@@ -26,18 +28,8 @@ interface ColumnVisibilityPickerProps<T> {
 function ColumnVisibilityPicker<T = any>(props: ColumnVisibilityPickerProps<T>) {
     const { table, labelOverrides = {} } = props;
     const [open, setOpen] = useState(false);
-    const containerRef = useRef<HTMLDivElement>(null);
-
-    // Close on outside click
-    useEffect(() => {
-        const handler = (e: MouseEvent) => {
-            if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
-                setOpen(false);
-            }
-        };
-        if (open) document.addEventListener('mousedown', handler);
-        return () => document.removeEventListener('mousedown', handler);
-    }, [open]);
+    const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
+    const anchorRef = useRef<HTMLButtonElement | null>(null);
 
     const handleToggle = (columnId: string, checked: boolean) => {
         table.getColumn(columnId)?.toggleVisibility(checked);
@@ -120,8 +112,9 @@ function ColumnVisibilityPicker<T = any>(props: ColumnVisibilityPickerProps<T>) 
     const someVisible = visibleCount > 0 && visibleCount < leafColumns.length;
 
     return (
-        <Box ref={containerRef} sx={{ position: 'relative', display: 'inline-block' }}>
+        <Box sx={{ display: 'inline-block' }}>
             <Button
+                ref={(el) => { anchorRef.current = el; setAnchorEl(el); }}
                 variant="outlined"
                 size="small"
                 startIcon={<ViewColumnIcon />}
@@ -150,104 +143,114 @@ function ColumnVisibilityPicker<T = any>(props: ColumnVisibilityPickerProps<T>) 
                 </Typography>
             </Button>
 
-            {open && (
-                <Paper
-                    elevation={8}
-                    sx={{
-                        position: 'absolute',
-                        top: '100%',
-                        right: 0,
-                        mt: 0.5,
-                        zIndex: 1300,
-                        minWidth: 220,
-                        maxWidth: 300,
-                        maxHeight: 480,
-                        overflowY: 'auto',
-                        p: 1.5,
-                        border: '1px solid',
-                        borderColor: 'divider',
-                        borderRadius: 2,
+            <Popper
+                open={open}
+                anchorEl={anchorEl}
+                placement="bottom-end"
+                sx={{ zIndex: 1300 }}
+            >
+                <ClickAwayListener
+                    onClickAway={(event) => {
+                        if (anchorEl?.contains(event.target as Node)) {
+                            return;
+                        }
+                        setOpen(false);
                     }}
                 >
-                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
-                        <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: 0.5 }}>
-                            Visible Columns
-                        </Typography>
-                        <Button
-                            size="small"
-                            sx={{ fontSize: 11, textTransform: 'none', py: 0, minWidth: 0 }}
-                            onClick={handleResetToDefaults}
-                        >
-                            Reset to defaults
-                        </Button>
-                    </Box>
-                    <Divider sx={{ mb: 1 }} />
-
-                    <FormControlLabel
-                        control={
-                            <Checkbox
+                    <Paper
+                        elevation={8}
+                        sx={{
+                            mt: 0.5,
+                            minWidth: 220,
+                            maxWidth: 300,
+                            maxHeight: 480,
+                            overflowY: 'auto',
+                            p: 1.5,
+                            border: '1px solid',
+                            borderColor: 'divider',
+                            borderRadius: 2,
+                        }}
+                    >
+                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+                            <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                                Visible Columns
+                            </Typography>
+                            <Button
                                 size="small"
-                                checked={allVisible}
-                                indeterminate={someVisible}
-                                onChange={e => handleToggleAll(e.target.checked)}
-                                sx={{ py: 0.25, px: 0.75 }}
-                            />
-                        }
-                        label={<Typography variant="body2" sx={{ fontSize: 13, fontWeight: 600 }}>Toggle All</Typography>}
-                        sx={{ display: 'flex', m: 0, width: '100%', mb: 0.5 }}
-                    />
-                    <Divider sx={{ mb: 1 }} />
-
-                    {grouped.map(({ groupLabel, columns }) => (
-                        <Box key={groupLabel} sx={{ mb: 1 }}>
-                            {grouped.length > 1 && (
-                                <Typography
-                                    variant="caption"
-                                    sx={{
-                                        display: 'block',
-                                        fontWeight: 600,
-                                        color: 'primary.main',
-                                        mb: 0.25,
-                                        pl: 0.5,
-                                        textTransform: 'uppercase',
-                                        letterSpacing: 0.4,
-                                        fontSize: 10,
-                                    }}
-                                >
-                                    {typeof groupLabel === 'string' ? groupLabel : String(groupLabel)}
-                                </Typography>
-                            )}
-                            {columns.map(col => {
-                                const rawHeader = col.columnDef.header;
-                                const label =
-                                    labelOverrides[col.id] ??
-                                    extractHeaderLabel(rawHeader, col.id);
-                                const isMandatory = mandatoryColumnIds.has(col.id);
-                                return (
-                                    <FormControlLabel
-                                        key={col.id}
-                                        control={
-                                            <Checkbox
-                                                size="small"
-                                                checked={isMandatory ? true : col.getIsVisible()}
-                                                disabled={isMandatory}
-                                                onChange={e => handleToggle(col.id, e.target.checked)}
-                                                sx={{ py: 0.25, px: 0.75 }}
-                                            />
-                                        }
-                                        label={
-                                            <Typography variant="body2" sx={{ fontSize: 13 }}>
-                                                {label}
-                                            </Typography>
-                                        }
-                                        sx={{ display: 'flex', m: 0, width: '100%' }}
-                                    />
-                                );
-                            })}
+                                sx={{ fontSize: 11, textTransform: 'none', py: 0, minWidth: 0 }}
+                                onClick={handleResetToDefaults}
+                            >
+                                Reset to defaults
+                            </Button>
                         </Box>
-                    ))}
-                </Paper>
-            )}
+                        <Divider sx={{ mb: 1 }} />
+
+                        <FormControlLabel
+                            control={
+                                <Checkbox
+                                    size="small"
+                                    checked={allVisible}
+                                    indeterminate={someVisible}
+                                    onChange={e => handleToggleAll(e.target.checked)}
+                                    sx={{ py: 0.25, px: 0.75 }}
+                                />
+                            }
+                            label={<Typography variant="body2" sx={{ fontSize: 13, fontWeight: 600 }}>Toggle All</Typography>}
+                            sx={{ display: 'flex', m: 0, width: '100%', mb: 0.5 }}
+                        />
+                        <Divider sx={{ mb: 1 }} />
+
+                        {grouped.map(({ groupLabel, columns }) => (
+                            <Box key={groupLabel} sx={{ mb: 1 }}>
+                                {grouped.length > 1 && (
+                                    <Typography
+                                        variant="caption"
+                                        sx={{
+                                            display: 'block',
+                                            fontWeight: 600,
+                                            color: 'primary.main',
+                                            mb: 0.25,
+                                            pl: 0.5,
+                                            textTransform: 'uppercase',
+                                            letterSpacing: 0.4,
+                                            fontSize: 10,
+                                        }}
+                                    >
+                                        {typeof groupLabel === 'string' ? groupLabel : String(groupLabel)}
+                                    </Typography>
+                                )}
+                                {columns.map(col => {
+                                    const rawHeader = col.columnDef.header;
+                                    const label =
+                                        labelOverrides[col.id] ??
+                                        extractHeaderLabel(rawHeader, col.id);
+                                    const isMandatory = mandatoryColumnIds.has(col.id);
+                                    return (
+                                        <FormControlLabel
+                                            key={col.id}
+                                            control={
+                                                <Checkbox
+                                                    size="small"
+                                                    checked={isMandatory ? true : col.getIsVisible()}
+                                                    disabled={isMandatory}
+                                                    onChange={e => handleToggle(col.id, e.target.checked)}
+                                                    sx={{ py: 0.25, px: 0.75 }}
+                                                />
+                                            }
+                                            label={
+                                                <Typography variant="body2" sx={{ fontSize: 13 }}>
+                                                    {label}
+                                                </Typography>
+                                            }
+                                            sx={{ display: 'flex', m: 0, width: '100%' }}
+                                        />
+                                    );
+                                })}
+                            </Box>
+                        ))}
+                    </Paper>
+                </ClickAwayListener>
+            </Popper>
         </Box>
     );
 }
