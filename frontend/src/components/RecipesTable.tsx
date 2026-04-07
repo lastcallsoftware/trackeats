@@ -436,7 +436,7 @@ const RecipesTable: React.FC<IRecipesTableProps> = ({setSelectedRowId, paginatio
                     variant="outlined"
                     size="small"
                     fullWidth
-                    placeholder="Filter by name, cuisine, description…"
+                    placeholder="Filter by name, cuisine…"
                     value={globalFilter}
                     onChange={e => { setGlobalFilter(e.target.value); table.setPageIndex(0); }}
                     InputProps={{
