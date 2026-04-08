@@ -13,18 +13,24 @@ import TextField from '@mui/material/TextField';
 import MenuItem from '@mui/material/MenuItem';
 import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
+import InputAdornment from '@mui/material/InputAdornment';
 import DataPageLayout from './DataPageLayout';
 import DailyLogTable from './DailyLogTable';
 import { NutritionLabel } from './NutritionLabel';
 import { useData, DailyLogItem } from '@/utils/useData';
 import { IDailyLogItem, INutrition } from '../contexts/DataProvider';
+import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
+import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 
 // ---------------------------------------------------------------------------
 // Date helpers
 // ---------------------------------------------------------------------------
 
 function toISODate(d: Date): string {
-    return d.toISOString().slice(0, 10);
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
 }
 
 function startOfWeek(d: Date): Date {
@@ -62,6 +68,107 @@ function formatDateRange(start: Date, end: Date, mode: ViewMode): string {
 }
 
 type ViewMode = 'day' | 'week' | 'month';
+
+type DailyLogEntryFormProps = {
+    title: string;
+    entry: IDailyLogItem;
+    recipes: { id?: number; name: string }[];
+    onEntryChange: (updater: (prev: IDailyLogItem) => IDailyLogItem) => void;
+    onIncrementServings: () => void;
+    onDecrementServings: () => void;
+    onSave: () => void;
+    onCancel: () => void;
+};
+
+function DailyLogEntryForm({
+    title,
+    entry,
+    recipes,
+    onEntryChange,
+    onIncrementServings,
+    onDecrementServings,
+    onSave,
+    onCancel,
+}: DailyLogEntryFormProps) {
+    return (
+        <Paper variant="outlined" sx={{ mt: 0, p: 2, mb: 2 }}>
+            <Typography variant="subtitle2" sx={{ mb: 1.5, fontWeight: 600 }}>{title}</Typography>
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems="flex-end">
+                <TextField
+                    label="Date"
+                    type="date"
+                    size="small"
+                    value={entry.date}
+                    onChange={e => onEntryChange(prev => ({ ...prev, date: e.target.value }))}
+                    InputLabelProps={{ shrink: true }}
+                    sx={{ minWidth: 150 }}
+                />
+                <TextField
+                    select
+                    label="Recipe"
+                    size="small"
+                    value={entry.recipe_id || ''}
+                    onChange={e => onEntryChange(prev => ({ ...prev, recipe_id: Number(e.target.value) }))}
+                    sx={{ minWidth: 220 }}
+                >
+                    {[...recipes].sort((a, b) => a.name.localeCompare(b.name)).map(r => (
+                        <MenuItem key={r.id} value={r.id}>{r.name}</MenuItem>
+                    ))}
+                </TextField>
+                <TextField
+                    label="Servings"
+                    type="number"
+                    size="small"
+                    value={entry.servings}
+                    onChange={e => onEntryChange(prev => ({ ...prev, servings: Number(e.target.value) }))}
+                    inputProps={{ min: 0.25, step: 0.25 }}
+                    sx={{ width: 100 }}
+                    slotProps={{
+                        input: {
+                            endAdornment: (
+                                <InputAdornment position="end">
+                                    <Stack spacing={0} sx={{ ml: 0.25 }}>
+                                        <IconButton
+                                            type="button"
+                                            size="small"
+                                            aria-label="Increase servings"
+                                            onClick={onIncrementServings}
+                                            sx={{ p: 0.25 }}
+                                        >
+                                            <KeyboardArrowUpIcon fontSize="small" />
+                                        </IconButton>
+                                        <IconButton
+                                            type="button"
+                                            size="small"
+                                            aria-label="Decrease servings"
+                                            onClick={onDecrementServings}
+                                            sx={{ p: 0.25 }}
+                                        >
+                                            <KeyboardArrowDownIcon fontSize="small" />
+                                        </IconButton>
+                                    </Stack>
+                                </InputAdornment>
+                            ),
+                        },
+                    }}
+                />
+                <TextField
+                    label="Notes"
+                    size="small"
+                    value={entry.notes ?? ''}
+                    onChange={e => onEntryChange(prev => ({ ...prev, notes: e.target.value }))}
+                    sx={{ flex: 1, minWidth: 160 }}
+                />
+                <Button variant="contained" color="primary" onClick={onSave} disabled={!entry.recipe_id || !entry.servings}>
+                    Save
+                </Button>
+                <Button variant="outlined" onClick={onCancel}>
+                    Cancel
+                </Button>
+            </Stack>
+        </Paper>
+    );
+}
 
 // ---------------------------------------------------------------------------
 // DailyLogPage
@@ -113,23 +220,34 @@ function DailyLogPage() {
     const [selectedWeekKey, setSelectedWeekKey] = useState<string | null>(null);
     const [selectedDateKey, setSelectedDateKey] = useState<string | null>(null);
     const [selectedItemId, setSelectedItemId] = useState<number | null>(null);
+    const [selectedSummaryKey, setSelectedSummaryKey] = useState<string | null>(null);
 
     const handleSelectDate = (dateKey: string | null) => {
         setSelectedWeekKey(null);
         setSelectedDateKey(dateKey);
         setSelectedItemId(null);
+        setSelectedSummaryKey(null);
     };
 
     const handleSelectWeek = (weekKey: string | null) => {
         setSelectedWeekKey(weekKey);
         setSelectedDateKey(null);
         setSelectedItemId(null);
+        setSelectedSummaryKey(null);
     };
 
     const handleSelectItem = (itemId: number | null) => {
         setSelectedWeekKey(null);
         setSelectedItemId(itemId);
         setSelectedDateKey(null);
+        setSelectedSummaryKey(null);
+    };
+
+    const handleSelectSummary = (summaryKey: string | null) => {
+        setSelectedWeekKey(null);
+        setSelectedDateKey(null);
+        setSelectedItemId(null);
+        setSelectedSummaryKey(summaryKey);
     };
 
     // Derive what to show in the nutrition panel:
@@ -176,6 +294,8 @@ function DailyLogPage() {
     }, [selectedDateKey, dailyLogItems]);
 
     const activeSelectedWeekKey = viewMode === 'month' ? selectedWeekKey : null;
+    const weekSummaryKey = `summary-week-${toISODate(rangeStart)}-${toISODate(rangeEnd)}`;
+    const monthSummaryKey = `summary-month-${toISODate(rangeStart)}-${toISODate(rangeEnd)}`;
 
     const selectedWeekNutrition: INutrition | null = useMemo(() => {
         if (!activeSelectedWeekKey) return null;
@@ -225,12 +345,63 @@ function DailyLogPage() {
         return `Total for ${formatDateRange(clampedStart, clampedEnd, 'week')}`;
     }, [activeSelectedWeekKey, rangeEnd, rangeStart]);
 
-    const panelNutrition = selectedItem?.nutrition ?? selectedDateNutrition ?? selectedWeekNutrition;
+    const selectedSummaryNutrition: INutrition | null = useMemo(() => {
+        const isWeekSummary = viewMode === 'week' && selectedSummaryKey === weekSummaryKey;
+        const isMonthSummary = viewMode === 'month' && selectedSummaryKey === monthSummaryKey;
+        if (!isWeekSummary && !isMonthSummary) return null;
+
+        const summaryItems = dailyLogItems.filter(i => i.nutrition);
+        if (summaryItems.length === 0) return null;
+
+        return summaryItems.reduce((acc, i) => {
+            const n = i.nutrition!;
+            return {
+                serving_size_description: '',
+                serving_size_oz: acc.serving_size_oz + (n.serving_size_oz ?? 0),
+                serving_size_g: acc.serving_size_g + (n.serving_size_g ?? 0),
+                calories: acc.calories + (n.calories ?? 0),
+                total_fat_g: acc.total_fat_g + (n.total_fat_g ?? 0),
+                saturated_fat_g: acc.saturated_fat_g + (n.saturated_fat_g ?? 0),
+                trans_fat_g: acc.trans_fat_g + (n.trans_fat_g ?? 0),
+                cholesterol_mg: acc.cholesterol_mg + (n.cholesterol_mg ?? 0),
+                sodium_mg: acc.sodium_mg + (n.sodium_mg ?? 0),
+                total_carbs_g: acc.total_carbs_g + (n.total_carbs_g ?? 0),
+                fiber_g: acc.fiber_g + (n.fiber_g ?? 0),
+                total_sugar_g: acc.total_sugar_g + (n.total_sugar_g ?? 0),
+                added_sugar_g: acc.added_sugar_g + (n.added_sugar_g ?? 0),
+                protein_g: acc.protein_g + (n.protein_g ?? 0),
+                vitamin_d_mcg: acc.vitamin_d_mcg + (n.vitamin_d_mcg ?? 0),
+                calcium_mg: acc.calcium_mg + (n.calcium_mg ?? 0),
+                iron_mg: acc.iron_mg + (n.iron_mg ?? 0),
+                potassium_mg: acc.potassium_mg + (n.potassium_mg ?? 0),
+            };
+        }, {
+            serving_size_description: '',
+            serving_size_oz: 0, serving_size_g: 0, calories: 0,
+            total_fat_g: 0, saturated_fat_g: 0, trans_fat_g: 0,
+            cholesterol_mg: 0, sodium_mg: 0, total_carbs_g: 0,
+            fiber_g: 0, total_sugar_g: 0, added_sugar_g: 0,
+            protein_g: 0, vitamin_d_mcg: 0, calcium_mg: 0,
+            iron_mg: 0, potassium_mg: 0,
+        } as INutrition);
+    }, [dailyLogItems, monthSummaryKey, selectedSummaryKey, viewMode, weekSummaryKey]);
+
+    const selectedSummaryLabel = useMemo(() => {
+        if (viewMode === 'week' && selectedSummaryKey === weekSummaryKey) {
+            return `Total for ${formatDateRange(rangeStart, rangeEnd, 'week')}`;
+        }
+        if (viewMode === 'month' && selectedSummaryKey === monthSummaryKey) {
+            return `Total for ${formatDateRange(rangeStart, rangeEnd, 'month')}`;
+        }
+        return null;
+    }, [monthSummaryKey, rangeEnd, rangeStart, selectedSummaryKey, viewMode, weekSummaryKey]);
+
+    const panelNutrition = selectedItem?.nutrition ?? selectedDateNutrition ?? selectedWeekNutrition ?? selectedSummaryNutrition;
     const panelLabel = selectedItem
         ? recipes.find(r => r.id === selectedItem.recipe_id)?.name ?? 'Selected Entry'
         : selectedDateKey
             ? `Total for ${selectedDateKey}`
-            : selectedWeekLabel;
+            : selectedWeekLabel ?? selectedSummaryLabel;
 
     // For week selection in month view, count days with calories > 0
     let weekDvDivisor: number | undefined = undefined;
@@ -252,6 +423,14 @@ function DailyLogPage() {
         ...new DailyLogItem(),
         date: toISODate(anchorDate),
     }));
+
+    const incrementAddServings = () => {
+        setAddForm(prev => ({ ...prev, servings: Number(prev.servings ?? 0) + 1 }));
+    };
+
+    const decrementAddServings = () => {
+        setAddForm(prev => ({ ...prev, servings: Math.max(0, Number(prev.servings ?? 0) - 1) }));
+    };
 
     const handleAdd = async () => {
         const newItem = await addDailyLogItem(addForm);
@@ -280,6 +459,14 @@ function DailyLogPage() {
     const [editForm, setEditForm] = useState<IDailyLogItem | null>(null);
     const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
+    const incrementEditServings = () => {
+        setEditForm(prev => prev ? ({ ...prev, servings: Number(prev.servings ?? 0) + 1 }) : prev);
+    };
+
+    const decrementEditServings = () => {
+        setEditForm(prev => prev ? ({ ...prev, servings: Math.max(0, Number(prev.servings ?? 0) - 1) }) : prev);
+    };
+
     const handleEditOpen = () => {
         if (!selectedItem) return;
         setEditForm({ ...selectedItem });
@@ -289,6 +476,7 @@ function DailyLogPage() {
     const handleEditSave = async () => {
         if (!editForm) return;
         await updateDailyLogItem(editForm);
+        await getDailyLogItems(toISODate(rangeStart), toISODate(rangeEnd));
         setShowEditForm(false);
         setEditForm(null);
         setSelectedItemId(null);
@@ -381,85 +569,30 @@ function DailyLogPage() {
                 <>
                     {/* ── Add form ── */}
                     {showAddForm && (
-                        <Paper variant="outlined" sx={{ mt: 0, pt: 1, px: 2, pb: 2, mb: 2 }}>
-                            <Typography variant="subtitle2" sx={{ mb: 1.5, fontWeight: 600 }}>Add Entry</Typography>
-                            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems="flex-end">
-                                <TextField
-                                    label="Date"
-                                    type="date"
-                                    size="small"
-                                    value={addForm.date}
-                                    onChange={e => setAddForm(prev => ({ ...prev, date: e.target.value }))}
-                                    InputLabelProps={{ shrink: true }}
-                                    sx={{ minWidth: 150 }}
-                                />
-                                <TextField
-                                    select
-                                    label="Recipe"
-                                    size="small"
-                                    value={addForm.recipe_id || ''}
-                                    onChange={e => setAddForm(prev => ({ ...prev, recipe_id: Number(e.target.value) }))}
-                                    sx={{ minWidth: 220 }}
-                                >
-                                    {[...recipes].sort((a, b) => a.name.localeCompare(b.name)).map(r => (
-                                        <MenuItem key={r.id} value={r.id}>{r.name}</MenuItem>
-                                    ))}
-                                </TextField>
-                                <TextField
-                                    label="Servings"
-                                    type="number"
-                                    size="small"
-                                    value={addForm.servings}
-                                    onChange={e => setAddForm(prev => ({ ...prev, servings: Number(e.target.value) }))}
-                                    inputProps={{ min: 0.25, step: 0.25 }}
-                                    sx={{ width: 100 }}
-                                />
-                                <TextField
-                                    label="Notes"
-                                    size="small"
-                                    value={addForm.notes ?? ''}
-                                    onChange={e => setAddForm(prev => ({ ...prev, notes: e.target.value }))}
-                                    sx={{ flex: 1, minWidth: 160 }}
-                                />
-                                <Button variant="contained" color="primary" onClick={handleAdd} disabled={!addForm.recipe_id || !addForm.servings}>
-                                    Save
-                                </Button>
-                                <Button variant="outlined" onClick={() => setShowAddForm(false)}>
-                                    Cancel
-                                </Button>
-                            </Stack>
-                        </Paper>
+                        <DailyLogEntryForm
+                            title="Add Entry"
+                            entry={addForm}
+                            recipes={recipes}
+                            onEntryChange={(updater) => setAddForm(prev => updater(prev))}
+                            onIncrementServings={incrementAddServings}
+                            onDecrementServings={decrementAddServings}
+                            onSave={handleAdd}
+                            onCancel={() => setShowAddForm(false)}
+                        />
                     )}
 
                     {/* ── Edit form ── */}
                     {showEditForm && editForm && (
-                        <Paper variant="outlined" sx={{ mt: 0, p: 2, mb: 2 }}>
-                            <Typography variant="subtitle2" sx={{ mb: 1.5, fontWeight: 600 }}>Edit Entry</Typography>
-                            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems="flex-end">
-                                <TextField
-                                    label="Servings"
-                                    type="number"
-                                    size="small"
-                                    value={editForm.servings}
-                                    onChange={e => setEditForm(prev => prev ? ({ ...prev, servings: Number(e.target.value) }) : prev)}
-                                    inputProps={{ min: 0.25, step: 0.25 }}
-                                    sx={{ width: 100 }}
-                                />
-                                <TextField
-                                    label="Notes"
-                                    size="small"
-                                    value={editForm.notes ?? ''}
-                                    onChange={e => setEditForm(prev => prev ? ({ ...prev, notes: e.target.value }) : prev)}
-                                    sx={{ flex: 1, minWidth: 160 }}
-                                />
-                                <Button variant="contained" color="primary" onClick={handleEditSave}>
-                                    Save
-                                </Button>
-                                <Button variant="outlined" onClick={() => setShowEditForm(false)}>
-                                    Cancel
-                                </Button>
-                            </Stack>
-                        </Paper>
+                        <DailyLogEntryForm
+                            title="Edit Entry"
+                            entry={editForm}
+                            recipes={recipes}
+                            onEntryChange={(updater) => setEditForm(prev => (prev ? updater(prev) : prev))}
+                            onIncrementServings={incrementEditServings}
+                            onDecrementServings={decrementEditServings}
+                            onSave={handleEditSave}
+                            onCancel={() => setShowEditForm(false)}
+                        />
                     )}
                 </>
             }
@@ -476,6 +609,8 @@ function DailyLogPage() {
                             setSelectedDateKey={handleSelectDate}
                             selectedItemId={selectedItemId}
                             setSelectedItemId={handleSelectItem}
+                            selectedSummaryKey={selectedSummaryKey}
+                            setSelectedSummaryKey={handleSelectSummary}
                         />
                     </Box>
                     <Dialog

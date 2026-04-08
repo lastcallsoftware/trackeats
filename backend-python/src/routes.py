@@ -1108,10 +1108,12 @@ def add_daily_log_entry():
 @jwt_required()
 def update_daily_log_entry(log_id: int):
     """
-    Update the servings and/or notes on an existing DailyLogItem entry.
+        Update the date and/or recipe and/or servings and/or notes on an existing DailyLogItem entry.
 
     Request body:
       {
+                "date":     "2026-04-02",  (optional)
+                "recipe_id": 42,            (optional)
         "servings": 1.5,
         "notes":    "optional note"   (optional)
       }

@@ -1,4 +1,4 @@
-type Shade = { light: string, medium: string, dark: string };
+type Shade = { light: string, medium: string, dark: string, darker: string };
 
 type TablePalette = {
     headerBg: string;
@@ -41,6 +41,7 @@ const theme = createTheme({
                 light: 'white',
                 medium: '#b3e5fc',
                 dark: '#81d4fa',
+                darker: '#29b6f6',
             },
             rowSelectedBg: '#03a9f4',
             rowBorder: 'black',

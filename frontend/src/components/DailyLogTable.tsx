@@ -40,7 +40,7 @@ type ViewMode = 'day' | 'week' | 'month';
 // Date rows have subRows (the items for that day); item rows do not.
 // Week rows (month view only) have subRows of date rows.
 interface DisplayRow {
-    type: 'date' | 'item' | 'week';
+    type: 'date' | 'item' | 'week' | 'summary';
     // Unique stable key for TanStack
     rowKey: string;
     // Date rows + week rows
@@ -217,7 +217,7 @@ function buildDisplayRows(
             byWeek.set(wk, list);
         }
 
-        return Array.from(byWeek.entries())
+        const weekRows = Array.from(byWeek.entries())
             .sort(([a], [b]) => a.localeCompare(b))
             .map(([sundayIso, children]) => {
                 const weekNutrition = children.reduce(
@@ -245,6 +245,48 @@ function buildDisplayRows(
                     subRows: children,
                 };
             });
+
+        const monthNutrition = weekRows.reduce(
+            (acc, wr) => addNutrition(acc, wr.nutrition),
+            zeroNutrition()
+        );
+        const monthPrice = weekRows.reduce(
+            (acc, wr) => addPrice(acc, wr.price),
+            0
+        );
+
+        const monthSummaryRow: DisplayRow = {
+            type: 'summary',
+            rowKey: `summary-month-${toISODate(rangeStart)}-${toISODate(rangeEnd)}`,
+            label: `Month Total (${formatWeekLabel(toISODate(rangeStart), toISODate(rangeEnd)).replace('Week of ', '')})`,
+            nutrition: monthNutrition,
+            price: roundToCents(monthPrice),
+            subRows: weekRows,
+        };
+
+        return [monthSummaryRow];
+    }
+
+    if (viewMode === 'week') {
+        const weekNutrition = dateRows.reduce(
+            (acc, dr) => addNutrition(acc, dr.nutrition),
+            zeroNutrition()
+        );
+        const weekPrice = dateRows.reduce(
+            (acc, dr) => addPrice(acc, dr.price),
+            0
+        );
+
+        const weekSummaryRow: DisplayRow = {
+            type: 'summary',
+            rowKey: `summary-week-${toISODate(rangeStart)}-${toISODate(rangeEnd)}`,
+            label: `Week Total (${formatWeekLabel(toISODate(rangeStart), toISODate(rangeEnd)).replace('Week of ', '')})`,
+            nutrition: weekNutrition,
+            price: roundToCents(weekPrice),
+            subRows: dateRows,
+        };
+
+        return [weekSummaryRow];
     }
 
     return dateRows;
@@ -310,7 +352,7 @@ const columns = [
                     const canExpand = row.getCanExpand();
                     return (
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5,
-                                   pl: dr.type === 'item' ? 3 : dr.type === 'date' && row.depth > 0 ? 2 : 0 }}>
+                                   pl: row.depth > 0 ? row.depth * 1.5 : 0 }}>
                             {canExpand ? (
                                 <Box
                                     component="span"
@@ -515,6 +557,8 @@ interface DailyLogTableProps {
     setSelectedDateKey: (key: string | null) => void;
     selectedItemId: number | null;
     setSelectedItemId: (id: number | null) => void;
+    selectedSummaryKey: string | null;
+    setSelectedSummaryKey: (key: string | null) => void;
 }
 
 // Declare the DailyLog table itself
@@ -523,11 +567,12 @@ const DailyLogTable: React.FC<DailyLogTableProps> = ({
     selectedWeekKey, setSelectedWeekKey,
     selectedDateKey, setSelectedDateKey,
     selectedItemId, setSelectedItemId,
+    selectedSummaryKey, setSelectedSummaryKey,
 }) => {
     const { dailyLogItems, recipes, preferences, updatePreferences } = useData();
     const [sorting, setSorting] = React.useState<SortingState>([]);
-    // Day view: expand all by default (each day is the primary unit).
-    // Week/month view: collapsed by default so the user sees the summary first.
+    // Day view: expand all by default.
+    // Week/month view: expand the root summary row by default.
     const [expanded, setExpanded] = React.useState<ExpandedState>(() => (viewMode === 'day' ? true : {}));
     const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
     const [preferencesReady, setPreferencesReady] = React.useState(false);
@@ -576,8 +621,15 @@ const DailyLogTable: React.FC<DailyLogTableProps> = ({
     }, [])
 
     useEffect(() => {
-        setExpanded(() => viewMode === 'day' ? true : {});
-    }, [viewMode]);
+        if (viewMode === 'day') {
+            setExpanded(true);
+            return;
+        }
+
+        const summaryPrefix = viewMode === 'week' ? 'summary-week-' : 'summary-month-';
+        const summaryRowKey = `${summaryPrefix}${toISODate(rangeStart)}-${toISODate(rangeEnd)}`;
+        setExpanded({ [summaryRowKey]: true });
+    }, [viewMode, rangeStart, rangeEnd]);
 
     const displayRows = useMemo(
         () => buildDisplayRows(dailyLogItems, viewMode, rangeStart, rangeEnd, recipes),
@@ -765,6 +817,7 @@ const DailyLogTable: React.FC<DailyLogTableProps> = ({
                                 const isSelected = dr.item?.id === selectedItemId;
                                 const isDateSelected = dr.type === 'date' && dr.date === selectedDateKey;
                                 const isWeekSelected = dr.type === 'week' && dr.weekKey === selectedWeekKey;
+                                const isSummarySelected = dr.type === 'summary' && dr.rowKey === selectedSummaryKey;
                                 const isChildExpanded = dr.type !== 'item' && row.getIsExpanded();
 
                                 return (
@@ -778,9 +831,22 @@ const DailyLogTable: React.FC<DailyLogTableProps> = ({
                                                 setSelectedDateKey(isDateSelected ? null : (dr.date ?? null));
                                             } else if (dr.type === 'week') {
                                                 setSelectedWeekKey(isWeekSelected ? null : (dr.weekKey ?? null));
+                                            } else if (dr.type === 'summary') {
+                                                setSelectedSummaryKey(isSummarySelected ? null : dr.rowKey);
                                             }
                                         }}
                                         sx={theme => {
+                                            if (dr.type === 'summary') return {
+                                                fontWeight: 700,
+                                                cursor: 'pointer',
+                                                height: '2.5rem',
+                                                backgroundColor: isSummarySelected
+                                                    ? `${theme.palette.table.rowSelectedBg} !important`
+                                                    : dr.rowKey.startsWith('summary-month-')
+                                                        ? theme.palette.table.rowUnselectedBg.darker
+                                                        : theme.palette.table.rowUnselectedBg.dark,
+                                                color: isSummarySelected ? theme.palette.common.white : 'inherit',
+                                            };
                                             if (dr.type === 'week') return {
                                                 fontWeight: 700,
                                                 cursor: 'pointer',
@@ -823,7 +889,7 @@ const DailyLogTable: React.FC<DailyLogTableProps> = ({
                                                     textAlign: cell.column.id === 'label' ? 'left' : 'center',
                                                     whiteSpace: 'normal',
                                                     fontWeight: isChildExpanded ? 600 : 'inherit',
-                                                    color: (isSelected || isDateSelected || isWeekSelected) ? theme.palette.common.white : 'inherit',
+                                                    color: (isSelected || isDateSelected || isWeekSelected || isSummarySelected) ? theme.palette.common.white : 'inherit',
                                                 })}
                                             >
                                                 {flexRender(cell.column.columnDef.cell, cell.getContext())}

@@ -539,10 +539,10 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
         }
     }
 
-    // Update DailyLogItem (servings and/or notes)
+    // Update DailyLogItem (date and/or servings and/or notes)
     const updateDailyLogItem = async (item: IDailyLogItem): Promise<void> => {
         try {
-            const payload = { servings: item.servings, notes: item.notes };
+            const payload = { date: item.date, recipe_id: item.recipe_id, servings: item.servings, notes: item.notes };
             const response = await axios.put<IDailyLogItem>(`/api/dailylogitem/${item.id}`, payload)
             const updatedItem = response.data
             setDailyLogItems(prev => prev.map(i => i.id === updatedItem.id ? updatedItem : i))

@@ -1528,19 +1528,52 @@ class DailyLogItem(db.Model):
     @staticmethod
     def update_from_schema(user_id: int, log_id: int, update_request: DailyLogItemUpdateRequest) -> DailyLogItem:
         """Update a DailyLogItem from a validated DailyLogItemUpdateRequest schema."""
-        return DailyLogItem.update(user_id, log_id, update_request.servings, update_request.notes)
+        return DailyLogItem.update(
+            user_id,
+            log_id,
+            update_request.servings,
+            update_request.notes,
+            update_request.date,
+            update_request.recipe_id,
+        )
 
     @staticmethod
     def update(user_id: int, log_id: int, servings: float,
-               notes: str | None = None) -> DailyLogItem:
+               notes: str | None = None,
+               date: str | None = None,
+               recipe_id: int | None = None) -> DailyLogItem:
         """
-        Update the servings and/or notes on an existing DailyLogItem entry.
+        Update the date and/or recipe and/or servings and/or notes on an existing DailyLogItem entry.
 
         Rebuilds the Nutrition snapshot in-place rather than diffing old vs
         new values -- simpler and less error-prone.
         """
         try:
             log_dao = DailyLogItem.get(user_id, log_id)
+            old_date = log_dao.date
+
+            new_date = old_date
+            if date and date.strip():
+                new_date = datetime.date.fromisoformat(date.strip())
+
+            if new_date != old_date:
+                # Close the ordinal gap on the old date.
+                siblings_on_old_date = DailyLogItem.get_by_date(user_id, old_date)
+                for sibling in siblings_on_old_date:
+                    if sibling.id != log_id and sibling.ordinal > log_dao.ordinal:
+                        sibling.ordinal -= 1
+
+                # Place this item at the end of the new date list.
+                new_ordinal = db.session.scalar(
+                    select(func.count(DailyLogItem.id))
+                    .where(DailyLogItem.user_id == user_id)
+                    .where(DailyLogItem.date == new_date)
+                ) or 0
+                log_dao.date = new_date
+                log_dao.ordinal = new_ordinal
+
+            if recipe_id is not None:
+                log_dao.recipe_id = recipe_id
 
             # Rebuild the snapshot
             recipe_dao = Recipe.get(user_id, log_dao.recipe_id)

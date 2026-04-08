@@ -427,6 +427,16 @@ function RecipeForm() {
         setIngredientServings(prev => Math.max(0, prev - 1));
     };
 
+    const incrementRecipeServings = () => {
+        const current = Number(getValues("servings") ?? 0);
+        setValue("servings", current + 1, { shouldDirty: true, shouldValidate: true });
+    };
+
+    const decrementRecipeServings = () => {
+        const current = Number(getValues("servings") ?? 0);
+        setValue("servings", Math.max(0, current - 1), { shouldDirty: true, shouldValidate: true });
+    };
+
     const totalRecipePrice = ingredients.reduce((total, ingredient) => {
         if (ingredient.food_ingredient_id) {
             const food = foods.find((item: IFood) => item.id === ingredient.food_ingredient_id);
@@ -587,6 +597,34 @@ function RecipeForm() {
                                 inputProps={{ min: 0 }}
                                 fullWidth
                                 required
+                                slotProps={{
+                                    input: {
+                                        endAdornment: (
+                                            <InputAdornment position="end">
+                                                <Stack spacing={0} sx={{ ml: 0.25 }}>
+                                                    <IconButton
+                                                        type="button"
+                                                        size="small"
+                                                        aria-label="Increase recipe servings"
+                                                        onClick={incrementRecipeServings}
+                                                        sx={{ p: 0.25 }}
+                                                    >
+                                                        <KeyboardArrowUpIcon fontSize="small" />
+                                                    </IconButton>
+                                                    <IconButton
+                                                        type="button"
+                                                        size="small"
+                                                        aria-label="Decrease recipe servings"
+                                                        onClick={decrementRecipeServings}
+                                                        sx={{ p: 0.25 }}
+                                                    >
+                                                        <KeyboardArrowDownIcon fontSize="small" />
+                                                    </IconButton>
+                                                </Stack>
+                                            </InputAdornment>
+                                        ),
+                                    },
+                                }}
                             />
                         </Grid>
                     </Grid>

@@ -259,8 +259,30 @@ class DailyLogItemRequest(BaseModel):
 
 class DailyLogItemUpdateRequest(BaseModel):
     """Validate a daily log item update request."""
+    recipe_id: int | None = None
     servings: float
+    date: str | None = None
     notes: str | None = None
+
+    @field_validator("recipe_id")
+    @classmethod
+    def validate_recipe_id(cls, v: int | None) -> int | None:
+        if v is None:
+            return v
+        if v <= 0:
+            raise ValueError("recipe_id must be greater than 0")
+        return v
+
+    @field_validator("date")
+    @classmethod
+    def validate_date(cls, v: str | None) -> str | None:
+        if v is None:
+            return v
+        try:
+            datetime.strptime(v, "%Y-%m-%d")
+        except ValueError:
+            raise ValueError("date must be in YYYY-MM-DD format")
+        return v
 
     @field_validator("servings")
     @classmethod
