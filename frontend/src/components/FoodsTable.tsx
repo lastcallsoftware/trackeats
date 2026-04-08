@@ -344,8 +344,7 @@ const FoodsTable: React.FC<FoodsTableProps> = ({setSelectedRowId, pagination, se
         return (
             (food.name ?? "").toLowerCase().includes(q) ||
             (food.vendor ?? "").toLowerCase().includes(q) ||
-            (food.subtype ?? "").toLowerCase().includes(q) ||
-            (food.description ?? "").toLowerCase().includes(q)
+            (food.subtype ?? "").toLowerCase().includes(q)
         );
     };
 
@@ -432,7 +431,7 @@ const FoodsTable: React.FC<FoodsTableProps> = ({setSelectedRowId, pagination, se
                     variant="outlined"
                     size="small"
                     fullWidth
-                    placeholder="Filter by name, vendor, subtype, description…"
+                    placeholder="Filter by name, vendor, subtype…"
                     value={globalFilter}
                     onChange={e => { setGlobalFilter(e.target.value); table.setPageIndex(0); }}
                     InputProps={{
