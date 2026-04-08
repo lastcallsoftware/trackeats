@@ -1,4 +1,5 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { useWatch } from "react-hook-form";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { IFood } from "../contexts/DataProvider";
 import { foodGroups } from "./FoodGroups";
@@ -66,6 +67,7 @@ const foodSchema = z.object({
 type FoodFormInput = z.input<typeof foodSchema>;
 type FoodFormValues = z.output<typeof foodSchema>;
 
+
 function FoodForm() {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
@@ -79,6 +81,7 @@ function FoodForm() {
         handleSubmit,
         reset,
         control,
+        setValue,
         formState: { errors },
     } = useForm<FoodFormInput, unknown, FoodFormValues>({
         mode: "onBlur",
@@ -90,7 +93,48 @@ function FoodForm() {
     useEffect(() => {
         reset((food || new Food()) as FoodFormInput);
     }, [food, reset]);
-    
+
+    // Auto-calculate size_g from size_oz and vice versa
+    // Track which field is focused: 'size_oz', 'size_g', 'serving_size_oz', 'serving_size_g', or null
+    const [focusedField, setFocusedField] = useState<null | 'size_oz' | 'size_g' | 'serving_size_oz' | 'serving_size_g'>(null);
+
+    // Use useWatch for size_oz and size_g
+    const size_oz = useWatch({ name: 'size_oz', control });
+    const size_g = useWatch({ name: 'size_g', control });
+    // Use useWatch for nutrition.serving_size_oz and nutrition.serving_size_g
+    const serving_size_oz = useWatch({ name: 'nutrition.serving_size_oz', control });
+    const serving_size_g = useWatch({ name: 'nutrition.serving_size_g', control });
+
+    // Synchronize size_oz <-> size_g
+    useEffect(() => {
+        if (focusedField === 'size_oz' && typeof size_oz === 'number' && !isNaN(size_oz)) {
+            const calcG = Math.round(size_oz * 28.3495);
+            if (size_g !== calcG) {
+                setValue('size_g', calcG, { shouldValidate: true });
+            }
+        } else if (focusedField === 'size_g' && typeof size_g === 'number' && !isNaN(size_g)) {
+            const calcOz = parseFloat((size_g / 28.3495).toFixed(2));
+            if (size_oz !== calcOz) {
+                setValue('size_oz', calcOz, { shouldValidate: true });
+            }
+        }
+    }, [size_oz, size_g, focusedField, setValue]);
+
+    // Synchronize serving_size_oz <-> serving_size_g
+    useEffect(() => {
+        if (focusedField === 'serving_size_oz' && typeof serving_size_oz === 'number' && !isNaN(serving_size_oz)) {
+            const calcG = Math.round(serving_size_oz * 28.3495);
+            if (serving_size_g !== calcG) {
+                setValue('nutrition.serving_size_g', calcG, { shouldValidate: true });
+            }
+        } else if (focusedField === 'serving_size_g' && typeof serving_size_g === 'number' && !isNaN(serving_size_g)) {
+            const calcOz = parseFloat((serving_size_g / 28.3495).toFixed(2));
+            if (serving_size_oz !== calcOz) {
+                setValue('nutrition.serving_size_oz', calcOz, { shouldValidate: true });
+            }
+        }
+    }, [serving_size_oz, serving_size_g, focusedField, setValue]);
+
     // Scroll to top on mount
     useEffect(() => {
         window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
@@ -245,6 +289,8 @@ function FoodForm() {
                             helperText={errors.size_oz?.message}
                             inputProps={{ min: 0, step: 0.01 }}
                             fullWidth
+                            onFocus={() => setFocusedField('size_oz')}
+                            onBlur={() => setFocusedField(null)}
                         />
                     </Grid>
                     <Grid size={{ xs: 6, sm: 3 }}>
@@ -257,6 +303,8 @@ function FoodForm() {
                                 helperText={errors.size_g?.message}
                                 inputProps={{ min: 0, step: 1 }}
                                 fullWidth
+                                onFocus={() => setFocusedField('size_g')}
+                                onBlur={() => setFocusedField(null)}
                             />
                     </Grid>
                     <Grid size={{ xs: 6, sm: 3 }}>
@@ -397,6 +445,8 @@ function FoodForm() {
                                     py: 0.75,
                                 },
                             }}
+                            onFocus={() => setFocusedField('serving_size_oz')}
+                            onBlur={() => setFocusedField(null)}
                         />
                         <TextField
                             label="Serving Size (g)"
@@ -413,6 +463,8 @@ function FoodForm() {
                                     py: 0.75,
                                 },
                             }}
+                            onFocus={() => setFocusedField('serving_size_g')}
+                            onBlur={() => setFocusedField(null)}
                         />
                     </Box>
 
