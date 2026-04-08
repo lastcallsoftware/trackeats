@@ -62,7 +62,7 @@ function parseFraction(s: string): number | null {
  */
 function isNiceNumber(n: number, denoms = [1, 2, 3, 4, 8]): boolean {
     for (const d of denoms) {
-        if (Math.abs(Math.round(n * d) - n * d) < 0.01) return true;
+        if (Math.abs(Math.round(n * d) - n * d) <= 0.03) return true;
     }
     return false;
 }
@@ -164,12 +164,11 @@ function formatAmount(totalTbsp: number, inputEntry: typeof ALL_UNITS[number]): 
     let currentEntry = startEntry;
     let currentAmount = totalTbsp / startEntry.tbsp;
 
+    // Promotion: original logic — walk up ladder when amount >= threshold and result is a nice fraction
     for (let i = UNITS.indexOf(startEntry); i < UNITS.length - 1; i++) {
         const nextEntry = UNITS[i + 1];
         const threshold = PROMOTE_AT[currentEntry.display] ?? Infinity;
         const amountInNext = totalTbsp / nextEntry.tbsp;
-
-        // When promoting tbsp → cup, disallow 3/8, 5/8 etc — use halves/quarters only
         const cupDenoms = currentEntry.display === "tbsp" ? [1, 2, 3, 4] : [1, 2, 3, 4, 8];
         if (currentAmount >= threshold && isNiceNumber(amountInNext, cupDenoms)) {
             currentEntry = nextEntry;
@@ -179,12 +178,37 @@ function formatAmount(totalTbsp: number, inputEntry: typeof ALL_UNITS[number]): 
         }
     }
 
-    // Pluralise cup when amount > 1
-    const display = currentAmount > 1 && currentEntry.display === "cup"
-        ? "cups"
-        : currentEntry.display;
+    // Check whether formatFraction would give an accurate representation.
+    // formatFraction uses best-fit, so we verify it round-trips within 2%.
+    const formatted = formatFraction(currentAmount);
+    const roundTrip = parseFraction(formatted) ?? 0;
+    const accurate = Math.abs(roundTrip - currentAmount) / (currentAmount || 1) < 0.02;
 
-    return `${formatFraction(currentAmount)} ${display}`;
+    if (accurate) {
+        const display = currentAmount > 1 && currentEntry.display === "cup" ? "cups" : currentEntry.display;
+        return `${formatted} ${display}`;
+    }
+
+    // Not accurate in the current unit — try descending the ladder for a nice fraction
+    const currentIdx = UNITS.indexOf(currentEntry);
+    for (let i = currentIdx - 1; i >= 0; i--) {
+        const smallerEntry = UNITS[i];
+        const amountInSmaller = totalTbsp / smallerEntry.tbsp;
+        const formattedSmaller = formatFraction(amountInSmaller);
+        const roundTripSmaller = parseFraction(formattedSmaller) ?? 0;
+        if (isNiceNumber(amountInSmaller)) {
+            const display = amountInSmaller > 1 && smallerEntry.display === "cup" ? "cups" : smallerEntry.display;
+            return `${formattedSmaller} ${display}`;
+        }
+        // Even if not a nice fraction, use a decimal in this smaller unit
+        const amountStr = amountInSmaller.toFixed(2).replace(/\.00$/, "").replace(/(\.[1-9])0$/, "$1");
+        void roundTripSmaller; // unused but kept for symmetry
+        return `${amountStr} ${smallerEntry.display}`;
+    }
+
+    // Already at the smallest unit — show decimal
+    const amountStr = currentAmount.toFixed(2).replace(/\.00$/, "").replace(/(\.[1-9])0$/, "$1");
+    return `${amountStr} ${currentEntry.display}`;
 }
 
 // ---------------------------------------------------------------------------
