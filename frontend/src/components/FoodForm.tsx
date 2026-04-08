@@ -21,20 +21,20 @@ import {
 const nutritionSchema = z.object({
     serving_size_description: z.string().max(50, "Must be 50 characters or fewer"),
     serving_size_oz: z.coerce.number().min(0, "Must be 0 or greater"),
-    serving_size_g: z.coerce.number().min(0, "Must be 0 or greater"),
-    calories: z.coerce.number().min(0, "Must be 0 or greater"),
+    serving_size_g: z.coerce.number().int("Must be an integer").min(0, "Must be 0 or greater"),
+    calories: z.coerce.number().int("Must be an integer").min(0, "Must be 0 or greater"),
     total_fat_g: z.coerce.number().min(0, "Must be 0 or greater"),
     saturated_fat_g: z.coerce.number().min(0, "Must be 0 or greater"),
     trans_fat_g: z.coerce.number().min(0, "Must be 0 or greater"),
-    cholesterol_mg: z.coerce.number().min(0, "Must be 0 or greater"),
-    sodium_mg: z.coerce.number().min(0, "Must be 0 or greater"),
-    total_carbs_g: z.coerce.number().min(0, "Must be 0 or greater"),
-    fiber_g: z.coerce.number().min(0, "Must be 0 or greater"),
-    total_sugar_g: z.coerce.number().min(0, "Must be 0 or greater"),
-    added_sugar_g: z.coerce.number().min(0, "Must be 0 or greater"),
-    protein_g: z.coerce.number().min(0, "Must be 0 or greater"),
-    vitamin_d_mcg: z.coerce.number().min(0, "Must be 0 or greater"),
-    calcium_mg: z.coerce.number().min(0, "Must be 0 or greater"),
+    cholesterol_mg: z.coerce.number().int("Must be an integer").min(0, "Must be 0 or greater"),
+    sodium_mg: z.coerce.number().int("Must be an integer").min(0, "Must be 0 or greater"),
+    total_carbs_g: z.coerce.number().int("Must be an integer").min(0, "Must be 0 or greater"),
+    fiber_g: z.coerce.number().int("Must be an integer").min(0, "Must be 0 or greater"),
+    total_sugar_g: z.coerce.number().int("Must be an integer").min(0, "Must be 0 or greater"),
+    added_sugar_g: z.coerce.number().int("Must be an integer").min(0, "Must be 0 or greater"),
+    protein_g: z.coerce.number().int("Must be an integer").min(0, "Must be 0 or greater"),
+    vitamin_d_mcg: z.coerce.number().int("Must be an integer").min(0, "Must be 0 or greater"),
+    calcium_mg: z.coerce.number().int("Must be an integer").min(0, "Must be 0 or greater"),
     iron_mg: z.coerce.number().min(0, "Must be 0 or greater"),
     potassium_mg: z.coerce.number().min(0, "Must be 0 or greater"),
 });
@@ -248,29 +248,29 @@ function FoodForm() {
                         />
                     </Grid>
                     <Grid size={{ xs: 6, sm: 3 }}>
-                        <TextField
-                            label="Size (g)"
-                            id="size_g"
-                            type="number"
-                            {...register("size_g", { valueAsNumber: true })}
-                            error={!!errors.size_g}
-                            helperText={errors.size_g?.message}
-                            inputProps={{ min: 0 }}
-                            fullWidth
-                        />
+                            <TextField
+                                label="Size (g)"
+                                id="size_g"
+                                type="number"
+                                {...register("size_g", { valueAsNumber: true })}
+                                error={!!errors.size_g}
+                                helperText={errors.size_g?.message}
+                                inputProps={{ min: 0, step: 1 }}
+                                fullWidth
+                            />
                     </Grid>
                     <Grid size={{ xs: 6, sm: 3 }}>
-                        <TextField
-                            label="Servings"
-                            id="servings"
-                            type="number"
-                            {...register("servings", { valueAsNumber: true })}
-                            error={!!errors.servings}
-                            helperText={errors.servings?.message}
-                            inputProps={{ min: 0, step: 0.01 }}
-                            fullWidth
-                            required
-                        />
+                            <TextField
+                                label="Servings"
+                                id="servings"
+                                type="number"
+                                {...register("servings", { valueAsNumber: true })}
+                                error={!!errors.servings}
+                                helperText={errors.servings?.message}
+                                inputProps={{ min: 0, step: 1 }}
+                                fullWidth
+                                required
+                            />
                     </Grid>
                     <Grid size={{ xs: 12 }}>
                         <TextField
@@ -405,7 +405,7 @@ function FoodForm() {
                             {...register("nutrition.serving_size_g", { valueAsNumber: true })}
                             error={!!errors.nutrition?.serving_size_g}
                             helperText={errors.nutrition?.serving_size_g?.message}
-                            inputProps={{ min: 0 }}
+                            inputProps={{ min: 0, step: 1 }}
                             size="small"
                             fullWidth
                             sx={{
@@ -427,7 +427,7 @@ function FoodForm() {
                             type="number"
                             {...register("nutrition.calories", { valueAsNumber: true })}
                             error={!!errors.nutrition?.calories}
-                            inputProps={{ min: 0 }}
+                            inputProps={{ min: 0, step: 1 }}
                             size="small"
                             sx={{
                                 width: 110,
@@ -457,39 +457,39 @@ function FoodForm() {
                         </Box>
                         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                             <Typography sx={{ fontWeight: 700 }}>Cholesterol (mg)</Typography>
-                            <TextField id="cholesterol_mg" type="number" {...register("nutrition.cholesterol_mg", { valueAsNumber: true })} error={!!errors.nutrition?.cholesterol_mg} inputProps={{ min: 0 }} size="small" sx={{ width: 110 }} />
+                            <TextField id="cholesterol_mg" type="number" {...register("nutrition.cholesterol_mg", { valueAsNumber: true })} error={!!errors.nutrition?.cholesterol_mg} inputProps={{ min: 0, step: 1 }} size="small" sx={{ width: 110 }} />
                         </Box>
                         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                             <Typography sx={{ fontWeight: 700 }}>Sodium (mg)</Typography>
-                            <TextField id="sodium_mg" type="number" {...register("nutrition.sodium_mg", { valueAsNumber: true })} error={!!errors.nutrition?.sodium_mg} inputProps={{ min: 0 }} size="small" sx={{ width: 110 }} />
+                            <TextField id="sodium_mg" type="number" {...register("nutrition.sodium_mg", { valueAsNumber: true })} error={!!errors.nutrition?.sodium_mg} inputProps={{ min: 0, step: 1 }} size="small" sx={{ width: 110 }} />
                         </Box>
                         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                             <Typography sx={{ fontWeight: 700 }}>Total Carbohydrate (g)</Typography>
-                            <TextField id="total_carbs_g" type="number" {...register("nutrition.total_carbs_g", { valueAsNumber: true })} error={!!errors.nutrition?.total_carbs_g} inputProps={{ min: 0, step: 0.1 }} size="small" sx={{ width: 110 }} />
+                            <TextField id="total_carbs_g" type="number" {...register("nutrition.total_carbs_g", { valueAsNumber: true })} error={!!errors.nutrition?.total_carbs_g} inputProps={{ min: 0, step: 1 }} size="small" sx={{ width: 110 }} />
                         </Box>
                         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', pl: 2 }}>
                             <Typography>Dietary Fiber (g)</Typography>
-                            <TextField id="fiber_g" type="number" {...register("nutrition.fiber_g", { valueAsNumber: true })} error={!!errors.nutrition?.fiber_g} inputProps={{ min: 0, step: 0.1 }} size="small" sx={{ width: 110 }} />
+                            <TextField id="fiber_g" type="number" {...register("nutrition.fiber_g", { valueAsNumber: true })} error={!!errors.nutrition?.fiber_g} inputProps={{ min: 0, step: 1 }} size="small" sx={{ width: 110 }} />
                         </Box>
                         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', pl: 2 }}>
                             <Typography>Total Sugars (g)</Typography>
-                            <TextField id="total_sugar_g" type="number" {...register("nutrition.total_sugar_g", { valueAsNumber: true })} error={!!errors.nutrition?.total_sugar_g} inputProps={{ min: 0, step: 0.1 }} size="small" sx={{ width: 110 }} />
+                            <TextField id="total_sugar_g" type="number" {...register("nutrition.total_sugar_g", { valueAsNumber: true })} error={!!errors.nutrition?.total_sugar_g} inputProps={{ min: 0, step: 1 }} size="small" sx={{ width: 110 }} />
                         </Box>
                         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', pl: 2 }}>
                             <Typography>Added Sugars (g)</Typography>
-                            <TextField id="added_sugar_g" type="number" {...register("nutrition.added_sugar_g", { valueAsNumber: true })} error={!!errors.nutrition?.added_sugar_g} inputProps={{ min: 0, step: 0.1 }} size="small" sx={{ width: 110 }} />
+                            <TextField id="added_sugar_g" type="number" {...register("nutrition.added_sugar_g", { valueAsNumber: true })} error={!!errors.nutrition?.added_sugar_g} inputProps={{ min: 0, step: 1 }} size="small" sx={{ width: 110 }} />
                         </Box>
                         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                             <Typography sx={{ fontWeight: 700 }}>Protein (g)</Typography>
-                            <TextField id="protein_g" type="number" {...register("nutrition.protein_g", { valueAsNumber: true })} error={!!errors.nutrition?.protein_g} inputProps={{ min: 0, step: 0.1 }} size="small" sx={{ width: 110 }} />
+                            <TextField id="protein_g" type="number" {...register("nutrition.protein_g", { valueAsNumber: true })} error={!!errors.nutrition?.protein_g} inputProps={{ min: 0, step: 1 }} size="small" sx={{ width: 110 }} />
                         </Box>
                         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                             <Typography sx={{ fontWeight: 700 }}>Vitamin D (mcg)</Typography>
-                            <TextField id="vitamin_d_mcg" type="number" {...register("nutrition.vitamin_d_mcg", { valueAsNumber: true })} error={!!errors.nutrition?.vitamin_d_mcg} inputProps={{ min: 0, step: 0.1 }} size="small" sx={{ width: 110 }} />
+                            <TextField id="vitamin_d_mcg" type="number" {...register("nutrition.vitamin_d_mcg", { valueAsNumber: true })} error={!!errors.nutrition?.vitamin_d_mcg} inputProps={{ min: 0, step: 1 }} size="small" sx={{ width: 110 }} />
                         </Box>
                         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                             <Typography sx={{ fontWeight: 700 }}>Calcium (mg)</Typography>
-                            <TextField id="calcium_mg" type="number" {...register("nutrition.calcium_mg", { valueAsNumber: true })} error={!!errors.nutrition?.calcium_mg} inputProps={{ min: 0, step: 0.1 }} size="small" sx={{ width: 110 }} />
+                            <TextField id="calcium_mg" type="number" {...register("nutrition.calcium_mg", { valueAsNumber: true })} error={!!errors.nutrition?.calcium_mg} inputProps={{ min: 0, step: 1 }} size="small" sx={{ width: 110 }} />
                         </Box>
                         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                             <Typography sx={{ fontWeight: 700 }}>Iron (mg)</Typography>
