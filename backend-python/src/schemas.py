@@ -12,7 +12,7 @@ Each schema is used to validate request.json before passing to the model layer.
 
 from datetime import datetime
 from typing import Any, TypeVar
-from pydantic import BaseModel, field_validator, EmailStr, Field
+from pydantic import BaseModel, field_validator, model_validator, EmailStr, Field
 
 
 SchemaModel = TypeVar("SchemaModel", bound=BaseModel)
@@ -229,7 +229,8 @@ class RecipeRequest(BaseModel):
 class DailyLogItemRequest(BaseModel):
     """Validate a daily log item request."""
     date: str  # YYYY-MM-DD format
-    recipe_id: int
+    recipe_id: int | None = None
+    food_id: int | None = None
     servings: float
     notes: str | None = None
 
@@ -244,9 +245,20 @@ class DailyLogItemRequest(BaseModel):
 
     @field_validator("recipe_id")
     @classmethod
-    def validate_recipe_id(cls, v: int) -> int:
+    def validate_recipe_id(cls, v: int | None) -> int | None:
+        if v is None:
+            return v
         if v <= 0:
             raise ValueError("recipe_id must be greater than 0")
+        return v
+
+    @field_validator("food_id")
+    @classmethod
+    def validate_food_id(cls, v: int | None) -> int | None:
+        if v is None:
+            return v
+        if v <= 0:
+            raise ValueError("food_id must be greater than 0")
         return v
 
     @field_validator("servings")
@@ -256,10 +268,19 @@ class DailyLogItemRequest(BaseModel):
             raise ValueError("servings must be greater than 0")
         return v
 
+    @model_validator(mode="after")
+    def validate_exactly_one_source(self) -> "DailyLogItemRequest":
+        if self.recipe_id is not None and self.food_id is not None:
+            raise ValueError("Exactly one of recipe_id or food_id must be provided, not both")
+        if self.recipe_id is None and self.food_id is None:
+            raise ValueError("Exactly one of recipe_id or food_id must be provided")
+        return self
+
 
 class DailyLogItemUpdateRequest(BaseModel):
     """Validate a daily log item update request."""
     recipe_id: int | None = None
+    food_id: int | None = None
     servings: float
     date: str | None = None
     notes: str | None = None
@@ -271,6 +292,15 @@ class DailyLogItemUpdateRequest(BaseModel):
             return v
         if v <= 0:
             raise ValueError("recipe_id must be greater than 0")
+        return v
+
+    @field_validator("food_id")
+    @classmethod
+    def validate_food_id(cls, v: int | None) -> int | None:
+        if v is None:
+            return v
+        if v <= 0:
+            raise ValueError("food_id must be greater than 0")
         return v
 
     @field_validator("date")
@@ -290,6 +320,12 @@ class DailyLogItemUpdateRequest(BaseModel):
         if v <= 0:
             raise ValueError("servings must be greater than 0")
         return v
+
+    @model_validator(mode="after")
+    def validate_at_most_one_source(self) -> "DailyLogItemUpdateRequest":
+        if self.recipe_id is not None and self.food_id is not None:
+            raise ValueError("recipe_id and food_id cannot both be provided")
+        return self
 
 
 ##############################

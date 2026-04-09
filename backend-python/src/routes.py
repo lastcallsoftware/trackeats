@@ -1066,10 +1066,13 @@ def add_daily_log_entry():
     Request body:
       {
         "date":      "2026-04-02",
-        "recipe_id": 42,
+        "recipe_id": 42,           (mutually exclusive with food_id)
+        "food_id":   15,           (mutually exclusive with recipe_id)
         "servings":  2.0,
         "notes":     "optional note"   (optional)
       }
+
+    Exactly one of recipe_id or food_id must be provided.
     """
     logging.info("/dailylogitem POST")
     try:
@@ -1108,14 +1111,15 @@ def add_daily_log_entry():
 @jwt_required()
 def update_daily_log_entry(log_id: int):
     """
-        Update the date and/or recipe and/or servings and/or notes on an existing DailyLogItem entry.
+    Update the date and/or food/recipe and/or servings and/or notes on an existing DailyLogItem entry.
 
     Request body:
       {
-                "date":     "2026-04-02",  (optional)
-                "recipe_id": 42,            (optional)
-        "servings": 1.5,
-        "notes":    "optional note"   (optional)
+        "date":      "2026-04-02",  (optional)
+        "recipe_id": 42,            (optional, mutually exclusive with food_id)
+        "food_id":   15,            (optional, mutually exclusive with recipe_id)
+        "servings":  1.5,
+        "notes":     "optional note"   (optional)
       }
     """
     logging.info(f"/dailylogitem/{log_id} PUT")

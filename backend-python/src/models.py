@@ -1338,25 +1338,29 @@ class DailyLogItem(db.Model):
     """
     A DailyLogItem record represents one item consumed on one day.
     There are multiple DailyLogItem records per user per date -- one per
-    recipe consumed.
+    food or recipe consumed.
+
+    Either recipe_id OR food_id is set on any given row -- never both.
+    This mirrors the Ingredient pattern for food_ingredient_id/recipe_ingredient_id.
 
     Fields:
-      date       - the calendar date the item was consumed
-      recipe_id  - the Recipe that was consumed
-      servings   - how many servings were consumed
-        price      - denormalized total price for this consumed quantity,
-                 captured at log time to preserve historical values
-      ordinal    - display order within the day
-      notes      - optional free-text note on this specific item
-                   (e.g. "late night snack", "skipped half of it")
+      date         - the calendar date the item was consumed
+      recipe_id    - the Recipe that was consumed (mutually exclusive with food_id)
+      food_id      - the Food that was consumed (mutually exclusive with recipe_id)
+      servings     - how many servings were consumed
+      price        - denormalized total price for this consumed quantity,
+                     captured at log time to preserve historical values
+      ordinal      - display order within the day
+      notes        - optional free-text note on this specific item
+                     (e.g. "late night snack", "skipped half of it")
       nutrition_id - a Nutrition snapshot taken at log time, scaled by
-                   servings consumed.  Stored so that later edits to the
-                   Recipe do not alter the historical record.
+                     servings consumed.  Stored so that later edits to the
+                     Recipe or Food do not alter the historical record.
 
-    The nutrition snapshot is the recipe's per-serving nutrition multiplied
-    by servings consumed.  Summing snapshots across all rows for a date range
-    gives the totals for that period -- no joins into recipes or ingredients
-    required at query time.
+    The nutrition snapshot is the recipe's (or food's) per-serving nutrition
+    multiplied by servings consumed.  Summing snapshots across all rows for a
+    date range gives the totals for that period -- no joins into recipes or
+    ingredients required at query time.
 
     Deletion of a DailyLogItem record also deletes its Nutrition snapshot,
     following the same FK pattern as Food and Recipe.
@@ -1366,7 +1370,8 @@ class DailyLogItem(db.Model):
     id: Mapped[int] = mapped_column(primary_key=True)
     user_id: Mapped[int] = mapped_column(db.Integer, db.ForeignKey("user.id"), nullable=False)
     date: Mapped[datetime.date] = mapped_column(db.Date, nullable=False, index=True)
-    recipe_id: Mapped[int] = mapped_column(db.Integer, db.ForeignKey("recipe.id"), nullable=False)
+    recipe_id: Mapped[int | None] = mapped_column(db.Integer, db.ForeignKey("recipe.id"), nullable=True)
+    food_id: Mapped[int | None] = mapped_column(db.Integer, db.ForeignKey("food.id"), nullable=True)
     servings: Mapped[float] = mapped_column(db.Float, nullable=False)
     ordinal: Mapped[int] = mapped_column(db.Integer, nullable=False)
     notes: Mapped[str | None] = mapped_column(db.String(200), nullable=True)
@@ -1387,6 +1392,7 @@ class DailyLogItem(db.Model):
         self.user_id = user_id
         self.date = datetime.date.fromisoformat(log_request.date.strip())
         self.recipe_id = log_request.recipe_id
+        self.food_id = log_request.food_id
         self.servings = log_request.servings
         self.ordinal = ordinal
         self.notes = log_request.notes
@@ -1407,6 +1413,7 @@ class DailyLogItem(db.Model):
             "user_id": self.user_id,
             "date": self.date.isoformat(),
             "recipe_id": self.recipe_id,
+            "food_id": self.food_id,
             "servings": self.servings,
             "ordinal": self.ordinal,
             "notes": self.notes,
@@ -1495,19 +1502,31 @@ class DailyLogItem(db.Model):
         """Add a DailyLogItem from a validated DailyLogItemRequest schema."""
         date = datetime.date.fromisoformat(log_request.date.strip())
 
-        # Validate the Recipe and get its nutrition
-        recipe_dao = Recipe.get(user_id, log_request.recipe_id)
-        recipe_nutrition_dao = db.session.get(Nutrition, recipe_dao.nutrition_id)
-        if not recipe_nutrition_dao:
-            raise ValueError(f"Nutrition record for Recipe {log_request.recipe_id} not found")
+        if log_request.recipe_id is not None:
+            # Recipe path: look up the Recipe and get its nutrition
+            source_dao = Recipe.get(user_id, log_request.recipe_id)
+            source_nutrition_dao = db.session.get(Nutrition, source_dao.nutrition_id)
+            if not source_nutrition_dao:
+                raise ValueError(f"Nutrition record for Recipe {log_request.recipe_id} not found")
+            source_servings = source_dao.servings
+            source_price = source_dao.price
+        else:
+            # Food path: look up the Food and get its nutrition
+            assert log_request.food_id is not None
+            source_dao = Food.get(user_id, log_request.food_id)
+            source_nutrition_dao = db.session.get(Nutrition, source_dao.nutrition_id)
+            if not source_nutrition_dao:
+                raise ValueError(f"Nutrition record for Food {log_request.food_id} not found")
+            source_servings = source_dao.servings
+            source_price = source_dao.price
 
         # Build nutrition snapshot
         snapshot = Nutrition(
             user_id,
-            NutritionRequest(serving_size_description=recipe_nutrition_dao.serving_size_description),
+            NutritionRequest(serving_size_description=source_nutrition_dao.serving_size_description),
         )
-        modifier = (1.0 / recipe_dao.servings) if recipe_dao.servings else 0
-        snapshot.sum(recipe_nutrition_dao, log_request.servings, modifier)
+        modifier = (1.0 / source_servings) if source_servings else 0
+        snapshot.sum(source_nutrition_dao, log_request.servings, modifier)
         db.session.add(snapshot)
         db.session.flush()
 
@@ -1518,7 +1537,7 @@ class DailyLogItem(db.Model):
         ) or 0
 
         log_dao = DailyLogItem(user_id, log_request, ordinal=ordinal, nutrition_id=snapshot.id)
-        log_dao.price = DailyLogItem.calculate_price(recipe_dao.price, recipe_dao.servings, log_request.servings)
+        log_dao.price = DailyLogItem.calculate_price(source_price, source_servings, log_request.servings)
         db.session.add(log_dao)
         db.session.flush()
 
@@ -1535,15 +1554,17 @@ class DailyLogItem(db.Model):
             update_request.notes,
             update_request.date,
             update_request.recipe_id,
+            update_request.food_id,
         )
 
     @staticmethod
     def update(user_id: int, log_id: int, servings: float,
                notes: str | None = None,
                date: str | None = None,
-               recipe_id: int | None = None) -> DailyLogItem:
+               recipe_id: int | None = None,
+               food_id: int | None = None) -> DailyLogItem:
         """
-        Update the date and/or recipe and/or servings and/or notes on an existing DailyLogItem entry.
+        Update the date and/or food/recipe and/or servings and/or notes on an existing DailyLogItem entry.
 
         Rebuilds the Nutrition snapshot in-place rather than diffing old vs
         new values -- simpler and less error-prone.
@@ -1572,25 +1593,42 @@ class DailyLogItem(db.Model):
                 log_dao.date = new_date
                 log_dao.ordinal = new_ordinal
 
+            # Update the food/recipe reference, clearing the other when switching types
             if recipe_id is not None:
                 log_dao.recipe_id = recipe_id
+                log_dao.food_id = None
+            elif food_id is not None:
+                log_dao.food_id = food_id
+                log_dao.recipe_id = None
 
             # Rebuild the snapshot
-            recipe_dao = Recipe.get(user_id, log_dao.recipe_id)
-            recipe_nutrition_dao = db.session.get(Nutrition, recipe_dao.nutrition_id)
-            if not recipe_nutrition_dao:
-                raise ValueError(f"Nutrition record for Recipe {log_dao.recipe_id} not found")
-
             snapshot = db.session.get(Nutrition, log_dao.nutrition_id)
             if not snapshot:
                 raise ValueError(f"Nutrition snapshot for DailyLogItem {log_id} not found")
             snapshot.reset()
-            modifier = (1.0 / recipe_dao.servings) if recipe_dao.servings else 0
-            snapshot.sum(recipe_nutrition_dao, servings, modifier)
+
+            if log_dao.recipe_id is not None:
+                source_dao = Recipe.get(user_id, log_dao.recipe_id)
+                source_nutrition_dao = db.session.get(Nutrition, source_dao.nutrition_id)
+                if not source_nutrition_dao:
+                    raise ValueError(f"Nutrition record for Recipe {log_dao.recipe_id} not found")
+                source_servings = source_dao.servings
+                source_price = source_dao.price
+            else:
+                assert log_dao.food_id is not None
+                source_dao = Food.get(user_id, log_dao.food_id)
+                source_nutrition_dao = db.session.get(Nutrition, source_dao.nutrition_id)
+                if not source_nutrition_dao:
+                    raise ValueError(f"Nutrition record for Food {log_dao.food_id} not found")
+                source_servings = source_dao.servings
+                source_price = source_dao.price
+
+            modifier = (1.0 / source_servings) if source_servings else 0
+            snapshot.sum(source_nutrition_dao, servings, modifier)
 
             log_dao.servings = servings
             log_dao.notes = notes
-            log_dao.price = DailyLogItem.calculate_price(recipe_dao.price, recipe_dao.servings, servings)
+            log_dao.price = DailyLogItem.calculate_price(source_price, source_servings, servings)
 
             return log_dao
 
