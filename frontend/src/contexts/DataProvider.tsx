@@ -147,13 +147,22 @@ export type IDailyLogItem = {
     id?: number
     user_id?: number
     date: string           // ISO date string, e.g. "2026-04-02"
-    recipe_id: number
+    recipe_id?: number | null
+    food_id?: number | null
     servings: number
     price?: number
     ordinal: number
     notes?: string
     nutrition_id?: number
     nutrition?: INutrition
+}
+
+type DailyLogPayload = {
+    date: string
+    servings: number
+    notes?: string
+    recipe_id?: number
+    food_id?: number
 }
 
 export type DataContextType = {
@@ -263,6 +272,27 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
     // "Loading screen"
     const [isLoading, setLoading] = useState(false)
     const [isRecalculatingRecipes, setIsRecalculatingRecipes] = useState(false)
+
+    const buildDailyLogPayload = (item: IDailyLogItem): DailyLogPayload => {
+        const payload: DailyLogPayload = {
+            date: item.date,
+            servings: item.servings,
+            notes: item.notes,
+        }
+
+        // Backward-compatible behavior: if recipe_id is present, prefer it.
+        if (item.recipe_id != null) {
+            payload.recipe_id = item.recipe_id
+            return payload
+        }
+        if (item.food_id != null) {
+            payload.food_id = item.food_id
+            return payload
+        }
+
+        // Let backend validation produce the canonical 422 when neither is set.
+        return payload
+    }
 
     // Handle errors that occur when calling the back end.
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -529,7 +559,8 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
     // Add DailyLogItem
     const addDailyLogItem = async (item: IDailyLogItem): Promise<IDailyLogItem | null> => {
         try {
-            const response = await axios.post<IDailyLogItem>("/api/dailylogitem", item)
+            const payload = buildDailyLogPayload(item)
+            const response = await axios.post<IDailyLogItem>("/api/dailylogitem", payload)
             const newItem = response.data
             setDailyLogItems(prev => [...prev, newItem])
             return newItem
@@ -542,7 +573,7 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
     // Update DailyLogItem (date and/or servings and/or notes)
     const updateDailyLogItem = async (item: IDailyLogItem): Promise<void> => {
         try {
-            const payload = { date: item.date, recipe_id: item.recipe_id, servings: item.servings, notes: item.notes };
+            const payload = buildDailyLogPayload(item)
             const response = await axios.put<IDailyLogItem>(`/api/dailylogitem/${item.id}`, payload)
             const updatedItem = response.data
             setDailyLogItems(prev => prev.map(i => i.id === updatedItem.id ? updatedItem : i))

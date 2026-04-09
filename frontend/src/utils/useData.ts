@@ -72,7 +72,8 @@ export class DailyLogItem implements IDailyLogItem {
         const day = String(now.getDate()).padStart(2, "0");
         return `${year}-${month}-${day}`;
     })(); // today as local "YYYY-MM-DD"
-    recipe_id = 0;
+    recipe_id: number | null = null;
+    food_id: number | null = null;
     servings = 1;
     price?: number = undefined;
     ordinal = 0;
