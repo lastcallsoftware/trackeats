@@ -10,13 +10,14 @@ import DialogTitle from '@mui/material/DialogTitle';
 import Paper from '@mui/material/Paper';
 import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
-import MenuItem from '@mui/material/MenuItem';
 import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
 import InputAdornment from '@mui/material/InputAdornment';
 import DataPageLayout from './DataPageLayout';
 import DailyLogTable from './DailyLogTable';
 import { NutritionLabel } from './NutritionLabel';
+import FoodPickerTable from './FoodPickerTable';
+import RecipePickerTable from './RecipePickerTable';
 import { useData, DailyLogItem } from '@/utils/useData';
 import { IDailyLogItem, INutrition } from '../contexts/DataProvider';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
@@ -68,11 +69,17 @@ function formatDateRange(start: Date, end: Date, mode: ViewMode): string {
 }
 
 type ViewMode = 'day' | 'week' | 'month';
+type EntrySource = 'food' | 'recipe';
+
+function getEntrySource(entry: IDailyLogItem): EntrySource {
+    return entry.food_id != null ? 'food' : 'recipe';
+}
 
 type DailyLogEntryFormProps = {
     title: string;
     entry: IDailyLogItem;
-    recipes: { id?: number; name: string }[];
+    selectedEntryLabel: string | null;
+    onOpenEntryPicker: () => void;
     onEntryChange: (updater: (prev: IDailyLogItem) => IDailyLogItem) => void;
     onIncrementServings: () => void;
     onDecrementServings: () => void;
@@ -83,7 +90,8 @@ type DailyLogEntryFormProps = {
 function DailyLogEntryForm({
     title,
     entry,
-    recipes,
+    selectedEntryLabel,
+    onOpenEntryPicker,
     onEntryChange,
     onIncrementServings,
     onDecrementServings,
@@ -103,18 +111,15 @@ function DailyLogEntryForm({
                     InputLabelProps={{ shrink: true }}
                     sx={{ minWidth: 150 }}
                 />
-                <TextField
-                    select
-                    label="Recipe"
-                    size="small"
-                    value={entry.recipe_id || ''}
-                    onChange={e => onEntryChange(prev => ({ ...prev, recipe_id: Number(e.target.value) }))}
-                    sx={{ minWidth: 220 }}
-                >
-                    {[...recipes].sort((a, b) => a.name.localeCompare(b.name)).map(r => (
-                        <MenuItem key={r.id} value={r.id}>{r.name}</MenuItem>
-                    ))}
-                </TextField>
+                <Box sx={{ minWidth: 260, display: 'flex', flexDirection: 'column', gap: 0.75 }}>
+                    <Button
+                        variant="outlined"
+                        onClick={onOpenEntryPicker}
+                        sx={{ justifyContent: 'flex-start', textTransform: 'none' }}
+                    >
+                        {selectedEntryLabel ?? 'Select Food or Recipe'}
+                    </Button>
+                </Box>
                 <TextField
                     label="Servings"
                     type="number"
@@ -159,7 +164,12 @@ function DailyLogEntryForm({
                     onChange={e => onEntryChange(prev => ({ ...prev, notes: e.target.value }))}
                     sx={{ flex: 1, minWidth: 160 }}
                 />
-                <Button variant="contained" color="primary" onClick={onSave} disabled={!entry.recipe_id || !entry.servings}>
+                <Button
+                    variant="contained"
+                    color="primary"
+                    onClick={onSave}
+                    disabled={(!(entry.recipe_id != null || entry.food_id != null) || !entry.servings)}
+                >
                     Save
                 </Button>
                 <Button variant="outlined" onClick={onCancel}>
@@ -175,7 +185,7 @@ function DailyLogEntryForm({
 // ---------------------------------------------------------------------------
 
 function DailyLogPage() {
-    const { recipes, dailyLogItems, getDailyLogItems, addDailyLogItem, updateDailyLogItem, deleteDailyLogItem } = useData();
+    const { foods, recipes, dailyLogItems, getDailyLogItems, addDailyLogItem, updateDailyLogItem, deleteDailyLogItem } = useData();
 
     // -- View mode & date range --
     const [viewMode, setViewMode] = useState<ViewMode>('week');
@@ -255,6 +265,17 @@ function DailyLogPage() {
     // - If a date is selected, show the summed nutrition for that date
     // - Otherwise show nothing
     const selectedItem = dailyLogItems.find(i => i.id === selectedItemId) ?? null;
+
+    const resolveDailyLogEntryLabel = (entry: IDailyLogItem | null): string | null => {
+        if (!entry) return null;
+        if (entry.food_id != null) {
+            return foods.find(f => f.id === entry.food_id)?.name ?? `Food ${entry.food_id}`;
+        }
+        if (entry.recipe_id != null) {
+            return recipes.find(r => r.id === entry.recipe_id)?.name ?? `Recipe ${entry.recipe_id}`;
+        }
+        return null;
+    };
 
     const selectedDateNutrition: INutrition | null = useMemo(() => {
         if (!selectedDateKey) return null;
@@ -398,7 +419,7 @@ function DailyLogPage() {
 
     const panelNutrition = selectedItem?.nutrition ?? selectedDateNutrition ?? selectedWeekNutrition ?? selectedSummaryNutrition;
     const panelLabel = selectedItem
-        ? recipes.find(r => r.id === selectedItem.recipe_id)?.name ?? 'Selected Entry'
+        ? resolveDailyLogEntryLabel(selectedItem) ?? 'Selected Entry'
         : selectedDateKey
             ? `Total for ${selectedDateKey}`
             : selectedWeekLabel ?? selectedSummaryLabel;
@@ -423,6 +444,43 @@ function DailyLogPage() {
         ...new DailyLogItem(),
         date: toISODate(anchorDate),
     }));
+    const [showPickerDialog, setShowPickerDialog] = useState(false);
+    const [pickerTarget, setPickerTarget] = useState<'add' | 'edit' | null>(null);
+    const [pickerSource, setPickerSource] = useState<EntrySource>('recipe');
+    const [pickerSelectedRowId, setPickerSelectedRowId] = useState<number | null>(null);
+
+    const getSelectedEntryId = (entry: IDailyLogItem): number | null => {
+        return getEntrySource(entry) === 'food' ? (entry.food_id ?? null) : (entry.recipe_id ?? null);
+    };
+
+    const applyPickedEntry = (entry: IDailyLogItem, source: EntrySource, selectedId: number | null): IDailyLogItem => {
+        if (source === 'food') {
+            return { ...entry, food_id: selectedId, recipe_id: null };
+        }
+        return { ...entry, recipe_id: selectedId, food_id: null };
+    };
+
+    const openEntryPicker = (target: 'add' | 'edit', entry: IDailyLogItem) => {
+        const source = getEntrySource(entry);
+        setPickerTarget(target);
+        setPickerSource(source);
+        setPickerSelectedRowId(getSelectedEntryId(entry));
+        setShowPickerDialog(true);
+    };
+
+    const closeEntryPicker = () => {
+        setShowPickerDialog(false);
+        setPickerTarget(null);
+    };
+
+    const confirmEntryPicker = () => {
+        if (pickerTarget === 'add') {
+            setAddForm(prev => applyPickedEntry(prev, pickerSource, pickerSelectedRowId));
+        } else if (pickerTarget === 'edit') {
+            setEditForm(prev => (prev ? applyPickedEntry(prev, pickerSource, pickerSelectedRowId) : prev));
+        }
+        closeEntryPicker();
+    };
 
     const incrementAddServings = () => {
         setAddForm(prev => ({ ...prev, servings: Number(prev.servings ?? 0) + 1 }));
@@ -572,7 +630,8 @@ function DailyLogPage() {
                         <DailyLogEntryForm
                             title="Add Entry"
                             entry={addForm}
-                            recipes={recipes}
+                            selectedEntryLabel={resolveDailyLogEntryLabel(addForm)}
+                            onOpenEntryPicker={() => openEntryPicker('add', addForm)}
                             onEntryChange={(updater) => setAddForm(prev => updater(prev))}
                             onIncrementServings={incrementAddServings}
                             onDecrementServings={decrementAddServings}
@@ -586,7 +645,8 @@ function DailyLogPage() {
                         <DailyLogEntryForm
                             title="Edit Entry"
                             entry={editForm}
-                            recipes={recipes}
+                            selectedEntryLabel={resolveDailyLogEntryLabel(editForm)}
+                            onOpenEntryPicker={() => openEntryPicker('edit', editForm)}
                             onEntryChange={(updater) => setEditForm(prev => (prev ? updater(prev) : prev))}
                             onIncrementServings={incrementEditServings}
                             onDecrementServings={decrementEditServings}
@@ -613,6 +673,58 @@ function DailyLogPage() {
                             setSelectedSummaryKey={handleSelectSummary}
                         />
                     </Box>
+                    <Dialog
+                        open={showPickerDialog}
+                        onClose={closeEntryPicker}
+                        maxWidth="lg"
+                        fullWidth
+                        aria-labelledby="daily-log-picker-dialog-title"
+                    >
+                        <DialogTitle id="daily-log-picker-dialog-title">
+                            Select {pickerSource === 'food' ? 'Food' : 'Recipe'}
+                        </DialogTitle>
+                        <DialogContent>
+                            <Stack direction="row" spacing={1} sx={{ mb: 1.5 }}>
+                                <Button
+                                    variant={pickerSource === 'food' ? 'contained' : 'outlined'}
+                                    size="small"
+                                    onClick={() => {
+                                        setPickerSource('food');
+                                        setPickerSelectedRowId(null);
+                                    }}
+                                >
+                                    Foods
+                                </Button>
+                                <Button
+                                    variant={pickerSource === 'recipe' ? 'contained' : 'outlined'}
+                                    size="small"
+                                    onClick={() => {
+                                        setPickerSource('recipe');
+                                        setPickerSelectedRowId(null);
+                                    }}
+                                >
+                                    Recipes
+                                </Button>
+                            </Stack>
+                            {pickerSource === 'food' ? (
+                                <FoodPickerTable
+                                    selectedRowId={pickerSelectedRowId}
+                                    setSelectedRowId={setPickerSelectedRowId}
+                                />
+                            ) : (
+                                <RecipePickerTable
+                                    selectedRowId={pickerSelectedRowId}
+                                    setSelectedRowId={setPickerSelectedRowId}
+                                />
+                            )}
+                        </DialogContent>
+                        <DialogActions>
+                            <Button onClick={closeEntryPicker}>Cancel</Button>
+                            <Button variant="contained" onClick={confirmEntryPicker} disabled={pickerSelectedRowId == null}>
+                                Select
+                            </Button>
+                        </DialogActions>
+                    </Dialog>
                     <Dialog
                         open={showDeleteDialog}
                         onClose={() => setShowDeleteDialog(false)}

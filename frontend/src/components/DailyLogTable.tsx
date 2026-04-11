@@ -51,7 +51,8 @@ interface DisplayRow {
     price?: number;               // totalled price for this date/week
     // Item rows only
     item?: IDailyLogItem;
-    recipeName?: string;
+    entryName?: string;
+    sourceType?: 'food' | 'recipe';
     // TanStack sub-rows
     subRows?: DisplayRow[];
 }
@@ -157,6 +158,7 @@ function buildDisplayRows(
     viewMode: ViewMode,
     rangeStart: Date,
     rangeEnd: Date,
+    foods: { id?: number; name: string; vendor: string }[],
     recipes: { id?: number; name: string }[],
 ): DisplayRow[] {
 
@@ -184,13 +186,16 @@ function buildDisplayRows(
         const itemSubRows: DisplayRow[] = dateItems.map(item => {
             dateNutrition = addNutrition(dateNutrition, item.nutrition);
             datePrice = addPrice(datePrice, item.price);
-            const recipeName = recipes.find(r => r.id === item.recipe_id)?.name
-                ?? `Recipe ${item.recipe_id}`;
+            const isFoodItem = item.food_id != null;
+            const entryName = isFoodItem
+                ? (foods.find(f => f.id === item.food_id)?.name ?? `Food ${item.food_id}`)
+                : (recipes.find(r => r.id === item.recipe_id)?.name ?? `Recipe ${item.recipe_id}`);
             return {
                 type: 'item' as const,
                 rowKey: `item-${item.id}`,
                 item,
-                recipeName,
+                entryName,
+                sourceType: isFoodItem ? 'food' : 'recipe',
             };
         });
 
@@ -346,7 +351,7 @@ const columns = [
             }),
             columnHelper.accessor('label', {
                 id: 'label',
-                header: () => <span>Date / Recipe</span>,
+                header: () => <span>Date / Entry</span>,
                 cell: ({ row }) => {
                     const dr = row.original;
                     const canExpand = row.getCanExpand();
@@ -366,12 +371,22 @@ const columns = [
                                 <Box component="span" sx={{ display: 'inline-block', width: 24 }} />
                             )}
                             <TruncatedCell>
-                                {dr.type === 'item' ? dr.recipeName : dr.label}
+                                {dr.type === 'item' ? dr.entryName : dr.label}
                             </TruncatedCell>
                         </Box>
                     );
                 },
                 size: 220,
+            }),
+            columnHelper.accessor(row => (row.type === 'item' ? row.sourceType : null), {
+                id: 'entry_type',
+                header: () => <span>Type</span>,
+                cell: info => {
+                    const value = info.getValue();
+                    if (!value) return '';
+                    return value === 'food' ? 'Food' : 'Recipe';
+                },
+                size: 70,
             }),
             columnHelper.accessor(row => row.item?.servings ?? null, {
                 id: 'servings',
@@ -569,7 +584,7 @@ const DailyLogTable: React.FC<DailyLogTableProps> = ({
     selectedItemId, setSelectedItemId,
     selectedSummaryKey, setSelectedSummaryKey,
 }) => {
-    const { dailyLogItems, recipes, preferences, updatePreferences } = useData();
+    const { dailyLogItems, foods, recipes, preferences, updatePreferences } = useData();
     const [sorting, setSorting] = React.useState<SortingState>([]);
     // Day view: expand all by default.
     // Week/month view: expand the root summary row by default.
@@ -632,8 +647,8 @@ const DailyLogTable: React.FC<DailyLogTableProps> = ({
     }, [viewMode, rangeStart, rangeEnd]);
 
     const displayRows = useMemo(
-        () => buildDisplayRows(dailyLogItems, viewMode, rangeStart, rangeEnd, recipes),
-        [dailyLogItems, viewMode, rangeStart, rangeEnd, recipes],
+        () => buildDisplayRows(dailyLogItems, viewMode, rangeStart, rangeEnd, foods, recipes),
+        [dailyLogItems, viewMode, rangeStart, rangeEnd, foods, recipes],
     );
 
     useEffect(() => {
