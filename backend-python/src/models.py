@@ -1510,6 +1510,7 @@ class DailyLogItem(db.Model):
                 raise ValueError(f"Nutrition record for Recipe {log_request.recipe_id} not found")
             source_servings = source_dao.servings
             source_price = source_dao.price
+            source_modifier = (1.0 / source_servings) if source_servings else 0
         else:
             # Food path: look up the Food and get its nutrition
             assert log_request.food_id is not None
@@ -1519,14 +1520,15 @@ class DailyLogItem(db.Model):
                 raise ValueError(f"Nutrition record for Food {log_request.food_id} not found")
             source_servings = source_dao.servings
             source_price = source_dao.price
+            # Food nutrition is already per serving; do not divide by food.servings.
+            source_modifier = 1.0
 
         # Build nutrition snapshot
         snapshot = Nutrition(
             user_id,
             NutritionRequest(serving_size_description=source_nutrition_dao.serving_size_description),
         )
-        modifier = (1.0 / source_servings) if source_servings else 0
-        snapshot.sum(source_nutrition_dao, log_request.servings, modifier)
+        snapshot.sum(source_nutrition_dao, log_request.servings, source_modifier)
         db.session.add(snapshot)
         db.session.flush()
 
@@ -1614,6 +1616,7 @@ class DailyLogItem(db.Model):
                     raise ValueError(f"Nutrition record for Recipe {log_dao.recipe_id} not found")
                 source_servings = source_dao.servings
                 source_price = source_dao.price
+                source_modifier = (1.0 / source_servings) if source_servings else 0
             else:
                 assert log_dao.food_id is not None
                 source_dao = Food.get(user_id, log_dao.food_id)
@@ -1622,9 +1625,10 @@ class DailyLogItem(db.Model):
                     raise ValueError(f"Nutrition record for Food {log_dao.food_id} not found")
                 source_servings = source_dao.servings
                 source_price = source_dao.price
+                # Food nutrition is already per serving; do not divide by food.servings.
+                source_modifier = 1.0
 
-            modifier = (1.0 / source_servings) if source_servings else 0
-            snapshot.sum(source_nutrition_dao, servings, modifier)
+            snapshot.sum(source_nutrition_dao, servings, source_modifier)
 
             log_dao.servings = servings
             log_dao.notes = notes
