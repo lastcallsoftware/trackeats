@@ -71,3 +71,25 @@ dist/
 
 ### VS Code ###
 .vscode/
+
+# ── GSD baseline (auto-generated) ──
+.gsd
+.gsd-id
+.bg-shell/
+Thumbs.db
+*.swp
+*.swo
+*~
+.idea/
+*.code-workspace
+.env
+.env.*
+node_modules/
+.next/
+__pycache__/
+*.pyc
+venv/
+vendor/
+coverage/
+.cache/
+tmp/

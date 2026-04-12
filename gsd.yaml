@@ -1,0 +1,32 @@
+inputs:
+  include:
+    - frontend/**
+    - backend-python/**
+  exclude:
+    - frontend/portfolio/**
+    - backend-java/**
+    - docs/**
+
+outputs:
+  path: mobile/
+
+prompt: |
+  Analyze the TrackEats web application and generate a React Native app.
+
+  Rules:
+  - Use frontend for features/UI
+  - Use backend-python only for API + data models
+  - Do NOT port backend code
+
+  Requirements:
+  - Mobile-first UI (no tables)
+  - React Native + TypeScript
+  - Navigation, screens, components, hooks, services
+  - Clean modular architecture
+
+  Then refine the generated code for:
+  - structure
+  - naming
+  - idiomatic patterns
+
+  Do not overwrite unrelated files.
