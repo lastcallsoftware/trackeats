@@ -93,3 +93,8 @@ vendor/
 coverage/
 .cache/
 tmp/
+
+# Skills for agents
+.agents/
+.claude/
+.pi/
