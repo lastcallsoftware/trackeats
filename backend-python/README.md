@@ -11,21 +11,8 @@ end and the database.<br>
 
 # Setting up and building the app
 
-It is recommended practice to develop Python apps in a "virtual environment".
-By default, a Python project shares the Python runtime and dependency library
-globally, with all other Python projects.  This is bad because it makes the
-project subject to unexpected changes, plus it's likely you will include 
-unnecessary dependencies from other projects.<br>
-
-A Python virtual environment addresses these issues by making a local copy of 
-the Python runtime and the project's dependencies.  The environment's 
-"activation" script simply updates your system path to point to those local 
-copies instead of the global copies.  (If you are a node.js developer, this 
-behavior should sound familiar, since it's how the npm package manager behaves 
-by default.)<br>
-
 The following command should be executed in an Ubuntu 24.04 WSL virtual machine
-on Windows (or an actual Ubuntu system!) in the project's backend directory.<br>
+on Windows in the project's backend directory.<br>
 
 Create a virtual environment:<br>
 ```python3 -m venv .venv```
