@@ -1,3 +1,6 @@
+NOTE: This is a historical document and is no longer accurate or authoritative.  In fact almost everything in it is now outdated.  It should NOT be used for reference purposes.
+
+
 PRODUCT DESCRIPTION
 -------------------
 The purpose of the application is to track the nutrition information of the food a person comsumes, especially the stuff you want to limit: sodium, cholesterol, saturated fat, carbs, and of course, calories.  The idea is that if you actually see the data, you're more likely to adhere to the recommended daily limits, and therefore eat more healthily -- maybe even lose weight!
