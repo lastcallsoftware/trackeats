@@ -95,6 +95,7 @@ coverage/
 tmp/
 
 # Skills for agents
+skills-lock.json
 .agents/
 .claude/
 .pi/
