@@ -53,7 +53,7 @@ class Sendmail:
     def send_confirmation_email(username: str, token:str, email_address: str) -> None:
         # Create the link they'll use to confirm.
         #base_url = os.environ.get("BACKEND_BASE_URL")
-        base_url = os.environ.get("FRONTEND_BASE_URL")
+        base_url = os.environ.get("MOBILE_DEEP_LINK_BASE_URL") or os.environ.get("FRONTEND_BASE_URL")
         #link = f"{base_url}/confirm?username={username}&token={token}"
         link = f"{base_url}/confirm?token={token}"
         logging.info(link)
