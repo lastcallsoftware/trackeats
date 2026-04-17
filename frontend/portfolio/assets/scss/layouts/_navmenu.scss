@@ -14,24 +14,48 @@
     list-style: none;
     padding: 0 0 20px 0;
     margin: 0;
+
+    li {
+      margin-bottom: 4px;
+    }
   }
 
   a,
   a:focus {
     color: var(--nav-color);
-    padding: 15px 10px;
+    padding: 13px 14px;
     font-family: var(--nav-font);
     font-size: 16px;
-    font-weight: 400;
+    font-weight: 500;
     display: flex;
     align-items: center;
     white-space: nowrap;
-    transition: 0.3s;
+    transition: color 0.25s ease, background-color 0.25s ease, transform 0.25s ease;
     width: 100%;
+    border-radius: 12px;
+    position: relative;
+    overflow: hidden;
+
+    &:before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      left: -100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, rgba(86, 180, 211, 0.2), rgba(86, 180, 211, 0.04));
+      transition: left 0.25s ease;
+      z-index: 0;
+    }
+
+    > * {
+      position: relative;
+      z-index: 1;
+    }
 
     .navicon {
-      font-size: 20px;
-      margin-right: 10px;
+      font-size: 19px;
+      margin-right: 12px;
+      transition: color 0.25s ease, transform 0.25s ease;
     }
 
     .toggle-dropdown {
@@ -59,10 +83,22 @@
   .active,
   .active:focus {
     color: var(--nav-hover-color);
+    background: color-mix(in srgb, var(--default-color), transparent 92%);
+
+    &:before {
+      left: 0;
+    }
 
     .navicon {
       color: var(--accent-color);
+      transform: translateX(1px);
     }
+  }
+
+  a:focus-visible,
+  a.active:focus-visible {
+    outline: 2px solid color-mix(in srgb, var(--accent-color), white 20%);
+    outline-offset: 2px;
   }
 
   .active .toggle-dropdown,

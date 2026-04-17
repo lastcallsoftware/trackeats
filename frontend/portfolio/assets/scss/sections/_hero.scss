@@ -6,10 +6,11 @@
   width: 100%;
   min-height: 100vh;
   position: relative;
-  padding: 80px 0;
+  padding: 96px 0;
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
 
   img {
     position: absolute;
@@ -19,35 +20,65 @@
     height: 100%;
     object-fit: cover;
     z-index: 1;
+    filter: saturate(0.7) contrast(1.05) brightness(0.45);
   }
 
   &:before {
     content: "";
-    background: color-mix(in srgb, var(--background-color), transparent 70%);
+    background:
+      linear-gradient(125deg, rgba(4, 11, 20, 0.92) 0%, rgba(8, 26, 45, 0.78) 50%, rgba(7, 16, 31, 0.9) 100%);
     position: absolute;
     inset: 0;
     z-index: 2;
   }
 
+  &:after {
+    content: "";
+    position: absolute;
+    inset: -15% -10%;
+    z-index: 2;
+    pointer-events: none;
+    background:
+      radial-gradient(circle at 20% 25%, rgba(86, 180, 211, 0.25), transparent 36%),
+      radial-gradient(circle at 78% 78%, rgba(86, 180, 211, 0.16), transparent 40%);
+  }
+
   .container {
     position: relative;
     z-index: 3;
+    width: min(720px, calc(100% - 2rem));
+    margin-inline: auto;
+    text-align: left;
+    padding: 2.5rem 2.75rem;
+    border-radius: 18px;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    background: linear-gradient(160deg, rgba(10, 18, 32, 0.72), rgba(7, 14, 26, 0.52));
+    box-shadow: 0 30px 50px rgba(2, 6, 12, 0.38);
+    backdrop-filter: blur(4px);
   }
 
-  h2 {
+  .hero-intro {
     margin: 0;
-    font-size: 64px;
-    font-weight: 700;
+    color: color-mix(in srgb, var(--default-color), transparent 16%);
+    font-size: clamp(1.05rem, 0.88rem + 0.72vw, 1.35rem);
+    font-weight: 500;
+    letter-spacing: 0.015em;
   }
 
-  p {
-    margin: 5px 0 0 0;
-    font-size: 26px;
+  .hero-name {
+    margin: 0.35rem 0 0 0;
+    font-size: clamp(2.35rem, 1.82rem + 2.4vw, 4.35rem);
+    line-height: 1.05;
+    font-weight: 700;
+    color: #c8f0ff;
+    text-wrap: balance;
+  }
 
-    span {
-      letter-spacing: 1px;
-      border-bottom: 2px solid var(--accent-color);
-    }
+  .hero-role {
+    margin: 1rem 0 0;
+    color: color-mix(in srgb, var(--default-color), transparent 8%);
+    font-size: clamp(1.1rem, 0.93rem + 0.9vw, 1.55rem);
+    font-weight: 400;
   }
 
   .social-links {
@@ -68,12 +99,23 @@
   }
 
   @media (max-width: 768px) {
-    h2 {
-      font-size: 32px;
+    padding: 84px 0;
+
+    .container {
+      width: min(680px, calc(100% - 1.5rem));
+      padding: 1.75rem 1.4rem;
+      border-radius: 14px;
+      text-align: center;
     }
 
-    p {
-      font-size: 20px;
+    .hero-name {
+      line-height: 1.08;
+      font-size: clamp(2.1rem, 1.5rem + 3.2vw, 2.95rem);
+    }
+
+    .hero-role {
+      margin-top: 0.8rem;
+      font-size: clamp(1rem, 0.86rem + 0.86vw, 1.3rem);
     }
   }
 }

@@ -22,18 +22,18 @@
   --background-color: #ffffff; /* Background color for the entire website, including individual sections */
   --default-color: #272829; /* Default color used for the majority of the text content across the entire website */
   --heading-color: #050d18; /* Color for headings, subheadings and title throughout the website */
-  --accent-color: #149ddd; /* Accent color that represents your brand on the website. It's used for buttons, links, and other elements that need to stand out */
+  --accent-color: #56b4d3; /* Accent color that represents your brand on the website. It's used for buttons, links, and other elements that need to stand out */
   --surface-color: #ffffff; /* The surface color is used as a background of boxed elements within sections, such as cards, icon boxes, or other elements that require a visual separation from the global background. */
   --contrast-color: #ffffff; /* Contrast color for text, ensuring readability against backgrounds of accent, heading, or default colors. */
 }
 
 /* Nav Menu Colors - The following color variables are used specifically for the navigation menu. They are separate from the global colors to allow for more customization options */
 :root {
-  --nav-color: #a8a9b4;  /* The default color of the main navmenu links */
+  --nav-color: #b7c0cf;  /* The default color of the main navmenu links */
   --nav-hover-color: #ffffff; /* Applied to main navmenu links when they are hovered over or active */
   --nav-mobile-background-color: #040b14; /* Used as the background color for mobile navigation menu */
   --nav-dropdown-background-color: #040b14; /* Used as the background color for dropdown items that appear when hovering over primary navigation items */
-  --nav-dropdown-color: #a8a9b4; /* Used for navigation links of the dropdown items in the navigation menu. */
+  --nav-dropdown-color: #b7c0cf; /* Used for navigation links of the dropdown items in the navigation menu. */
   --nav-dropdown-hover-color: #ffffff; /* Similar to --nav-hover-color, this color is applied to dropdown navigation links when they are hovered over. */
 }
 
@@ -264,24 +264,49 @@ h6 {
   margin: 0;
 }
 
+.navmenu ul li {
+  margin-bottom: 4px;
+}
+
 .navmenu a,
 .navmenu a:focus {
   color: var(--nav-color);
-  padding: 15px 10px;
+  padding: 13px 14px;
   font-family: var(--nav-font);
   font-size: 16px;
-  font-weight: 400;
+  font-weight: 500;
   display: flex;
   align-items: center;
   white-space: nowrap;
-  transition: 0.3s;
+  transition: color 0.25s ease, background-color 0.25s ease, transform 0.25s ease;
   width: 100%;
+  border-radius: 12px;
+  position: relative;
+  overflow: hidden;
+}
+
+.navmenu a:before,
+.navmenu a:focus:before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  left: -100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, rgba(86, 180, 211, 0.2), rgba(86, 180, 211, 0.04));
+  transition: left 0.25s ease;
+  z-index: 0;
+}
+
+.navmenu a>* {
+  position: relative;
+  z-index: 1;
 }
 
 .navmenu a .navicon,
 .navmenu a:focus .navicon {
-  font-size: 20px;
-  margin-right: 10px;
+  font-size: 19px;
+  margin-right: 12px;
+  transition: color 0.25s ease, transform 0.25s ease;
 }
 
 .navmenu a .toggle-dropdown,
@@ -310,12 +335,26 @@ h6 {
 .navmenu .active,
 .navmenu .active:focus {
   color: var(--nav-hover-color);
+  background: color-mix(in srgb, var(--default-color), transparent 92%);
+}
+
+.navmenu a:hover:before,
+.navmenu .active:before,
+.navmenu .active:focus:before {
+  left: 0;
 }
 
 .navmenu a:hover .navicon,
 .navmenu .active .navicon,
 .navmenu .active:focus .navicon {
   color: var(--accent-color);
+  transform: translateX(1px);
+}
+
+.navmenu a:focus-visible,
+.navmenu a.active:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--accent-color), white 20%);
+  outline-offset: 2px;
 }
 
 .navmenu .active .toggle-dropdown,
@@ -546,10 +585,11 @@ section,
   width: 100%;
   min-height: 100vh;
   position: relative;
-  padding: 80px 0;
+  padding: 96px 0;
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
 }
 
 .hero img {
@@ -560,48 +600,62 @@ section,
   height: 100%;
   object-fit: cover;
   z-index: 1;
+  filter: saturate(0.7) contrast(1.05) brightness(0.45);
 }
 
 .hero:before {
   content: "";
-  background: color-mix(in srgb, var(--background-color), transparent 70%);
+  background: linear-gradient(125deg, rgba(4, 11, 20, 0.92) 0%, rgba(8, 26, 45, 0.78) 50%, rgba(7, 16, 31, 0.9) 100%);
   position: absolute;
   inset: 0;
   z-index: 2;
 }
 
+.hero:after {
+  content: "";
+  position: absolute;
+  inset: -15% -10%;
+  z-index: 2;
+  pointer-events: none;
+  background: radial-gradient(circle at 20% 25%, rgba(86, 180, 211, 0.25), transparent 36%), radial-gradient(circle at 78% 78%, rgba(86, 180, 211, 0.16), transparent 40%);
+}
+
 .hero .container {
   position: relative;
-  z-index: 2;
-  background-color: rgba(0, 0, 0, 0.7);
-  padding: 2rem;
-  border-radius: 8px;
-  max-width: 600px;
-  margin: 0 auto;
-  border: 2px solid rgba(255, 255, 255, 0.2);
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  z-index: 3;
+  width: min(720px, calc(100% - 2rem));
+  margin-inline: auto;
+  text-align: left;
+  padding: 2.5rem 2.75rem;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: linear-gradient(160deg, rgba(10, 18, 32, 0.72), rgba(7, 14, 26, 0.52));
+  box-shadow: 0 30px 50px rgba(2, 6, 12, 0.38);
+  backdrop-filter: blur(4px);
 }
 
-.hero .container p,
-.hero .container h2 {
-  color: #fff;
+.hero .hero-intro {
   margin: 0;
-  padding: 0.5rem 0;
-  text-align: center;
+  color: color-mix(in srgb, var(--default-color), transparent 16%);
+  font-size: clamp(1.05rem, 0.88rem + 0.72vw, 1.35rem);
+  font-weight: 500;
+  letter-spacing: 0.015em;
 }
 
-.hero .container p:first-child {
-  font-size: 1.2rem;
+.hero .hero-name {
+  margin: 0.35rem 0 0 0;
+  font-size: clamp(2.35rem, 1.82rem + 2.4vw, 4.35rem);
+  line-height: 1.05;
+  font-weight: 700;
+  color: #c8f0ff;
+  text-wrap: balance;
 }
 
-.hero .container h2 {
-  font-size: 2.5rem;
-  font-weight: bold;
-  color: #add8e6;
-}
-
-.hero .container p:last-child {
-  font-size: 1.4rem;
+.hero .hero-role {
+  margin: 1rem 0 0;
+  color: color-mix(in srgb, var(--default-color), transparent 8%);
+  font-size: clamp(1.1rem, 0.93rem + 0.9vw, 1.55rem);
+  font-weight: 400;
 }
 
 .hero .social-links {
@@ -622,12 +676,25 @@ section,
 }
 
 @media (max-width: 768px) {
-  .hero h2 {
-    font-size: 32px;
+  .hero {
+    padding: 84px 0;
   }
 
-  .hero p {
-    font-size: 20px;
+  .hero .container {
+    width: min(680px, calc(100% - 1.5rem));
+    padding: 1.75rem 1.4rem;
+    border-radius: 14px;
+    text-align: center;
+  }
+
+  .hero .hero-name {
+    line-height: 1.08;
+    font-size: clamp(2.1rem, 1.5rem + 3.2vw, 2.95rem);
+  }
+
+  .hero .hero-role {
+    margin-top: 0.8rem;
+    font-size: clamp(1rem, 0.86rem + 0.86vw, 1.3rem);
   }
 }
 

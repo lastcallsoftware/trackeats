@@ -80,6 +80,11 @@
    * Animation on scroll function and init
    */
   function aosInit() {
+    if (typeof AOS === 'undefined') {
+      console.warn('AOS library is not available. Check assets/vendor/aos/aos.js loading.');
+      return;
+    }
+
     AOS.init({
       duration: 600,
       easing: 'ease-in-out',
@@ -87,6 +92,12 @@
       mirror: false
     });
   }
+
+  if (document.readyState === 'complete' || document.readyState === 'interactive') {
+    setTimeout(aosInit, 0);
+  }
+
+  document.addEventListener('DOMContentLoaded', aosInit);
   window.addEventListener('load', aosInit);
 
   /**
