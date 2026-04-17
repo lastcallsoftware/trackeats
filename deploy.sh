@@ -46,4 +46,14 @@ fi
 # Clean up the "dangling" images left behind by the update
 docker image prune -f
 
+# Set up certbot renewal cron job if not already present
+echo "Setting up certbot renewal cron job..."
+CRON_JOB="0 3 * * * docker run --rm -v /etc/letsencrypt:/etc/letsencrypt -v /var/www/certbot:/var/www/certbot certbot/certbot renew --quiet && docker exec trackeats-frontend nginx -s reload"
+if ! crontab -l 2>/dev/null | grep -qF "certbot renew"; then
+    (crontab -l 2>/dev/null; echo "$CRON_JOB") | crontab -
+    echo "✓ Certbot renewal cron job installed"
+else
+    echo "✓ Certbot renewal cron job already present"
+fi
+
 echo "=== Deployment completed successfully at $(date) ==="
