@@ -12,6 +12,9 @@ services:
       - "5443:5443"
     environment:
       - NODE_ENV=production
+    volumes:
+      - /etc/letsencrypt:/etc/letsencrypt:ro
+      - /var/www/certbot:/var/www/certbot
     restart: on-failure
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/"]
