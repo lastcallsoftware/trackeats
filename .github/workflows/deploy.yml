@@ -37,15 +37,15 @@ jobs:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_PASSWORD }}
 
-      - name: Create cert files from secrets
-        run: |
-          mkdir -p ./frontend/certs
-          echo "${{ secrets.LASTCALLSW_COM_CHAINED_CRT }}" > ./frontend/certs/lastcallsw_com.chained.crt
-          echo "${{ secrets.LASTCALLSW_COM_KEY }}" > ./frontend/certs/lastcallsw_com.key
-          chmod 600 ./frontend/certs/lastcallsw_com.key
-
-      - name: Verify cert files exist
-        run: ls -la ./frontend/certs/
+#      - name: Create cert files from secrets
+#        run: |
+#          mkdir -p ./frontend/certs
+#          echo "${{ secrets.LASTCALLSW_COM_CHAINED_CRT }}" > ./frontend/certs/lastcallsw_com.chained.crt
+#          echo "${{ secrets.LASTCALLSW_COM_KEY }}" > ./frontend/certs/lastcallsw_com.key
+#          chmod 600 ./frontend/certs/lastcallsw_com.key
+#
+#      - name: Verify cert files exist
+#        run: ls -la ./frontend/certs/
 
       - name: Build and push frontend image
         uses: docker/build-push-action@v7
