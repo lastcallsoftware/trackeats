@@ -19,7 +19,7 @@ fi
 # On a fresh server, nginx can't start without certs, and certbot can't run without nginx.
 # We break this deadlock by starting nginx with a temporary self-signed cert, running certbot,
 # then reloading nginx with the real cert.
-if ! sudo test -d "/etc/letsencrypt/live/lastcallsw.com"; then
+if ! echo "$APP_SERVER_PASSWORD" sudo -S test -d "/etc/letsencrypt/live/lastcallsw.com"; then
     echo "No certificates found, bootstrapping..."
 
     # Generate a self-signed cert
