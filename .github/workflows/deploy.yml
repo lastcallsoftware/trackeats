@@ -82,6 +82,7 @@ jobs:
       - name: Deploy to app server via SSH
         uses: appleboy/ssh-action@master
         env:
+          APP_SERVER_PASSWORD: ${{ secrets.APP_SERVER_PASSWORD }}
           DB_HOSTNAME: ${{ secrets.DB_HOSTNAME }}
           DB_DATABASE_NAME: ${{ secrets.DB_DATABASE_NAME }}
           DB_ROOT_PASSWORD: ${{ secrets.DB_ROOT_PASSWORD }}
@@ -104,6 +105,7 @@ jobs:
           username: ${{ secrets.APP_SERVER_USERNAME }}
           key: ${{ secrets.APP_SERVER_SSH_KEY }}
           envs: >-
+            APP_SERVER_PASSWORD,
             DB_HOSTNAME,
             DB_DATABASE_NAME,
             DB_ROOT_PASSWORD,
