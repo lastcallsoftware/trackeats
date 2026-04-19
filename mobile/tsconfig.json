@@ -2,7 +2,11 @@
   "compilerOptions": {
     "target": "ES2020",
     "useDefineForClassFields": true,
-    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "lib": [
+      "ES2020",
+      "DOM",
+      "DOM.Iterable"
+    ],
     "module": "ESNext",
     "skipLibCheck": true,
     "esModuleInterop": true,
@@ -12,7 +16,9 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": [
+        "./src/*"
+      ]
     },
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
@@ -21,7 +27,16 @@
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true,
-    "types": ["jest", "node"]
+    "types": [
+      "jest",
+      "node"
+    ]
   },
-  "include": ["src", "app", "App.tsx", "index.ts"]
+  "include": [
+    "src",
+    "app",
+    "App.tsx",
+    "index.ts"
+  ],
+  "extends": "expo/tsconfig.base"
 }
