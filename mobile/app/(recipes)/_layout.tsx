@@ -16,8 +16,8 @@ export default function RecipesLayout() {
       <Stack.Screen
         name="index"
         options={{
-          title: 'Recipes',
-          headerTitle: 'Recipes',
+          title: 'Recipe List',
+          headerTitle: 'Recipe List',
         }}
       />
       <Stack.Screen

@@ -7,6 +7,7 @@ import { useEffect, useState } from 'react';
 import { ActivityIndicator, View } from 'react-native';
 import { Stack, Tabs } from 'expo-router';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { Ionicons } from '@expo/vector-icons';
 import authStore from '@/store/authStore';
 
 // Create a client for react-query (used in S02)
@@ -57,6 +58,9 @@ export default function RootLayout() {
               title: 'Home',
               tabBarLabel: 'Home',
               headerTitle: `Logged in as ${username}`,
+              tabBarIcon: ({ color, size }) => (
+                <Ionicons name="home-outline" size={size} color={color} />
+              ),
             }}
           />
           <Tabs.Screen
@@ -65,6 +69,9 @@ export default function RootLayout() {
               title: 'Foods',
               tabBarLabel: 'Foods',
               headerTitle: 'Foods',
+              tabBarIcon: ({ color, size }) => (
+                <Ionicons name="nutrition-outline" size={size} color={color} />
+              ),
             }}
           />
           <Tabs.Screen
@@ -73,6 +80,9 @@ export default function RootLayout() {
               title: 'Recipes',
               tabBarLabel: 'Recipes',
               headerTitle: 'Recipes',
+              tabBarIcon: ({ color, size }) => (
+                <Ionicons name="book-outline" size={size} color={color} />
+              ),
             }}
           />
           <Tabs.Screen
@@ -81,7 +91,14 @@ export default function RootLayout() {
               title: 'Daily Log',
               tabBarLabel: 'Daily Log',
               headerTitle: 'Daily Log',
+              tabBarIcon: ({ color, size }) => (
+                <Ionicons name="calendar-outline" size={size} color={color} />
+              ),
             }}
+          />
+          <Tabs.Screen
+            name="(auth)"
+            options={{ href: null }}
           />
         </Tabs>
       ) : (

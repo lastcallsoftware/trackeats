@@ -82,11 +82,13 @@ export const GroupFilterTabs: React.FC<GroupFilterTabsProps> = ({ selected, onSe
 
 const styles = StyleSheet.create({
   container: {
+    flexShrink: 0,
     paddingVertical: 8,
   },
   contentContainer: {
     paddingHorizontal: 12,
     gap: 8,
+    alignItems: 'center',
   },
   chip: {
     paddingHorizontal: 12,

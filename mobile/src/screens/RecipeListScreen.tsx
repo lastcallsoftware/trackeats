@@ -7,7 +7,6 @@ import {
   TouchableOpacity,
   StyleSheet,
 } from 'react-native'
-import { useNavigation } from '@react-navigation/native'
 import { useRecipes, filterRecipes } from '@/hooks/useRecipes'
 import { IRecipe } from '@/types/recipe'
 import { RecipeListItem } from '@/components/RecipeListItem'
@@ -22,7 +21,6 @@ import { CuisineFilterTabs } from '@/components/CuisineFilterTabs'
  * - Tap to view recipe detail
  */
 export function RecipeListScreen(): React.ReactElement {
-  const navigation = useNavigation()
   const query = useRecipes()
   const { data: recipes, isLoading, error, refetch } = query
   const [searchText, setSearchText] = useState('')
@@ -44,14 +42,6 @@ export function RecipeListScreen(): React.ReactElement {
 
   // Derive filtered list from search + cuisine
   const filteredRecipes = filterRecipes(recipesArray, searchText, selectedCuisine)
-
-  const handleRecipePress = (recipeId: number | undefined) => {
-    if (recipeId !== undefined) {
-      // Navigate to recipe detail screen
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      ;(navigation as any).navigate('RecipeDetail', { recipeId })
-    }
-  }
 
   // Loading state
   if (isLoading && recipesArray.length === 0) {
@@ -105,8 +95,12 @@ export function RecipeListScreen(): React.ReactElement {
           data={filteredRecipes}
           renderItem={({ item }) => (
             <RecipeListItem
-              recipe={item}
-              onPress={() => handleRecipePress(item.id)}
+              id={item.id!}
+              name={item.name}
+              cuisine={item.cuisine ?? null}
+              servings={item.servings}
+              price={item.price}
+              calories={item.nutrition.calories}
             />
           )}
           keyExtractor={(item) => String(item.id)}
@@ -124,6 +118,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
+    justifyContent: 'flex-start',
   },
   centerContainer: {
     flex: 1,

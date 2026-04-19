@@ -7,7 +7,6 @@ import {
   TouchableOpacity,
   StyleSheet,
 } from 'react-native'
-import { useNavigation } from '@react-navigation/native'
 import { useFoods, filterFoods } from '@/hooks/useFoods'
 import { FoodGroup, IFood } from '@/types/food'
 import { FoodListItem } from '@/components/FoodListItem'
@@ -22,7 +21,6 @@ import { GroupFilterTabs } from '@/components/GroupFilterTabs'
  * - Tap to view food detail
  */
 export function FoodListScreen(): React.ReactElement {
-  const navigation = useNavigation()
   const query = useFoods()
   const { data: foods, isLoading, error, refetch } = query
   const [searchText, setSearchText] = useState('')
@@ -37,14 +35,6 @@ export function FoodListScreen(): React.ReactElement {
     searchText,
     selectedGroup as FoodGroup | null
   )
-
-  const handleFoodPress = (foodId: number | undefined) => {
-    if (foodId !== undefined) {
-      // Navigate to food detail screen
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      ;(navigation as any).navigate('FoodDetail', { foodId })
-    }
-  }
 
   // Loading state
   if (isLoading && foodsArray.length === 0) {
@@ -92,8 +82,10 @@ export function FoodListScreen(): React.ReactElement {
           data={filteredFoods}
           renderItem={({ item }) => (
             <FoodListItem
-              food={item}
-              onPress={() => handleFoodPress(item.id)}
+              id={item.id!}
+              name={item.name}
+              vendor={item.vendor}
+              calories={item.nutrition.calories}
             />
           )}
           keyExtractor={(item) => String(item.id)}
@@ -111,6 +103,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
+    justifyContent: 'flex-start',
   },
   centerContainer: {
     flex: 1,

@@ -1,33 +1,36 @@
-import React from 'react'
+import { memo, useCallback } from 'react'
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native'
-import { IFood } from '@/types/food'
+import { useRouter } from 'expo-router'
 
 interface FoodListItemProps {
-  food: IFood
-  onPress: () => void
+  id: number
+  name: string
+  vendor: string
+  calories: number
 }
 
-/**
- * Pure component for a single food list item
- * Displays food name (bold), vendor (secondary), and calories (right-aligned)
- */
-export const FoodListItem: React.FC<FoodListItemProps> = ({ food, onPress }) => {
+export const FoodListItem = memo(function FoodListItem({ id, name, vendor, calories }: FoodListItemProps) {
+  const router = useRouter()
+  const handlePress = useCallback(() => {
+    router.push(`/(foods)/${id}`)
+  }, [id, router])
+
   return (
-    <TouchableOpacity style={styles.container} onPress={onPress} activeOpacity={0.7}>
+    <TouchableOpacity style={styles.container} onPress={handlePress} activeOpacity={0.7}>
       <View style={styles.content}>
         <View style={styles.textContainer}>
           <Text style={styles.name} numberOfLines={1}>
-            {food.name}
+            {name}
           </Text>
           <Text style={styles.vendor} numberOfLines={1}>
-            {food.vendor}
+            {vendor}
           </Text>
         </View>
-        <Text style={styles.calories}>{food.nutrition.calories} cal</Text>
+        <Text style={styles.calories}>{calories} cal</Text>
       </View>
     </TouchableOpacity>
   )
-}
+})
 
 const styles = StyleSheet.create({
   container: {

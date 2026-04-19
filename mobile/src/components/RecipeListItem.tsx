@@ -1,36 +1,41 @@
-import React from 'react'
+import { memo, useCallback } from 'react'
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native'
-import { IRecipe } from '@/types/recipe'
+import { useRouter } from 'expo-router'
 
 interface RecipeListItemProps {
-  recipe: IRecipe
-  onPress: () => void
+  id: number
+  name: string
+  cuisine: string | null
+  servings: number
+  price: number
+  calories: number
 }
 
-/**
- * Pure component for a single recipe list item
- * Displays recipe name (bold), cuisine (secondary), servings, price, and calories (right-aligned)
- */
-export const RecipeListItem: React.FC<RecipeListItemProps> = ({ recipe, onPress }) => {
+export const RecipeListItem = memo(function RecipeListItem({ id, name, cuisine, servings, price, calories }: RecipeListItemProps) {
+  const router = useRouter()
+  const handlePress = useCallback(() => {
+    router.push(`/(recipes)/${id}`)
+  }, [id, router])
+
   return (
-    <TouchableOpacity style={styles.container} onPress={onPress} activeOpacity={0.7}>
+    <TouchableOpacity style={styles.container} onPress={handlePress} activeOpacity={0.7}>
       <View style={styles.content}>
         <View style={styles.textContainer}>
           <Text style={styles.name} numberOfLines={1}>
-            {recipe.name}
+            {name}
           </Text>
           <Text style={styles.cuisine} numberOfLines={1}>
-            {recipe.cuisine || 'No cuisine'}
+            {cuisine || 'No cuisine'}
           </Text>
           <Text style={styles.meta}>
-            {recipe.servings} servings • ${recipe.price.toFixed(2)}
+            {servings} servings • ${price.toFixed(2)}
           </Text>
         </View>
-        <Text style={styles.calories}>{recipe.nutrition.calories} cal</Text>
+        <Text style={styles.calories}>{calories} cal</Text>
       </View>
     </TouchableOpacity>
   )
-}
+})
 
 const styles = StyleSheet.create({
   container: {
