@@ -31,9 +31,17 @@ if ! echo "$APP_SERVER_PASSWORD" | sudo -S test -d "/etc/letsencrypt/live/lastca
     echo "✓ Temporary self-signed cert created"
 
     # Start nginx with the self-signed cert
-    docker compose up -d frontend
+    docker compose up -d
     echo "Waiting for nginx to start..."
-    sleep 5
+    until docker inspect --format='{{.State.Health.Status}}' trackeats-frontend | grep -q "healthy"; do
+        sleep 2
+    done
+    echo "✓ Nginx is healthy"
+
+    # Remove self-signed cert so certbot uses the correct directory name
+    echo "$APP_SERVER_PASSWORD" | sudo -S rm -rf /etc/letsencrypt/live/lastcallsw.com
+    echo "$APP_SERVER_PASSWORD" | sudo -S rm -rf /etc/letsencrypt/archive/lastcallsw.com
+    echo "$APP_SERVER_PASSWORD" | sudo -S rm -rf /etc/letsencrypt/renewal/lastcallsw.com.conf
 
     # Run certbot to get the real cert
     docker run --rm \
