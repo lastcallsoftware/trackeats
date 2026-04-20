@@ -10,7 +10,7 @@ let currentToken: string | null = null;
 
 // Create axios instance with base configuration
 const api: AxiosInstance = axios.create({
-  baseURL: process.env.EXPO_PUBLIC_API_BASE_URL || 'http://localhost:5000',
+  baseURL: process.env.EXPO_BACKEND_BASE_URL || 'http://localhost:5000',
   timeout: 10000,
 });
 
