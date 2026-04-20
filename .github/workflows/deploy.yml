@@ -2,6 +2,9 @@ name: Build and Push to Docker Hub
 
 on:
   push:
+    # Exclude the mobile directory (for now)
+    paths:
+      - "!mobile/**"
     branches:
       - main
   workflow_dispatch:
