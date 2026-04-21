@@ -162,11 +162,11 @@ describe('api', () => {
   });
 
   describe('baseURL configuration', () => {
-    it('should use EXPO_BACKEND_BASE_URL environment variable', () => {
-      // The api.ts module uses process.env.EXPO_BACKEND_BASE_URL
+    it('should use EXPO_PUBLIC_BACKEND_BASE_URL environment variable', () => {
+      // The api.ts module uses process.env.EXPO_PUBLIC_BACKEND_BASE_URL
       // In test, we verify the default behavior by creating an instance
       const testInstance = axios.create({
-        baseURL: process.env.EXPO_BACKEND_BASE_URL || 'http://localhost:5000',
+        baseURL: process.env.EXPO_PUBLIC_BACKEND_BASE_URL || 'http://localhost:5000',
       });
 
       // Default fallback when env var is not set

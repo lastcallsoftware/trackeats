@@ -19,7 +19,7 @@ Automated integration tests verify cross-slice wiring with mocks. Manual tests v
 - Xcode 15+ (for iOS simulator) or Android Studio (for Android emulator)
 - Node.js 18+ and npm
 - Expo CLI: `npm install -g expo-cli`
-- Backend API running on `http://localhost:5000` (or update `EXPO_BACKEND_BASE_URL` in `.env`)
+- Backend API running on `http://localhost:5000` (or update `EXPO_PUBLIC_BACKEND_BASE_URL` in `.env`)
 
 ### Starting the Dev Environment
 
