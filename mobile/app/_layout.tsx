@@ -14,7 +14,7 @@ import authStore from '@/store/authStore';
 const queryClient = new QueryClient();
 
 export default function RootLayout() {
-  const { isLoggedIn, username } = authStore();
+  const { isLoggedIn } = authStore();
   const [isInitializing, setIsInitializing] = useState(true);
 
   // Initialize auth on app startup
@@ -57,7 +57,7 @@ export default function RootLayout() {
             options={{
               title: 'Home',
               tabBarLabel: 'Home',
-              headerTitle: `Logged in as ${username}`,
+              headerTitle: 'Home',
               tabBarIcon: ({ color, size }) => (
                 <Ionicons name="home-outline" size={size} color={color} />
               ),
