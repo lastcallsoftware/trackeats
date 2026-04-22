@@ -37,7 +37,7 @@ public class User {
     @Column(name = "password_hash", columnDefinition = "VARCHAR(64)", nullable = false)
     private String passwordHash;
 
-    @Column(name = "confirmation_sent_at", nullable = true)
+    @Column(name = "confirmation_email_sent_at", nullable = true)
     private LocalDateTime confirmationSentAt;
 
     @Column(name = "confirmation_token", columnDefinition = "VARCHAR(64)", nullable = true)
