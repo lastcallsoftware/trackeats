@@ -174,7 +174,7 @@ export type DataContextType = {
     isLoading: boolean;
     isRecalculatingRecipes: boolean;
     setErrorMessage: (msg: string) => void;
-    deleteAccount: () => Promise<boolean>,
+    deleteAccount: () => Promise<boolean>;
     getPreferences: (context: string) => Promise<void>;
     updatePreferences: (context: string, prefs: Record<string, unknown>) => Promise<void>;
     addFood: (food: IFood) => Promise<void>;
