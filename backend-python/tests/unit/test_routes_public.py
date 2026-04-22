@@ -71,7 +71,7 @@ def test_register_non_json_returns_401(client: FlaskClient, monkeypatch: pytest.
 def test_register_success(client: FlaskClient, monkeypatch: pytest.MonkeyPatch) -> None:
     _mock_session(monkeypatch)
 
-    created_user = SimpleNamespace(username="newuser", confirmation_sent_at=None)
+    created_user = SimpleNamespace(username="newuser", confirmation_email_sent_at=None)
 
     def _token() -> str:
         return "token-123"
@@ -98,7 +98,7 @@ def test_register_success(client: FlaskClient, monkeypatch: pytest.MonkeyPatch) 
 
     assert resp.status_code == 200
     assert "User newuser registered" in resp.get_json()["msg"]
-    assert created_user.confirmation_sent_at is not None
+    assert created_user.confirmation_email_sent_at is not None
 
 
 def test_register_resend_token_path(client: FlaskClient, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -150,7 +150,7 @@ def test_confirm_expired_token_returns_403(client: FlaskClient, monkeypatch: pyt
     user = SimpleNamespace(
         username="user1",
         confirmation_token="abc",
-        confirmation_sent_at=datetime.now() - timedelta(hours=5),
+        confirmation_email_sent_at=datetime.now() - timedelta(hours=5),
         status=None,
     )
 
@@ -171,7 +171,7 @@ def test_confirm_success_sets_status_confirmed(client: FlaskClient, monkeypatch:
     user = SimpleNamespace(
         username="user1",
         confirmation_token="abc",
-        confirmation_sent_at=datetime.now() - timedelta(minutes=5),
+        confirmation_email_sent_at=datetime.now() - timedelta(minutes=5),
         status=None,
     )
 

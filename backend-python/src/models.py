@@ -111,8 +111,10 @@ class User(db.Model):
     email: Mapped[bytes | None] = mapped_column(db.LargeBinary, nullable=True)
     created_at: Mapped[datetime.datetime] = mapped_column(db.DateTime, nullable=False)
     password_hash: Mapped[str] = mapped_column(db.String(64), nullable=False)
-    confirmation_sent_at: Mapped[datetime.datetime | None] = mapped_column(db.DateTime, nullable=True)
+    confirmation_email_sent_at: Mapped[datetime.datetime | None] = mapped_column(db.DateTime, nullable=True)
     confirmation_token: Mapped[str | None] = mapped_column(db.String(64), nullable=True)
+    reset_email_sent_at: Mapped[datetime.datetime | None] = mapped_column(db.DateTime, nullable=True)
+    reset_token: Mapped[str | None] = mapped_column(db.String(64), nullable=True)
     seed_requested: Mapped[bool] = mapped_column(db.Boolean, nullable=False, default=False)
     seed_version: Mapped[int | None] = mapped_column(db.Integer, nullable=True)
     seeded_at: Mapped[datetime.datetime | None] = mapped_column(db.DateTime, nullable=True)
@@ -124,8 +126,10 @@ class User(db.Model):
         email: bytes | None,
         created_at: datetime.datetime,
         password_hash: str,
-        confirmation_sent_at: datetime.datetime | None = None,
+        confirmation_email_sent_at: datetime.datetime | None = None,
         confirmation_token: str | None = None,
+        reset_email_sent_at: datetime.datetime | None = None,
+        reset_token: str | None = None,
         seed_requested: bool = False,
         seed_version: int | None = None,
         seeded_at: datetime.datetime | None = None,
@@ -135,8 +139,10 @@ class User(db.Model):
         self.email = email
         self.created_at = created_at
         self.password_hash = password_hash
-        self.confirmation_sent_at = confirmation_sent_at
+        self.confirmation_email_sent_at = confirmation_email_sent_at
         self.confirmation_token = confirmation_token
+        self.reset_email_sent_at = reset_email_sent_at
+        self.reset_token = reset_token
         self.seed_requested = seed_requested
         self.seed_version = seed_version
         self.seeded_at = seeded_at
@@ -148,8 +154,10 @@ class User(db.Model):
                 f"email: <confidential>, "
                 f"created_at: {self.created_at}, "
                 f"password_hash: <confidential>, "
-                f"confirmation_sent_at: {self.confirmation_sent_at}>"
+                f"confirmation_email_sent_at: {self.confirmation_email_sent_at}>"
                 f"confirmation_token: <confidential>, "
+                f"reset_email_sent_at: {self.reset_email_sent_at}>"
+                f"reset_token: <confidential>, "
                 f"seed_requested: {self.seed_requested}, "
                 f"seed_version: {self.seed_version}, "
                 f"seeded_at: {self.seeded_at}>")
@@ -164,8 +172,10 @@ class User(db.Model):
                 f"\'{email}\', "
                 f"{self.created_at}, "
                 f"\'{self.password_hash}\', "
-                f"{self.confirmation_sent_at}, "
+                f"{self.confirmation_email_sent_at}, "
                 f"\'{self.confirmation_token}\', "
+                f"{self.reset_email_sent_at}, "
+                f"\'{self.reset_token}\', "
                 f"{self.seed_requested}, "
                 f"{self.seed_version}, "
                 f"{self.seeded_at}")
@@ -176,7 +186,8 @@ class User(db.Model):
             "username": self.username,
             "status": self.status.name,
             "created_at": self.created_at,
-            "confirmation_sent_at": self.confirmation_sent_at,
+            "confirmation_email_sent_at": self.confirmation_email_sent_at,
+            "reset_email_sent_at": self.reset_email_sent_at,
             "seed_requested": self.seed_requested,
             "seed_version": self.seed_version,
             "seeded_at": self.seeded_at
@@ -204,6 +215,13 @@ class User(db.Model):
     
 
     @staticmethod
+    def get_by_email(email_addr: str) -> User:
+        encrypted_email_addr = Crypto.encrypt(email_addr)
+        user = db.session.scalar(db.select(User).where(User.email == encrypted_email_addr))
+        return user
+
+
+    @staticmethod
     def get_id(username: str) -> int:
         """
         Get the user_id for the given username
@@ -224,8 +242,10 @@ class User(db.Model):
         password: str = data["password"]
         email_addr: str = data["email"]
         status: UserStatus = data.get("status", UserStatus.pending)
+        confirmation_email_sent_at: datetime.datetime|None = data.get("confirmation_email_sent_at")
         confirmation_token: str|None = data.get("token")
-        confirmation_sent_at: datetime.datetime|None = data.get("confirmation_sent_at")
+        reset_email_sent_at: datetime.datetime|None = data.get("reset_email_sent_at")
+        reset_token: str|None = data.get("reset_token")
         seed_requested: bool = data.get("seed_requested", False)
         seed_version: int|None = data.get("seed_version")
         seeded_at: datetime.datetime|None = data.get("seeded_at")
@@ -277,15 +297,17 @@ class User(db.Model):
 
         # Store the user record in the database
         now = datetime.datetime.now()
-        confirmation_sent_at = None
+        confirmation_email_sent_at = None
         new_user_dao = User(
             username=username,
             status=status,
             email=encrypted_email_addr,
             created_at=now,
             password_hash=password_hash_str,
-            confirmation_sent_at=confirmation_sent_at,
+            confirmation_email_sent_at=confirmation_email_sent_at,
             confirmation_token=confirmation_token,
+            reset_email_sent_at=reset_email_sent_at,
+            reset_token=reset_token,
             seed_requested=seed_requested,
             seed_version=seed_version,
             seeded_at=seeded_at,
