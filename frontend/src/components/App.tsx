@@ -15,6 +15,8 @@ import RegisterPage from './RegisterPage';
 import Footer from './Footer';
 import axios from "axios";
 import ConfirmUserPage from './ConfirmUserPage';
+import ResetPasswordPage from './ResetPasswordPage';
+import ChangePasswordPage from './ChangePasswordPage';
 import FoodForm from './FoodForm';
 import RecipeForm from './RecipeForm';
 import Header from './Header';
@@ -288,6 +290,8 @@ function App() {
                         <Route path="/login" element={<LoginPage storeTokenFunction={storeToken} />} />
                         <Route path="/register" element={<RegisterPage />} />
                         <Route path="/confirm" element={<ConfirmUserPage />} />
+                        <Route path="/reset_password" element={<ResetPasswordPage />} />
+                        <Route path="/change_password" element={<ChangePasswordPage />} />
                         <Route path="/food/add" element={<FoodForm />} />
                         <Route path="/food/edit/:id" element={<FoodForm />} />
                         <Route path="/recipe/add" element={<RecipeForm />} />
