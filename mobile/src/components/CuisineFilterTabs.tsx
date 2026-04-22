@@ -47,7 +47,7 @@ export const CuisineFilterTabs: React.FC<CuisineFilterTabsProps> = ({
           activeOpacity={0.7}
         >
           <Text style={[styles.chipText, selected === cuisine && styles.chipTextSelected]}>
-            {cuisine}
+            {cuisine.charAt(0).toUpperCase() + cuisine.slice(1)}
           </Text>
         </TouchableOpacity>
       ))}

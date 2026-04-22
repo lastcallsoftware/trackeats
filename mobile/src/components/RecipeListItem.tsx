@@ -1,17 +1,27 @@
 import { memo, useCallback } from 'react'
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native'
 import { useRouter } from 'expo-router'
+import { formatRecipeMetaLine } from '@/utils/recipeFormatting'
 
 interface RecipeListItemProps {
   id: number
   name: string
   cuisine: string | null
-  servings: number
+  totalYield: number
+  totalCalories: number
+  perServingCalories: number
   price: number
-  calories: number
 }
 
-export const RecipeListItem = memo(function RecipeListItem({ id, name, cuisine, servings, price, calories }: RecipeListItemProps) {
+export const RecipeListItem = memo(function RecipeListItem({
+  id,
+  name,
+  cuisine,
+  totalYield,
+  totalCalories,
+  perServingCalories,
+  price,
+}: RecipeListItemProps) {
   const router = useRouter()
   const handlePress = useCallback(() => {
     router.push(`/(recipes)/${id}`)
@@ -21,17 +31,17 @@ export const RecipeListItem = memo(function RecipeListItem({ id, name, cuisine, 
     <TouchableOpacity style={styles.container} onPress={handlePress} activeOpacity={0.7}>
       <View style={styles.content}>
         <View style={styles.textContainer}>
-          <Text style={styles.name} numberOfLines={1}>
+          <Text style={styles.name}>
             {name}
           </Text>
           <Text style={styles.cuisine} numberOfLines={1}>
-            {cuisine || 'No cuisine'}
+            {cuisine ? cuisine.charAt(0).toUpperCase() + cuisine.slice(1) : 'No cuisine'}
           </Text>
           <Text style={styles.meta}>
-            {servings} servings • ${price.toFixed(2)}
+            {formatRecipeMetaLine(totalYield, totalCalories, price)}
           </Text>
         </View>
-        <Text style={styles.calories}>{calories} cal</Text>
+        <Text style={styles.calories}>{perServingCalories} cal</Text>
       </View>
     </TouchableOpacity>
   )

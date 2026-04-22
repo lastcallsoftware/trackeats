@@ -25,6 +25,41 @@ export const FoodDetailScreen: React.FC<FoodDetailScreenProps> = ({ foodId: prop
   // Find the food by id from the full list
   const food = foods?.find((f) => f.id === foodId);
 
+  const formatFoodSizeLine = () => {
+    if (!food) {
+      return '—';
+    }
+
+    const weightParts = [
+      food.size_g != null ? `${food.size_g} g` : null,
+      food.size_oz != null ? `${food.size_oz} oz` : null,
+    ].filter(Boolean);
+
+    if (!weightParts.length) {
+      return food.size_description;
+    }
+
+    return `${food.size_description} (${weightParts.join(', ')})`;
+  };
+
+  const formatCurrency = (value: number | null): string => {
+    if (value == null || !Number.isFinite(value)) {
+      return '—';
+    }
+    return `$${value.toFixed(2)}`;
+  };
+
+  const servingsCount = food?.servings ?? 0;
+  const caloriesPerServing = food?.nutrition?.calories ?? 0;
+
+  const pricePerServing =
+    food && servingsCount > 0 ? food.price / servingsCount : null;
+
+  const pricePer100Calories =
+    pricePerServing != null && caloriesPerServing > 0
+      ? (pricePerServing * 100) / caloriesPerServing
+      : null;
+
   if (isLoading) {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
@@ -62,14 +97,19 @@ export const FoodDetailScreen: React.FC<FoodDetailScreenProps> = ({ foodId: prop
           {food.vendor}
         </Text>
         <Text style={{ fontSize: 14, color: '#999', marginBottom: 16 }}>
-          {food.size_description}
+          {formatFoodSizeLine()}
         </Text>
       </View>
 
       <View style={{ borderTopWidth: 1, borderTopColor: '#e0e0e0', marginVertical: 12 }}>
         <NutritionLabel
           nutrition={food.nutrition}
-          servingSizeDescription={food.nutrition.serving_size_description}
+          servings={food.servings}
+          servingSizeDescription={food.size_description}
+          trailingRows={[
+            { label: 'Price / serving', value: formatCurrency(pricePerServing) },
+            { label: 'Price / 100 calories', value: formatCurrency(pricePer100Calories) },
+          ]}
         />
       </View>
     </ScrollView>

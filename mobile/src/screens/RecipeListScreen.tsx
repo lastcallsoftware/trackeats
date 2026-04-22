@@ -98,9 +98,14 @@ export function RecipeListScreen(): React.ReactElement {
               id={item.id!}
               name={item.name}
               cuisine={item.cuisine ?? null}
-              servings={item.servings}
+              totalYield={item.total_yield}
               price={item.price}
-              calories={item.nutrition.calories}
+              totalCalories={Math.round(item.nutrition.calories)}
+              perServingCalories={
+                item.servings > 0
+                  ? Math.round(item.nutrition.calories / item.servings)
+                  : Math.round(item.nutrition.calories)
+              }
             />
           )}
           keyExtractor={(item) => String(item.id)}

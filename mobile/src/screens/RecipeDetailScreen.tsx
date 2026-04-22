@@ -12,6 +12,70 @@ import { useIngredients } from '@/hooks/useIngredients'
 import { useFoods } from '@/hooks/useFoods'
 import { NutritionLabel } from '@/components/NutritionLabel'
 import { RecipeCompositionView } from '@/components/RecipeCompositionView'
+import { INutrition } from '@/types/food'
+import { formatRecipeMetaLine } from '@/utils/recipeFormatting'
+
+type NumericNutritionField = Exclude<keyof INutrition, 'serving_size_description'>
+
+const NUMERIC_NUTRITION_FIELDS: NumericNutritionField[] = [
+  'serving_size_oz',
+  'serving_size_g',
+  'calories',
+  'total_fat_g',
+  'saturated_fat_g',
+  'trans_fat_g',
+  'cholesterol_mg',
+  'sodium_mg',
+  'total_carbs_g',
+  'fiber_g',
+  'total_sugar_g',
+  'added_sugar_g',
+  'protein_g',
+  'vitamin_d_mcg',
+  'calcium_mg',
+  'iron_mg',
+  'potassium_mg',
+]
+
+const FLOAT_NUTRITION_FIELDS = new Set<NumericNutritionField>([
+  'serving_size_oz',
+  'serving_size_g',
+  'total_fat_g',
+  'saturated_fat_g',
+  'trans_fat_g',
+  'total_carbs_g',
+  'fiber_g',
+  'total_sugar_g',
+  'added_sugar_g',
+  'protein_g',
+  'iron_mg',
+])
+
+function divideNutritionPerServing(nutrition: INutrition, servings?: number): INutrition {
+  if (!servings || servings <= 0) {
+    return nutrition
+  }
+
+  const perServing: INutrition = { ...nutrition }
+
+  NUMERIC_NUTRITION_FIELDS.forEach((field) => {
+    const sourceValue = nutrition[field] ?? 0
+    const dividedValue = sourceValue / servings
+
+    perServing[field] = FLOAT_NUTRITION_FIELDS.has(field)
+      ? Math.round(dividedValue * 10) / 10
+      : Math.round(dividedValue)
+  })
+
+  return perServing
+}
+
+function formatCurrency(value: number | null): string {
+  if (value == null || !Number.isFinite(value)) {
+    return '—'
+  }
+  return `$${value.toFixed(2)}`
+}
 
 interface RecipeDetailScreenProps {
   recipeId?: number
@@ -83,33 +147,46 @@ export const RecipeDetailScreen: React.FC<RecipeDetailScreenProps> = ({
     )
   }
 
+  // Divide totals by servings and round non-float nutrition fields to nearest integer.
+  const nutritionPerServing = divideNutritionPerServing(recipe.nutrition, recipe.servings)
+
+  const servingsCount = recipe.servings ?? 0
+  const caloriesPerServing = nutritionPerServing.calories ?? 0
+
+  const pricePerServing = servingsCount > 0 ? recipe.price / servingsCount : null
+  const pricePer100Calories =
+    pricePerServing != null && caloriesPerServing > 0
+      ? (pricePerServing * 100) / caloriesPerServing
+      : null
+
   return (
     <ScrollView style={styles.container}>
       {/* Recipe header */}
       <View style={styles.headerSection}>
         <Text style={styles.recipeName}>{recipe.name}</Text>
         {recipe.cuisine && (
-          <Text style={styles.cuisineLabel}>{recipe.cuisine}</Text>
+          <Text style={styles.cuisineLabel}>{recipe.cuisine.charAt(0).toUpperCase() + recipe.cuisine.slice(1)}</Text>
         )}
-        <View style={styles.metaRow}>
-          <Text style={styles.metaItem}>
-            {recipe.servings} servings
-          </Text>
-          <Text style={styles.metaItem}>
-            Yield: {recipe.total_yield}
-          </Text>
-          <Text style={styles.metaItem}>
-            ${recipe.price.toFixed(2)}
-          </Text>
-        </View>
+        <Text style={styles.metaSummary}>
+          {formatRecipeMetaLine(
+            recipe.total_yield,
+            Math.round(recipe.nutrition.calories),
+            recipe.price,
+          )}
+        </Text>
       </View>
 
       {/* Nutrition label */}
       <View style={styles.divider} />
       <View style={styles.nutritionSection}>
         <NutritionLabel
-          nutrition={recipe.nutrition}
+          nutrition={nutritionPerServing}
           servingSizeDescription={recipe.nutrition.serving_size_description}
+          excludeFields={['serving_size_oz', 'serving_size_g']}
+          trailingRows={[
+            { label: 'Price / serving', value: formatCurrency(pricePerServing) },
+            { label: 'Price / 100 calories', value: formatCurrency(pricePer100Calories) },
+          ]}
         />
       </View>
 
@@ -159,7 +236,12 @@ const styles = StyleSheet.create({
   cuisineLabel: {
     fontSize: 16,
     color: '#666',
-    marginBottom: 8,
+    marginBottom: 4,
+  },
+  metaSummary: {
+    fontSize: 13,
+    color: '#999',
+    marginBottom: 4,
   },
   metaRow: {
     flexDirection: 'row',

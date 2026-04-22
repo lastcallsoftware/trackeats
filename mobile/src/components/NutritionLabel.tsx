@@ -31,16 +31,27 @@ const NUTRITION_FIELD_LABELS: Record<keyof INutrition, string> = {
 
 interface NutritionLabelProps {
   nutrition: INutrition;
+  servings?: number;
+  servingSizeG?: number;
+  servingSizeOz?: number;
   // servingSizeDescription is included for API compatibility,
   // though nutrition already contains serving_size_description
   servingSizeDescription?: string;
+  // Fields to exclude from the nutrition label display
+  excludeFields?: Array<keyof INutrition>;
+  trailingRows?: Array<{ label: string; value: string }>;
 }
 
 export const NutritionLabel: React.FC<NutritionLabelProps> = ({
   nutrition,
+  servings,
+  servingSizeG,
+  servingSizeOz,
+  servingSizeDescription,
+  excludeFields,
+  trailingRows,
 }) => {
-  const fields: Array<keyof INutrition> = [
-    'serving_size_description',
+  const allFields: Array<keyof INutrition> = [
     'serving_size_oz',
     'serving_size_g',
     'calories',
@@ -60,6 +71,10 @@ export const NutritionLabel: React.FC<NutritionLabelProps> = ({
     'potassium_mg',
   ];
 
+  const fields = excludeFields
+    ? allFields.filter((field) => !excludeFields.includes(field))
+    : allFields;
+
   const formatValue = (value: any): string => {
     if (value === null || value === undefined) {
       return '—';
@@ -73,8 +88,52 @@ export const NutritionLabel: React.FC<NutritionLabelProps> = ({
     return '—';
   };
 
+  const servingSizeValue = [
+    servingSizeDescription || nutrition.serving_size_description,
+    servingSizeG != null ? `${formatValue(servingSizeG)} g` : null,
+    servingSizeOz != null ? `${formatValue(servingSizeOz)} oz` : null,
+  ]
+    .filter((part) => part && part !== '—')
+    .join(', ');
+
   return (
     <ScrollView style={{ paddingHorizontal: 16, paddingVertical: 12 }}>
+      {servings != null && (
+        <View
+          style={{
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            paddingVertical: 8,
+            borderBottomWidth: 1,
+            borderBottomColor: '#e0e0e0',
+          }}
+        >
+          <Text style={{ fontSize: 14, color: '#333', flex: 1 }}>
+            Servings
+          </Text>
+          <Text style={{ fontSize: 14, color: '#333', fontWeight: '600' }}>
+            {formatValue(servings)}
+          </Text>
+        </View>
+      )}
+
+      <View
+        style={{
+          flexDirection: 'row',
+          justifyContent: 'space-between',
+          paddingVertical: 8,
+          borderBottomWidth: 1,
+          borderBottomColor: '#e0e0e0',
+        }}
+      >
+        <Text style={{ fontSize: 14, color: '#333', flex: 1 }}>
+          Serving Size
+        </Text>
+        <Text style={{ fontSize: 14, color: '#333', fontWeight: '600' }}>
+          {servingSizeValue || '—'}
+        </Text>
+      </View>
+
       {fields.map((field) => (
         <View
           key={field}
@@ -91,6 +150,26 @@ export const NutritionLabel: React.FC<NutritionLabelProps> = ({
           </Text>
           <Text style={{ fontSize: 14, color: '#333', fontWeight: '600' }}>
             {formatValue(nutrition[field])}
+          </Text>
+        </View>
+      ))}
+
+      {trailingRows?.map((row) => (
+        <View
+          key={row.label}
+          style={{
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            paddingVertical: 8,
+            borderBottomWidth: 1,
+            borderBottomColor: '#e0e0e0',
+          }}
+        >
+          <Text style={{ fontSize: 14, color: '#333', flex: 1 }}>
+            {row.label}
+          </Text>
+          <Text style={{ fontSize: 14, color: '#333', fontWeight: '600' }}>
+            {row.value}
           </Text>
         </View>
       ))}
