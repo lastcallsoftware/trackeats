@@ -19,6 +19,20 @@ from sqlalchemy.sql import text
 bp = Blueprint("auth", __name__)
 
 
+##############################
+# CUSTOM EXCEPTIONS
+##############################
+class ExpiredToken(Exception):
+    pass
+class InvalidToken(Exception):
+    pass
+class UserAlreadyConfirmed(Exception):
+    pass
+
+
+##############################
+# MESSAGE FORMATTER
+##############################
 def _format_validation_error_message(error: ValidationError) -> str:
     """Build a concise, user-facing message from Pydantic validation errors."""
     details: list[str] = []
@@ -88,8 +102,7 @@ def db_init():
 @jwt_required()
 def db_purge():
     """
-    LOAD - Populate the (presumably newly created) database with test data.
-    Be aware that this API first deletes the contents of tables it populates!
+    PURGE - Delete all data for a specified user
     """
     logging.info(f"/api/db/purge")
     try:
@@ -162,13 +175,13 @@ def db_export():
 
 
 ##############################
-# REGISTER
+# REGISTRATION & LOGIN
 ##############################
 @bp.route("/api/register", methods=["POST"])
 def register():
     """
-    Begin the user registeration process by retrieving the user's credentials from
-    the request body, validating them, adding a record to the database, and sending
+    REGISTER - Begin the user registeration process by retrieving the user's credentials
+    from the request body, validating them, adding a record to the database, and sending
     an email to their specified email address.
     """
     logging.info("/register")
@@ -233,7 +246,7 @@ def register():
             else:
                 logging.info(f"Email successfully sent to {email_addr}.")
 
-            user.confirmation_sent_at = datetime.now()
+            user.confirmation_email_sent_at = datetime.now()
 
     except ValidationError as e:
         msg = _format_validation_error_message(e)
@@ -249,14 +262,60 @@ def register():
         return jsonify({"msg": msg}), 200
 
 
-##############################
-# SENDMAIL
-##############################
+@bp.route("/api/request_password_reset", methods=["POST"])
+def request_password_reset():
+    """
+    The user has clicked the "forgot your password?" link on the logon screen.
+    """
+    logging.info("/request_password_reset")
+    try:
+        with db.session.begin():
+            # If it's not even JSON, don't bother checking anything else
+            if not request.is_json:
+                raise ValueError("Invalid request - not JSON")
+
+            email_addr = request.args.get("email")
+            if not email_addr:
+                raise ValueError("Missing required parameter 'email'")
+
+            # From this point, whether we succeed or fail, always send the same 
+            # generic message to avoid security leaks.
+            try:
+                user = User.get_by_email(email_addr)
+                if user:
+                    # Generate a token to be included in the email.  This token will be used
+                    # to verify the identity of the user that clicks it, AND to put a time
+                    # limit on its use
+                    token = Crypto.generate_url_token()
+
+                    # Send the email
+                    Sendmail.send_password_reset_email(user.username, token, email_addr)
+
+                    # Update the database with the token and the time it was sent
+                    user.reset_token = token
+                    user.reset_email_sent_at 
+            except Exception as e:
+                logging.error(e)
+
+    except ValidationError as e:
+        # Don't return an error if the email was invalid, that just gives hackers more info
+        pass
+    except Exception as e:
+        msg = str(e)
+        logging.error(msg)
+        return jsonify({"msg": msg}), 401
+
+    msg = f"If the given email address was registered, we tried to send a reset link to that address."
+    logging.info(msg)
+    return jsonify({"msg": msg}), 200
+
+
 @bp.route("/api/sendmail", methods=["GET"])
 @jwt_required()
 def sendmail():
     """
-    Sends a verification email to the specified user.
+    Sends a test email to the specified user.  This is used exclusively for testing
+    that the app's email mechanism works.
     """    
     logging.info("/sendmail")
     username = None
@@ -290,16 +349,6 @@ def sendmail():
         return jsonify({"msg": msg}), 200
 
 
-##############################
-# CONFIRM
-##############################
-class ExpiredToken(Exception):
-    pass
-class InvalidToken(Exception):
-    pass
-class UserAlreadyConfirmed(Exception):
-    pass
-
 @bp.route("/api/confirm", methods = ["GET"])
 def confirm():
     """
@@ -322,11 +371,11 @@ def confirm():
 
             # Make sure we have a time for when the token was sent.  Shouldn't be possible for us
             # to match the token but not have a send time for it, but we have to check anyway.
-            if not user.confirmation_sent_at:
+            if not user.confirmation_email_sent_at:
                 raise InvalidToken(f"Missing send time for confirmation token sent to '{user.username}'")
 
             # Check whether the confirmation token has expired.
-            expired_time = user.confirmation_sent_at + timedelta(hours=4)
+            expired_time = user.confirmation_email_sent_at + timedelta(hours=4)
             if datetime.now() > expired_time:
                 raise ExpiredToken(f"Confirmation token expired for '{user.username}'")
 
@@ -369,9 +418,6 @@ def confirm():
         return jsonify(return_data), 200
 
 
-##############################
-# LOGIN
-##############################
 @bp.route("/api/login", methods = ["POST"])
 def login():
     """
