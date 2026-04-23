@@ -1,9 +1,17 @@
 import os
 import logging
+from functools import wraps
 from datetime import datetime, timedelta, timezone
-from typing import Any
-from flask import Blueprint, jsonify, make_response, request
-from flask_jwt_extended import jwt_required, create_access_token, get_jwt_identity # type:ignore
+from typing import Any, Callable, TypeVar, cast
+from flask import Blueprint, abort, jsonify, make_response, request
+from flask_jwt_extended import (
+    jwt_required,  # type:ignore
+    create_access_token,  # type:ignore
+    get_jwt_identity,  # type:ignore
+    verify_jwt_in_request, # type:ignore
+    get_jwt  # type:ignore
+)
+
 from pydantic import ValidationError
 from sendmail import Sendmail
 from models import db, User, Preferences, UserStatus, Food, Recipe, Ingredient, DailyLogItem
@@ -30,6 +38,23 @@ class InvalidToken(Exception):
     pass
 class UserAlreadyConfirmed(Exception):
     pass
+
+
+##############################
+# CUSTOM DECORATORS
+##############################
+F = TypeVar("F", bound=Callable[..., Any])
+
+def admin_required(f: F) -> F:
+    @wraps(f)
+    def decorated(*args: Any, **kwargs: Any) -> Any:
+        verify_jwt_in_request()
+        claims = cast(dict[str, Any], get_jwt())
+        if not bool(claims.get("is_admin", False)):
+            abort(403)
+        return f(*args, **kwargs)
+
+    return cast(F, decorated)
 
 
 ##############################
@@ -74,10 +99,10 @@ def health():
 
 
 ##############################
-# DATABASE ACTIONS
+# ADMIN-ONLY ACTIONS
 ##############################
 @bp.route("/api/db/init", methods=["GET"])
-@jwt_required()
+@admin_required
 def db_init():
     """
     INIT - Wipe the database and recreate all the tables using the ORM classes in 
@@ -101,7 +126,7 @@ def db_init():
 
 
 @bp.route("/api/db/purge", methods=["GET"])
-@jwt_required()
+@admin_required
 def db_purge():
     """
     PURGE - Delete all data for a specified user
@@ -109,9 +134,13 @@ def db_purge():
     logging.info(f"/api/db/purge")
     try:
         with db.session.begin():
-            # Get the user_id for the user identified by the token
-            username = get_jwt_identity()
+            username = request.args.get("username")
+            if not username:
+                raise ValueError("Missing required parameter 'username'")
+
             user_id = User.get_id(username)
+            if not user_id:
+                raise ValueError(f"Could not retrieve user record for username '{username}'")
 
             for_user_id_str = request.args.get("for_user_id")
             for_user_id = int(for_user_id_str) if for_user_id_str else None
@@ -128,7 +157,7 @@ def db_purge():
 
 
 @bp.route("/api/db/load", methods=["GET"])
-@jwt_required()
+@admin_required
 def db_load():
     """
     LOAD - Populate the (presumably newly created) database with test data.
@@ -137,9 +166,13 @@ def db_load():
     logging.info("/api/db/load")
     try:
         with db.session.begin():
-            # Get the user_id for the user identified by the token
-            username = get_jwt_identity()
+            username = request.args.get("username")
+            if not username:
+                raise ValueError("Missing required parameter 'username'")
+
             user_id = User.get_id(username)
+            if not user_id:
+                raise ValueError(f"Could not retrieve user record for username '{username}'")
         
             Data.load(user_id)
     except Exception as e:
@@ -153,7 +186,7 @@ def db_load():
 
 
 @bp.route("/api/db/export", methods=["GET"])
-@jwt_required()
+@admin_required
 def db_export():
     """
     EXPORT - Export selected data to JSON files for long-term storage and reloading purposes.
@@ -161,9 +194,13 @@ def db_export():
     logging.info("/api/db/export")
     try:
         with db.session.begin():
-            # Get the user_id for the user identified by the token
-            username = get_jwt_identity()
+            username = request.args.get("username")
+            if not username:
+                raise ValueError("Missing required parameter 'username'")
+
             user_id = User.get_id(username)
+            if not user_id:
+                raise ValueError(f"Could not retrieve user record for username '{username}'")
 
             Data.export(user_id)
     except Exception as e:
@@ -174,6 +211,77 @@ def db_export():
         msg = "Data export complete"
         logging.info(msg)
         return {"msg": msg}, 200
+
+
+@bp.route("/api/sendmail", methods=["GET"])
+@admin_required
+def sendmail():
+    """
+    SENDMAIL - Sends a test email to the specified user.  This is used exclusively for testing
+    that the app's email mechanism works.
+    """    
+    logging.info("/sendmail")
+    username = None
+    email_addr = None
+    token = None
+    try:
+        # Get request parameters from URL
+        username = request.args.get("username")
+        if username is None:
+            raise ValueError("Missing required parameter 'username'")
+
+        email_addr = request.args.get("addr")
+        if email_addr is None:
+            raise ValueError("Missing required parameter 'addr'")
+
+        # Generate an auth token
+        token = Crypto.generate_url_token(32)
+
+        # Send the confirmation email.
+        Sendmail.send_confirmation_email(username, token, email_addr)
+    except Exception as e:
+        if email_addr:
+            msg = f"Couldn't send email to {email_addr}: {str(e)}"
+        else:
+            msg = f"Couldn't send email: {str(e)}"
+        logging.error(msg)
+        return jsonify({"msg": msg}), 400
+    else:
+        msg = f"Email sent successfully to {email_addr}."
+        logging.info(msg)
+        return jsonify({"msg": msg}), 200
+
+
+@bp.route("/api/user", methods = ["DELETE"])
+@admin_required
+def delete_user():
+    """
+    Delete a user and ALL THEIR DATA
+    """
+    try:
+        with db.session.begin():
+            # Get the user_id for the user identified by the token
+            username = get_jwt_identity()
+            user_dao = User.get(username)
+            if not user_dao:
+                raise ValueError(f"Could not retrieve user record for username '{username}'")
+            user_id = user_dao.id
+
+            if username == "guest" or username == "admin" or username == "testuser":
+                raise ValueError("Nice try, but this account may not be deleted.")
+            
+            Recipe.delete_all_for_user(user_id)
+            Food.delete_all_for_user(user_id)
+            db.session.delete(user_dao)
+
+    except Exception as e:
+        msg = f"User deletion failed: {str(e)}"
+        logging.error(msg)
+        return jsonify({"msg": msg}), 500
+    else:
+        msg = f"User record deleted for user {user_id} '{username}'"
+        logging.info(msg)
+        return jsonify({"msg": msg}), 200
 
 
 ##############################
@@ -260,139 +368,6 @@ def register():
         return jsonify({"msg": msg}), 401
     else:
         msg = f"User {username} registered."
-        logging.info(msg)
-        return jsonify({"msg": msg}), 200
-
-
-@bp.route("/api/request_reset_password", methods=["POST"])
-def request_reset_password():
-    """
-    The user has clicked the "forgot your password?" link on the logon screen.
-    """
-    logging.info("/request_reset_password")
-    try:
-        with db.session.begin():
-            # If it's not even JSON, don't bother checking anything else
-            if not request.is_json:
-                raise ValueError("Invalid request - not JSON")
-
-            email_addr = request.args.get("email")
-            if not email_addr:
-                raise ValueError("Missing required parameter 'email'")
-
-            # From this point, whether we succeed or fail, always send the same 
-            # generic message to avoid security leaks.
-            try:
-                user = User.get_by_email(email_addr)
-                if not user:
-                    logging.error(f"Unable retrieve user for {email_addr}")
-                else:
-                    # Generate a token to be included in the email.  This token will be used
-                    # to verify the identity of the user that clicks it, AND to put a time
-                    # limit on its use
-                    token = Crypto.generate_url_token()
-
-                    # Send the email
-                    Sendmail.send_reset_password_email(user.username, token, email_addr)
-
-                    # Update the database with the token and the time it was sent
-                    user.reset_token = token
-                    user.reset_email_sent_at 
-            except Exception as e:
-                logging.error(e)
-
-    except ValidationError as e:
-        # Don't return an error if the email was invalid, that just gives hackers more info
-        pass
-    except Exception as e:
-        msg = str(e)
-        logging.error(msg)
-        return jsonify({"msg": msg}), 401
-
-    msg = f"Check your inbox.  If that email address is registered you should receive a reset link there shortly.  You can close this screen."
-    #logging.info(msg)
-    return jsonify({"msg": msg}), 200
-
-
-@bp.route("/api/reset_password", methods=["POST"])
-def reset_password():
-    """
-    Set the user's password to the specified value.
-    """
-    logging.info("/request_reset_password")
-    try:
-        with db.session.begin():
-            # If it's not even JSON, don't bother checking anything else
-            if not request.is_json:
-                raise ValueError("Invalid request - not JSON")
-
-            token = request.args.get("token")
-            if not token:
-                raise ValueError("Missing required parameter 'token'")
-
-            password = request.args.get("password")
-            if not password:
-                raise ValueError("Missing required parameter 'password'")
-
-            # Get the user via the token provided
-            user = User.get_by_reset_token(token)
-            if not user:
-                raise ValueError("Invalid token")
-
-            # Check that the token is not more than 15 minutes old
-            if user.reset_email_sent_at is None:
-                raise ValueError("Invalid token")
-            token_age = datetime.now(timezone.utc) - user.reset_email_sent_at
-            if token_age.total_seconds() > RESET_TOKEN_EXPIRATION_SECONDS:
-                raise ValueError("Token has expired")
-
-            user.set_password(password)
-
-    except Exception as e:
-        msg = f"Couldn't reset password: {str(e)}"
-        logging.error(msg)
-        return jsonify({"msg": msg}), 400
-    else:
-        msg = f"Your password has been reset."
-        logging.info(msg)
-        return jsonify({"msg": msg}), 200
-
-
-@bp.route("/api/sendmail", methods=["GET"])
-@jwt_required()
-def sendmail():
-    """
-    Sends a test email to the specified user.  This is used exclusively for testing
-    that the app's email mechanism works.
-    """    
-    logging.info("/sendmail")
-    username = None
-    email_addr = None
-    token = None
-    try:
-        # Get request parameters from URL
-        username = request.args.get("username")
-        if username is None:
-            raise ValueError("Missing required parameter 'username'")
-
-        email_addr = request.args.get("addr")
-        if email_addr is None:
-            raise ValueError("Missing required parameter 'addr'")
-
-        # Generate an auth token
-        token = Crypto.generate_url_token(32)
-
-        # Send the confirmation email.
-        Sendmail.send_confirmation_email(username, token, email_addr)
-    except Exception as e:
-        if email_addr:
-            msg = f"Couldn't send email to {email_addr}: {str(e)}"
-        else:
-            msg = f"Couldn't send email: {str(e)}"
-        logging.error(msg)
-        return jsonify({"msg": msg}), 400
-    else:
-        msg = f"Email sent successfully to {email_addr}."
         logging.info(msg)
         return jsonify({"msg": msg}), 200
 
@@ -494,8 +469,14 @@ def login():
                 Data.seed_database(user)
 
             # Generate a JWT token
+            # If it's for a user with admin rights, add a special thingie to it
             token_duration = int(os.environ.get("ACCESS_TOKEN_DURATION", 120))
-            access_token = create_access_token(identity=username, expires_delta=timedelta(minutes=token_duration))
+            access_token = create_access_token(
+                identity=username,
+                expires_delta=timedelta(minutes=token_duration),
+                additional_claims={"is_admin": username == Data.ADMIN_USER_NAME}
+            )
+
     except ValidationError as e:
         msg = _format_validation_error_message(e)
         logging.error(msg)
@@ -508,6 +489,143 @@ def login():
         msg = f"User {username} authenticated, returning token"
         logging.info(msg)
         return jsonify(access_token=access_token), 200
+
+
+@bp.route("/api/request_reset_password", methods=["POST"])
+def request_reset_password():
+    """
+    The user has clicked the "forgot your password?" link on the logon screen
+    and sent their email address using the ensuing screen.
+    """
+    logging.info("/request_reset_password")
+    try:
+        with db.session.begin():
+            # If it's not even JSON, don't bother checking anything else
+            if not request.is_json:
+                raise ValueError("Invalid request - not JSON")
+
+            email_addr = request.args.get("email")
+            if not email_addr:
+                raise ValueError("Missing required parameter 'email'")
+
+            # From this point, whether we succeed or fail, always send the same 
+            # generic message to avoid security leaks.
+            try:
+                user = User.get_by_email(email_addr)
+                if not user:
+                    logging.error(f"Unable retrieve user for {email_addr}")
+                else:
+                    # Generate a token to be included in the email.  This token will be used
+                    # to verify the identity of the user that clicks it, AND to put a time
+                    # limit on its use
+                    token = Crypto.generate_url_token()
+
+                    # Send the email
+                    Sendmail.send_reset_password_email(user.username, token, email_addr)
+
+                    # Update the database with the token and the time it was sent
+                    user.reset_token = token
+                    user.reset_email_sent_at 
+            except Exception as e:
+                logging.error(e)
+
+    except ValidationError as e:
+        # Don't return an error if the email was invalid, that just gives hackers more info
+        pass
+    except Exception as e:
+        msg = str(e)
+        logging.error(msg)
+        return jsonify({"msg": msg}), 401
+
+    msg = f"Check your inbox.  If that email address is registered you should receive a reset link there shortly.  You can close this screen."
+    #logging.info(msg)
+    return jsonify({"msg": msg}), 200
+
+
+@bp.route("/api/reset_password", methods=["POST"])
+def reset_password():
+    """
+    Set the user's password to the specified value.  This also requires a token sent
+    to the user via email by the request_reset_password endpoint.
+    """
+    logging.info("/request_reset_password")
+    try:
+        with db.session.begin():
+            # If it's not even JSON, don't bother checking anything else
+            if not request.is_json:
+                raise ValueError("Invalid request - not JSON")
+
+            reset_token = request.args.get("token")
+            if not reset_token:
+                raise ValueError("Missing required parameter 'token'")
+
+            password = request.args.get("password")
+            if not password:
+                raise ValueError("Missing required parameter 'password'")
+
+            # Get the user via the token provided
+            user = User.get_by_reset_token(reset_token)
+            if not user:
+                raise ValueError("Invalid token")
+
+            # Check that the token is not more than 15 minutes old
+            if user.reset_email_sent_at is None:
+                raise ValueError("Invalid token")
+            token_age = datetime.now(timezone.utc) - user.reset_email_sent_at
+            if token_age.total_seconds() > RESET_TOKEN_EXPIRATION_SECONDS:
+                raise ValueError("Token has expired")
+
+            user.set_password(password)
+
+    except Exception as e:
+        msg = f"Couldn't reset password: {str(e)}"
+        logging.error(msg)
+        return jsonify({"msg": msg}), 400
+    else:
+        msg = f"Your password has been reset."
+        logging.info(msg)
+        return jsonify({"msg": msg}), 200
+
+
+@bp.route("/api/change_password", methods=["POST"])
+@jwt_required()
+def change_password():
+    """
+    Change the user's password to the specified value.
+    """
+    logging.info("/request_change_password")
+    try:
+        with db.session.begin():
+            # If it's not even JSON, don't bother checking anything else
+            if not request.is_json:
+                raise ValueError("Invalid request - not JSON")
+
+            # Get the user_id for the user identified by the token
+            username = get_jwt_identity()
+            user = User.get(username)
+
+            old_password = request.args.get("old_password")
+            if not old_password:
+                raise ValueError("Missing required parameter 'old_password'")
+
+            new_password = request.args.get("new_password")
+            if not new_password:
+                raise ValueError("Missing required parameter 'new_password'")
+
+            user = User.verify(username, old_password)
+            if not user:
+                raise ValueError("Invalid username or password")
+
+            user.set_password(new_password)
+
+    except Exception as e:
+        msg = f"Couldn't reset password: {str(e)}"
+        logging.error(msg)
+        return jsonify({"msg": msg}), 400
+    else:
+        msg = f"Your password has been reset."
+        logging.info(msg)
+        return jsonify({"msg": msg}), 200
 
 
 ##############################
@@ -550,51 +668,17 @@ def get_user(username: str):
     logging.info("/user/" + username)
     try:
         with db.session.begin():
-            longform = (request.args.get("long") is not None)
-
             user_dao = User.get(username)
-            if longform:
-                data = str(user_dao)
-            else:
-                data = user_dao.json()
+            if not user_dao:
+                raise ValueError(f"Could not retrieve user record for username '{username}'")
     except Exception as e:
         msg = f"User record could not be retrieved for {username}: {str(e)}"
         logging.error(msg)
         return jsonify({"msg": msg}), 500
     else:
         msg = f"User record retrieved for {username}"
-        logging.info(msg)
-        return jsonify(data), 200
-
-
-@bp.route("/api/user", methods = ["DELETE"])
-@jwt_required()
-def delete_user():
-    """
-    Delete a user and ALL THEIR DATA
-    """
-    try:
-        with db.session.begin():
-            # Get the user_id for the user identified by the token
-            username = get_jwt_identity()
-            user_dao = User.get(username)
-            user_id = user_dao.id
-
-            if username == "guest" or username == "admin" or username == "testuser":
-                raise ValueError("Nice try, but this account may not be deleted.")
-            
-            Recipe.delete_all_for_user(user_id)
-            Food.delete_all_for_user(user_id)
-            db.session.delete(user_dao)
-
-    except Exception as e:
-        msg = f"User deletion failed: {str(e)}"
-        logging.error(msg)
-        return jsonify({"msg": msg}), 500
-    else:
-        msg = f"User record deleted for user {user_id} '{username}'"
-        logging.info(msg)
-        return jsonify({"msg": msg}), 200
+        logging.info(user_dao)
+        return jsonify(user_dao.json()), 200
 
 
 ##############################
@@ -612,6 +696,8 @@ def get_preferences(context: str):
             # Get the user_id for the user identified by the token
             username = get_jwt_identity()
             user_id = User.get_id(username)
+            if not user_id:
+                raise ValueError(f"Could not retrieve user record for username '{username}'")
 
             prefs = Preferences.get(user_id, context) or {}
     except Exception as e:
@@ -636,6 +722,8 @@ def save_preferences(context: str):
             # Get the user_id for the user identified by the token
             username = get_jwt_identity()
             user_id = User.get_id(username)
+            if not user_id:
+                raise ValueError(f"Could not retrieve user record for username '{username}'")
 
             # Validate preferences request (just ensure it's valid JSON)
             prefs_data = PreferencesRequest.model_validate(request.json)
@@ -696,6 +784,8 @@ def get_foods():
             # Get the user_id for the user identified by the token
             username = get_jwt_identity()
             user_id = User.get_id(username)
+            if not user_id:
+                raise ValueError(f"Could not retrieve user record for username '{username}'")
 
             # Get all the Foods associated with that user_id
             food_daos = Food.get_all_for_user(user_id)
@@ -723,6 +813,8 @@ def get_food(food_id:int):
             # Get the user_id for the user identified by the token
             username = get_jwt_identity()
             user_id = User.get_id(username)
+            if not user_id:
+                raise ValueError(f"Could not retrieve user record for username '{username}'")
 
             food_dao = Food.get(user_id, food_id)
             food = food_dao.json()
@@ -748,6 +840,8 @@ def add_food():
             # Get the user_id for the user identified by the token
             username = get_jwt_identity()
             user_id = User.get_id(username)
+            if not user_id:
+                raise ValueError(f"Could not retrieve user record for username '{username}'")
 
             # Validate food request
             food_data = FoodRequest.model_validate(request.json)
@@ -784,6 +878,8 @@ def update_food():
             # Get the user_id for the user identified by the token
             username = get_jwt_identity()
             user_id = User.get_id(username)
+            if not user_id:
+                raise ValueError(f"Could not retrieve user record for username '{username}'")
 
             # Validate food request
             food_data = FoodRequest.model_validate(request.json)
@@ -817,6 +913,8 @@ def delete_food(food_id:int):
             # Get the user_id for the user identified by the token
             username = get_jwt_identity()
             user_id = User.get_id(username)
+            if not user_id:
+                raise ValueError(f"Could not retrieve user record for username '{username}'")
 
             # Get the specified Food record
             food = Food.get(user_id, food_id)
@@ -849,6 +947,8 @@ def get_recipes():
             # Get the user_id for the user identified by the token
             username = get_jwt_identity()
             user_id = User.get_id(username)
+            if not user_id:
+                raise ValueError(f"Could not retrieve user record for username '{username}'")
 
             # Get all the Recipes associated with that user_id
             recipe_daos = Recipe.get_all_for_user(user_id)
@@ -876,6 +976,8 @@ def get_recipe(recipe_id: int):
             # Get the user_id for the user identified by the token
             username = get_jwt_identity()
             user_id = User.get_id(username)
+            if not user_id:
+                raise ValueError(f"Could not retrieve user record for username '{username}'")
 
             # Get the Recipe for the given user_id and recipe_id
             recipe_dao = Recipe.get(user_id, recipe_id)
@@ -904,6 +1006,8 @@ def add_recipe():
             # Get the user_id for the user identified by the token
             username = get_jwt_identity()
             user_id = User.get_id(username)
+            if not user_id:
+                raise ValueError(f"Could not retrieve user record for username '{username}'")
 
             # Validate recipe request
             recipe_data = RecipeRequest.model_validate(request.json)
@@ -940,6 +1044,8 @@ def update_recipe():
             # Get the user_id for the user identified by the token
             username = get_jwt_identity()
             user_id = User.get_id(username)
+            if not user_id:
+                raise ValueError(f"Could not retrieve user record for username '{username}'")
 
             # Validate recipe request
             recipe_data = RecipeRequest.model_validate(request.json)
@@ -973,6 +1079,8 @@ def delete_recipe(recipe_id: int):
             # Get the user_id for the user identified by the token
             username = get_jwt_identity()
             user_id = User.get_id(username)
+            if not user_id:
+                raise ValueError(f"Could not retrieve user record for username '{username}'")
 
             # Get the specified Recipe record
             recipe = Recipe.get(user_id, recipe_id)
@@ -1006,6 +1114,8 @@ def recalculate_recipe(recipe_id:int):
             # Get the user_id for the user identified by the token
             username = get_jwt_identity()
             user_id = User.get_id(username)
+            if not user_id:
+                raise ValueError(f"Could not retrieve user record for username '{username}'")
 
             Recipe.recalculate(user_id, recipe_id)
 
@@ -1031,6 +1141,8 @@ def recalculate_all_for_user():
             # Get the user_id for the user identified by the token
             username = get_jwt_identity()
             user_id = User.get_id(username)
+            if not user_id:
+                raise ValueError(f"Could not retrieve user record for username '{username}'")
 
             recipe_daos = Recipe.get_all_for_user(user_id)
             for recipe_dao in recipe_daos:
@@ -1061,6 +1173,8 @@ def get_ingredients(recipe_id:int):
             # Get the user_id for the user identified by the token
             username = get_jwt_identity()
             user_id = User.get_id(username)
+            if not user_id:
+                raise ValueError(f"Could not retrieve user record for username '{username}'")
 
             # Get all the Ingredient records with that recipe_id
             ingredients: list[Ingredient] = Ingredient.get_all_for_recipe(user_id, recipe_id)
@@ -1098,6 +1212,8 @@ def get_daily_log_entries():
         with db.session.begin():
             username = get_jwt_identity()
             user_id = User.get_id(username)
+            if not user_id:
+                raise ValueError(f"Could not retrieve user record for username '{username}'")
 
             date_str = request.args.get("date")
             start_str = request.args.get("start")
@@ -1138,6 +1254,8 @@ def get_daily_log_entry(log_id: int):
         with db.session.begin():
             username = get_jwt_identity()
             user_id = User.get_id(username)
+            if not user_id:
+                raise ValueError(f"Could not retrieve user record for username '{username}'")
 
             log_dao = DailyLogItem.get(user_id, log_id)
             entry = log_dao.json()
@@ -1173,6 +1291,8 @@ def add_daily_log_entry():
         with db.session.begin():
             username = get_jwt_identity()
             user_id = User.get_id(username)
+            if not user_id:
+                raise ValueError(f"Could not retrieve user record for username '{username}'")
 
             if not request.is_json:
                 raise ValueError("Invalid request - not JSON")
@@ -1221,6 +1341,8 @@ def update_daily_log_entry(log_id: int):
         with db.session.begin():
             username = get_jwt_identity()
             user_id = User.get_id(username)
+            if not user_id:
+                raise ValueError(f"Could not retrieve user record for username '{username}'")
 
             if not request.is_json:
                 raise ValueError("Invalid request - not JSON")
@@ -1255,6 +1377,8 @@ def delete_daily_log_entry(log_id: int):
         with db.session.begin():
             username = get_jwt_identity()
             user_id = User.get_id(username)
+            if not user_id:
+                raise ValueError(f"Could not retrieve user record for username '{username}'")
 
             DailyLogItem.delete(user_id, log_id)
     except Exception as e:
