@@ -4,8 +4,11 @@ from nacl.utils import EncryptedMessage
 from bcrypt import hashpw, checkpw, gensalt
 import secrets
 import base64
+import hashlib
+import hmac
 
 class Crypto:
+    _symmetric_key: bytes | None = None
     _nacl_box: nacl.secret.SecretBox | None = None
 
     @staticmethod
@@ -21,8 +24,8 @@ class Crypto:
         """
         Initialize the crypto library
         """
-        key_bytes = base64.b64decode(key_b64)
-        Crypto._nacl_box = nacl.secret.SecretBox(key_bytes)
+        Crypto._symmetric_key = base64.b64decode(key_b64)
+        Crypto._nacl_box = nacl.secret.SecretBox(Crypto._symmetric_key)
 
 
     @staticmethod
@@ -63,8 +66,20 @@ class Crypto:
 
 
     @staticmethod
-    def check_password(password: bytes, password_hash: bytes):
+    def check_password(password: bytes, password_hash: bytes) -> bool:
         """
         Verify the given password against its hash
         """
         return checkpw(password, password_hash)
+
+
+    @staticmethod
+    def hash(input: str) -> str:
+        """
+        Unlike the encryption and password hash, which incorporate random elements, this hash
+        is deterministic and can therefore be used for searches.
+        """
+        if not Crypto._symmetric_key:
+            raise ValueError("Encryption key not set")
+        return hmac.new(Crypto._symmetric_key, input.lower().encode(), hashlib.sha256).hexdigest()
+    
