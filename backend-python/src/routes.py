@@ -57,6 +57,15 @@ def admin_required(f: F) -> F:
     return cast(F, decorated)
 
 
+def log_route(f: F) -> F:
+    @wraps(f)
+    def decorated(*args: Any, **kwargs: Any) -> Any:
+        logging.info(f"{request.path} [{request.method}]")
+        return f(*args, **kwargs)
+
+    return cast(F, decorated)
+
+
 ##############################
 # MESSAGE FORMATTER
 ##############################
@@ -80,11 +89,11 @@ def _format_validation_error_message(error: ValidationError) -> str:
 # HEALTH
 ##############################
 @bp.route("/api/health", methods = ["GET"])
+#@log_route
 def health():
     """
     Check the app's health.
     """
-    #logging.info("/health")
     try:
         with db.session.begin():
             db.session.execute(text("SELECT 1"))
@@ -103,12 +112,12 @@ def health():
 ##############################
 @bp.route("/api/db/init", methods=["GET"])
 @admin_required
+@log_route
 def db_init():
     """
     INIT - Wipe the database and recreate all the tables using the ORM classes in 
     models.py.  Note that the tables will be EMPTY!
     """
-    logging.info("/api/db/init")
     try:
         with db.session.begin():
             override_str = str(request.args.get("override", "false"))
@@ -127,11 +136,11 @@ def db_init():
 
 @bp.route("/api/db/purge", methods=["GET"])
 @admin_required
+@log_route
 def db_purge():
     """
     PURGE - Delete all data for a specified user
     """
-    logging.info(f"/api/db/purge")
     try:
         with db.session.begin():
             username = request.args.get("username")
@@ -158,12 +167,12 @@ def db_purge():
 
 @bp.route("/api/db/load", methods=["GET"])
 @admin_required
+@log_route
 def db_load():
     """
     LOAD - Populate the (presumably newly created) database with test data.
     Be aware that this API first deletes the contents of tables it populates!
     """
-    logging.info("/api/db/load")
     try:
         with db.session.begin():
             username = request.args.get("username")
@@ -187,11 +196,11 @@ def db_load():
 
 @bp.route("/api/db/export", methods=["GET"])
 @admin_required
+@log_route
 def db_export():
     """
     EXPORT - Export selected data to JSON files for long-term storage and reloading purposes.
     """
-    logging.info("/api/db/export")
     try:
         with db.session.begin():
             username = request.args.get("username")
@@ -215,12 +224,12 @@ def db_export():
 
 @bp.route("/api/sendmail", methods=["GET"])
 @admin_required
+@log_route
 def sendmail():
     """
     SENDMAIL - Sends a test email to the specified user.  This is used exclusively for testing
     that the app's email mechanism works.
-    """    
-    logging.info("/sendmail")
+    """
     username = None
     email_addr = None
     token = None
@@ -254,6 +263,7 @@ def sendmail():
 
 @bp.route("/api/user", methods = ["DELETE"])
 @admin_required
+@log_route
 def delete_user():
     """
     Delete a user and ALL THEIR DATA
@@ -288,13 +298,13 @@ def delete_user():
 # REGISTRATION & LOGIN
 ##############################
 @bp.route("/api/register", methods=["POST"])
+@log_route
 def register():
     """
     REGISTER - Begin the user registeration process by retrieving the user's credentials
     from the request body, validating them, adding a record to the database, and sending
     an email to their specified email address.
     """
-    logging.info("/register")
     try:
         with db.session.begin():
             # If it's not even JSON, don't bother checking anything else
@@ -373,12 +383,12 @@ def register():
 
 
 @bp.route("/api/confirm", methods = ["GET"])
+@log_route
 def confirm():
     """
     Confirm the user by matching the token in the confirmation email with
     the token stored in the user's User record.
     """
-    logging.info("/confirm")
     try:
         with db.session.begin():
             confirmation_token = request.args.get("token")
@@ -442,13 +452,13 @@ def confirm():
 
 
 @bp.route("/api/login", methods = ["POST"])
+@log_route
 def login():
     """
     Log in the user by retrieving their credentials from the request body, 
     verfifying them against the database, and if valid, generating and
     returning a JWT token.
-    """    
-    logging.info("/login")
+    """
     try:
         with db.session.begin():
             # If it's not even JSON, don't bother checking anything else
@@ -492,12 +502,12 @@ def login():
 
 
 @bp.route("/api/request_reset_password", methods=["POST"])
+@log_route
 def request_reset_password():
     """
     The user has clicked the "forgot your password?" link on the logon screen
     and sent their email address using the ensuing screen.
     """
-    logging.info("/request_reset_password")
     try:
         with db.session.begin():
             # If it's not even JSON, don't bother checking anything else
@@ -543,12 +553,12 @@ def request_reset_password():
 
 
 @bp.route("/api/reset_password", methods=["POST"])
+@log_route
 def reset_password():
     """
     Set the user's password to the specified value.  This also requires a token sent
     to the user via email by the request_reset_password endpoint.
     """
-    logging.info("/request_reset_password")
     try:
         with db.session.begin():
             # If it's not even JSON, don't bother checking anything else
@@ -589,11 +599,11 @@ def reset_password():
 
 @bp.route("/api/change_password", methods=["POST"])
 @jwt_required()
+@log_route
 def change_password():
     """
     Change the user's password to the specified value.
     """
-    logging.info("/request_change_password")
     try:
         with db.session.begin():
             # If it's not even JSON, don't bother checking anything else
@@ -633,11 +643,11 @@ def change_password():
 ##############################
 @bp.route("/api/user", methods = ["GET"])
 @jwt_required()
+@log_route
 def get_users():
     """
     Return the list of all Users
     """
-    logging.info("/user")
     users: list[Any] = []
     try:
         with db.session.begin():
@@ -661,11 +671,11 @@ def get_users():
 
 @bp.route("/api/user/<string:username>", methods = ["GET"])
 @jwt_required()
+@log_route
 def get_user(username: str):
     """
     Get a particular User
     """
-    logging.info("/user/" + username)
     try:
         with db.session.begin():
             user_dao = User.get(username)
@@ -686,11 +696,11 @@ def get_user(username: str):
 ##############################
 @bp.route("/api/preferences/<string:context>", methods = ["GET"])
 @jwt_required()
+@log_route
 def get_preferences(context: str):
     """
     Return the list of all Users
     """
-    logging.info(f"/preferences/{context}")
     try:
         with db.session.begin():
             # Get the user_id for the user identified by the token
@@ -712,11 +722,11 @@ def get_preferences(context: str):
 
 @bp.route("/api/preferences/<string:context>", methods = ["PUT"])
 @jwt_required()
+@log_route
 def save_preferences(context: str):
     """
     Return the list of all Users
     """
-    logging.info(f"/preferences/{context}")
     try:
         with db.session.begin():
             # Get the user_id for the user identified by the token
@@ -749,13 +759,13 @@ def save_preferences(context: str):
 ##############################
 @bp.route('/api/whoami', methods=['GET'])
 @jwt_required()
+@log_route
 def whoami():
     """
     # This is a test API call intended to test token protection without involving 
     # any database or other API calls.
     # It retrieves the identity of the current user from the JWT token.
     """
-    logging.info("/whoami")
     try:
         username = get_jwt_identity()
     except Exception as e:
@@ -773,11 +783,11 @@ def whoami():
 ##############################
 @bp.route("/api/food", methods = ["GET"])
 @jwt_required()
+@log_route
 def get_foods():
     """
     Get all Foods for this user
     """
-    logging.info("/food GET")
     foods: list[Any] = []
     try:
         with db.session.begin():
@@ -803,11 +813,11 @@ def get_foods():
 
 @bp.route("/api/food/<int:food_id>", methods = ["GET"])
 @jwt_required()
+@log_route
 def get_food(food_id:int):
     """
     Get one particular Food
     """
-    logging.info(f"/food GET {food_id}")
     try:
         with db.session.begin():
             # Get the user_id for the user identified by the token
@@ -830,11 +840,11 @@ def get_food(food_id:int):
 
 @bp.route("/api/food", methods = ["POST"])
 @jwt_required()
+@log_route
 def add_food():
     """
     Add a new Food
     """
-    logging.info("/food POST")
     try:
         with db.session.begin():
             # Get the user_id for the user identified by the token
@@ -868,11 +878,11 @@ def add_food():
 
 @bp.route("/api/food", methods = ["PUT"])
 @jwt_required()
+@log_route
 def update_food():
     """
     Update an existing Food
     """
-    logging.info("/food PUT")
     try:
         with db.session.begin():
             # Get the user_id for the user identified by the token
@@ -903,11 +913,11 @@ def update_food():
 
 @bp.route("/api/food/<int:food_id>", methods = ["DELETE"])
 @jwt_required()
+@log_route
 def delete_food(food_id:int):
     """
     Delete a Food
     """
-    logging.info(f"/food/{food_id} DELETE")
     try:
         with db.session.begin():
             # Get the user_id for the user identified by the token
@@ -936,11 +946,11 @@ def delete_food(food_id:int):
 ##############################
 @bp.route("/api/recipe", methods = ["GET"])
 @jwt_required()
+@log_route
 def get_recipes():
     """
     Get all Recipes for this user
     """
-    logging.info("/recipe GET")
     recipes: list[Any] = []
     try:
         with db.session.begin():
@@ -966,11 +976,11 @@ def get_recipes():
 
 @bp.route("/api/recipe/<int:recipe_id>", methods = ["GET"])
 @jwt_required()
+@log_route
 def get_recipe(recipe_id: int):
     """
     Get one Recipe
     """
-    logging.info("/recipe GET")
     try:
         with db.session.begin():
             # Get the user_id for the user identified by the token
@@ -996,11 +1006,11 @@ def get_recipe(recipe_id: int):
 
 @bp.route("/api/recipe", methods = ["POST"])
 @jwt_required()
+@log_route
 def add_recipe():
     """
     Add a new Recipe (including its Ingredients)
     """
-    logging.info("/recipe POST")
     try:
         with db.session.begin():
             # Get the user_id for the user identified by the token
@@ -1034,11 +1044,11 @@ def add_recipe():
 
 @bp.route("/api/recipe", methods = ["PUT"])
 @jwt_required()
+@log_route
 def update_recipe():
     """
     Update an existing Recipe (including its Ingredients)
     """
-    logging.info("/recipe PUT")
     try:
         with db.session.begin():
             # Get the user_id for the user identified by the token
@@ -1069,11 +1079,11 @@ def update_recipe():
 
 @bp.route("/api/recipe/<int:recipe_id>", methods = ["DELETE"])
 @jwt_required()
+@log_route
 def delete_recipe(recipe_id: int):
     """
     Delete a Recipe
     """
-    logging.info(f"/recipe/{recipe_id} DELETE")
     try:
         with db.session.begin():
             # Get the user_id for the user identified by the token
@@ -1104,11 +1114,11 @@ def delete_recipe(recipe_id: int):
 
 @bp.route("/api/recipe/<int:recipe_id>/recalc", methods = ["POST"])
 @jwt_required()
+@log_route
 def recalculate_recipe(recipe_id:int):
     """
     Recalculate the Nutrition info for a specified Recipe.
     """
-    logging.info(f"/recipe/{recipe_id}/recalc")
     try:
         with db.session.begin():
             # Get the user_id for the user identified by the token
@@ -1131,11 +1141,11 @@ def recalculate_recipe(recipe_id:int):
 
 @bp.route("/api/recipe/recalc", methods = ["POST"])
 @jwt_required()
+@log_route
 def recalculate_all_for_user():
     """
     Recalculate the Nutrition info for all Recipe records for a User.
     """
-    logging.info(f"/recipe/recalc")
     try:
         with db.session.begin():
             # Get the user_id for the user identified by the token
@@ -1163,11 +1173,11 @@ def recalculate_all_for_user():
 ##############################
 @bp.route("/api/recipe/<int:recipe_id>/ingredient", methods = ["GET"])
 @jwt_required()
+@log_route
 def get_ingredients(recipe_id:int):
     """
     Get all Ingredients for a Recipe
     """
-    logging.info(f"/recipe/{recipe_id}/ingredient GET")
     try:
         with db.session.begin():
             # Get the user_id for the user identified by the token
@@ -1196,6 +1206,7 @@ def get_ingredients(recipe_id:int):
 ##############################
 @bp.route("/api/dailylogitem", methods = ["GET"])
 @jwt_required()
+@log_route
 def get_daily_log_entries():
     """
     Get DailyLogItem entries for this user.
@@ -1206,7 +1217,6 @@ def get_daily_log_entries():
 
     If no parameters are given, returns all entries for the user.
     """
-    logging.info("/dailylogitem GET")
     entries: list[Any] = []
     try:
         with db.session.begin():
@@ -1245,11 +1255,11 @@ def get_daily_log_entries():
 
 @bp.route("/api/dailylogitem/<int:log_id>", methods = ["GET"])
 @jwt_required()
+@log_route
 def get_daily_log_entry(log_id: int):
     """
     Get one specific DailyLogItem entry.
     """
-    logging.info(f"/dailylogitem/{log_id} GET")
     try:
         with db.session.begin():
             username = get_jwt_identity()
@@ -1271,6 +1281,7 @@ def get_daily_log_entry(log_id: int):
 
 @bp.route("/api/dailylogitem", methods = ["POST"])
 @jwt_required()
+@log_route
 def add_daily_log_entry():
     """
     Add a new DailyLogItem entry.
@@ -1286,7 +1297,6 @@ def add_daily_log_entry():
 
     Exactly one of recipe_id or food_id must be provided.
     """
-    logging.info("/dailylogitem POST")
     try:
         with db.session.begin():
             username = get_jwt_identity()
@@ -1323,6 +1333,7 @@ def add_daily_log_entry():
 
 @bp.route("/api/dailylogitem/<int:log_id>", methods = ["PUT"])
 @jwt_required()
+@log_route
 def update_daily_log_entry(log_id: int):
     """
     Update the date and/or food/recipe and/or servings and/or notes on an existing DailyLogItem entry.
@@ -1336,7 +1347,6 @@ def update_daily_log_entry(log_id: int):
         "notes":     "optional note"   (optional)
       }
     """
-    logging.info(f"/dailylogitem/{log_id} PUT")
     try:
         with db.session.begin():
             username = get_jwt_identity()
@@ -1368,11 +1378,11 @@ def update_daily_log_entry(log_id: int):
 
 @bp.route("/api/dailylogitem/<int:log_id>", methods = ["DELETE"])
 @jwt_required()
+@log_route
 def delete_daily_log_entry(log_id: int):
     """
     Delete a DailyLogItem entry.
     """
-    logging.info(f"/dailylogitem/{log_id} DELETE")
     try:
         with db.session.begin():
             username = get_jwt_identity()
