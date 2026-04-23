@@ -261,12 +261,10 @@ class Data:
 
 
     @staticmethod
-    def export(user_id: int|None = None):
+    def export(user_id: int):
         """
         Save selected data to JSON files.
         """
-        if user_id is None:
-            user_id = User.get_id("guest")
         Data.export_foods(user_id)
         Data.export_ingredients(user_id)
         Data.export_recipes(user_id)
