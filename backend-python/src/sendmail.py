@@ -58,7 +58,7 @@ RESET_EMAIL_TEMPLATE_TEXT = (
     "For security reasons, this link will expire shortly. If you need to request another reset, you can do so from the login page.\r\n"
     "If you did not request a password reset, you can safely ignore this email -- your account will remain unchanged.\r\n"
     "If you have any questions or need assistance, feel free to contact our support team at:\r\n"
-    "{EMAIL_SENDER_ADDRESS}\r\n"
+    "{support_email_addr}\r\n"
     "Thanks,\r\n"
     "The TrackEats Support Team\r\n"
     )
@@ -76,7 +76,7 @@ RESET_EMAIL_TEMPLATE_HTML = (
     "       <p>For security reasons, this link will expire shortly. If you need to request another reset, you can do so from the login page.</p>"
     "       <p>If you did not request a password reset, you can safely ignore this email -- your account will remain unchanged.</p>"
     "       <p>If you have any questions or need assistance, feel free to contact our support team at:</p>"
-    "       <p>{EMAIL_SENDER_ADDRESS}</p>"
+    "       <p>{support_email_addr}</p>"
     "       <p>Thanks,</p>"
     "       <p>The TrackEats Support Team</p>"
     "   </body>"
@@ -112,8 +112,8 @@ class Sendmail:
         base_url = os.environ.get("MOBILE_DEEP_LINK_BASE_URL") or os.environ.get("FRONTEND_BASE_URL")
         link = f"{base_url}/reset_password?token={token}"
 
-        email_body_text = RESET_EMAIL_TEMPLATE_TEXT.format(link=link)
-        email_body_html = RESET_EMAIL_TEMPLATE_HTML.format(link=link)
+        email_body_text = RESET_EMAIL_TEMPLATE_TEXT.format(link=link, support_email_addr=EMAIL_SENDER_ADDRESS)
+        email_body_html = RESET_EMAIL_TEMPLATE_HTML.format(link=link, support_email_addr=EMAIL_SENDER_ADDRESS)
 
         Sendmail.sendmail_smtp(email_address, RESET_EMAIL_SUBJECT, email_body_text, email_body_html)
 
