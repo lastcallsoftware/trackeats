@@ -12,12 +12,15 @@ class DatabaseError(Exception):
     pass
 
 class Data:
+    ADMIN_USER_ID = 1
     ADMIN_USER_NAME = "admin"
-    ADMIN_USER_EMAIL = "admin@lastcallsw.com"
+    ADMIN_USER_EMAIL = "admin@lastcallsoftware.com"
+    TEST_USER_ID = 2
     TEST_USER_NAME = "testuser"
-    TEST_USER_EMAIL = "testuser@lastcallsw.com"
+    TEST_USER_EMAIL = "testuser@lastcallsoftware.com"
+    GUEST_USER_ID = 3
     GUEST_USER_NAME = "guest"
-    GUEST_USER_EMAIL = "testuser@lastcallsw.com"
+    GUEST_USER_EMAIL = "guest@lastcallsoftware.com"
 
     ###################
     # INITIALIZATION
@@ -118,8 +121,8 @@ class Data:
         if not admin_password:
             raise ValueError("APP_ADMIN_PASSWORD not set")
 
-        test_password = os.environ.get("APP_TEST_PASSWORD")
-        if not test_password:
+        testuser_password = os.environ.get("APP_TEST_PASSWORD")
+        if not testuser_password:
             raise ValueError("APP_TEST_PASSWORD not set")
 
         guest_password = os.environ.get("APP_GUEST_PASSWORD")
@@ -127,16 +130,46 @@ class Data:
             raise ValueError("APP_GUEST_PASSWORD not set")
 
         admin_user_dao = User.get("admin")
-        if not admin_user_dao:
-            User.add({"username": Data.ADMIN_USER_NAME, "password": admin_password, "email": Data.ADMIN_USER_EMAIL, "status": UserStatus.confirmed})
+        if admin_user_dao:
+            admin_user_dao.set_password(admin_password)
+            admin_user_dao.set_email_addr(Data.ADMIN_USER_EMAIL)
+            admin_user_dao.status = UserStatus.confirmed
+        else:
+            User.add({
+                "id": Data.ADMIN_USER_ID,
+                "username": Data.ADMIN_USER_NAME,
+                "password": admin_password,
+                "email": Data.ADMIN_USER_EMAIL,
+                "status": UserStatus.confirmed
+            })
 
         test_user_dao = User.get("testuser")
-        if not test_user_dao:
-            User.add({"username": Data.TEST_USER_NAME, "password": test_password, "email": Data.TEST_USER_EMAIL, "status": UserStatus.confirmed})
+        if test_user_dao:
+            test_user_dao.set_password(testuser_password)
+            test_user_dao.set_email_addr(Data.TEST_USER_EMAIL)
+            test_user_dao.status = UserStatus.confirmed
+        else:
+            User.add({
+                "id": Data.TEST_USER_ID,
+                "username": Data.TEST_USER_NAME,
+                "password": testuser_password,
+                "email": Data.TEST_USER_EMAIL,
+                "status": UserStatus.confirmed
+            })
 
         guest_user_dao = User.get("guest")
-        if not guest_user_dao:
-            User.add({"username": Data.GUEST_USER_NAME, "password": guest_password, "email": Data.GUEST_USER_EMAIL, "status": UserStatus.confirmed})
+        if guest_user_dao:
+            guest_user_dao.set_password(guest_password)
+            guest_user_dao.set_email_addr(Data.GUEST_USER_EMAIL)
+            guest_user_dao.status = UserStatus.confirmed
+        else:
+            User.add({
+                "id": Data.GUEST_USER_ID,
+                "username": Data.GUEST_USER_NAME,
+                "password": guest_password,
+                "email": Data.GUEST_USER_EMAIL,
+                "status": UserStatus.confirmed
+            })
 
         logging.info("User records added")
 
