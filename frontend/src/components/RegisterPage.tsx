@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from 'react-router-dom';
 import axios from "axios";
+import { validatePassword } from "../utils/passwordValidation";
 import {
     Paper,
     Typography,
@@ -43,27 +44,8 @@ function RegisterPage() {
     }
 
     const passwordChanged = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const specialCharsRegex = /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/;
         const password = e.target.value;
-        let msg = ""
-        if (password.length == 0) {
-            msg = "Password is required"
-        }
-        else if (password.length < 8) {
-            msg = "Password must be at least 8 characters";
-        }
-        else if (!password.match(/[a-z]/)) {
-            msg = "Password must contain at least one lower-case character";
-        }
-        else if (!password.match(/[A-Z]/)) {
-            msg = "Password must contain at least one upper-case character";
-        }
-        else if (!password.match(/[0-9]/)) {
-            msg = "Password must contain at least one numeric character";
-        }
-        else if (!password.match(specialCharsRegex)) {
-            msg = "Password must contain at least one special character";
-        }
+        const msg = validatePassword(password);
         setFormData(prevState => ({...prevState, password: password, passwordMessage: msg}))
     }
 
