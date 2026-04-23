@@ -629,11 +629,11 @@ def change_password():
             user.set_password(new_password)
 
     except Exception as e:
-        msg = f"Couldn't reset password: {str(e)}"
+        msg = f"Couldn't update password: {str(e)}"
         logging.error(msg)
         return jsonify({"msg": msg}), 400
     else:
-        msg = f"Your password has been reset."
+        msg = f"Your password has been updated."
         logging.info(msg)
         return jsonify({"msg": msg}), 200
 
