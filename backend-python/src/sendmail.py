@@ -20,7 +20,7 @@ SMTP_PORT = 465
 # CONFIGURATION_SET = "ConfigSet"
 
 # The email address of the sender.  This address must be verified by AWS.
-EMAIL_SENDER_ADDRESS = 'admin@lastcallsw.com'
+EMAIL_SENDER_ADDRESS = 'support@trackeats.com'
 EMAIL_SENDER_NAME = 'Trackeats'
 
 # The subject line of the email.
@@ -40,7 +40,7 @@ VERIFY_EMAIL_TEMPLATE_HTML = (
     "   <body>"
     "       <h1>Trackeats Email Verification</h1>"
     "       <p>Click on this link to verify your email address and complete registration of the Trackeats app:</p>"
-    "       <a href='{link1}'>{link2}</a>"
+    "       <a href='{link}'>{link}</a>"
     "   </body>"
     "</html>"
     )
@@ -57,9 +57,10 @@ RESET_EMAIL_TEMPLATE_TEXT = (
     "{link}\r\n"
     "For security reasons, this link will expire shortly. If you need to request another reset, you can do so from the login page.\r\n"
     "If you did not request a password reset, you can safely ignore this email -- your account will remain unchanged.\r\n"
-    "If you have any questions or need assistance, feel free to contact our support team.\r\n"
+    "If you have any questions or need assistance, feel free to contact our support team at:\r\n"
+    "{EMAIL_SENDER_ADDRESS}\r\n"
     "Thanks,\r\n"
-    "The Support Team\r\n"
+    "The TrackEats Support Team\r\n"
     )
 
 # The HTML body of the email.
@@ -70,11 +71,12 @@ RESET_EMAIL_TEMPLATE_HTML = (
     "       <h1>Trackeats Password Reset Requested</h1>"
     "       <p>Hi,</p>"
     "       <p>We received a request to reset the password for the account associated with this email address.</p>"
-    "       <p>If you made this request, you can set a new password by clicking the link below: "
-    "       <a href='{link1}'>{link2}</a></p>"
+    "       <p>If you made this request, you can set a new password by clicking the link below:</p>"
+    "       <a href='{link}'>{link}</a></p>"
     "       <p>For security reasons, this link will expire shortly. If you need to request another reset, you can do so from the login page.</p>"
     "       <p>If you did not request a password reset, you can safely ignore this email -- your account will remain unchanged.</p>"
-    "       <p>If you have any questions or need assistance, feel free to contact our support team.</p>"
+    "       <p>If you have any questions or need assistance, feel free to contact our support team at:</p>"
+    "       <p>{EMAIL_SENDER_ADDRESS}</p>"
     "       <p>Thanks,</p>"
     "       <p>The TrackEats Support Team</p>"
     "   </body>"
@@ -95,7 +97,7 @@ class Sendmail:
         link = f"{base_url}/confirm?token={token}"
         #logging.info(link)
         email_body_text = VERIFY_EMAIL_TEMPLATE_TEXT.format(link=link)
-        email_body_html = VERIFY_EMAIL_TEMPLATE_HTML.format(link1=link, link2=link)
+        email_body_html = VERIFY_EMAIL_TEMPLATE_HTML.format(link=link)
         #logging.info("email_body_text: " + email_body_text)
         #logging.info("email_body_html: " + email_body_html)
         
@@ -103,7 +105,7 @@ class Sendmail:
 
 
     @staticmethod
-    def send_password_reset_email(username: str, token: str, email_address: str) -> None:
+    def send_reset_password_email(username: str, token: str, email_address: str) -> None:
         """
         Send an email to the user to reset their password
         """
@@ -111,7 +113,7 @@ class Sendmail:
         link = f"{base_url}/reset_password?token={token}"
 
         email_body_text = RESET_EMAIL_TEMPLATE_TEXT.format(link=link)
-        email_body_html = RESET_EMAIL_TEMPLATE_HTML.format(link1=link, link2=link)
+        email_body_html = RESET_EMAIL_TEMPLATE_HTML.format(link=link)
 
         Sendmail.sendmail_smtp(email_address, RESET_EMAIL_SUBJECT, email_body_text, email_body_html)
 
