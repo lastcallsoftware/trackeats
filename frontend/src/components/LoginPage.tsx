@@ -44,7 +44,7 @@ function LoginPage(props: any) {
     const handleSubmit = (e: { preventDefault: () => void; }) => {
         e.preventDefault();
         // Call the back end's /login API with the username and password from the form
-        axios.post("/api/login", {username: formData.username, password: formData.password })
+        axios.post("/api/login", {username: formData.username, password: formData.password}, {timeout: 10000})
             .then((response) => {
                 props.storeTokenFunction(response.data.access_token);
                 navigate("/foods")
