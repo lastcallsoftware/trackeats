@@ -181,7 +181,8 @@ def initialize_database(app: Flask):
     """
     try:
         with app.app_context():
-            Data.init_db()
+            with db.session.begin():
+                Data.init_db()
     except SQLAlchemyError as e:
         return "Could not connect to database: " + repr(e)
     return None
