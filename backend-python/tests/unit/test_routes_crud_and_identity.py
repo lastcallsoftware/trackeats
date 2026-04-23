@@ -350,3 +350,233 @@ def test_recalculate_all_for_user_returns_400_on_error(
 
     assert status == 400
     assert resp.get_json()["msg"] == "Recipe nutrition data could not be recalculated: boom"
+
+
+def test_get_daily_log_entries_by_date_success(bare_flask_app: Flask, monkeypatch: pytest.MonkeyPatch) -> None:
+    _mock_session(monkeypatch)
+    monkeypatch.setattr(routes, "get_jwt_identity", lambda: "testuser")
+
+    def _get_id(username: str) -> int:
+        _ = username
+        return 1
+
+    def _get_by_date(user_id: int, date: object) -> list[_JsonDao]:
+        _ = user_id
+        _ = date
+        return [_JsonDao({"id": 1}), _JsonDao({"id": 2})]
+
+    monkeypatch.setattr(routes.User, "get_id", staticmethod(_get_id))
+    monkeypatch.setattr(routes.DailyLogItem, "get_by_date", staticmethod(_get_by_date))
+
+    with bare_flask_app.test_request_context("/api/dailylogitem?date=2026-04-02", method="GET"):
+        resp, status = _as_response_status(_unwrap(routes.get_daily_log_entries)())
+
+    assert status == 200
+    assert resp.get_json() == [{"id": 1}, {"id": 2}]
+
+
+def test_get_daily_log_entries_by_range_success(bare_flask_app: Flask, monkeypatch: pytest.MonkeyPatch) -> None:
+    _mock_session(monkeypatch)
+    monkeypatch.setattr(routes, "get_jwt_identity", lambda: "testuser")
+
+    def _get_id(username: str) -> int:
+        _ = username
+        return 1
+
+    def _get_by_range(user_id: int, start: object, end: object) -> list[_JsonDao]:
+        _ = user_id
+        _ = start
+        _ = end
+        return [_JsonDao({"id": 10})]
+
+    monkeypatch.setattr(routes.User, "get_id", staticmethod(_get_id))
+    monkeypatch.setattr(routes.DailyLogItem, "get_by_range", staticmethod(_get_by_range))
+
+    with bare_flask_app.test_request_context("/api/dailylogitem?start=2026-04-01&end=2026-04-07", method="GET"):
+        resp, status = _as_response_status(_unwrap(routes.get_daily_log_entries)())
+
+    assert status == 200
+    assert resp.get_json() == [{"id": 10}]
+
+
+def test_get_daily_log_entries_missing_filters_returns_400(
+    bare_flask_app: Flask, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    _mock_session(monkeypatch)
+    monkeypatch.setattr(routes, "get_jwt_identity", lambda: "testuser")
+
+    def _get_id(username: str) -> int:
+        _ = username
+        return 1
+
+    monkeypatch.setattr(routes.User, "get_id", staticmethod(_get_id))
+
+    with bare_flask_app.test_request_context("/api/dailylogitem", method="GET"):
+        resp, status = _as_response_status(_unwrap(routes.get_daily_log_entries)())
+
+    assert status == 400
+    assert "Either 'date' or both 'start' and 'end'" in resp.get_json()["msg"]
+
+
+def test_get_daily_log_entry_success(bare_flask_app: Flask, monkeypatch: pytest.MonkeyPatch) -> None:
+    _mock_session(monkeypatch)
+    monkeypatch.setattr(routes, "get_jwt_identity", lambda: "testuser")
+
+    def _get_id(username: str) -> int:
+        _ = username
+        return 1
+
+    def _get(user_id: int, log_id: int) -> _JsonDao:
+        _ = user_id
+        return _JsonDao({"id": log_id})
+
+    monkeypatch.setattr(routes.User, "get_id", staticmethod(_get_id))
+    monkeypatch.setattr(routes.DailyLogItem, "get", staticmethod(_get))
+
+    with bare_flask_app.test_request_context("/api/dailylogitem/7", method="GET"):
+        resp, status = _as_response_status(_unwrap(routes.get_daily_log_entry)(7))
+
+    assert status == 200
+    assert resp.get_json() == {"id": 7}
+
+
+def test_add_daily_log_entry_success(bare_flask_app: Flask, monkeypatch: pytest.MonkeyPatch) -> None:
+    _mock_session(monkeypatch)
+    monkeypatch.setattr(routes, "get_jwt_identity", lambda: "testuser")
+
+    def _get_id(username: str) -> int:
+        _ = username
+        return 1
+
+    def _add_from_schema(user_id: int, data: object) -> _JsonDao:
+        _ = user_id
+        _ = data
+        return _JsonDao({"id": 55}, dao_id=55)
+
+    monkeypatch.setattr(routes.User, "get_id", staticmethod(_get_id))
+    monkeypatch.setattr(routes.DailyLogItem, "add_from_schema", staticmethod(_add_from_schema))
+
+    with bare_flask_app.test_request_context(
+        "/api/dailylogitem",
+        method="POST",
+        json={"date": "2026-04-02", "food_id": 7, "servings": 1.5},
+    ):
+        resp, status = _as_response_status(_unwrap(routes.add_daily_log_entry)())
+
+    assert status == 201
+    assert resp.get_json() == {"id": 55}
+    assert resp.headers.get("Location") == "/dailylogitem/55"
+
+
+def test_add_daily_log_entry_validation_error_returns_422(
+    bare_flask_app: Flask, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    _mock_session(monkeypatch)
+    monkeypatch.setattr(routes, "get_jwt_identity", lambda: "testuser")
+
+    def _get_id(username: str) -> int:
+        _ = username
+        return 1
+
+    monkeypatch.setattr(routes.User, "get_id", staticmethod(_get_id))
+
+    with bare_flask_app.test_request_context("/api/dailylogitem", method="POST", json={}):
+        resp, status = _as_response_status(_unwrap(routes.add_daily_log_entry)())
+
+    assert status == 422
+    assert "Invalid request" in resp.get_json()["msg"]
+
+
+def test_update_daily_log_entry_success(bare_flask_app: Flask, monkeypatch: pytest.MonkeyPatch) -> None:
+    _mock_session(monkeypatch)
+    monkeypatch.setattr(routes, "get_jwt_identity", lambda: "testuser")
+
+    def _get_id(username: str) -> int:
+        _ = username
+        return 1
+
+    def _update_from_schema(user_id: int, log_id: int, data: object) -> _JsonDao:
+        _ = user_id
+        _ = data
+        return _JsonDao({"id": log_id, "servings": 2.0})
+
+    monkeypatch.setattr(routes.User, "get_id", staticmethod(_get_id))
+    monkeypatch.setattr(routes.DailyLogItem, "update_from_schema", staticmethod(_update_from_schema))
+
+    with bare_flask_app.test_request_context(
+        "/api/dailylogitem/8",
+        method="PUT",
+        json={"food_id": 7, "servings": 2.0},
+    ):
+        resp, status = _as_response_status(_unwrap(routes.update_daily_log_entry)(8))
+
+    assert status == 200
+    assert resp.get_json() == {"id": 8, "servings": 2.0}
+
+
+def test_update_daily_log_entry_validation_error_returns_422(
+    bare_flask_app: Flask, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    _mock_session(monkeypatch)
+    monkeypatch.setattr(routes, "get_jwt_identity", lambda: "testuser")
+
+    def _get_id(username: str) -> int:
+        _ = username
+        return 1
+
+    monkeypatch.setattr(routes.User, "get_id", staticmethod(_get_id))
+
+    with bare_flask_app.test_request_context("/api/dailylogitem/8", method="PUT", json={}):
+        resp, status = _as_response_status(_unwrap(routes.update_daily_log_entry)(8))
+
+    assert status == 422
+    assert "Invalid request" in resp.get_json()["msg"]
+
+
+def test_delete_daily_log_entry_success(bare_flask_app: Flask, monkeypatch: pytest.MonkeyPatch) -> None:
+    _mock_session(monkeypatch)
+    monkeypatch.setattr(routes, "get_jwt_identity", lambda: "testuser")
+
+    def _get_id(username: str) -> int:
+        _ = username
+        return 1
+
+    monkeypatch.setattr(routes.User, "get_id", staticmethod(_get_id))
+
+    called: dict[str, tuple[int, int]] = {}
+
+    def _delete(user_id: int, log_id: int) -> None:
+        called["args"] = (user_id, log_id)
+
+    monkeypatch.setattr(routes.DailyLogItem, "delete", staticmethod(_delete))
+
+    with bare_flask_app.test_request_context("/api/dailylogitem/8", method="DELETE"):
+        resp, status = _as_response_status(_unwrap(routes.delete_daily_log_entry)(8))
+
+    assert status == 200
+    assert resp.get_json() == {"msg": "DailyLogItem entry 8 deleted"}
+    assert called["args"] == (1, 8)
+
+
+def test_delete_daily_log_entry_returns_400_on_error(
+    bare_flask_app: Flask, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    _mock_session(monkeypatch)
+    monkeypatch.setattr(routes, "get_jwt_identity", lambda: "testuser")
+
+    def _get_id(username: str) -> int:
+        _ = username
+        return 1
+
+    monkeypatch.setattr(routes.User, "get_id", staticmethod(_get_id))
+
+    def _delete(user_id: int, log_id: int) -> None:
+        raise RuntimeError("boom")
+
+    monkeypatch.setattr(routes.DailyLogItem, "delete", staticmethod(_delete))
+
+    with bare_flask_app.test_request_context("/api/dailylogitem/8", method="DELETE"):
+        resp, status = _as_response_status(_unwrap(routes.delete_daily_log_entry)(8))
+
+    assert status == 400
+    assert "DailyLogItem entry could not be deleted: boom" == resp.get_json()["msg"]

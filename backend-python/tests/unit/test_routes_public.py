@@ -104,9 +104,9 @@ def test_register_success(client: FlaskClient, monkeypatch: pytest.MonkeyPatch) 
 def test_register_resend_token_path(client: FlaskClient, monkeypatch: pytest.MonkeyPatch) -> None:
     _mock_session(monkeypatch)
 
-    user = SimpleNamespace(username="user1", email=b"enc-email", confirmation_token="old")
+    user = SimpleNamespace(username="user1", encrypted_email_addr=b"enc-email", confirmation_token="old")
 
-    def _get_by_token(token: str) -> SimpleNamespace:
+    def _get_by_confirmation_token(token: str) -> SimpleNamespace:
         return user
 
     def _decrypt(data: bytes) -> str:
@@ -115,7 +115,7 @@ def test_register_resend_token_path(client: FlaskClient, monkeypatch: pytest.Mon
     def _token() -> str:
         return "new-token"
 
-    monkeypatch.setattr(routes.User, "get_by_token", staticmethod(_get_by_token))
+    monkeypatch.setattr(routes.User, "get_by_confirmation_token", staticmethod(_get_by_confirmation_token))
     monkeypatch.setattr(routes.Crypto, "decrypt", staticmethod(_decrypt))
     monkeypatch.setattr(routes.Crypto, "generate_url_token", staticmethod(_token))
 
@@ -154,10 +154,10 @@ def test_confirm_expired_token_returns_403(client: FlaskClient, monkeypatch: pyt
         status=None,
     )
 
-    def _get_by_token(token: str) -> SimpleNamespace:
+    def _get_by_confirmation_token(token: str) -> SimpleNamespace:
         return user
 
-    monkeypatch.setattr(routes.User, "get_by_token", staticmethod(_get_by_token))
+    monkeypatch.setattr(routes.User, "get_by_confirmation_token", staticmethod(_get_by_confirmation_token))
 
     resp = client.get("/api/confirm?token=abc")
 
@@ -175,10 +175,10 @@ def test_confirm_success_sets_status_confirmed(client: FlaskClient, monkeypatch:
         status=None,
     )
 
-    def _get_by_token(token: str) -> SimpleNamespace:
+    def _get_by_confirmation_token(token: str) -> SimpleNamespace:
         return user
 
-    monkeypatch.setattr(routes.User, "get_by_token", staticmethod(_get_by_token))
+    monkeypatch.setattr(routes.User, "get_by_confirmation_token", staticmethod(_get_by_confirmation_token))
 
     resp = client.get("/api/confirm?token=abc")
 

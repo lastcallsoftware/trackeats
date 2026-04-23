@@ -51,7 +51,7 @@ def test_login_success_returns_access_token(client: FlaskClient, monkeypatch: py
     def _verify(username: str, password: str) -> SimpleNamespace:
         return verified_user
 
-    def _create_access_token(identity: str, expires_delta: object) -> str:
+    def _create_access_token(identity: str, expires_delta: object, additional_claims: object) -> str:
         return "token-123"
 
     monkeypatch.setattr(routes.User, "verify", staticmethod(_verify))
@@ -77,7 +77,7 @@ def test_login_seeds_when_requested(client: FlaskClient, monkeypatch: pytest.Mon
     def _seed(user: object) -> None:
         seeded["called"] = True
 
-    def _create_access_token(identity: str, expires_delta: object) -> str:
+    def _create_access_token(identity: str, expires_delta: object, additional_claims: object) -> str:
         return "token-123"
 
     monkeypatch.setattr(routes.User, "verify", staticmethod(_verify))
