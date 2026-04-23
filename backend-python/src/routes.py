@@ -312,6 +312,14 @@ def request_reset_password():
     return jsonify({"msg": msg}), 200
 
 
+@bp.route("/api/reset_password", methods=["POST"])
+def reset_password():
+    msg = f"Your password has been reset."
+    #logging.info(msg)
+    return jsonify({"msg": msg}), 200
+
+
+
 @bp.route("/api/sendmail", methods=["GET"])
 @jwt_required()
 def sendmail():
