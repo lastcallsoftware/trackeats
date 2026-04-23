@@ -193,10 +193,8 @@ class User(db.Model):
 
 
     @staticmethod
-    def get(username: str) -> User:
+    def get(username: str) -> User | None:
         user = db.session.scalar(db.select(User).where(User.username == username))
-        #if not user:
-        #    raise ValueError(f"Invalid username '{username}'")
         return user
 
 
@@ -220,13 +218,11 @@ class User(db.Model):
 
 
     @staticmethod
-    def get_id(username: str) -> int:
+    def get_id(username: str) -> int | None:
         """
         Get the user_id for the given username
         """
         user = db.session.scalar(db.select(User).where(User.username == username))
-        if user is None:
-            raise ValueError(f"User '{username}' not found")
         return user.id
 
 
@@ -331,11 +327,9 @@ class User(db.Model):
 
         # Validate the credentials
         # Retrieve user record from database
-        # I know that in the case of a validation failure you're not 
-        # supposed to tell the caller whether the username or password 
-        # was invalid, because that gives hackers more info.  But in the
-        # interests of easier debugging, I'll take my chances here...
         user = User.get(username)
+        if not user:
+            raise ValueError("Invalid username or password")
 
         # Make sure the user has been confirmed
         if user.status != UserStatus.confirmed:
@@ -347,7 +341,7 @@ class User(db.Model):
         password_hash_bytes = bytes(user.password_hash, "utf-8")
         password_bytes = bytes(password, "utf-8")
         if not Crypto.check_password(password_bytes, password_hash_bytes):
-            raise ValueError(f"Incorrect password for username '{username}'")
+            raise ValueError(f"Invalid username or password")
 
         return user
 
