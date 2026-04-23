@@ -202,7 +202,7 @@ def register():
                 
                 user = User.get_by_token(expired_token)
                 username = user.username
-                encrypted_email_addr = user.email
+                encrypted_email_addr = user.encrypted_email_addr
                 if encrypted_email_addr is None:
                     raise ValueError("Email address missing from User record")
                 email_addr = Crypto.decrypt(encrypted_email_addr)
@@ -262,12 +262,12 @@ def register():
         return jsonify({"msg": msg}), 200
 
 
-@bp.route("/api/request_password_reset", methods=["POST"])
-def request_password_reset():
+@bp.route("/api/request_reset_password", methods=["POST"])
+def request_reset_password():
     """
     The user has clicked the "forgot your password?" link on the logon screen.
     """
-    logging.info("/request_password_reset")
+    logging.info("/request_reset_password")
     try:
         with db.session.begin():
             # If it's not even JSON, don't bother checking anything else
@@ -282,14 +282,16 @@ def request_password_reset():
             # generic message to avoid security leaks.
             try:
                 user = User.get_by_email(email_addr)
-                if user:
+                if not user:
+                    logging.error(f"Unable retrieve user for {email_addr}")
+                else:
                     # Generate a token to be included in the email.  This token will be used
                     # to verify the identity of the user that clicks it, AND to put a time
                     # limit on its use
                     token = Crypto.generate_url_token()
 
                     # Send the email
-                    Sendmail.send_password_reset_email(user.username, token, email_addr)
+                    Sendmail.send_reset_password_email(user.username, token, email_addr)
 
                     # Update the database with the token and the time it was sent
                     user.reset_token = token
@@ -305,8 +307,8 @@ def request_password_reset():
         logging.error(msg)
         return jsonify({"msg": msg}), 401
 
-    msg = f"If the given email address was registered, we tried to send a reset link to that address."
-    logging.info(msg)
+    msg = f"Check your inbox.  If that email address is registered you should receive a reset link there shortly.  You can close this screen."
+    #logging.info(msg)
     return jsonify({"msg": msg}), 200
 
 
