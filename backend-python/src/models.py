@@ -201,10 +201,16 @@ class User(db.Model):
 
 
     @staticmethod
-    def get_by_token(token: str) -> User:
+    def get_by_confirmation_token(token: str) -> User:
         user = db.session.scalar(db.select(User).where(User.confirmation_token == token))
         return user
     
+
+    @staticmethod
+    def get_by_reset_token(token: str) -> User:
+        user = db.session.scalar(db.select(User).where(User.reset_token == token))
+        return user
+
 
     @staticmethod
     def get_by_email(email_addr: str) -> User:

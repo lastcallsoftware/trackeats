@@ -1,6 +1,6 @@
 import os
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Any
 from flask import Blueprint, jsonify, make_response, request
 from flask_jwt_extended import jwt_required, create_access_token, get_jwt_identity # type:ignore
@@ -17,6 +17,8 @@ from data import Data
 from sqlalchemy.sql import text
 
 bp = Blueprint("auth", __name__)
+
+RESET_TOKEN_EXPIRATION_SECONDS = 900  # 15 minutes
 
 
 ##############################
@@ -200,7 +202,7 @@ def register():
                 # Validate resend request
                 ResendConfirmationRequest.model_validate(request.json)
                 
-                user = User.get_by_token(expired_token)
+                user = User.get_by_confirmation_token(expired_token)
                 username = user.username
                 encrypted_email_addr = user.encrypted_email_addr
                 if encrypted_email_addr is None:
@@ -314,10 +316,46 @@ def request_reset_password():
 
 @bp.route("/api/reset_password", methods=["POST"])
 def reset_password():
-    msg = f"Your password has been reset."
-    #logging.info(msg)
-    return jsonify({"msg": msg}), 200
+    """
+    Set the user's password to the specified value.
+    """
+    logging.info("/request_reset_password")
+    try:
+        with db.session.begin():
+            # If it's not even JSON, don't bother checking anything else
+            if not request.is_json:
+                raise ValueError("Invalid request - not JSON")
 
+            token = request.args.get("token")
+            if not token:
+                raise ValueError("Missing required parameter 'token'")
+
+            password = request.args.get("password")
+            if not password:
+                raise ValueError("Missing required parameter 'password'")
+
+            # Get the user via the token provided
+            user = User.get_by_reset_token(token)
+            if not user:
+                raise ValueError("Invalid token")
+
+            # Check that the token is not more than 15 minutes old
+            if user.reset_email_sent_at is None:
+                raise ValueError("Invalid token")
+            token_age = datetime.now(timezone.utc) - user.reset_email_sent_at
+            if token_age.total_seconds() > RESET_TOKEN_EXPIRATION_SECONDS:
+                raise ValueError("Token has expired")
+
+            user.set_password(password)
+
+    except Exception as e:
+        msg = f"Couldn't reset password: {str(e)}"
+        logging.error(msg)
+        return jsonify({"msg": msg}), 400
+    else:
+        msg = f"Your password has been reset."
+        logging.info(msg)
+        return jsonify({"msg": msg}), 200
 
 
 @bp.route("/api/sendmail", methods=["GET"])
@@ -373,7 +411,7 @@ def confirm():
                 raise ValueError("Missing required parameter 'token'")
 
             # Retrieve the User record from the database.
-            user = User.get_by_token(confirmation_token)
+            user = User.get_by_confirmation_token(confirmation_token)
 
             # Check whether the confirmation token is correct.
             if (confirmation_token != user.confirmation_token):
