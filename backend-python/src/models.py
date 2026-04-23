@@ -108,7 +108,8 @@ class User(db.Model):
     id: Mapped[int] = mapped_column(primary_key=True)
     username: Mapped[str] = mapped_column(db.String(100), index=True, unique=True)
     status: Mapped[UserStatus] = mapped_column(db.Enum(UserStatus), nullable=False)
-    email: Mapped[bytes | None] = mapped_column(db.LargeBinary, nullable=True)
+    encrypted_email_addr: Mapped[bytes | None] = mapped_column(db.LargeBinary, nullable=True)
+    email_addr_hash: Mapped[str | None] = mapped_column(db.String(64), nullable=True)
     created_at: Mapped[datetime.datetime] = mapped_column(db.DateTime, nullable=False)
     password_hash: Mapped[str] = mapped_column(db.String(64), nullable=False)
     confirmation_email_sent_at: Mapped[datetime.datetime | None] = mapped_column(db.DateTime, nullable=True)
@@ -123,7 +124,8 @@ class User(db.Model):
         self,
         username: str,
         status: UserStatus,
-        email: bytes | None,
+        encrypted_email_addr: bytes | None,
+        email_addr_hash: str | None,
         created_at: datetime.datetime,
         password_hash: str,
         confirmation_email_sent_at: datetime.datetime | None = None,
@@ -136,7 +138,8 @@ class User(db.Model):
     ):
         self.username = username
         self.status = status
-        self.email = email
+        self.encrypted_email_addr = encrypted_email_addr
+        self.email_addr_hash = email_addr_hash
         self.created_at = created_at
         self.password_hash = password_hash
         self.confirmation_email_sent_at = confirmation_email_sent_at
@@ -151,34 +154,23 @@ class User(db.Model):
         return (f"<User {self.id} "
                 f"username: {self.username}, "
                 f"status: {self.status}, "
-                f"email: <confidential>, "
                 f"created_at: {self.created_at}, "
-                f"password_hash: <confidential>, "
                 f"confirmation_email_sent_at: {self.confirmation_email_sent_at}>"
-                f"confirmation_token: <confidential>, "
                 f"reset_email_sent_at: {self.reset_email_sent_at}>"
-                f"reset_token: <confidential>, "
                 f"seed_requested: {self.seed_requested}, "
                 f"seed_version: {self.seed_version}, "
                 f"seeded_at: {self.seeded_at}>")
 
     def __repr__(self):
-        email = ""
-        if self.email and len(self.email) > 0:
-            email = Crypto.decrypt(self.email)
-        return (f"User({self.id}, "
-                f"\'{self.username}\', "
-                f"{self.status}, "
-                f"\'{email}\', "
-                f"{self.created_at}, "
-                f"\'{self.password_hash}\', "
-                f"{self.confirmation_email_sent_at}, "
-                f"\'{self.confirmation_token}\', "
-                f"{self.reset_email_sent_at}, "
-                f"\'{self.reset_token}\', "
-                f"{self.seed_requested}, "
-                f"{self.seed_version}, "
-                f"{self.seeded_at}")
+        return (f"User(id={self.id}, "
+                f"username={self.username!r}, "
+                f"status={self.status!r}, "
+                f"created_at={self.created_at!r}, "
+                f"confirmation_email_sent_at={self.confirmation_email_sent_at!r}, "
+                f"reset_email_sent_at={self.reset_email_sent_at!r}, "
+                f"seed_requested={self.seed_requested!r}, "
+                f"seed_version={self.seed_version!r}, "
+                f"seeded_at={self.seeded_at!r}")
 
     def json(self) -> dict[str,Any]:
         return {
@@ -216,8 +208,8 @@ class User(db.Model):
 
     @staticmethod
     def get_by_email(email_addr: str) -> User:
-        encrypted_email_addr = Crypto.encrypt(email_addr)
-        user = db.session.scalar(db.select(User).where(User.email == encrypted_email_addr))
+        email_addr_hash = Crypto.hash(email_addr)
+        user = db.session.scalar(db.select(User).where(User.email_addr_hash == email_addr_hash))
         return user
 
 
@@ -292,8 +284,11 @@ class User(db.Model):
 
         # Encrypt the user data.  Currently that is just the email address.
         encrypted_email_addr = None
+        email_addr_hash = None
         if email_addr and len(email_addr) > 0:
             encrypted_email_addr = Crypto.encrypt(email_addr)
+            # Create a hash of the email that we can use for searching
+            email_addr_hash = Crypto.hash(email_addr)
 
         # Store the user record in the database
         now = datetime.datetime.now()
@@ -301,7 +296,8 @@ class User(db.Model):
         new_user_dao = User(
             username=username,
             status=status,
-            email=encrypted_email_addr,
+            encrypted_email_addr=encrypted_email_addr,
+            email_addr_hash=email_addr_hash,
             created_at=now,
             password_hash=password_hash_str,
             confirmation_email_sent_at=confirmation_email_sent_at,
@@ -348,6 +344,21 @@ class User(db.Model):
             raise ValueError(f"Incorrect password for username '{username}'")
 
         return user
+
+
+    def set_password(self, password: str) -> None:
+        """
+        Hashes the password and stores that instead of the given string.
+        """
+        self.password_hash = Crypto.hash_password(password)
+
+
+    def set_email_addr(self, email_addr: str) -> None:
+        """
+        Encrypts and hashes the email address and stores those values.
+        """
+        self.encrypted_email_addr = Crypto.encrypt(email_addr)
+        self.email_addr_hash = Crypto.hash(email_addr)
 
 
 ##############################
