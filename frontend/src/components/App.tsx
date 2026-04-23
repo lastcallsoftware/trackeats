@@ -235,6 +235,7 @@ function App() {
                                     onClose={handleOptionsClose}
                                 >
                                     <MenuItem onClick={() => { handleOptionsClose(); removeToken(); }}>Log out</MenuItem>
+                                    <MenuItem onClick={() => { handleOptionsClose(); navigate('/change_password'); }}>Change password</MenuItem>
                                     <MenuItem onClick={handleRecalculateRecipes} disabled={isRecalculatingRecipes}>Recalculate recipes</MenuItem>
                                     <MenuItem onClick={handleDeleteAccountClick}>Delete my account</MenuItem>
                                 </Menu>
