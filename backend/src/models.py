@@ -218,12 +218,21 @@ class User(db.Model):
 
 
     @staticmethod
+    def get_id_by_email(email_addr: str) -> int | None:
+        """
+        Get the user_id for the given email address (used for JWT identity lookup)
+        """
+        user = User.get_by_email(email_addr)
+        return user.id if user else None
+
+
+    @staticmethod
     def get_id(username: str) -> int | None:
         """
         Get the user_id for the given username
         """
         user = db.session.scalar(db.select(User).where(User.username == username))
-        return user.id
+        return user.id if user else None
 
 
     @staticmethod
@@ -316,24 +325,24 @@ class User(db.Model):
     
 
     @staticmethod
-    def verify(username: str, password: str) -> User:
+    def verify(email: str, password: str) -> User:
         """
-        Verify that the given user credentials are valid.
+        Verify that the given user credentials (email and password) are valid.
         """
-        if not username:
-            raise ValueError("Username is required")
+        if not email:
+            raise ValueError("Email is required")
         if not password:
             raise ValueError("Password is required")
 
         # Validate the credentials
-        # Retrieve user record from database
-        user = User.get(username)
+        # Retrieve user record from database by email
+        user = User.get_by_email(email)
         if not user:
-            raise ValueError("Invalid username or password")
+            raise ValueError("Invalid email or password")
 
         # Make sure the user has been confirmed
         if user.status != UserStatus.confirmed:
-            raise ValueError(f"User '{username}' has not been confirmed")
+            raise ValueError(f"Email '{email}' has not been confirmed")
 
         # Validate the password.
         # Note that the salt is stored as part of the hash, rather than as a 
@@ -341,7 +350,7 @@ class User(db.Model):
         password_hash_bytes = bytes(user.password_hash, "utf-8")
         password_bytes = bytes(password, "utf-8")
         if not Crypto.check_password(password_bytes, password_hash_bytes):
-            raise ValueError(f"Invalid username or password")
+            raise ValueError(f"Invalid email or password")
 
         return user
 
