@@ -121,7 +121,7 @@ function App() {
     }
 
     const overlayOpen = isLoading || isRecalculatingRecipes
-    const overlayMessage = isRecalculatingRecipes ? "Recalculating recipes..." : "Loading your account..."
+    const overlayMessage = isRecalculatingRecipes ? "Recalculating recipes..." : "Loading data..."
 
     const handleAboutItem = (path: string) => {
         handleAboutClose();

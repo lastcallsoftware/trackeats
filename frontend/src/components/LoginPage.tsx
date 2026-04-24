@@ -193,7 +193,7 @@ function LoginPage(props: any) {
                 })}
             >
                 <CircularProgress color="inherit" />
-                <Typography variant="body1">Loading your account...</Typography>
+                <Typography variant="body1">Loading data...</Typography>
             </Backdrop>
         </Box>
     );
