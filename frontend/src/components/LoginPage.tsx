@@ -13,28 +13,28 @@ import InputAdornment from '@mui/material/InputAdornment';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function LoginPage(props: any) {
-    // If we were sent here from the Confirm page, the state will contain username and password
+    // If we were sent here from the Confirm page, the state will contain email and password
     const location = useLocation();
-    const isConfirm = location.state && location.state.username
-    const defaultFormData = {username: location.state?.username || "", usernameTouched: false,
+    const isConfirm = location.state && location.state.email
+    const defaultFormData = {email: location.state?.email || "", emailTouched: false,
                              password: location.state?.password || "", passwordTouched: false}
     const [formData, setFormData] = useState(defaultFormData);
     const [loginMessage, setLoginMessage] = useState("");
     const navigate = useNavigate();
     const [showPassword, setShowPassword] = useState(false);
     const [pageState, setPageState] = useState<"login" | "confirmed">("login")
-    const [confirmedUsername, setConfirmedUsername] = useState("")
+    const [confirmedEmail, setConfirmedEmail] = useState("")
 
-    const usernameIsValid = formData.username.length > 0;
+    const emailIsValid = formData.email.length > 0;
     const passwordIsValid = formData.password.length > 0;
-    const loginIsDisabled = !usernameIsValid || !passwordIsValid;
+    const loginIsDisabled = !emailIsValid || !passwordIsValid;
 
     useEffect(() => {
     const channel = new BroadcastChannel("trackeats_auth");
     channel.onmessage = (event) => {
         if (event.data.type === "EMAIL_CONFIRMED") {
-            const { username } = event.data;
-            setConfirmedUsername(username)
+            const { email } = event.data;
+            setConfirmedEmail(email)
             setPageState("confirmed")
         }
     };
@@ -43,8 +43,8 @@ function LoginPage(props: any) {
 
     const handleSubmit = (e: { preventDefault: () => void; }) => {
         e.preventDefault();
-        // Call the back end's /login API with the username and password from the form
-        axios.post("/api/login", {username: formData.username, password: formData.password}, {timeout: 10000})
+        // Call the back end's /login API with the email and password from the form
+        axios.post("/api/login", {email: formData.email, password: formData.password}, {timeout: 10000})
             .then((response) => {
                 props.storeTokenFunction(response.data.access_token);
                 navigate("/foods")
@@ -61,7 +61,7 @@ function LoginPage(props: any) {
     if (pageState === "confirmed") {
         return (
             <Box sx={{ minHeight: '70vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-                <Typography variant="h6">Your email has been confirmed, {confirmedUsername}.</Typography>
+                <Typography variant="h6">Your email has been confirmed, {confirmedEmail}.</Typography>
                 <Typography variant="body2" color="text.secondary">You can close this tab.</Typography>
             </Box>
         );
@@ -100,7 +100,7 @@ function LoginPage(props: any) {
                     Login
                 </Typography>
                 <Typography variant="subtitle1" color="text.secondary">
-                    Please enter your username and password to sign in
+                    Please enter your email address and password to sign in
                 </Typography>
             </Paper>
             <Paper
@@ -120,10 +120,11 @@ function LoginPage(props: any) {
                 <form onSubmit={handleSubmit}>
                     <Box display="flex" flexDirection="column" gap={3}>
                         <TextField
-                            label="Username"
+                            label="Email Address"
                             variant="outlined"
-                            value={formData.username}
-                            onChange={(e) => setFormData(prevState => ({...prevState, username: e.target.value}))}
+                            type="email"
+                            value={formData.email}
+                            onChange={(e) => setFormData(prevState => ({...prevState, email: e.target.value}))}
                             required
                             autoFocus
                         />
