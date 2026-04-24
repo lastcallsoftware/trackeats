@@ -1,8 +1,6 @@
 import datetime
 from types import SimpleNamespace
-
 import pytest
-
 import models
 from schemas import FoodRequest, NutritionRequest
 

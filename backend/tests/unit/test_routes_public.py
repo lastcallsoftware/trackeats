@@ -162,7 +162,10 @@ def test_resend_confirmation_empty_token_returns_422(client: FlaskClient, monkey
 def test_resend_confirmation_invalid_token_returns_404(client: FlaskClient, monkeypatch: pytest.MonkeyPatch) -> None:
     _mock_session(monkeypatch)
 
-    monkeypatch.setattr(routes.User, "get_by_confirmation_token", staticmethod(lambda token: None))
+    def _get_by_token_none(token: str) -> None:
+        return None
+
+    monkeypatch.setattr(routes.User, "get_by_confirmation_token", staticmethod(_get_by_token_none))
 
     resp = client.post("/api/resend_confirmation", json={"token": "missing-token"})
 
@@ -179,7 +182,10 @@ def test_resend_confirmation_already_confirmed_returns_409(client: FlaskClient, 
         encrypted_email_addr=b"enc-email",
     )
 
-    monkeypatch.setattr(routes.User, "get_by_confirmation_token", staticmethod(lambda token: user))
+    def _get_by_token_confirmed(token: str) -> SimpleNamespace:
+        return user
+
+    monkeypatch.setattr(routes.User, "get_by_confirmation_token", staticmethod(_get_by_token_confirmed))
 
     resp = client.post("/api/resend_confirmation", json={"token": "confirmed-token"})
 
@@ -198,14 +204,22 @@ def test_resend_confirmation_email_failure_returns_503(client: FlaskClient, monk
         confirmation_email_sent_at=None,
     )
 
-    monkeypatch.setattr(routes.User, "get_by_confirmation_token", staticmethod(lambda token: user))
-    monkeypatch.setattr(routes.Crypto, "decrypt", staticmethod(lambda data: "user1@example.com"))
-    monkeypatch.setattr(routes.Crypto, "generate_url_token", staticmethod(lambda: "new-token"))
-    monkeypatch.setattr(
-        routes.Sendmail,
-        "send_confirmation_email",
-        staticmethod(lambda username, token, email: "smtp unavailable"),
-    )
+    def _get_by_token_pending(token: str) -> SimpleNamespace:
+        return user
+
+    def _decrypt(data: bytes) -> str:
+        return "user1@example.com"
+
+    def _generate_url_token() -> str:
+        return "new-token"
+
+    def _send_confirmation_email(username: str, token: str, email: str) -> str:
+        return "smtp unavailable"
+
+    monkeypatch.setattr(routes.User, "get_by_confirmation_token", staticmethod(_get_by_token_pending))
+    monkeypatch.setattr(routes.Crypto, "decrypt", staticmethod(_decrypt))
+    monkeypatch.setattr(routes.Crypto, "generate_url_token", staticmethod(_generate_url_token))
+    monkeypatch.setattr(routes.Sendmail, "send_confirmation_email", staticmethod(_send_confirmation_email))
 
     resp = client.post("/api/resend_confirmation", json={"token": "expired-token"})
 
