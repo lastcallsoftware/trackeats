@@ -51,10 +51,17 @@ class ResendConfirmationRequest(BaseModel):
     """Validate a resend confirmation email request."""
     token: str
 
+    @field_validator("token")
+    @classmethod
+    def validate_token(cls, v: str) -> str:
+        if not v or len(v.strip()) == 0:
+            raise ValueError("token cannot be empty")
+        return v
+
 
 class LoginRequest(BaseModel):
     """Validate a login request."""
-    username: str
+    email: str
     password: str
 
 
