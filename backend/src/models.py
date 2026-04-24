@@ -106,10 +106,10 @@ class User(db.Model):
     __tablename__ = "user"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    username: Mapped[str] = mapped_column(db.String(100), index=True, unique=True)
+    username: Mapped[str] = mapped_column(db.String(100), index=True, nullable=True)
     status: Mapped[UserStatus] = mapped_column(db.Enum(UserStatus), nullable=False)
     encrypted_email_addr: Mapped[bytes | None] = mapped_column(db.LargeBinary, nullable=True)
-    email_addr_hash: Mapped[str | None] = mapped_column(db.String(64), nullable=True)
+    email_addr_hash: Mapped[str | None] = mapped_column(db.String(64), nullable=False, unique=True)
     created_at: Mapped[datetime.datetime] = mapped_column(db.DateTime, nullable=False)
     password_hash: Mapped[str] = mapped_column(db.String(64), nullable=False)
     confirmation_email_sent_at: Mapped[datetime.datetime | None] = mapped_column(db.DateTime, nullable=True)
