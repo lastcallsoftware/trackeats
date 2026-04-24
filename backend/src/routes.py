@@ -510,10 +510,6 @@ def request_reset_password():
     """
     try:
         with db.session.begin():
-            # If it's not even JSON, don't bother checking anything else
-            if not request.is_json:
-                raise ValueError("Invalid request - not JSON")
-
             email_addr = request.args.get("email")
             if not email_addr:
                 raise ValueError("Missing required parameter 'email'")
@@ -561,10 +557,6 @@ def reset_password():
     """
     try:
         with db.session.begin():
-            # If it's not even JSON, don't bother checking anything else
-            if not request.is_json:
-                raise ValueError("Invalid request - not JSON")
-
             reset_token = request.args.get("token")
             if not reset_token:
                 raise ValueError("Missing required parameter 'token'")
