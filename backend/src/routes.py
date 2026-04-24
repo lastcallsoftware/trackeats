@@ -321,6 +321,11 @@ def register():
             email_addr = reg_data.email
             seed_requested = reg_data.seed_requested
 
+            # Ensure no user with this email already exists
+            existing_user = User.get_by_email(email_addr)
+            if existing_user:
+                raise ValueError("A user with that email address already exists")
+
             # Generate a verification token
             token = Crypto.generate_url_token()
 
