@@ -5,6 +5,8 @@ import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
+import Backdrop from '@mui/material/Backdrop';
+import CircularProgress from '@mui/material/CircularProgress';
 import Paper from '@mui/material/Paper';
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
@@ -22,12 +24,13 @@ function LoginPage(props: any) {
     const [loginMessage, setLoginMessage] = useState("");
     const navigate = useNavigate();
     const [showPassword, setShowPassword] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
     const [pageState, setPageState] = useState<"login" | "confirmed">("login")
     const [confirmedEmail, setConfirmedEmail] = useState("")
 
     const emailIsValid = formData.email.length > 0;
     const passwordIsValid = formData.password.length > 0;
-    const loginIsDisabled = !emailIsValid || !passwordIsValid;
+    const loginIsDisabled = !emailIsValid || !passwordIsValid || isSubmitting;
 
     useEffect(() => {
     const channel = new BroadcastChannel("trackeats_auth");
@@ -41,21 +44,29 @@ function LoginPage(props: any) {
     return () => channel.close(); // clean up on unmount
     }, []);
 
-    const handleSubmit = (e: { preventDefault: () => void; }) => {
+    const handleSubmit = async (e: { preventDefault: () => void; }) => {
         e.preventDefault();
-        // Call the back end's /login API with the email and password from the form
-        axios.post("/api/login", {email: formData.email, password: formData.password}, {timeout: 10000})
-            .then((response) => {
-                props.storeTokenFunction(response.data.access_token);
-                navigate("/foods")
-            })
-            .catch((error) => {
-                console.log(error)
-                if (error.response)
-                    setLoginMessage(error.response.data.msg)
-                else
-                    setLoginMessage(error.message)
-            })
+        setLoginMessage("");
+        setIsSubmitting(true);
+
+        try {
+            const response = await axios.post(
+                "/api/login",
+                { email: formData.email, password: formData.password },
+                { timeout: 10000 }
+            );
+            props.storeTokenFunction(response.data.access_token);
+            navigate("/foods")
+        } catch (error) {
+            console.log(error)
+            if (axios.isAxiosError(error) && error.response)
+                setLoginMessage(error.response.data.msg)
+            else if (error instanceof Error)
+                setLoginMessage(error.message)
+            else
+                setLoginMessage("Unable to log in right now.")
+            setIsSubmitting(false);
+        }
     }
 
     if (pageState === "confirmed") {
@@ -127,6 +138,7 @@ function LoginPage(props: any) {
                             onChange={(e) => setFormData(prevState => ({...prevState, email: e.target.value}))}
                             required
                             autoFocus
+                            disabled={isSubmitting}
                         />
                         <TextField
                             label="Password"
@@ -135,6 +147,7 @@ function LoginPage(props: any) {
                             value={formData.password}
                             onChange={(e) => setFormData(prevState => ({...prevState, password: e.target.value}))}
                             required
+                            disabled={isSubmitting}
                             InputProps={{
                                 endAdornment: (
                                     <InputAdornment position="end">
@@ -142,6 +155,7 @@ function LoginPage(props: any) {
                                             aria-label="toggle password visibility"
                                             onClick={() => setShowPassword((show) => !show)}
                                             edge="end"
+                                            disabled={isSubmitting}
                                         >
                                             {showPassword ? <Visibility /> : <VisibilityOff />}
                                         </IconButton>
@@ -168,6 +182,19 @@ function LoginPage(props: any) {
                     </Box>
                 </form>
             </Paper>
+            <Backdrop
+                open={isSubmitting}
+                sx={(theme) => ({
+                    color: '#fff',
+                    zIndex: theme.zIndex.modal + 1,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 2,
+                })}
+            >
+                <CircularProgress color="inherit" />
+                <Typography variant="body1">Loading your account...</Typography>
+            </Backdrop>
         </Box>
     );
 }

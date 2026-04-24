@@ -264,7 +264,7 @@ def sendmail():
 
 
 @bp.route("/api/user", methods = ["DELETE"])
-@admin_required
+@jwt_required()
 @log_route
 def delete_user():
     """
@@ -322,9 +322,10 @@ def register():
             seed_requested = reg_data.seed_requested
 
             # Ensure no user with this email already exists
-            existing_user = User.get_by_email(email_addr)
-            if existing_user:
-                raise ValueError("A user with that email address already exists")
+            # UPDATE: This check is already performed in User.add
+            #existing_user = User.get_by_email(email_addr)
+            #if existing_user:
+            #    raise ValueError("A user with that email address already exists")
 
             # Generate a verification token
             token = Crypto.generate_url_token()

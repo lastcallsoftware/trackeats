@@ -286,20 +286,16 @@ class User(db.Model):
         email_addr = email_info.normalized
 
         # Check whether this username is already in the database
-        existing_user = db.session.scalar(db.select(User).where(User.username == username))
+        email_addr_hash = Crypto.hash(email_addr)
+        existing_user = db.session.scalar(db.select(User).where(User.email_addr_hash == email_addr_hash))
         if existing_user:
-            raise ValueError(f"User '{username}' already exists")
+            raise ValueError(f"A user with the given email address already exists")
+
+        # Encrypt the email address
+        encrypted_email_addr = Crypto.encrypt(email_addr)
 
         # Salt and hash the password
         password_hash_str = Crypto.hash_password(password)
-
-        # Encrypt the user data.  Currently that is just the email address.
-        encrypted_email_addr = None
-        email_addr_hash = None
-        if email_addr and len(email_addr) > 0:
-            encrypted_email_addr = Crypto.encrypt(email_addr)
-            # Create a hash of the email that we can use for searching
-            email_addr_hash = Crypto.hash(email_addr)
 
         # Store the user record in the database
         now = datetime.datetime.now()

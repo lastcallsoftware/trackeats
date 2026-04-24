@@ -115,7 +115,7 @@ class Data:
         """
         Add basic User records
         """
-        logging.info("Adding critical User records...")
+        logging.info("Adding/updating critical User records...")
         
         admin_password = os.environ.get("APP_ADMIN_PASSWORD")
         if not admin_password:
