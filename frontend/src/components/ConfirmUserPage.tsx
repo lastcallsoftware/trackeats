@@ -31,9 +31,9 @@ export default function ConfirmUserPage() {
                 setUsername(data.username);
                 setStatus("success");
                 
-                // Broadcast to the orphaned login tab
+                // Broadcast to the orphaned login tab with email
                 const channel = new BroadcastChannel("trackeats_auth");
-                channel.postMessage({ type: "EMAIL_CONFIRMED", username });
+                channel.postMessage({ type: "EMAIL_CONFIRMED", email: data.email || username });
                 channel.close();
             } catch (error) {
                 if (axios.isAxiosError(error)) {
@@ -69,7 +69,7 @@ export default function ConfirmUserPage() {
 
     const handleResend = async () => {
         try {
-            await axios.post("/api/register", { token });
+            await axios.post("/api/resend_confirmation", { token });
             setResendStatus("sent");
         } catch {
             setResendStatus("error")
