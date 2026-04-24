@@ -25,10 +25,12 @@ export default function VerifyEmailScreen() {
   const [manualToken, setManualToken] = useState('');
   const [showManualEntry, setShowManualEntry] = useState(false);
   const [resendLoading, setResendLoading] = useState(false);
+  const [activeToken, setActiveToken] = useState((params.token as string) || '');
 
   // Handle deep-link token
   const handleDeepLinkToken = async (token: string) => {
     console.debug('[VERIFY] Deep-link token received:', token);
+    setActiveToken(token);
     try {
       await authStore.getState().confirm(token);
     } catch (e) {
@@ -44,6 +46,7 @@ export default function VerifyEmailScreen() {
       return;
     }
 
+    setActiveToken(manualToken.trim());
     try {
       await authStore.getState().confirm(manualToken);
     } catch (e) {
@@ -55,15 +58,12 @@ export default function VerifyEmailScreen() {
   const handleResend = async () => {
     setResendLoading(true);
     try {
-      // Call register with username to trigger resend flow
-      const username = params.username as string;
-      if (username) {
-        // The backend supports resend via re-calling register for the same username
-        await authService.register(username, '', '');
+      const tokenToResend = activeToken.trim();
+      if (tokenToResend) {
+        await authService.resendConfirmation(tokenToResend);
       }
     } catch (e: any) {
-      // Expected to fail, but may trigger resend on backend
-      console.debug('[VERIFY] Resend error (expected):', e?.message);
+      console.debug('[VERIFY] Resend error:', e?.message);
     } finally {
       setResendLoading(false);
     }

@@ -23,7 +23,7 @@ export interface AuthStoreState {
 
 export interface AuthStoreActions {
   initialize: () => Promise<void>;
-  login: (username: string, password: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<void>;
   register: (username: string, password: string, email: string) => Promise<void>;
   confirm: (token: string) => Promise<void>;
   logout: () => Promise<void>;
@@ -125,13 +125,13 @@ const authStore = create<AuthStoreState & AuthStoreActions>((set, get) => ({
   },
 
   /**
-   * Login with username and password
+   * Login with email and password
    */
-  login: async (username: string, password: string) => {
+  login: async (email: string, password: string) => {
     set({ isLoading: true, error: null });
 
     try {
-      const token = await authService.login(username, password);
+      const token = await authService.login(email, password);
 
       // Store token securely
       await tokenStorage.setToken(token);
@@ -139,10 +139,15 @@ const authStore = create<AuthStoreState & AuthStoreActions>((set, get) => ({
       // Update API client
       setApiToken(token);
 
+      // Extract email from JWT token for display (using email as the subject)
+      // The JWT identity is now the email address
+      const decoded = decodeJWT(token);
+      const displayEmail = decoded?.sub || email;
+
       // Update state
       set({
         isLoggedIn: true,
-        username,
+        username: displayEmail,  // Store email in username field for now (state field name kept for compatibility)
         error: null,
         isLoading: false,
       });

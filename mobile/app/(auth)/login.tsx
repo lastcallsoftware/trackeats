@@ -1,5 +1,5 @@
 /**
- * Login screen - username/password authentication
+ * Login screen - email/password authentication
  */
 
 import { useState } from 'react';
@@ -11,12 +11,12 @@ export default function LoginScreen() {
   const router = useRouter();
   const { isLoading, error } = authStore();
 
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
   const handleLogin = async () => {
     try {
-      await authStore.getState().login(username, password);
+      await authStore.getState().login(email, password);
       // Navigation is handled by root layout when isLoggedIn changes
     } catch (e) {
       // Error is already in store
@@ -30,12 +30,13 @@ export default function LoginScreen() {
 
       <TextInput
         style={styles.input}
-        placeholder="Username"
+        placeholder="Email Address"
         placeholderTextColor="#999"
-        value={username}
-        onChangeText={setUsername}
+        value={email}
+        onChangeText={setEmail}
         editable={!isLoading}
-        testID="username-input"
+        testID="email-input"
+        keyboardType="email-address"
       />
 
       <TextInput

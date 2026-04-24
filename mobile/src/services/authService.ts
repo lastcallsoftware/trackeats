@@ -62,14 +62,37 @@ export async function confirm(token: string): Promise<{ username: string }> {
 }
 
 /**
+ * Resend confirmation email using an expired confirmation token
+ * @throws AuthError with backend message on failure
+ */
+export async function resendConfirmation(token: string): Promise<void> {
+  try {
+    await api.post('/api/resend_confirmation', { token });
+  } catch (error: any) {
+    const status = error?.response?.status ?? 0;
+    const message = error?.response?.data?.msg || error?.message || 'Failed to resend confirmation email';
+    let code = mapStatusToCode(status);
+    if (status === 404) {
+      code = 'INVALID_TOKEN';
+    } else if (status === 409) {
+      code = 'ALREADY_CONFIRMED';
+    } else if (status === 503) {
+      code = 'EMAIL_UNAVAILABLE';
+    }
+
+    throw new AuthError(message, code);
+  }
+}
+
+/**
  * Log in user with credentials
  * @returns Access token string
  * @throws AuthError on failure
  */
-export async function login(username: string, password: string): Promise<string> {
+export async function login(email: string, password: string): Promise<string> {
   try {
     const response = await api.post('/api/login', {
-      username,
+      email,
       password,
     });
 
@@ -165,8 +188,14 @@ function mapStatusToCode(status: number): string {
       return 'INVALID_CREDENTIALS';
     case 403:
       return 'FORBIDDEN';
+    case 404:
+      return 'NOT_FOUND';
+    case 409:
+      return 'CONFLICT';
     case 422:
       return 'VALIDATION_ERROR';
+    case 503:
+      return 'SERVICE_UNAVAILABLE';
     case 0:
       return 'NETWORK_ERROR';
     default:
