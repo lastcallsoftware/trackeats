@@ -255,7 +255,19 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
         const responseInterceptor = axios.interceptors.response.use(
             (response) => response,
             (error) => {
-                if (error.response?.status === 401) {
+                const status = error.response?.status;
+                const url = error.config?.url ?? "";
+                const hasToken = !!sessionStorage.getItem("access_token");
+                const isPublicAuthEndpoint = [
+                    "/api/register",
+                    "/api/resend_confirmation",
+                    "/api/login",
+                    "/api/confirm",
+                    "/api/request_reset_password",
+                    "/api/reset_password",
+                ].some((path) => url.includes(path));
+
+                if (status === 401 && hasToken && !isPublicAuthEndpoint) {
                     removeToken();
                     navigateRef.current("/login", { state: { message: "Your token has expired and you have been logged out." } });
                 }
