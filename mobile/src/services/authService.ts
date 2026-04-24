@@ -94,6 +94,69 @@ export async function login(username: string, password: string): Promise<string>
 }
 
 /**
+ * Request a password reset email
+ * @throws AuthError on failure
+ */
+export async function requestResetPassword(email: string): Promise<void> {
+  try {
+    // Pass origin='mobile' to hint that the request came from the mobile app
+    // The backend will use this to send the appropriate deep-link URL
+    await api.post('/api/request_reset_password', {}, {
+      params: { email, origin: 'mobile' },
+      headers: { 'Content-Type': 'application/json' },
+    });
+  } catch (error: any) {
+    // If it's already an AuthError, re-throw it
+    if (error instanceof AuthError) {
+      throw error;
+    }
+
+    const status = error?.response?.status ?? 0;
+    const message = error?.response?.data?.msg || error?.message || 'Failed to request password reset';
+    const code = mapStatusToCode(status);
+
+    throw new AuthError(message, code);
+  }
+}
+
+/**
+ * Reset password with reset token
+ * @throws AuthError on failure
+ */
+export async function resetPassword(token: string, newPassword: string): Promise<void> {
+  try {
+    await api.post('/api/reset_password', {}, {
+      params: { token, password: newPassword },
+      headers: { 'Content-Type': 'application/json' },
+    });
+  } catch (error: any) {
+    // If it's already an AuthError, re-throw it
+    if (error instanceof AuthError) {
+      throw error;
+    }
+
+    const status = error?.response?.status ?? 0;
+    const message = error?.response?.data?.msg || error?.message || 'Failed to reset password';
+
+    let code = 'UNKNOWN';
+    if (status === 400) {
+      // Check if it's a token expiry error
+      if (message.toLowerCase().includes('expired')) {
+        code = 'EXPIRED_TOKEN';
+      } else if (message.toLowerCase().includes('invalid')) {
+        code = 'INVALID_TOKEN';
+      } else {
+        code = 'INVALID_REQUEST';
+      }
+    } else {
+      code = mapStatusToCode(status);
+    }
+
+    throw new AuthError(message, code);
+  }
+}
+
+/**
  * Map HTTP status codes to AuthError codes
  */
 function mapStatusToCode(status: number): string {
