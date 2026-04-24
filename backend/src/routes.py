@@ -38,6 +38,8 @@ class InvalidToken(Exception):
     pass
 class UserAlreadyConfirmed(Exception):
     pass
+class EmailDeliveryFailed(Exception):
+    pass
 
 
 ##############################
@@ -271,13 +273,13 @@ def delete_user():
     try:
         with db.session.begin():
             # Get the user_id for the user identified by the token
-            username = get_jwt_identity()
-            user_dao = User.get(username)
+            email = get_jwt_identity()
+            user_dao = User.get_by_email(email)
             if not user_dao:
-                raise ValueError(f"Could not retrieve user record for username '{username}'")
+                raise ValueError(f"Could not retrieve user record for email '{email}'")
             user_id = user_dao.id
 
-            if username == "guest" or username == "admin" or username == "testuser":
+            if user_dao.username in ("guest", "admin", "testuser"):
                 raise ValueError("Nice try, but this account may not be deleted.")
             
             Recipe.delete_all_for_user(user_id)
@@ -289,7 +291,7 @@ def delete_user():
         logging.error(msg)
         return jsonify({"msg": msg}), 500
     else:
-        msg = f"User record deleted for user {user_id} '{username}'"
+        msg = f"User record deleted for user {user_id} '{email}'"
         logging.info(msg)
         return jsonify({"msg": msg}), 200
 
@@ -311,53 +313,26 @@ def register():
             if not request.is_json:
                 raise ValueError("Invalid request - not JSON.")
 
-            # If this is a "resend confirmation email" request sent because the original 
-            # token expired, the request will be sent with the expired token rather than 
-            # the username and email address (which is sent in the usual case).  So look 
-            # for the expired token first and deal with that workflow separately.
-            expired_token = request.json.get("token")
-            if expired_token:
-                # Validate resend request
-                ResendConfirmationRequest.model_validate(request.json)
-                
-                user = User.get_by_confirmation_token(expired_token)
-                username = user.username
-                encrypted_email_addr = user.encrypted_email_addr
-                if encrypted_email_addr is None:
-                    raise ValueError("Email address missing from User record")
-                email_addr = Crypto.decrypt(encrypted_email_addr)
+            # Validate registration request
+            reg_data = RegistrationRequest.model_validate(request.json)
 
-                # Generate a NEW verification token
-                token = Crypto.generate_url_token()
+            username = reg_data.username
+            password = reg_data.password
+            email_addr = reg_data.email
+            seed_requested = reg_data.seed_requested
 
-                # Save the new token to the database.
-                # We only keep the latest one.  A fancy-schmancy system would keep a 
-                # record of past tokens and invalidate them, but we're not that fancy.
-                user.confirmation_token = token
+            # Generate a verification token
+            token = Crypto.generate_url_token()
 
-            # Otherwise this is a normal confirmation request, with username, password,
-            # email address, and the seed requested flag.
-            else:
-                # Validate registration request
-                reg_data = RegistrationRequest.model_validate(request.json)
-
-                username = reg_data.username
-                password = reg_data.password
-                email_addr = reg_data.email
-                seed_requested = reg_data.seed_requested
-
-                # Generate a verification token
-                token = Crypto.generate_url_token()
-
-                # Add the user to the database in "pending" state
-                user = User.add({
-                    "username": username,
-                    "password": password,
-                    "email": email_addr, 
-                    "status": UserStatus.pending, 
-                    "token": token,
-                    "seed_requested": seed_requested})
-                logging.info(f"New user added to database: {username} at {email_addr}")
+            # Add the user to the database in "pending" state
+            user = User.add({
+                "username": username,
+                "password": password,
+                "email": email_addr, 
+                "status": UserStatus.pending, 
+                "token": token,
+                "seed_requested": seed_requested})
+            logging.info(f"New user added to database: {username} at {email_addr}")
 
             # Send the confirmation email
             error_msg = Sendmail.send_confirmation_email(username, token, email_addr)
@@ -382,6 +357,74 @@ def register():
         return jsonify({"msg": msg}), 200
 
 
+@bp.route("/api/resend_confirmation", methods=["POST"])
+@log_route
+def resend_confirmation():
+    """
+    RESEND CONFIRMATION - Generate a new confirmation token for an existing pending
+    user and resend their confirmation email.
+    """
+    try:
+        with db.session.begin():
+            if not request.is_json:
+                raise ValueError("Invalid request - not JSON.")
+
+            resend_data = ResendConfirmationRequest.model_validate(request.json)
+            expired_token = resend_data.token
+
+            user = cast(User | None, User.get_by_confirmation_token(expired_token))
+            if user is None:
+                raise InvalidToken("Invalid confirmation token")
+            if user.status == UserStatus.confirmed:
+                raise UserAlreadyConfirmed(f"User '{user.username}' has already been confirmed")
+            username = user.username
+            encrypted_email_addr = user.encrypted_email_addr
+            if encrypted_email_addr is None:
+                raise RuntimeError("Email address missing from User record")
+            email_addr = Crypto.decrypt(encrypted_email_addr)
+
+            token = Crypto.generate_url_token()
+
+            # Only the most recent confirmation token remains valid.
+            user.confirmation_token = token
+
+            error_msg = Sendmail.send_confirmation_email(username, token, email_addr)
+            if error_msg is not None:
+                raise EmailDeliveryFailed(f"Couldn't send email to {email_addr}: {error_msg}.")
+
+            logging.info(f"Email successfully resent to {email_addr}.")
+            user.confirmation_email_sent_at = datetime.now()
+
+    except ValidationError as e:
+        msg = _format_validation_error_message(e)
+        logging.error(msg)
+        return jsonify({"msg": msg, "errors": e.errors(include_context=False)}), 422
+    except ValueError as e:
+        msg = str(e)
+        logging.error(msg)
+        return jsonify({"msg": msg}), 400
+    except InvalidToken as e:
+        msg = str(e)
+        logging.error(msg)
+        return jsonify({"msg": msg}), 404
+    except UserAlreadyConfirmed as e:
+        msg = str(e)
+        logging.error(msg)
+        return jsonify({"msg": msg}), 409
+    except EmailDeliveryFailed as e:
+        msg = str(e)
+        logging.error(msg)
+        return jsonify({"msg": msg}), 503
+    except Exception as e:
+        msg = str(e)
+        logging.error(msg)
+        return jsonify({"msg": msg}), 500
+    else:
+        msg = f"Confirmation email resent to {email_addr}."
+        logging.info(msg)
+        return jsonify({"msg": msg}), 200
+
+
 @bp.route("/api/confirm", methods = ["GET"])
 @log_route
 def confirm():
@@ -398,23 +441,26 @@ def confirm():
             # Retrieve the User record from the database.
             user = User.get_by_confirmation_token(confirmation_token)
 
+            # Decrypt email for display
+            email_addr = Crypto.decrypt(user.encrypted_email_addr) if user.encrypted_email_addr else None
+
             # Check whether the confirmation token is correct.
             if (confirmation_token != user.confirmation_token):
-                raise InvalidToken(f"Invalid confirmation token for '{user.username}'")
+                raise InvalidToken(f"Invalid confirmation token for '{email_addr}'")
 
             # Make sure we have a time for when the token was sent.  Shouldn't be possible for us
             # to match the token but not have a send time for it, but we have to check anyway.
             if not user.confirmation_email_sent_at:
-                raise InvalidToken(f"Missing send time for confirmation token sent to '{user.username}'")
+                raise InvalidToken(f"Missing send time for confirmation token sent to '{email_addr}'")
 
             # Check whether the confirmation token has expired.
             expired_time = user.confirmation_email_sent_at + timedelta(hours=4)
             if datetime.now() > expired_time:
-                raise ExpiredToken(f"Confirmation token expired for '{user.username}'")
+                raise ExpiredToken(f"Confirmation token expired for '{email_addr}'")
 
             # Check whether the user is already confirmed
             #if user.status == UserStatus.confirmed:
-            #    raise UserAlreadyConfirmed(f"User '{user.username}' has already been confirmed")
+            #    raise UserAlreadyConfirmed(f"User '{email_addr}' has already been confirmed")
 
             # The user is confirmed.  Update their status.
             user.status = UserStatus.confirmed
@@ -445,7 +491,8 @@ def confirm():
         logging.error(msg)
         return jsonify(return_data), 500
     else:
-        msg = f"User {user.username} confirmed"
+        email_addr = Crypto.decrypt(user.encrypted_email_addr) if user.encrypted_email_addr else None
+        msg = f"User {email_addr} confirmed"
         return_data: dict[str,Any] = { "username": user.username, "msg": msg }
         logging.info(msg)
         return jsonify(return_data), 200
@@ -468,11 +515,11 @@ def login():
             # Validate login request
             login_data = LoginRequest.model_validate(request.json)
 
-            username = login_data.username
+            email = login_data.email
             password = login_data.password
 
             # Verify that the user's credentials are valid
-            user = User.verify(username, password)
+            user = User.verify(email, password)
 
             # If requested, do the database seeding
             if user.seed_requested and user.seeded_at is None:
@@ -482,9 +529,9 @@ def login():
             # If it's for a user with admin rights, add a special thingie to it
             token_duration = int(os.environ.get("ACCESS_TOKEN_DURATION", 120))
             access_token = create_access_token(
-                identity=username,
+                identity=email,
                 expires_delta=timedelta(minutes=token_duration),
-                additional_claims={"is_admin": username == Data.ADMIN_USER_NAME}
+                additional_claims={"is_admin": user.username == Data.ADMIN_USER_NAME}
             )
 
     except ValidationError as e:
@@ -496,7 +543,7 @@ def login():
         logging.error(msg)
         return jsonify({"msg": msg}), 401
     else:
-        msg = f"User {username} authenticated, returning token"
+        msg = f"User {email} authenticated, returning token"
         logging.info(msg)
         return jsonify(access_token=access_token), 200
 
@@ -603,8 +650,8 @@ def change_password():
                 raise ValueError("Invalid request - not JSON")
 
             # Get the user_id for the user identified by the token
-            username = get_jwt_identity()
-            user = User.get(username)
+            email = get_jwt_identity()
+            user = User.get_by_email(email)
 
             old_password = request.args.get("old_password")
             if not old_password:
@@ -614,9 +661,9 @@ def change_password():
             if not new_password:
                 raise ValueError("Missing required parameter 'new_password'")
 
-            user = User.verify(username, old_password)
+            user = User.verify(email, old_password)
             if not user:
-                raise ValueError("Invalid username or password")
+                raise ValueError("Invalid email or password")
 
             user.set_password(new_password)
 
@@ -696,10 +743,10 @@ def get_preferences(context: str):
     try:
         with db.session.begin():
             # Get the user_id for the user identified by the token
-            username = get_jwt_identity()
-            user_id = User.get_id(username)
+            email = get_jwt_identity()
+            user_id = User.get_id_by_email(email)
             if not user_id:
-                raise ValueError(f"Could not retrieve user record for username '{username}'")
+                raise ValueError(f"Could not retrieve user record for email '{email}'")
 
             prefs = Preferences.get(user_id, context) or {}
     except Exception as e:
@@ -722,10 +769,10 @@ def save_preferences(context: str):
     try:
         with db.session.begin():
             # Get the user_id for the user identified by the token
-            username = get_jwt_identity()
-            user_id = User.get_id(username)
+            email = get_jwt_identity()
+            user_id = User.get_id_by_email(email)
             if not user_id:
-                raise ValueError(f"Could not retrieve user record for username '{username}'")
+                raise ValueError(f"Could not retrieve user record for email '{email}'")
 
             # Validate preferences request (just ensure it's valid JSON)
             prefs_data = PreferencesRequest.model_validate(request.json)
@@ -759,15 +806,15 @@ def whoami():
     # It retrieves the identity of the current user from the JWT token.
     """
     try:
-        username = get_jwt_identity()
+        email = get_jwt_identity()
     except Exception as e:
         msg = f"Unable to identify user: {str(e)}"
         logging.error(msg)
         return jsonify({"msg": msg}), 500
     else:
-        msg = f"User identified as: {username}"
+        msg = f"User identified as: {email}"
         logging.info(msg)
-        return jsonify(logged_in_as=username), 200
+        return jsonify(logged_in_as=email), 200
 
 
 ##############################
@@ -784,10 +831,10 @@ def get_foods():
     try:
         with db.session.begin():
             # Get the user_id for the user identified by the token
-            username = get_jwt_identity()
-            user_id = User.get_id(username)
+            email = get_jwt_identity()
+            user_id = User.get_id_by_email(email)
             if not user_id:
-                raise ValueError(f"Could not retrieve user record for username '{username}'")
+                raise ValueError(f"Could not retrieve user record for email '{email}'")
 
             # Get all the Foods associated with that user_id
             food_daos = Food.get_all_for_user(user_id)
@@ -813,10 +860,10 @@ def get_food(food_id:int):
     try:
         with db.session.begin():
             # Get the user_id for the user identified by the token
-            username = get_jwt_identity()
-            user_id = User.get_id(username)
+            email = get_jwt_identity()
+            user_id = User.get_id_by_email(email)
             if not user_id:
-                raise ValueError(f"Could not retrieve user record for username '{username}'")
+                raise ValueError(f"Could not retrieve user record for email '{email}'")
 
             food_dao = Food.get(user_id, food_id)
             food = food_dao.json()
@@ -840,10 +887,10 @@ def add_food():
     try:
         with db.session.begin():
             # Get the user_id for the user identified by the token
-            username = get_jwt_identity()
-            user_id = User.get_id(username)
+            email = get_jwt_identity()
+            user_id = User.get_id_by_email(email)
             if not user_id:
-                raise ValueError(f"Could not retrieve user record for username '{username}'")
+                raise ValueError(f"Could not retrieve user record for email '{email}'")
 
             # Validate food request
             food_data = FoodRequest.model_validate(request.json)
@@ -878,10 +925,10 @@ def update_food():
     try:
         with db.session.begin():
             # Get the user_id for the user identified by the token
-            username = get_jwt_identity()
-            user_id = User.get_id(username)
+            email = get_jwt_identity()
+            user_id = User.get_id_by_email(email)
             if not user_id:
-                raise ValueError(f"Could not retrieve user record for username '{username}'")
+                raise ValueError(f"Could not retrieve user record for email '{email}'")
 
             # Validate food request
             food_data = FoodRequest.model_validate(request.json)
@@ -913,10 +960,10 @@ def delete_food(food_id:int):
     try:
         with db.session.begin():
             # Get the user_id for the user identified by the token
-            username = get_jwt_identity()
-            user_id = User.get_id(username)
+            email = get_jwt_identity()
+            user_id = User.get_id_by_email(email)
             if not user_id:
-                raise ValueError(f"Could not retrieve user record for username '{username}'")
+                raise ValueError(f"Could not retrieve user record for email '{email}'")
 
             # Get the specified Food record
             food = Food.get(user_id, food_id)
@@ -947,10 +994,10 @@ def get_recipes():
     try:
         with db.session.begin():
             # Get the user_id for the user identified by the token
-            username = get_jwt_identity()
-            user_id = User.get_id(username)
+            email = get_jwt_identity()
+            user_id = User.get_id_by_email(email)
             if not user_id:
-                raise ValueError(f"Could not retrieve user record for username '{username}'")
+                raise ValueError(f"Could not retrieve user record for email '{email}'")
 
             # Get all the Recipes associated with that user_id
             recipe_daos = Recipe.get_all_for_user(user_id)
@@ -976,10 +1023,10 @@ def get_recipe(recipe_id: int):
     try:
         with db.session.begin():
             # Get the user_id for the user identified by the token
-            username = get_jwt_identity()
-            user_id = User.get_id(username)
+            email = get_jwt_identity()
+            user_id = User.get_id_by_email(email)
             if not user_id:
-                raise ValueError(f"Could not retrieve user record for username '{username}'")
+                raise ValueError(f"Could not retrieve user record for email '{email}'")
 
             # Get the Recipe for the given user_id and recipe_id
             recipe_dao = Recipe.get(user_id, recipe_id)
@@ -1006,10 +1053,10 @@ def add_recipe():
     try:
         with db.session.begin():
             # Get the user_id for the user identified by the token
-            username = get_jwt_identity()
-            user_id = User.get_id(username)
+            email = get_jwt_identity()
+            user_id = User.get_id_by_email(email)
             if not user_id:
-                raise ValueError(f"Could not retrieve user record for username '{username}'")
+                raise ValueError(f"Could not retrieve user record for email '{email}'")
 
             # Validate recipe request
             recipe_data = RecipeRequest.model_validate(request.json)
@@ -1044,10 +1091,10 @@ def update_recipe():
     try:
         with db.session.begin():
             # Get the user_id for the user identified by the token
-            username = get_jwt_identity()
-            user_id = User.get_id(username)
+            email = get_jwt_identity()
+            user_id = User.get_id_by_email(email)
             if not user_id:
-                raise ValueError(f"Could not retrieve user record for username '{username}'")
+                raise ValueError(f"Could not retrieve user record for email '{email}'")
 
             # Validate recipe request
             recipe_data = RecipeRequest.model_validate(request.json)
@@ -1079,10 +1126,10 @@ def delete_recipe(recipe_id: int):
     try:
         with db.session.begin():
             # Get the user_id for the user identified by the token
-            username = get_jwt_identity()
-            user_id = User.get_id(username)
+            email = get_jwt_identity()
+            user_id = User.get_id_by_email(email)
             if not user_id:
-                raise ValueError(f"Could not retrieve user record for username '{username}'")
+                raise ValueError(f"Could not retrieve user record for email '{email}'")
 
             # Get the specified Recipe record
             recipe = Recipe.get(user_id, recipe_id)
@@ -1114,10 +1161,10 @@ def recalculate_recipe(recipe_id:int):
     try:
         with db.session.begin():
             # Get the user_id for the user identified by the token
-            username = get_jwt_identity()
-            user_id = User.get_id(username)
+            email = get_jwt_identity()
+            user_id = User.get_id_by_email(email)
             if not user_id:
-                raise ValueError(f"Could not retrieve user record for username '{username}'")
+                raise ValueError(f"Could not retrieve user record for email '{email}'")
 
             Recipe.recalculate(user_id, recipe_id)
 
@@ -1141,10 +1188,10 @@ def recalculate_all_for_user():
     try:
         with db.session.begin():
             # Get the user_id for the user identified by the token
-            username = get_jwt_identity()
-            user_id = User.get_id(username)
+            email = get_jwt_identity()
+            user_id = User.get_id_by_email(email)
             if not user_id:
-                raise ValueError(f"Could not retrieve user record for username '{username}'")
+                raise ValueError(f"Could not retrieve user record for email '{email}'")
 
             recipe_daos = Recipe.get_all_for_user(user_id)
             for recipe_dao in recipe_daos:
@@ -1155,7 +1202,7 @@ def recalculate_all_for_user():
         logging.error(msg)
         return jsonify({"msg": msg}), 400
     else:
-        msg = f"Recipe nutrition data recalculated for all Recipes for user {username}"
+        msg = f"Recipe nutrition data recalculated for all Recipes for user {email}"
         logging.info(msg)
         return jsonify({"msg": msg}), 200
 
@@ -1173,10 +1220,10 @@ def get_ingredients(recipe_id:int):
     try:
         with db.session.begin():
             # Get the user_id for the user identified by the token
-            username = get_jwt_identity()
-            user_id = User.get_id(username)
+            email = get_jwt_identity()
+            user_id = User.get_id_by_email(email)
             if not user_id:
-                raise ValueError(f"Could not retrieve user record for username '{username}'")
+                raise ValueError(f"Could not retrieve user record for email '{email}'")
 
             # Get all the Ingredient records with that recipe_id
             ingredients: list[Ingredient] = Ingredient.get_all_for_recipe(user_id, recipe_id)
@@ -1212,10 +1259,10 @@ def get_daily_log_entries():
     entries: list[Any] = []
     try:
         with db.session.begin():
-            username = get_jwt_identity()
-            user_id = User.get_id(username)
+            email = get_jwt_identity()
+            user_id = User.get_id_by_email(email)
             if not user_id:
-                raise ValueError(f"Could not retrieve user record for username '{username}'")
+                raise ValueError(f"Could not retrieve user record for email '{email}'")
 
             date_str = request.args.get("date")
             start_str = request.args.get("start")
@@ -1254,10 +1301,10 @@ def get_daily_log_entry(log_id: int):
     """
     try:
         with db.session.begin():
-            username = get_jwt_identity()
-            user_id = User.get_id(username)
+            email = get_jwt_identity()
+            user_id = User.get_id_by_email(email)
             if not user_id:
-                raise ValueError(f"Could not retrieve user record for username '{username}'")
+                raise ValueError(f"Could not retrieve user record for email '{email}'")
 
             log_dao = DailyLogItem.get(user_id, log_id)
             entry = log_dao.json()
@@ -1291,10 +1338,10 @@ def add_daily_log_entry():
     """
     try:
         with db.session.begin():
-            username = get_jwt_identity()
-            user_id = User.get_id(username)
+            email = get_jwt_identity()
+            user_id = User.get_id_by_email(email)
             if not user_id:
-                raise ValueError(f"Could not retrieve user record for username '{username}'")
+                raise ValueError(f"Could not retrieve user record for email '{email}'")
 
             if not request.is_json:
                 raise ValueError("Invalid request - not JSON")
@@ -1341,10 +1388,10 @@ def update_daily_log_entry(log_id: int):
     """
     try:
         with db.session.begin():
-            username = get_jwt_identity()
-            user_id = User.get_id(username)
+            email = get_jwt_identity()
+            user_id = User.get_id_by_email(email)
             if not user_id:
-                raise ValueError(f"Could not retrieve user record for username '{username}'")
+                raise ValueError(f"Could not retrieve user record for email '{email}'")
 
             if not request.is_json:
                 raise ValueError("Invalid request - not JSON")
@@ -1377,10 +1424,10 @@ def delete_daily_log_entry(log_id: int):
     """
     try:
         with db.session.begin():
-            username = get_jwt_identity()
-            user_id = User.get_id(username)
+            email = get_jwt_identity()
+            user_id = User.get_id_by_email(email)
             if not user_id:
-                raise ValueError(f"Could not retrieve user record for username '{username}'")
+                raise ValueError(f"Could not retrieve user record for email '{email}'")
 
             DailyLogItem.delete(user_id, log_id)
     except Exception as e:
