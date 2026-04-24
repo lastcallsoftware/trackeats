@@ -66,8 +66,8 @@ jobs:
       - name: Build and push backend image
         uses: docker/build-push-action@v7
         with:
-          context: ./backend-python
-          file: ./backend-python/Dockerfile
+          context: ./backend
+          file: ./backend/Dockerfile
           push: true
           tags: lastcallsoftware/trackeats-backend:latest,lastcallsoftware/trackeats-backend:${{ github.sha }}
           cache-from: type=registry,ref=lastcallsoftware/trackeats-backend:buildcache

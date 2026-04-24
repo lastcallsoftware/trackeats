@@ -3,14 +3,14 @@
 This project is a small web application.  Conceptually it is a portfolio app intended to demonstrate competence in a wide range of current technologies, including front end techs like React, JavaScript, and CSS, back end techs like Python, Flask, and MySQL, and cloud and deployment techs like AWS and Docker.
 
 [Front end documentation](frontend/README.md).
-[Back end documentation](backend-python/README.md)
+[Back end documentation](backend/README.md)
 
 
 # Deployment
 
 On the app server, TrackEats is deployed in Docker containers by GitHub Actions and Docker Compose using CI/CD.  Whenever code changes are pushed to the main branch in GitHub, it triggers a new deployment on the server.
 
-Locally, the app builds automatically and runs manually, using /frontend/bin/run.sh and /backend-python/bin/run.sh (though they are both trivial scripts that run the usual commands for starting JavaScript and Python apps, respectively).
+Locally, the app builds automatically and runs manually, using /frontend/bin/run.sh and /backend/bin/run.sh (though they are both trivial scripts that run the usual commands for starting JavaScript and Python apps, respectively).
 
 
 # Config and Secret Management

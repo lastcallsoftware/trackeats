@@ -17,10 +17,10 @@ services:
   backend:
     image: lastcallsoftware/trackeats-backend:dev
     build:
-      context: ./backend-python
+      context: ./backend
       dockerfile: Dockerfile
     volumes:
-      - ./backend-python:/app
+      - ./backend:/app
     ports:
       - "5000:5000"
     environment:
@@ -48,7 +48,7 @@ services:
       # directory on the local file system.  Any .sql or .sh file in the mapped directory
       # is executed on database startup.  You could, for example, use this to load some new 
       # data, or run a one-time data migration if you changed the database format.
-      - ./backend-python/data:/docker-entrypoint-initdb.d:ro
+      - ./backend/data:/docker-entrypoint-initdb.d:ro
 
 # Here we MUST define any volume we named in the services above (i.e., if we gave the volume
 # a label instead of specifying an explicit path).  If we omit the name:, Docker generates 
