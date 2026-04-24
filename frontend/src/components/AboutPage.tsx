@@ -21,7 +21,7 @@ const AboutCard = styled(Paper)(({ theme }) => ({
     width: '90%',
     maxWidth: 980,
     padding: theme.spacing(3),
-    background: theme.palette.table.headerBg,
+    background: theme.palette.secondary.main,
     color: theme.palette.table.headerColor,
     border: `1px solid ${theme.palette.table.headerBorder}`,
     borderRadius: 16,
@@ -33,10 +33,13 @@ function AboutPage() {
             <TitleCard title="About" subtitle="About this app and its tech stack" />
             <AboutCard elevation={2}>
                 <Typography sx={{ mb: 2 }}>
-                    The nominal purpose of this app is to track the nutritional content of one's diet. I chose this goal because it is something I wanted myself. None of the nutrition-tracking apps I found out there did quite what I wanted -- so I decided to make my own!
+                    The nominal purpose of this app is to track the nutritional content of one's diet. I chose
+                    this goal because it is something I wanted myself. None of the nutrition-tracking apps I 
+                    found out there did quite what I wanted -- so I decided to make my own!
                 </Typography>
                 <Typography sx={{ mb: 2 }}>
-                    But the app's functionality is secondary. Its REAL purpose is to demonstrate expertise in all the technologies necessary to design, develop, and deploy a full-stack web app.
+                    But the app's functionality is secondary. Its REAL purpose is to demonstrate expertise in 
+                    all the technologies necessary to design, develop, and deploy a full-stack web app.
                 </Typography>
                 <Typography sx={{ mb: 1 }}>At the time of this writing, that tech stack includes:</Typography>
                 <List sx={{ listStyleType: 'disc', pl: 3.5, mb: 2 }}>
@@ -52,13 +55,8 @@ function AboutPage() {
                     <ListItem sx={{ display: 'list-item', py: 0.25 }}>Figma - for designing and prototyping the UI</ListItem>
                     <ListItem sx={{ display: 'list-item', py: 0.25 }}>Ubuntu - the OS on which it all runs</ListItem>
                 </List>
-                <Typography sx={{ mb: 1 }}>In addition, an alternate pluggable back end is in the works using:</Typography>
-                <List sx={{ listStyleType: 'disc', pl: 3.5, mb: 2 }}>
-                    <ListItem sx={{ display: 'list-item', py: 0.25 }}>Java</ListItem>
-                    <ListItem sx={{ display: 'list-item', py: 0.25 }}>Spring Boot</ListItem>
-                    <ListItem sx={{ display: 'list-item', py: 0.25 }}>Hibernate</ListItem>
-                </List>
-                <Typography sx={{ mb: 1 }}>Add to that the various techs and services used to deploy, secure and maintain the app (DevOps and DevSecOps):</Typography>
+                <Typography sx={{ mb: 1 }}>Add to that the various techs and services used to deploy, secure and
+                    maintain the app (DevOps and DevSecOps):</Typography>
                 <List sx={{ listStyleType: 'disc', pl: 3.5, mb: 2 }}>
                     <ListItem sx={{ display: 'list-item', py: 0.25 }}>Docker - for "containerizing" the app</ListItem>
                     <ListItem sx={{ display: 'list-item', py: 0.25 }}>Amazon Web Services (AWS) - for provisioning the server on which the app runs</ListItem>
@@ -66,19 +64,31 @@ function AboutPage() {
                     <ListItem sx={{ display: 'list-item', py: 0.25 }}>GitHub Actions/Docker Compose - for CI/CD</ListItem>
                     <ListItem sx={{ display: 'list-item', py: 0.25 }}>GitHub Secrets - for configuration management</ListItem>
                     <ListItem sx={{ display: 'list-item', py: 0.25 }}>GoDaddy/Namecheap - for reserving and configuring the app's Internet domains</ListItem>
-                    <ListItem sx={{ display: 'list-item', py: 0.25 }}>TLS certificates - for providing HTTPS encryption</ListItem>
-                    <ListItem sx={{ display: 'list-item', py: 0.25 }}>SMTP - for the email-based authentication used during registration</ListItem>
+                    <ListItem sx={{ display: 'list-item', py: 0.25 }}>Amazon SES/SMTP - for the email-based authentication used during registration</ListItem>
+                    <ListItem sx={{ display: 'list-item', py: 0.25 }}>Let's Encrypt/TLS certificates - for providing HTTPS encryption</ListItem>
                     <ListItem sx={{ display: 'list-item', py: 0.25 }}>JWT tokens - for user authentication and authorization</ListItem>
                     <ListItem sx={{ display: 'list-item', py: 0.25 }}>Jira - for planning and defect tracking</ListItem>
                 </List>
                 <Typography sx={{ mb: 2 }}>
-                    Yes, even in this age of AI, you need to know a LOT of stuff to build a full-stack web app completely by yourself!
+                    Yes, even in this age of AI, you need to know a LOT of stuff to build a full-stack 
+                    web app completely by yourself!
                 </Typography>
                 <Typography sx={{ mb: 2 }}>
-                    Speaking of which, special thanks to Claude, Copilot, Gemini, ChatGPT, and Cline (in that order) for their generally helpful and occasionally infuriating advice and assistance.
+                    Speaking of AI, special thanks to Claude, GSD, Copilot, Gemini, ChatGPT, and Cline 
+                    (in that order) for their generally helpful and occasionally infuriating advice and 
+                    assistance.
                 </Typography>
+                <Typography sx={{ mb: 2 }}>For a while I also had an alternate pluggable back end written in 
+                    Java/SpringBoot/Hibernate, but with the constant changes I was making, it was just too hard
+                    to keep it consistent with the primary back end.</Typography>
+                <Typography sx={{ mb: 1 }}>So instead I made an alternate front end!
+                    Yes, TrackEats now has a mobile front end under development!  Its tech stack is:</Typography>
+                <List sx={{ listStyleType: 'disc', pl: 3.5, mb: 2 }}>
+                    <ListItem sx={{ display: 'list-item', py: 0.25 }}>Android + Expo + React Native</ListItem>
+                </List>
+                <Typography sx={{ mb: 3 }}>Coming "soon" to the Google Play Store...</Typography>
                 <Typography>Paul Holmes</Typography>
-                <Typography variant="body2" color="text.secondary">Nov 2024, updated Mar 2026</Typography>
+                <Typography variant="body2" color="text.secondary">Nov 2024, updated Apr 2026</Typography>
             </AboutCard>
         </AboutShell>
     );

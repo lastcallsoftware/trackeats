@@ -23,7 +23,7 @@ const HomeCard = styled(Paper)(({ theme }) => ({
     width: '90%',
     maxWidth: 980,
     padding: theme.spacing(3),
-    background: theme.palette.table.headerBg,
+    background: theme.palette.secondary.main,
     color: theme.palette.table.headerColor,
     border: `1px solid ${theme.palette.table.headerBorder}`,
     borderRadius: 16,
@@ -36,16 +36,20 @@ const HomePage: React.FC = () => {
             <HomeCard elevation={2}>
                 <Paper sx={{ p: 2, mb: 3, bgcolor: '#fff', border: '1px solid rgba(0,0,0,0.2)', borderRadius: 1 }}>
                     <Typography variant="body1" sx={{ mb: 1.5 }}>
-                        A NOTE FOR NEW GUESTS: TrackEats is a portfolio app, intended to showcase my tech skills.
+                        A NOTE FOR NEW GUESTS: TrackEats is a portfolio app, intended to showcase 
+                        my tech skills.
                     </Typography>
                     <Typography variant="body1" sx={{ mb: 1.5 }}>
-                        To use the app you can Register your own new account, or log on with the guest account:
+                        To use the app you can Register your own new account, or log on with the 
+                        guest account:
                     </Typography>
-                    <Typography component="div" sx={{ pl: 3.5, fontFamily: 'monospace' }}>Username: guest</Typography>
+                    <Typography component="div" sx={{ pl: 3.5, fontFamily: 'monospace' }}>Email Address: guest@lastcallsoftware.com</Typography>
                     <Typography component="div" sx={{ pl: 3.5, mb: 1.5, fontFamily: 'monospace' }}>Password: Guest*123</Typography>
                     <Typography variant="body1" sx={{ mb: 1 }}>Feel free to play around -- all the data (including user accounts) is reset to a snapshot regularly.</Typography>
                     <Typography variant="body1" sx={{ mb: 1 }}>See the About TrackEats page for more info about the app's technical design.</Typography>
-                    <Typography variant="body1">Note that TrackEats is NOT intended to be a mobile app.  It incorporates some reactive design techniques and will work well even if you shrink your browser window, but it will not look great on a phone.</Typography>
+                    <Typography variant="body1">Note that TrackEats is a browser app, not a mobile app.  It incorporates
+                        some reactive design techniques and will work well even if you shrink your browser window, 
+                        but it will not look great on a phone.  (A native mobile app is under development.)</Typography>
                 </Paper>
 
                 <List sx={{ listStyleType: 'disc', pl: 3.5, mb: 1.5 }}>
@@ -57,7 +61,7 @@ const HomePage: React.FC = () => {
                 <Typography sx={{ mb: 1.5 }}>
                     TrackEats has a three-tier system: Foods, Recipes, and Daily Log:
                 </Typography>
-                
+
                 <Box component="ul" sx={{ pl: 3, m: 0 }}>
                     <Typography component="li" sx={{ mb: 1.5 }}>
                         To get started, think of a meal you like to make, and on the Foods page enter all the
@@ -75,12 +79,11 @@ const HomePage: React.FC = () => {
                     </Typography>
                 </Box>
 
-
                 <Typography sx={{ mb: 1.5 }}>
                     You will then be able to see the complete nutrition data for that day.
                     If you have entered price data for the Foods, you will even be able to see the per-serving 
-                    cost of each Recipe. It is interesting to see how little (and occasionally, how much!) 
-                    meals actually cost to make yourself.
+                    cost of each Recipe. It is interesting to see how little (or how much!) it actually costs
+                    to prepare your own meals.
                 </Typography>
                 <Typography sx={{ fontStyle: 'italic', textAlign: 'center', mt: 2 }}>Start your culinary journey with TrackEats today!</Typography>
             </HomeCard>
