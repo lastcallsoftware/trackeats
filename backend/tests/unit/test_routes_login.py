@@ -46,9 +46,9 @@ def test_login_success_returns_access_token(client: FlaskClient, monkeypatch: py
     _mock_session(monkeypatch)
     monkeypatch.setenv("ACCESS_TOKEN_DURATION", "120")
 
-    verified_user = SimpleNamespace(seed_requested=False, seeded_at=None)
+    verified_user = SimpleNamespace(seed_requested=False, seeded_at=None, username="testuser")
 
-    def _verify(username: str, password: str) -> SimpleNamespace:
+    def _verify(email: str, password: str) -> SimpleNamespace:
         return verified_user
 
     def _create_access_token(identity: str, expires_delta: object, additional_claims: object) -> str:
@@ -57,7 +57,7 @@ def test_login_success_returns_access_token(client: FlaskClient, monkeypatch: py
     monkeypatch.setattr(routes.User, "verify", staticmethod(_verify))
     monkeypatch.setattr(routes, "create_access_token", _create_access_token)
 
-    resp = client.post("/api/login", json={"username": "user1", "password": "pw"})
+    resp = client.post("/api/login", json={"email": "user1@example.com", "password": "pw"})
 
     assert resp.status_code == 200
     assert resp.get_json()["access_token"] == "token-123"
@@ -67,9 +67,9 @@ def test_login_seeds_when_requested(client: FlaskClient, monkeypatch: pytest.Mon
     _mock_session(monkeypatch)
     monkeypatch.setenv("ACCESS_TOKEN_DURATION", "120")
 
-    verified_user = SimpleNamespace(seed_requested=True, seeded_at=None)
+    verified_user = SimpleNamespace(seed_requested=True, seeded_at=None, username="testuser")
 
-    def _verify(username: str, password: str) -> SimpleNamespace:
+    def _verify(email: str, password: str) -> SimpleNamespace:
         return verified_user
 
     seeded = {"called": False}
@@ -84,7 +84,7 @@ def test_login_seeds_when_requested(client: FlaskClient, monkeypatch: pytest.Mon
     monkeypatch.setattr(routes.Data, "seed_database", staticmethod(_seed))
     monkeypatch.setattr(routes, "create_access_token", _create_access_token)
 
-    resp = client.post("/api/login", json={"username": "user1", "password": "pw"})
+    resp = client.post("/api/login", json={"email": "user1@example.com", "password": "pw"})
 
     assert resp.status_code == 200
     assert seeded["called"] is True

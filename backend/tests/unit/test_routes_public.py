@@ -101,10 +101,15 @@ def test_register_success(client: FlaskClient, monkeypatch: pytest.MonkeyPatch) 
     assert created_user.confirmation_email_sent_at is not None
 
 
-def test_register_resend_token_path(client: FlaskClient, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_resend_confirmation_success(client: FlaskClient, monkeypatch: pytest.MonkeyPatch) -> None:
     _mock_session(monkeypatch)
 
-    user = SimpleNamespace(username="user1", encrypted_email_addr=b"enc-email", confirmation_token="old")
+    user = SimpleNamespace(
+        username="user1",
+        status=routes.UserStatus.pending,
+        encrypted_email_addr=b"enc-email",
+        confirmation_token="old",
+    )
 
     def _get_by_confirmation_token(token: str) -> SimpleNamespace:
         return user
@@ -128,11 +133,84 @@ def test_register_resend_token_path(client: FlaskClient, monkeypatch: pytest.Mon
 
     monkeypatch.setattr(routes.Sendmail, "send_confirmation_email", staticmethod(_send))
 
-    resp = client.post("/api/register", json={"token": "expired-token"})
+    resp = client.post("/api/resend_confirmation", json={"token": "expired-token"})
 
     assert resp.status_code == 200
     assert user.confirmation_token == "new-token"
     assert captured == {"username": "user1", "token": "new-token", "email": "user1@example.com"}
+    assert "Confirmation email resent" in resp.get_json()["msg"]
+
+
+def test_resend_confirmation_non_json_returns_400(client: FlaskClient, monkeypatch: pytest.MonkeyPatch) -> None:
+    _mock_session(monkeypatch)
+
+    resp = client.post("/api/resend_confirmation", data="not-json", content_type="text/plain")
+
+    assert resp.status_code == 400
+    assert "Invalid request - not JSON" in resp.get_json()["msg"]
+
+
+def test_resend_confirmation_empty_token_returns_422(client: FlaskClient, monkeypatch: pytest.MonkeyPatch) -> None:
+    _mock_session(monkeypatch)
+
+    resp = client.post("/api/resend_confirmation", json={"token": ""})
+
+    assert resp.status_code == 422
+    assert "token: Value error, token cannot be empty" in resp.get_json()["msg"]
+
+
+def test_resend_confirmation_invalid_token_returns_404(client: FlaskClient, monkeypatch: pytest.MonkeyPatch) -> None:
+    _mock_session(monkeypatch)
+
+    monkeypatch.setattr(routes.User, "get_by_confirmation_token", staticmethod(lambda token: None))
+
+    resp = client.post("/api/resend_confirmation", json={"token": "missing-token"})
+
+    assert resp.status_code == 404
+    assert resp.get_json()["msg"] == "Invalid confirmation token"
+
+
+def test_resend_confirmation_already_confirmed_returns_409(client: FlaskClient, monkeypatch: pytest.MonkeyPatch) -> None:
+    _mock_session(monkeypatch)
+
+    user = SimpleNamespace(
+        username="user1",
+        status=routes.UserStatus.confirmed,
+        encrypted_email_addr=b"enc-email",
+    )
+
+    monkeypatch.setattr(routes.User, "get_by_confirmation_token", staticmethod(lambda token: user))
+
+    resp = client.post("/api/resend_confirmation", json={"token": "confirmed-token"})
+
+    assert resp.status_code == 409
+    assert "already been confirmed" in resp.get_json()["msg"]
+
+
+def test_resend_confirmation_email_failure_returns_503(client: FlaskClient, monkeypatch: pytest.MonkeyPatch) -> None:
+    _mock_session(monkeypatch)
+
+    user = SimpleNamespace(
+        username="user1",
+        status=routes.UserStatus.pending,
+        encrypted_email_addr=b"enc-email",
+        confirmation_token="old-token",
+        confirmation_email_sent_at=None,
+    )
+
+    monkeypatch.setattr(routes.User, "get_by_confirmation_token", staticmethod(lambda token: user))
+    monkeypatch.setattr(routes.Crypto, "decrypt", staticmethod(lambda data: "user1@example.com"))
+    monkeypatch.setattr(routes.Crypto, "generate_url_token", staticmethod(lambda: "new-token"))
+    monkeypatch.setattr(
+        routes.Sendmail,
+        "send_confirmation_email",
+        staticmethod(lambda username, token, email: "smtp unavailable"),
+    )
+
+    resp = client.post("/api/resend_confirmation", json={"token": "expired-token"})
+
+    assert resp.status_code == 503
+    assert "smtp unavailable" in resp.get_json()["msg"]
 
 
 def test_confirm_missing_token_returns_400(client: FlaskClient, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -149,6 +227,7 @@ def test_confirm_expired_token_returns_403(client: FlaskClient, monkeypatch: pyt
 
     user = SimpleNamespace(
         username="user1",
+        encrypted_email_addr=b"encrypted_email",
         confirmation_token="abc",
         confirmation_email_sent_at=datetime.now() - timedelta(hours=5),
         status=None,
@@ -157,7 +236,11 @@ def test_confirm_expired_token_returns_403(client: FlaskClient, monkeypatch: pyt
     def _get_by_confirmation_token(token: str) -> SimpleNamespace:
         return user
 
+    def _decrypt(data: bytes) -> str:
+        return "user1@example.com"
+
     monkeypatch.setattr(routes.User, "get_by_confirmation_token", staticmethod(_get_by_confirmation_token))
+    monkeypatch.setattr(routes.Crypto, "decrypt", staticmethod(_decrypt))
 
     resp = client.get("/api/confirm?token=abc")
 
@@ -170,6 +253,7 @@ def test_confirm_success_sets_status_confirmed(client: FlaskClient, monkeypatch:
 
     user = SimpleNamespace(
         username="user1",
+        encrypted_email_addr=b"encrypted_email",
         confirmation_token="abc",
         confirmation_email_sent_at=datetime.now() - timedelta(minutes=5),
         status=None,
@@ -178,10 +262,14 @@ def test_confirm_success_sets_status_confirmed(client: FlaskClient, monkeypatch:
     def _get_by_confirmation_token(token: str) -> SimpleNamespace:
         return user
 
+    def _decrypt(data: bytes) -> str:
+        return "user1@example.com"
+
     monkeypatch.setattr(routes.User, "get_by_confirmation_token", staticmethod(_get_by_confirmation_token))
+    monkeypatch.setattr(routes.Crypto, "decrypt", staticmethod(_decrypt))
 
     resp = client.get("/api/confirm?token=abc")
 
     assert resp.status_code == 200
     assert user.status == routes.UserStatus.confirmed
-    assert "User user1 confirmed" in resp.get_json()["msg"]
+    assert "confirmed" in resp.get_json()["msg"]

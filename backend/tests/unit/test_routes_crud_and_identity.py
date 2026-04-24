@@ -107,6 +107,8 @@ def test_food_crud_endpoints(bare_flask_app: Flask, monkeypatch: pytest.MonkeyPa
         return _JsonDao({"id": payload_id, "name": "new"})
 
     monkeypatch.setattr(routes.User, "get_id", staticmethod(_get_id))
+    monkeypatch.setattr(routes.User, "get_id_by_email", staticmethod(_get_id))
+    monkeypatch.setattr(routes.User, "get_id_by_email", staticmethod(_get_id))
     monkeypatch.setattr(routes.Food, "get_all_for_user", staticmethod(_get_all_for_user))
     monkeypatch.setattr(routes.Food, "get", staticmethod(_get_food))
     monkeypatch.setattr(routes.Food, "add", staticmethod(_add_food))
@@ -194,6 +196,7 @@ def test_recipe_crud_and_ingredients_get(bare_flask_app: Flask, monkeypatch: pyt
         return [ingredient_obj]
 
     monkeypatch.setattr(routes.User, "get_id", staticmethod(_get_id))
+    monkeypatch.setattr(routes.User, "get_id_by_email", staticmethod(_get_id))
     monkeypatch.setattr(routes.Recipe, "get_all_for_user", staticmethod(_get_all_recipes))
     monkeypatch.setattr(routes.Recipe, "get", staticmethod(_get_recipe))
     monkeypatch.setattr(routes.Recipe, "add_from_schema", staticmethod(_add_recipe))
@@ -267,6 +270,7 @@ def test_recalculate_recipe_success(bare_flask_app: Flask, monkeypatch: pytest.M
         calls.append((user_id, recipe_id))
 
     monkeypatch.setattr(routes.User, "get_id", staticmethod(_get_id))
+    monkeypatch.setattr(routes.User, "get_id_by_email", staticmethod(_get_id))
     monkeypatch.setattr(routes.Recipe, "recalculate", staticmethod(_recalculate))
 
     with bare_flask_app.test_request_context("/api/recipe/42/recalc", method="POST"):
@@ -288,6 +292,7 @@ def test_recalculate_recipe_returns_400_on_error(bare_flask_app: Flask, monkeypa
         raise RuntimeError("boom")
 
     monkeypatch.setattr(routes.User, "get_id", staticmethod(_get_id))
+    monkeypatch.setattr(routes.User, "get_id_by_email", staticmethod(_get_id))
     monkeypatch.setattr(routes.Recipe, "recalculate", staticmethod(_recalculate))
 
     with bare_flask_app.test_request_context("/api/recipe/42/recalc", method="POST"):
@@ -315,6 +320,7 @@ def test_recalculate_all_for_user_success(bare_flask_app: Flask, monkeypatch: py
         calls.append((user_id, recipe_id, recipe_dao))
 
     monkeypatch.setattr(routes.User, "get_id", staticmethod(_get_id))
+    monkeypatch.setattr(routes.User, "get_id_by_email", staticmethod(_get_id))
     monkeypatch.setattr(routes.Recipe, "get_all_for_user", staticmethod(_get_all_for_user))
     monkeypatch.setattr(routes.Recipe, "recalculate", staticmethod(_recalculate))
 
@@ -342,6 +348,7 @@ def test_recalculate_all_for_user_returns_400_on_error(
         raise RuntimeError("boom")
 
     monkeypatch.setattr(routes.User, "get_id", staticmethod(_get_id))
+    monkeypatch.setattr(routes.User, "get_id_by_email", staticmethod(_get_id))
     monkeypatch.setattr(routes.Recipe, "get_all_for_user", staticmethod(_get_all_for_user))
     monkeypatch.setattr(routes.Recipe, "recalculate", staticmethod(_recalculate))
 
@@ -366,6 +373,7 @@ def test_get_daily_log_entries_by_date_success(bare_flask_app: Flask, monkeypatc
         return [_JsonDao({"id": 1}), _JsonDao({"id": 2})]
 
     monkeypatch.setattr(routes.User, "get_id", staticmethod(_get_id))
+    monkeypatch.setattr(routes.User, "get_id_by_email", staticmethod(_get_id))
     monkeypatch.setattr(routes.DailyLogItem, "get_by_date", staticmethod(_get_by_date))
 
     with bare_flask_app.test_request_context("/api/dailylogitem?date=2026-04-02", method="GET"):
@@ -390,6 +398,7 @@ def test_get_daily_log_entries_by_range_success(bare_flask_app: Flask, monkeypat
         return [_JsonDao({"id": 10})]
 
     monkeypatch.setattr(routes.User, "get_id", staticmethod(_get_id))
+    monkeypatch.setattr(routes.User, "get_id_by_email", staticmethod(_get_id))
     monkeypatch.setattr(routes.DailyLogItem, "get_by_range", staticmethod(_get_by_range))
 
     with bare_flask_app.test_request_context("/api/dailylogitem?start=2026-04-01&end=2026-04-07", method="GET"):
@@ -410,6 +419,7 @@ def test_get_daily_log_entries_missing_filters_returns_400(
         return 1
 
     monkeypatch.setattr(routes.User, "get_id", staticmethod(_get_id))
+    monkeypatch.setattr(routes.User, "get_id_by_email", staticmethod(_get_id))
 
     with bare_flask_app.test_request_context("/api/dailylogitem", method="GET"):
         resp, status = _as_response_status(_unwrap(routes.get_daily_log_entries)())
@@ -431,6 +441,7 @@ def test_get_daily_log_entry_success(bare_flask_app: Flask, monkeypatch: pytest.
         return _JsonDao({"id": log_id})
 
     monkeypatch.setattr(routes.User, "get_id", staticmethod(_get_id))
+    monkeypatch.setattr(routes.User, "get_id_by_email", staticmethod(_get_id))
     monkeypatch.setattr(routes.DailyLogItem, "get", staticmethod(_get))
 
     with bare_flask_app.test_request_context("/api/dailylogitem/7", method="GET"):
@@ -454,6 +465,7 @@ def test_add_daily_log_entry_success(bare_flask_app: Flask, monkeypatch: pytest.
         return _JsonDao({"id": 55}, dao_id=55)
 
     monkeypatch.setattr(routes.User, "get_id", staticmethod(_get_id))
+    monkeypatch.setattr(routes.User, "get_id_by_email", staticmethod(_get_id))
     monkeypatch.setattr(routes.DailyLogItem, "add_from_schema", staticmethod(_add_from_schema))
 
     with bare_flask_app.test_request_context(
@@ -479,6 +491,7 @@ def test_add_daily_log_entry_validation_error_returns_422(
         return 1
 
     monkeypatch.setattr(routes.User, "get_id", staticmethod(_get_id))
+    monkeypatch.setattr(routes.User, "get_id_by_email", staticmethod(_get_id))
 
     with bare_flask_app.test_request_context("/api/dailylogitem", method="POST", json={}):
         resp, status = _as_response_status(_unwrap(routes.add_daily_log_entry)())
@@ -501,6 +514,7 @@ def test_update_daily_log_entry_success(bare_flask_app: Flask, monkeypatch: pyte
         return _JsonDao({"id": log_id, "servings": 2.0})
 
     monkeypatch.setattr(routes.User, "get_id", staticmethod(_get_id))
+    monkeypatch.setattr(routes.User, "get_id_by_email", staticmethod(_get_id))
     monkeypatch.setattr(routes.DailyLogItem, "update_from_schema", staticmethod(_update_from_schema))
 
     with bare_flask_app.test_request_context(
@@ -525,6 +539,7 @@ def test_update_daily_log_entry_validation_error_returns_422(
         return 1
 
     monkeypatch.setattr(routes.User, "get_id", staticmethod(_get_id))
+    monkeypatch.setattr(routes.User, "get_id_by_email", staticmethod(_get_id))
 
     with bare_flask_app.test_request_context("/api/dailylogitem/8", method="PUT", json={}):
         resp, status = _as_response_status(_unwrap(routes.update_daily_log_entry)(8))
@@ -542,6 +557,7 @@ def test_delete_daily_log_entry_success(bare_flask_app: Flask, monkeypatch: pyte
         return 1
 
     monkeypatch.setattr(routes.User, "get_id", staticmethod(_get_id))
+    monkeypatch.setattr(routes.User, "get_id_by_email", staticmethod(_get_id))
 
     called: dict[str, tuple[int, int]] = {}
 
@@ -569,6 +585,7 @@ def test_delete_daily_log_entry_returns_400_on_error(
         return 1
 
     monkeypatch.setattr(routes.User, "get_id", staticmethod(_get_id))
+    monkeypatch.setattr(routes.User, "get_id_by_email", staticmethod(_get_id))
 
     def _delete(user_id: int, log_id: int) -> None:
         raise RuntimeError("boom")

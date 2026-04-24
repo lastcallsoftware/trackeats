@@ -207,13 +207,13 @@ def test_change_password_missing_old_password_returns_400(
     bare_flask_app: Flask, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     _mock_session(monkeypatch)
-    monkeypatch.setattr(routes, "get_jwt_identity", lambda: "user1")
+    monkeypatch.setattr(routes, "get_jwt_identity", lambda: "user1@example.com")
 
-    def _get(username: str) -> SimpleNamespace:
-        _ = username
+    def _get_by_email(email: str) -> SimpleNamespace:
+        _ = email
         return SimpleNamespace()
 
-    monkeypatch.setattr(routes.User, "get", staticmethod(_get))
+    monkeypatch.setattr(routes.User, "get_by_email", staticmethod(_get_by_email))
 
     with bare_flask_app.test_request_context("/api/change_password?new_password=new", method="POST", json={}):
         resp, status = _as_response_status(_unwrap(routes.change_password)())
@@ -226,18 +226,18 @@ def test_change_password_invalid_credentials_returns_400(
     bare_flask_app: Flask, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     _mock_session(monkeypatch)
-    monkeypatch.setattr(routes, "get_jwt_identity", lambda: "user1")
+    monkeypatch.setattr(routes, "get_jwt_identity", lambda: "user1@example.com")
 
-    def _get(username: str) -> SimpleNamespace:
-        _ = username
+    def _get_by_email(email: str) -> SimpleNamespace:
+        _ = email
         return SimpleNamespace()
 
-    def _verify(username: str, password: str) -> None:
-        _ = username
+    def _verify(email: str, password: str) -> None:
+        _ = email
         _ = password
         return None
 
-    monkeypatch.setattr(routes.User, "get", staticmethod(_get))
+    monkeypatch.setattr(routes.User, "get_by_email", staticmethod(_get_by_email))
     monkeypatch.setattr(routes.User, "verify", staticmethod(_verify))
 
     with bare_flask_app.test_request_context(
@@ -248,20 +248,20 @@ def test_change_password_invalid_credentials_returns_400(
         resp, status = _as_response_status(_unwrap(routes.change_password)())
 
     assert status == 400
-    assert "Invalid username or password" in resp.get_json()["msg"]
+    assert "Invalid email or password" in resp.get_json()["msg"]
 
 
 def test_change_password_success_sets_password(
     bare_flask_app: Flask, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     _mock_session(monkeypatch)
-    monkeypatch.setattr(routes, "get_jwt_identity", lambda: "user1")
+    monkeypatch.setattr(routes, "get_jwt_identity", lambda: "user1@example.com")
 
-    def _get(username: str) -> SimpleNamespace:
-        _ = username
+    def _get_by_email(email: str) -> SimpleNamespace:
+        _ = email
         return SimpleNamespace()
 
-    monkeypatch.setattr(routes.User, "get", staticmethod(_get))
+    monkeypatch.setattr(routes.User, "get_by_email", staticmethod(_get_by_email))
 
     called: dict[str, str] = {}
 
@@ -271,8 +271,9 @@ def test_change_password_success_sets_password(
         called["password"] = password
 
     verified_user.set_password = _set_password  # type: ignore[attr-defined]
-    def _verify(username: str, password: str) -> SimpleNamespace:
-        _ = username
+
+    def _verify(email: str, password: str) -> SimpleNamespace:
+        _ = email
         _ = password
         return verified_user
 
@@ -348,6 +349,7 @@ def test_db_purge_admin_happy_path(bare_flask_app: Flask, monkeypatch: pytest.Mo
         return 3
 
     monkeypatch.setattr(routes.User, "get_id", staticmethod(_get_id))
+    monkeypatch.setattr(routes.User, "get_id_by_email", staticmethod(_get_id))
 
     def _purge_data(user_id: int, for_user_id: int | None) -> None:
         called["user_id"] = user_id
@@ -374,6 +376,7 @@ def test_db_load_admin_happy_path(bare_flask_app: Flask, monkeypatch: pytest.Mon
         return 4
 
     monkeypatch.setattr(routes.User, "get_id", staticmethod(_get_id))
+    monkeypatch.setattr(routes.User, "get_id_by_email", staticmethod(_get_id))
 
     def _load(user_id: int) -> None:
         called["user_id"] = user_id
@@ -399,6 +402,7 @@ def test_db_export_admin_happy_path(bare_flask_app: Flask, monkeypatch: pytest.M
         return 5
 
     monkeypatch.setattr(routes.User, "get_id", staticmethod(_get_id))
+    monkeypatch.setattr(routes.User, "get_id_by_email", staticmethod(_get_id))
 
     def _export(user_id: int) -> None:
         called["user_id"] = user_id
@@ -444,13 +448,14 @@ def test_delete_user_admin_happy_path(bare_flask_app: Flask, monkeypatch: pytest
     _mock_session(monkeypatch, deleted=deleted)
     _set_admin_claims(monkeypatch, True)
 
-    user_dao = SimpleNamespace(id=42)
-    monkeypatch.setattr(routes, "get_jwt_identity", lambda: "alice")
-    def _get(username: str) -> SimpleNamespace:
-        _ = username
+    user_dao = SimpleNamespace(id=42, username="alice")
+    monkeypatch.setattr(routes, "get_jwt_identity", lambda: "alice@example.com")
+
+    def _get_by_email(email: str) -> SimpleNamespace:
+        _ = email
         return user_dao
 
-    monkeypatch.setattr(routes.User, "get", staticmethod(_get))
+    monkeypatch.setattr(routes.User, "get_by_email", staticmethod(_get_by_email))
 
     calls: dict[str, int] = {}
 
