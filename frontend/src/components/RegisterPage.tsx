@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useNavigate } from 'react-router-dom';
+import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import axios from "axios";
 import { validatePassword } from "../utils/passwordValidation";
 import {
@@ -107,23 +107,36 @@ function RegisterPage() {
                                formData.password2Message.length > 0 ||
                                formData.emailMessage.length > 0;
 
-    const handleSubmit = (e: { preventDefault: () => void; }) => {
+    const handleSubmit = async (e: { preventDefault: () => void; }) => {
         e.preventDefault();
-        axios.post("/api/register", {
-            username: formData.username,
-            password: formData.password,
-            email: formData.email,
-            seed_requested: formData.seed_requested
-        })
-            .then(() => {
-                navigate("/login", { state: { username: formData.username, password: formData.password, email: formData.email } });
-            })
-            .catch((error) => {
-                if (error.response)
-                    setRegistrationMessage(error.response.data.msg)
-                else
-                    setRegistrationMessage(error.message)
-            })
+        setRegistrationMessage("");
+
+        try {
+            const response = await axios.post("/api/register", {
+                username: formData.username,
+                password: formData.password,
+                email: formData.email,
+                seed_requested: formData.seed_requested,
+            });
+
+            const message = response.data?.msg;
+            const isSuccess = response.status === 200 && typeof message === "string" && message.includes("registered");
+
+            if (!isSuccess) {
+                setRegistrationMessage(typeof message === "string" ? message : "Registration failed.");
+                return;
+            }
+
+            navigate("/login", { state: { email: formData.email, password: formData.password } });
+        } catch (error) {
+            if (axios.isAxiosError(error)) {
+                setRegistrationMessage(error.response?.data?.msg ?? error.message);
+            } else if (error instanceof Error) {
+                setRegistrationMessage(error.message);
+            } else {
+                setRegistrationMessage("Registration failed.");
+            }
+        }
     }
 
     return (
@@ -177,32 +190,65 @@ function RegisterPage() {
                 }}
             >
                 <form onSubmit={handleSubmit} autoComplete="off">
-                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                    <Box
+                        sx={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            '& .MuiTextField-root': { m: 0 },
+                            '& .MuiFormControlLabel-root': { m: 0 },
+                        }}
+                    >
+                        {/* Email Address */}
+                        <TextField
+                            label="Email Address"
+                            id="email"
+                            type="email"
+                            required
+                            value={formData.email}
+                            inputProps={{ maxLength: 320 }}
+                            onFocus={() => setFormData(prev => ({ ...prev, emailTouched: false }))}
+                            onBlur={() => setFormData(prev => ({ ...prev, emailTouched: true }))}
+                            onChange={emailChanged}
+                            error={!!(formData.emailMessage && formData.emailTouched && formData.email.length > 0)}
+                            helperText={formData.emailTouched && formData.email.length > 0 ? (formData.emailMessage || " ") : " "}
+                            fullWidth
+                        />
                         {/* Username */}
                         <TextField
                             label="Username"
                             id="username"
+                            required
                             value={formData.username}
                             inputProps={{ maxLength: 100 }}
                             onFocus={() => setFormData(prev => ({ ...prev, usernameTouched: false }))}
                             onBlur={() => setFormData(prev => ({ ...prev, usernameTouched: true }))}
                             onChange={usernameChanged}
                             error={!!(formData.usernameMessage && formData.usernameTouched && formData.username.length > 0)}
-                            helperText={formData.usernameTouched && formData.username.length > 0 ? formData.usernameMessage : " "}
+                            helperText={formData.usernameTouched && formData.username.length > 0 ? (formData.usernameMessage || " ") : " "}
                             fullWidth
+                            InputProps={{
+                                endAdornment: (
+                                    <InputAdornment position="end">
+                                        <Tooltip title="This is the display name TrackEats will use for you. Login uses your email address.">
+                                            <HelpOutlineIcon fontSize="small" sx={{ color: 'text.secondary', cursor: 'default' }} />
+                                        </Tooltip>
+                                    </InputAdornment>
+                                )
+                            }}
                         />
                         {/* Password */}
                         <TextField
                             label="Password"
                             id="password"
                             type={showPassword ? 'text' : 'password'}
+                            required
                             value={formData.password}
                             inputProps={{ maxLength: 100 }}
                             onFocus={() => setFormData(prev => ({ ...prev, passwordTouched: false }))}
                             onBlur={() => setFormData(prev => ({ ...prev, passwordTouched: true }))}
                             onChange={passwordChanged}
                             error={!!(formData.passwordMessage && formData.passwordTouched && formData.password.length > 0)}
-                            helperText={formData.passwordTouched && formData.password.length > 0 ? formData.passwordMessage : " "}
+                            helperText={formData.passwordTouched && formData.password.length > 0 ? (formData.passwordMessage || " ") : " "}
                             fullWidth
                             InputProps={{
                                 endAdornment: (
@@ -223,13 +269,14 @@ function RegisterPage() {
                             label="Retype Password"
                             id="password2"
                             type={showPassword2 ? 'text' : 'password'}
+                            required
                             value={formData.password2}
                             inputProps={{ maxLength: 100 }}
                             onFocus={() => setFormData(prev => ({ ...prev, password2Touched: false }))}
                             onBlur={() => setFormData(prev => ({ ...prev, password2Touched: true }))}
                             onChange={password2Changed}
                             error={!!(formData.password2Message && formData.password2Touched && formData.password2.length > 0)}
-                            helperText={formData.password2Touched && formData.password2.length > 0 ? formData.password2Message : " "}
+                            helperText={formData.password2Touched && formData.password2.length > 0 ? (formData.password2Message || " ") : " "}
                             fullWidth
                             InputProps={{
                                 endAdornment: (
@@ -244,20 +291,6 @@ function RegisterPage() {
                                     </InputAdornment>
                                 ),
                             }}
-                        />
-                        {/* Email Address */}
-                        <TextField
-                            label="Email Address"
-                            id="email"
-                            type="email"
-                            value={formData.email}
-                            inputProps={{ maxLength: 320 }}
-                            onFocus={() => setFormData(prev => ({ ...prev, emailTouched: false }))}
-                            onBlur={() => setFormData(prev => ({ ...prev, emailTouched: true }))}
-                            onChange={emailChanged}
-                            error={!!(formData.emailMessage && formData.emailTouched && formData.email.length > 0)}
-                            helperText={formData.emailTouched && formData.email.length > 0 ? formData.emailMessage : " "}
-                            fullWidth
                         />
                         {/* Seed Data Checkbox */}
                         <FormControlLabel
@@ -296,15 +329,10 @@ function RegisterPage() {
                         >
                             Register
                         </Button>
-                        <Button
-                            variant="outlined"
-                            color="secondary"
-                            fullWidth
-                            onClick={() => navigate('/login')}
-                        >
-                            Cancel
-                        </Button>
                     </Box>
+                    <Typography variant="body2" sx={{ mt: 1 }}>
+                        Already have an account? <RouterLink to="/login">Return to login</RouterLink>.
+                    </Typography>
                     {registrationMessage && (
                         <Typography color="error" sx={{ mt: 2 }}>
                             {registrationMessage}
