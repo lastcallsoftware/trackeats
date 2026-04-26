@@ -5,7 +5,13 @@
 import { useState } from 'react';
 import { View, TextInput, TouchableOpacity, Text, ActivityIndicator, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
+import * as yup from 'yup';
 import authStore from '@/store/authStore';
+
+const loginSchema = yup.object({
+  email: yup.string().trim().required('Email address is required').email('Please enter a valid email address'),
+});
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -13,12 +19,22 @@ export default function LoginScreen() {
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [emailError, setEmailError] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleLogin = async () => {
     try {
-      await authStore.getState().login(email, password);
+      const validatedValues = await loginSchema.validate({ email }, { abortEarly: true });
+      setEmailError(null);
+
+      await authStore.getState().login(validatedValues.email, password);
       // Navigation is handled by root layout when isLoggedIn changes
     } catch (e) {
+      if (e instanceof yup.ValidationError) {
+        setEmailError(e.message);
+        return;
+      }
+
       // Error is already in store
       console.debug('[LOGIN] Login error:', e);
     }
@@ -29,26 +45,43 @@ export default function LoginScreen() {
       <Text style={styles.title}>Login</Text>
 
       <TextInput
-        style={styles.input}
+        style={[styles.input, emailError && styles.inputError]}
         placeholder="Email Address"
         placeholderTextColor="#999"
         value={email}
-        onChangeText={setEmail}
+        onChangeText={(value) => {
+          setEmail(value);
+          if (emailError) {
+            setEmailError(null);
+          }
+        }}
         editable={!isLoading}
         testID="email-input"
         keyboardType="email-address"
+        autoCapitalize="none"
       />
+      {emailError && <Text style={styles.fieldErrorText}>{emailError}</Text>}
 
-      <TextInput
-        style={styles.input}
-        placeholder="Password"
-        placeholderTextColor="#999"
-        secureTextEntry
-        value={password}
-        onChangeText={setPassword}
-        editable={!isLoading}
-        testID="password-input"
-      />
+      <View style={styles.passwordContainer}>
+        <TextInput
+          style={styles.passwordInput}
+          placeholder="Password"
+          placeholderTextColor="#999"
+          secureTextEntry={!showPassword}
+          value={password}
+          onChangeText={setPassword}
+          editable={!isLoading}
+          testID="password-input"
+        />
+        <TouchableOpacity
+          onPress={() => setShowPassword((v) => !v)}
+          testID="toggle-password-visibility"
+          activeOpacity={0.7}
+          style={styles.eyeButton}
+        >
+          <Ionicons name={showPassword ? 'eye-off-outline' : 'eye-outline'} size={22} color="#666" />
+        </TouchableOpacity>
+      </View>
 
       {error && (
         <Text style={styles.errorText} testID="error-message">
@@ -103,6 +136,32 @@ const styles = StyleSheet.create({
     padding: 12,
     marginBottom: 15,
     fontSize: 16,
+  },
+  passwordContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 8,
+    marginBottom: 15,
+  },
+  passwordInput: {
+    flex: 1,
+    padding: 12,
+    fontSize: 16,
+  },
+  eyeButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 12,
+  },
+  inputError: {
+    borderColor: 'red',
+    marginBottom: 6,
+  },
+  fieldErrorText: {
+    color: 'red',
+    marginBottom: 12,
+    fontSize: 14,
   },
   errorText: {
     color: 'red',
