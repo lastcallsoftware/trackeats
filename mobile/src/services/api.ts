@@ -41,8 +41,8 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    // Handle 401 session expired
-    if (error?.response?.status === 401) {
+    // Handle 401 session expired — only when a token is active (i.e. not a login failure)
+    if (error?.response?.status === 401 && currentToken) {
       console.warn('[AUTH] 401 received — triggering session expiry');
 
       // Clear the current token
