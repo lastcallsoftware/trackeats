@@ -73,6 +73,7 @@
     "@types/jest": "^30.0.0",
     "@types/react": "~19.1.0",
     "babel-preset-expo": "~54.0.10",
+    "expo-module-scripts": "^55.0.2",
     "jest": "^30.3.0",
     "jest-expo": "^55.0.16",
     "ts-jest": "^29.4.9",
