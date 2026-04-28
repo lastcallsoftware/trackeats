@@ -109,9 +109,9 @@ class User(db.Model):
     username: Mapped[str] = mapped_column(db.String(100), index=True, nullable=True)
     status: Mapped[UserStatus] = mapped_column(db.Enum(UserStatus), nullable=False)
     encrypted_email_addr: Mapped[bytes | None] = mapped_column(db.LargeBinary, nullable=True)
-    email_addr_hash: Mapped[str | None] = mapped_column(db.String(64), nullable=False, unique=True)
+    email_addr_hash: Mapped[str | None] = mapped_column(db.String(64), nullable=True, unique=True)
     created_at: Mapped[datetime.datetime] = mapped_column(db.DateTime, nullable=False)
-    password_hash: Mapped[str] = mapped_column(db.String(64), nullable=False)
+    password_hash: Mapped[str | None] = mapped_column(db.String(64), nullable=True)
     confirmation_email_sent_at: Mapped[datetime.datetime | None] = mapped_column(db.DateTime, nullable=True)
     confirmation_token: Mapped[str | None] = mapped_column(db.String(64), nullable=True)
     reset_email_sent_at: Mapped[datetime.datetime | None] = mapped_column(db.DateTime, nullable=True)
@@ -119,6 +119,8 @@ class User(db.Model):
     seed_requested: Mapped[bool] = mapped_column(db.Boolean, nullable=False, default=False)
     seed_version: Mapped[int | None] = mapped_column(db.Integer, nullable=True)
     seeded_at: Mapped[datetime.datetime | None] = mapped_column(db.DateTime, nullable=True)
+    oauth_provider: Mapped[str | None] = mapped_column(db.String(20), nullable=True)
+    oauth_id: Mapped[str | None] = mapped_column(db.String(128), nullable=True)
 
     def __init__(
         self,
@@ -127,7 +129,7 @@ class User(db.Model):
         encrypted_email_addr: bytes | None,
         email_addr_hash: str | None,
         created_at: datetime.datetime,
-        password_hash: str,
+        password_hash: str | None = None,
         confirmation_email_sent_at: datetime.datetime | None = None,
         confirmation_token: str | None = None,
         reset_email_sent_at: datetime.datetime | None = None,
@@ -135,6 +137,8 @@ class User(db.Model):
         seed_requested: bool = False,
         seed_version: int | None = None,
         seeded_at: datetime.datetime | None = None,
+        oauth_provider: str | None = None,
+        oauth_id: str | None = None,
     ):
         self.username = username
         self.status = status
@@ -149,6 +153,8 @@ class User(db.Model):
         self.seed_requested = seed_requested
         self.seed_version = seed_version
         self.seeded_at = seeded_at
+        self.oauth_provider = oauth_provider
+        self.oauth_id = oauth_id
 
     def __str__(self):
         return (f"<User {self.id} "
@@ -349,6 +355,90 @@ class User(db.Model):
             raise ValueError(f"Invalid email or password")
 
         return user
+
+
+    @staticmethod
+    def get_by_oauth(provider: str, oauth_id: str) -> "User | None":
+        """
+        Look up a User by OAuth provider + subject ID.
+        """
+        return db.session.scalar(
+            db.select(User)
+            .where(User.oauth_provider == provider)
+            .where(User.oauth_id == oauth_id)
+        )
+
+
+    @staticmethod
+    def get_or_create_oauth_user(
+        provider: str,
+        oauth_id: str,
+        email: str | None,
+        display_name: str | None,
+    ) -> "User":
+        """
+        Find or create a User for a verified OAuth identity.
+
+        Resolution order:
+        1. Existing user with matching (provider, oauth_id) — return immediately.
+        2. Existing user with matching email — link the OAuth identity and return.
+        3. No existing user — create a new confirmed account with no password.
+
+        Caller must have already verified the provider token before calling this.
+        """
+        # 1. Look up by OAuth identity
+        user = User.get_by_oauth(provider, oauth_id)
+        if user:
+            return user
+
+        # 2. Try to link to an existing email account
+        if email:
+            user = User.get_by_email(email)
+            if user:
+                user.oauth_provider = provider
+                user.oauth_id = oauth_id
+                return user
+
+        # 3. Create a new account
+        # Derive a username from the display name or email, falling back to provider+id
+        if display_name:
+            base = re.sub(r"[^a-zA-Z0-9_]", "", display_name.replace(" ", "_"))[:30]
+        elif email:
+            base = email.split("@")[0][:30]
+        else:
+            base = f"{provider}user"
+
+        # Make username unique by appending a counter if needed
+        username = base if len(base) >= 3 else f"{base}_{provider}"
+        counter = 1
+        while db.session.scalar(db.select(User).where(User.username == username)):
+            username = f"{base}_{counter}"
+            counter += 1
+
+        now = datetime.datetime.now()
+        encrypted_email_addr: bytes | None = None
+        email_addr_hash: str | None = None
+        if email:
+            try:
+                email_info = validate_email(email, check_deliverability=False)
+                email = email_info.normalized
+                encrypted_email_addr = Crypto.encrypt(email)
+                email_addr_hash = Crypto.hash(email)
+            except Exception:
+                pass  # Non-critical: proceed without email if validation fails
+
+        new_user = User(
+            username=username,
+            status=UserStatus.confirmed,  # Social login users are pre-verified
+            encrypted_email_addr=encrypted_email_addr,
+            email_addr_hash=email_addr_hash,
+            created_at=now,
+            password_hash=None,  # No password for social-only accounts
+            oauth_provider=provider,
+            oauth_id=oauth_id,
+        )
+        db.session.add(new_user)
+        return new_user
 
 
     def set_password(self, password: str) -> None:

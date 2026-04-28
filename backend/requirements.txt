@@ -57,3 +57,17 @@ pydantic
 # works on Windows.  But Gunicorn is much more popular so maybe I'll switch.
 waitress
 #gunicorn
+
+# google-auth is used to verify Google ID tokens on the backend for social login.
+google-auth
+
+# PyJWT is used to verify Apple and Facebook tokens for social login.
+# flask-jwt-extended already pulls in PyJWT, but we list it explicitly
+# so the version is pinned alongside our usage.
+PyJWT[crypto]
+
+# cryptography is needed by PyJWT[crypto] for RS256/ES256 Apple token verification.
+cryptography
+
+# requests is used to fetch Facebook token introspection and Apple public keys.
+requests

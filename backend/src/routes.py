@@ -24,6 +24,117 @@ from crypto import Crypto
 from data import Data
 from sqlalchemy.sql import text
 
+# Social login token verification helpers (imported lazily to avoid hard failures
+# if optional packages are missing in dev; errors surface at call time instead)
+def _verify_google_token(token: str) -> dict[str, Any]:
+    """
+    Verify a Google token and return identity claims.
+
+    Accepts either:
+    - An ID token (JWT, three dot-separated segments) — verified locally via google-auth.
+    - An access token (opaque string) — verified by calling Google's tokeninfo endpoint.
+    """
+    import requests as req  # type: ignore
+    google_client_id = os.environ.get("GOOGLE_CLIENT_ID")
+    if not google_client_id:
+        raise ValueError("GOOGLE_CLIENT_ID is not configured")
+
+    # Heuristic: ID tokens are JWTs (three Base64url segments separated by dots)
+    is_id_token = token.count('.') == 2
+
+    if is_id_token:
+        from google.oauth2 import id_token as google_id_token  # type: ignore
+        from google.auth.transport import requests as grequests  # type: ignore
+        return google_id_token.verify_oauth2_token(token, grequests.Request(), google_client_id)
+    else:
+        # Access token path — call tokeninfo
+        resp = req.get(
+            "https://www.googleapis.com/oauth2/v3/tokeninfo",
+            params={"access_token": token},
+            timeout=10,
+        )
+        resp.raise_for_status()
+        info = resp.json()
+        if info.get("error"):
+            raise ValueError(f"Google token invalid: {info['error']}")
+        if info.get("aud") != google_client_id and info.get("azp") != google_client_id:
+            raise ValueError("Google token was not issued for this app")
+        # Normalize to the same shape as an ID token payload
+        return {
+            "sub": info.get("sub"),
+            "email": info.get("email"),
+            "name": info.get("name"),
+            "email_verified": info.get("email_verified"),
+        }
+
+
+def _verify_facebook_token(access_token: str) -> dict[str, Any]:
+    """Verify a Facebook access token via the graph API debug endpoint."""
+    import requests as req  # type: ignore
+    app_id = os.environ.get("FACEBOOK_APP_ID")
+    app_secret = os.environ.get("FACEBOOK_APP_SECRET")
+    if not app_id or not app_secret:
+        raise ValueError("FACEBOOK_APP_ID / FACEBOOK_APP_SECRET are not configured")
+    app_token = f"{app_id}|{app_secret}"
+    resp = req.get(
+        "https://graph.facebook.com/debug_token",
+        params={"input_token": access_token, "access_token": app_token},
+        timeout=10,
+    )
+    resp.raise_for_status()
+    data = resp.json().get("data", {})
+    if not data.get("is_valid"):
+        raise ValueError(f"Invalid Facebook token: {data.get('error', {}).get('message', 'unknown')}")
+    if data.get("app_id") != app_id:
+        raise ValueError("Facebook token was not issued for this app")
+    # Fetch name and email from the graph API using the user token
+    me_resp = req.get(
+        "https://graph.facebook.com/me",
+        params={"fields": "id,name,email", "access_token": access_token},
+        timeout=10,
+    )
+    me_resp.raise_for_status()
+    me_data = me_resp.json()
+    return {
+        "sub": me_data.get("id"),
+        "name": me_data.get("name"),
+        "email": me_data.get("email"),
+    }
+
+
+def _verify_apple_token(identity_token: str) -> dict[str, Any]:
+    """Verify an Apple Sign-In identity token."""
+    import jwt as pyjwt  # type: ignore
+    import requests as req  # type: ignore
+    # Fetch Apple's public keys
+    resp = req.get("https://appleid.apple.com/auth/keys", timeout=10)
+    resp.raise_for_status()
+    jwks = resp.json()
+    # Decode header to find key id
+    header = pyjwt.get_unverified_header(identity_token)
+    kid = header.get("kid")
+    # Find matching public key
+    public_key = None
+    for key_data in jwks.get("keys", []):
+        if key_data.get("kid") == kid:
+            from jwt.algorithms import RSAAlgorithm  # type: ignore
+            import json
+            public_key = RSAAlgorithm.from_jwk(json.dumps(key_data))
+            break
+    if public_key is None:
+        raise ValueError("Apple public key not found for kid: " + str(kid))
+    apple_bundle_id = os.environ.get("APPLE_BUNDLE_ID")
+    if not apple_bundle_id:
+        raise ValueError("APPLE_BUNDLE_ID is not configured")
+    payload = pyjwt.decode(
+        identity_token,
+        public_key,
+        algorithms=["RS256"],
+        audience=apple_bundle_id,
+        issuer="https://appleid.apple.com",
+    )
+    return payload
+
 bp = Blueprint("auth", __name__)
 
 RESET_TOKEN_EXPIRATION_SECONDS = 900  # 15 minutes
@@ -551,6 +662,99 @@ def login():
     else:
         msg = f"User {email} authenticated, returning token"
         logging.info(msg)
+        return jsonify(access_token=access_token), 200
+
+
+@bp.route("/api/social_login", methods=["POST"])
+@log_route
+def social_login():
+    """
+    Social login (Google, Facebook, Apple).
+
+    Accepts a provider-specific token, verifies it server-side, then finds or
+    creates a User record and issues an app JWT — exactly like /api/login.
+
+    Request body:
+      {
+        "provider": "google" | "facebook" | "apple",
+        "token":    "<id_token or access_token from the provider>"
+      }
+
+    For Apple, the client may also send a one-time "name" field (only present
+    on the very first sign-in):
+      {
+        "provider": "apple",
+        "token":    "...",
+        "name":     "Jane Smith"
+      }
+    """
+    try:
+        with db.session.begin():
+            if not request.is_json:
+                raise ValueError("Invalid request - not JSON")
+
+            body = request.json or {}
+            provider = str(body.get("provider", "")).lower().strip()
+            token = str(body.get("token", "")).strip()
+
+            if provider not in ("google", "facebook", "apple"):
+                raise ValueError(f"Unsupported provider: {provider!r}")
+            if not token:
+                raise ValueError("Missing token")
+
+            # Verify the token with the provider and extract identity claims
+            if provider == "google":
+                claims = _verify_google_token(token)
+                oauth_id = claims["sub"]
+                email = claims.get("email")
+                display_name = claims.get("name")
+            elif provider == "facebook":
+                claims = _verify_facebook_token(token)
+                oauth_id = claims["sub"]
+                email = claims.get("email")
+                display_name = claims.get("name")
+            else:  # apple
+                claims = _verify_apple_token(token)
+                oauth_id = claims["sub"]
+                email = claims.get("email")
+                # Apple only sends name on the very first sign-in; the client forwards it
+                display_name = body.get("name")
+
+            if not oauth_id:
+                raise ValueError("Provider did not return a subject identifier")
+
+            # Find or create a user for this OAuth identity
+            user = User.get_or_create_oauth_user(
+                provider=provider,
+                oauth_id=oauth_id,
+                email=email,
+                display_name=display_name,
+            )
+
+            # Seed database for brand-new users who requested it
+            if user.seed_requested and user.seeded_at is None:
+                from data import Data
+                Data.seed_database(user)
+
+            # Determine the JWT identity (email if available, else provider:oauth_id)
+            if user.encrypted_email_addr:
+                identity = Crypto.decrypt(user.encrypted_email_addr)
+            else:
+                identity = f"{provider}:{oauth_id}"
+
+            token_duration = int(os.environ.get("ACCESS_TOKEN_DURATION", 120))
+            access_token = create_access_token(
+                identity=identity,
+                expires_delta=timedelta(minutes=token_duration),
+                additional_claims={"is_admin": user.username == Data.ADMIN_USER_NAME}
+            )
+
+    except Exception as e:
+        msg = str(e)
+        logging.error(f"Social login failed for provider={body.get('provider')}: {msg}")
+        return jsonify({"msg": msg}), 401
+    else:
+        logging.info(f"Social login succeeded: provider={provider}, oauth_id={oauth_id}, user={user.id}")
         return jsonify(access_token=access_token), 200
 
 

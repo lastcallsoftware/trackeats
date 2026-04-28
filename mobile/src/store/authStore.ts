@@ -24,6 +24,7 @@ export interface AuthStoreState {
 export interface AuthStoreActions {
   initialize: () => Promise<void>;
   login: (email: string, password: string) => Promise<void>;
+  loginWithSocialToken: (appToken: string) => Promise<void>;
   register: (username: string, password: string, email: string) => Promise<void>;
   confirm: (token: string) => Promise<void>;
   logout: () => Promise<void>;
@@ -162,6 +163,29 @@ const authStore = create<AuthStoreState & AuthStoreActions>((set, get) => ({
           message: errorMsg,
           code: errorCode,
         },
+        isLoading: false,
+      });
+    }
+  },
+
+  /**
+   * Complete login using an already-exchanged app JWT from social auth.
+   * Call this after the social provider flow succeeds and the backend has
+   * returned an access_token via /api/social_login.
+   */
+  loginWithSocialToken: async (appToken: string) => {
+    set({ isLoading: true, error: null });
+    try {
+      await tokenStorage.setToken(appToken);
+      setApiToken(appToken);
+      const decoded = decodeJWT(appToken);
+      const displayName = decoded?.sub ?? null;
+      set({ isLoggedIn: true, username: displayName, error: null, isLoading: false });
+    } catch (error: any) {
+      const errorMsg = error?.message ?? String(error);
+      set({
+        isLoggedIn: false,
+        error: { message: errorMsg, code: 'SOCIAL_LOGIN_FAILED' },
         isLoading: false,
       });
     }

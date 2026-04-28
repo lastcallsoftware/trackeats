@@ -12,6 +12,7 @@ import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import IconButton from '@mui/material/IconButton';
 import InputAdornment from '@mui/material/InputAdornment';
+import SocialLoginButtons from './SocialLoginButtons';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function LoginPage(props: any) {
@@ -179,6 +180,14 @@ function LoginPage(props: any) {
                         {loginMessage && (
                             <Typography className="errorText" color="error">{loginMessage}</Typography>
                         )}
+
+                        <SocialLoginButtons
+                            disabled={isSubmitting}
+                            onSuccess={(appToken) => {
+                                props.storeTokenFunction(appToken);
+                                navigate("/foods");
+                            }}
+                        />
                     </Box>
                 </form>
             </Paper>
