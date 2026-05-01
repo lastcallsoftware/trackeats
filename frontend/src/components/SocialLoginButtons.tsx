@@ -36,7 +36,7 @@ interface Props {
 async function exchangeWithBackend(
     provider: 'google' | 'facebook' | 'apple',
     token: string,
-    extra?: { name?: string },
+    extra?: { name?: string; platform?: string },
 ): Promise<string> {
     const resp = await axios.post('/api/social_login', {
         provider,
@@ -122,27 +122,27 @@ export default function SocialLoginButtons({ onSuccess, disabled = false }: Prop
         setLoadingProvider('facebook');
         try {
             await loadFacebookSdk(FACEBOOK_APP_ID);
+            let fbAccessToken = '';
             await new Promise<void>((resolve, reject) => {
                 window.FB!.login((response) => {
                     if (response.authResponse?.accessToken) {
+                        fbAccessToken = response.authResponse!.accessToken;
                         resolve();
-                        // Store for use after promise resolves
-                        (window as any).__fb_token = response.authResponse!.accessToken;
                     } else {
                         reject(new Error('Facebook login was cancelled or failed'));
                     }
                 }, { scope: 'email,public_profile' });
             });
-            const accessToken = (window as any).__fb_token as string;
-            const appToken = await exchangeWithBackend('facebook', accessToken);
+            const appToken = await exchangeWithBackend('facebook', fbAccessToken);
             onSuccess(appToken);
-        } catch (err: any) {
-            if (err?.message !== 'Facebook login was cancelled or failed') {
-                setError(err?.response?.data?.msg ?? err?.message ?? 'Facebook sign-in failed');
+        } catch (err: unknown) {
+            const msg = err instanceof Error ? err.message : '';
+            const apiMsg = (err as { response?: { data?: { msg?: string } } })?.response?.data?.msg;
+            if (msg !== 'Facebook login was cancelled or failed') {
+                setError(apiMsg ?? msg ?? 'Facebook sign-in failed');
             }
         } finally {
             setLoadingProvider(null);
-            delete (window as any).__fb_token;
         }
     }, [onSuccess]);
 
@@ -169,12 +169,14 @@ export default function SocialLoginButtons({ onSuccess, disabled = false }: Prop
             const name = [firstName, lastName].filter(Boolean).join(' ') || undefined;
             const appToken = await exchangeWithBackend('apple', idToken, { name });
             onSuccess(appToken);
-        } catch (err: any) {
+        } catch (err: unknown) {
             // Apple throws a plain object { error: 'popup_closed_by_user' } on cancel
-            if (err?.error === 'popup_closed_by_user') {
+            if ((err as { error?: string })?.error === 'popup_closed_by_user') {
                 // no-op: user dismissed the popup
             } else {
-                setError(err?.response?.data?.msg ?? err?.message ?? 'Apple sign-in failed');
+                const apiMsg = (err as { response?: { data?: { msg?: string } } })?.response?.data?.msg;
+                const msg = err instanceof Error ? err.message : undefined;
+                setError(apiMsg ?? msg ?? 'Apple sign-in failed');
             }
         } finally {
             setLoadingProvider(null);
@@ -290,10 +292,12 @@ function GoogleLoginButton({
                     baseURL: '',
                     timeout: 10000,
                 });
-                const appToken = await exchangeWithBackend('google', tokenResponse.access_token);
+                const appToken = await exchangeWithBackend('google', tokenResponse.access_token, { platform: 'web' });
                 onSuccess(appToken);
-            } catch (err: any) {
-                setError(err?.response?.data?.msg ?? err?.message ?? 'Google sign-in failed');
+            } catch (err: unknown) {
+                const apiMsg = (err as { response?: { data?: { msg?: string } } })?.response?.data?.msg;
+                const msg = err instanceof Error ? err.message : undefined;
+                setError(apiMsg ?? msg ?? 'Google sign-in failed');
             } finally {
                 setLoadingProvider(null);
             }

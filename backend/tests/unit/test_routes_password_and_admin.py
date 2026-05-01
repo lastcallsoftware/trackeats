@@ -301,7 +301,6 @@ def test_change_password_success_sets_password(
         (routes.db_load, "/api/db/load", "GET"),
         (routes.db_export, "/api/db/export", "GET"),
         (routes.sendmail, "/api/sendmail", "GET"),
-        (routes.delete_user, "/api/user", "DELETE"),
     ],
 )
 def test_admin_only_endpoints_forbid_non_admin(
@@ -469,7 +468,7 @@ def test_delete_user_admin_happy_path(bare_flask_app: Flask, monkeypatch: pytest
     monkeypatch.setattr(routes.Food, "delete_all_for_user", staticmethod(_delete_foods))
 
     with bare_flask_app.test_request_context("/api/user", method="DELETE"):
-        _, status = _as_response_status(routes.delete_user())
+        _, status = _as_response_status(_unwrap(routes.delete_user)())
 
     assert status == 200
     assert calls == {"recipe": 42, "food": 42}

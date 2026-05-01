@@ -82,8 +82,6 @@ Thumbs.db
 *~
 .idea/
 *.code-workspace
-.env
-.env.*
 node_modules/
 .next/
 __pycache__/

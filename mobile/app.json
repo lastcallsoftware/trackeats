@@ -63,7 +63,7 @@
           ]
         }
       ],
-      "package": "com.anonymous.mobile"
+      "package": "com.lastcallsoftware.trackeats"
     },
     "web": {
       "favicon": "./assets/favicon.png"

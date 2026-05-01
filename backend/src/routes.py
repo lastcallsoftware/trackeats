@@ -24,20 +24,55 @@ from crypto import Crypto
 from data import Data
 from sqlalchemy.sql import text
 
+
+def _required_string(mapping: dict[str, Any], key: str) -> str:
+    value = mapping.get(key)
+    if not isinstance(value, str):
+        raise ValueError(f"Missing {key}")
+
+    normalized = value.strip()
+    if not normalized:
+        raise ValueError(f"Missing {key}")
+
+    return normalized
+
+
+def _optional_string(mapping: dict[str, Any], key: str) -> str | None:
+    value = mapping.get(key)
+    if not isinstance(value, str):
+        return None
+
+    normalized = value.strip()
+    return normalized or None
+
 # Social login token verification helpers (imported lazily to avoid hard failures
 # if optional packages are missing in dev; errors surface at call time instead)
-def _verify_google_token(token: str) -> dict[str, Any]:
+def _verify_google_token(token: str, platform: str) -> dict[str, Any]:
     """
     Verify a Google token and return identity claims.
 
-    Accepts either:
-    - An ID token (JWT, three dot-separated segments) — verified locally via google-auth.
-    - An access token (opaque string) — verified by calling Google's tokeninfo endpoint.
+    platform must be one of: "web", "android", "ios", "expo"
+
+    Each platform maps to exactly one backend client ID env var:
+    - "web"     → GOOGLE_WEB_CLIENT_ID   (access token, implicit flow)
+    - "android" → GOOGLE_ANDROID_CLIENT_ID (ID token, PKCE)
+    - "ios"     → GOOGLE_IOS_CLIENT_ID     (ID token, PKCE)
+    - "expo"    → GOOGLE_WEB_CLIENT_ID     (ID token, Expo Go uses web client)
     """
     import requests as req  # type: ignore
-    google_client_id = os.environ.get("GOOGLE_CLIENT_ID")
-    if not google_client_id:
-        raise ValueError("GOOGLE_CLIENT_ID is not configured")
+
+    if platform == "android":
+        env_var = "GOOGLE_ANDROID_CLIENT_ID"
+    elif platform == "ios":
+        env_var = "GOOGLE_IOS_CLIENT_ID"
+    elif platform in ("web", "expo"):
+        env_var = "GOOGLE_WEB_CLIENT_ID"
+    else:
+        raise ValueError(f"Unknown platform for Google login: {platform!r}")
+
+    client_id = os.environ.get(env_var, "").strip()
+    if not client_id:
+        raise ValueError(f"{env_var} is not configured")
 
     # Heuristic: ID tokens are JWTs (three Base64url segments separated by dots)
     is_id_token = token.count('.') == 2
@@ -45,9 +80,16 @@ def _verify_google_token(token: str) -> dict[str, Any]:
     if is_id_token:
         from google.oauth2 import id_token as google_id_token  # type: ignore
         from google.auth.transport import requests as grequests  # type: ignore
-        return google_id_token.verify_oauth2_token(token, grequests.Request(), google_client_id)
+        verified = cast(Any, google_id_token).verify_oauth2_token(
+            token,
+            cast(Any, grequests).Request(),
+            client_id,
+        )
+        return cast(dict[str, Any], verified)
     else:
-        # Access token path — call tokeninfo
+        # Access token path — only valid from the web client
+        if platform != "web":
+            raise ValueError("Access tokens are only accepted from web clients")
         resp = req.get(
             "https://www.googleapis.com/oauth2/v3/tokeninfo",
             params={"access_token": token},
@@ -57,7 +99,9 @@ def _verify_google_token(token: str) -> dict[str, Any]:
         info = resp.json()
         if info.get("error"):
             raise ValueError(f"Google token invalid: {info['error']}")
-        if info.get("aud") != google_client_id and info.get("azp") != google_client_id:
+        token_aud = info.get("aud")
+        token_azp = info.get("azp")
+        if token_aud != client_id and token_azp != client_id:
             raise ValueError("Google token was not issued for this app")
         # Normalize to the same shape as an ID token payload
         return {
@@ -106,34 +150,35 @@ def _verify_apple_token(identity_token: str) -> dict[str, Any]:
     """Verify an Apple Sign-In identity token."""
     import jwt as pyjwt  # type: ignore
     import requests as req  # type: ignore
+    pyjwt_module = cast(Any, pyjwt)
     # Fetch Apple's public keys
     resp = req.get("https://appleid.apple.com/auth/keys", timeout=10)
     resp.raise_for_status()
     jwks = resp.json()
     # Decode header to find key id
-    header = pyjwt.get_unverified_header(identity_token)
+    header = cast(dict[str, Any], pyjwt_module.get_unverified_header(identity_token))
     kid = header.get("kid")
     # Find matching public key
-    public_key = None
+    public_key: Any = None
     for key_data in jwks.get("keys", []):
         if key_data.get("kid") == kid:
             from jwt.algorithms import RSAAlgorithm  # type: ignore
             import json
-            public_key = RSAAlgorithm.from_jwk(json.dumps(key_data))
+            public_key = cast(Any, RSAAlgorithm).from_jwk(json.dumps(key_data))
             break
     if public_key is None:
         raise ValueError("Apple public key not found for kid: " + str(kid))
     apple_bundle_id = os.environ.get("APPLE_BUNDLE_ID")
     if not apple_bundle_id:
         raise ValueError("APPLE_BUNDLE_ID is not configured")
-    payload = pyjwt.decode(
+    payload = pyjwt_module.decode(
         identity_token,
         public_key,
         algorithms=["RS256"],
         audience=apple_bundle_id,
         issuer="https://appleid.apple.com",
     )
-    return payload
+    return cast(dict[str, Any], payload)
 
 bp = Blueprint("auth", __name__)
 
@@ -677,7 +722,8 @@ def social_login():
     Request body:
       {
         "provider": "google" | "facebook" | "apple",
-        "token":    "<id_token or access_token from the provider>"
+        "token":    "<id_token or access_token from the provider>",
+        "platform": "web" | "android" | "ios" | "expo"   (required for Google only)
       }
 
     For Apple, the client may also send a one-time "name" field (only present
@@ -688,40 +734,46 @@ def social_login():
         "name":     "Jane Smith"
       }
     """
+    body: dict[str, Any] = {}
+
     try:
         with db.session.begin():
             if not request.is_json:
                 raise ValueError("Invalid request - not JSON")
 
-            body = request.json or {}
-            provider = str(body.get("provider", "")).lower().strip()
-            token = str(body.get("token", "")).strip()
+            raw_body = request.get_json(silent=False)
+            if not isinstance(raw_body, dict):
+                raise ValueError("Invalid request body")
+
+            typed_raw_body = cast(dict[Any, Any], raw_body)
+            body = {}
+            for raw_key, raw_value in typed_raw_body.items():
+                body[str(raw_key)] = raw_value
+
+            provider = _required_string(body, "provider").lower()
+            token = _required_string(body, "token")
 
             if provider not in ("google", "facebook", "apple"):
                 raise ValueError(f"Unsupported provider: {provider!r}")
-            if not token:
-                raise ValueError("Missing token")
 
             # Verify the token with the provider and extract identity claims
             if provider == "google":
-                claims = _verify_google_token(token)
-                oauth_id = claims["sub"]
-                email = claims.get("email")
-                display_name = claims.get("name")
+                platform = _required_string(body, "platform")
+                claims = _verify_google_token(token, platform)
+                oauth_id = _required_string(claims, "sub")
+                email = _optional_string(claims, "email")
+                display_name = _optional_string(claims, "name")
             elif provider == "facebook":
                 claims = _verify_facebook_token(token)
-                oauth_id = claims["sub"]
-                email = claims.get("email")
-                display_name = claims.get("name")
+                oauth_id = _required_string(claims, "sub")
+                email = _optional_string(claims, "email")
+                display_name = _optional_string(claims, "name")
             else:  # apple
                 claims = _verify_apple_token(token)
-                oauth_id = claims["sub"]
-                email = claims.get("email")
+                oauth_id = _required_string(claims, "sub")
+                email = _optional_string(claims, "email")
                 # Apple only sends name on the very first sign-in; the client forwards it
-                display_name = body.get("name")
-
-            if not oauth_id:
-                raise ValueError("Provider did not return a subject identifier")
+                display_name = _optional_string(body, "name")
 
             # Find or create a user for this OAuth identity
             user = User.get_or_create_oauth_user(
@@ -733,7 +785,6 @@ def social_login():
 
             # Seed database for brand-new users who requested it
             if user.seed_requested and user.seeded_at is None:
-                from data import Data
                 Data.seed_database(user)
 
             # Determine the JWT identity (email if available, else provider:oauth_id)

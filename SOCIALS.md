@@ -68,7 +68,7 @@ You need **multiple client IDs** — one per platform:
 
 | Client type | Used by | Env var |
 |---|---|---|
-| Web application | Backend token verification + frontend web app | `GOOGLE_CLIENT_ID` (backend), `VITE_GOOGLE_CLIENT_ID` (frontend) |
+| Web application | Backend token verification + frontend web app | `GOOGLE_WEB_CLIENT_ID` (backend), `VITE_GOOGLE_CLIENT_ID` (frontend) |
 | Android | Mobile app on Android | `EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID` (mobile) |
 | iOS | Mobile app on iOS | `EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID` (mobile) |
 | Web (Expo proxy) | Expo Go during development | `EXPO_PUBLIC_GOOGLE_EXPO_CLIENT_ID` (mobile) |
@@ -82,7 +82,9 @@ You need **multiple client IDs** — one per platform:
 
 `backend/.env`:
 ```
-GOOGLE_CLIENT_ID=your-web-client-id.apps.googleusercontent.com
+GOOGLE_WEB_CLIENT_ID=your-web-client-id.apps.googleusercontent.com
+GOOGLE_ANDROID_CLIENT_ID=your-android-client-id.apps.googleusercontent.com
+GOOGLE_IOS_CLIENT_ID=your-ios-client-id.apps.googleusercontent.com
 ```
 
 `frontend/.env`:
@@ -92,7 +94,7 @@ VITE_GOOGLE_CLIENT_ID=your-web-client-id.apps.googleusercontent.com
 
 `mobile/.env`:
 ```
-EXPO_PUBLIC_GOOGLE_EXPO_CLIENT_ID=your-expo-web-client-id.apps.googleusercontent.com
+EXPO_PUBLIC_GOOGLE_EXPO_CLIENT_ID=your-web-client-id.apps.googleusercontent.com
 EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID=your-android-client-id.apps.googleusercontent.com
 EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID=your-ios-client-id.apps.googleusercontent.com
 ```
@@ -199,7 +201,9 @@ APPLE_BUNDLE_ID=com.example.trackeats.web
 ### `backend/.env`
 
 ```
-GOOGLE_CLIENT_ID=                  # Web OAuth client ID from Google Cloud Console
+GOOGLE_WEB_CLIENT_ID=              # Web OAuth client ID from Google Cloud Console
+GOOGLE_ANDROID_CLIENT_ID=          # Android OAuth client ID from Google Cloud Console
+GOOGLE_IOS_CLIENT_ID=              # iOS OAuth client ID from Google Cloud Console
 FACEBOOK_APP_ID=                   # App ID from Facebook Developer portal
 FACEBOOK_APP_SECRET=               # App Secret from Facebook Developer portal (server only)
 APPLE_BUNDLE_ID=                   # Bundle ID (mobile) or Services ID (web)
@@ -208,7 +212,7 @@ APPLE_BUNDLE_ID=                   # Bundle ID (mobile) or Services ID (web)
 ### `frontend/.env`
 
 ```
-VITE_GOOGLE_CLIENT_ID=             # Same web client ID as GOOGLE_CLIENT_ID above
+VITE_GOOGLE_CLIENT_ID=             # Same value as GOOGLE_WEB_CLIENT_ID above
 VITE_FACEBOOK_APP_ID=              # Same App ID as FACEBOOK_APP_ID above
 VITE_APPLE_CLIENT_ID=              # Services ID (e.g. com.example.trackeats.web)
 VITE_APPLE_REDIRECT_URI=           # Must match return URL registered with Apple

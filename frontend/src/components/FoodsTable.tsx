@@ -280,9 +280,9 @@ interface FoodsTableProps {
 const FoodsTable: React.FC<FoodsTableProps> = ({setSelectedRowId, pagination, setPagination, setFilteredCount, isRecipesForm = false}) => {
     const navigate = useNavigate()
     const [sorting, setSorting] = React.useState<SortingState>([])
-    const SESSION_KEY = 'FoodsTable.globalFilter';
+    const SESSION_STORAGE = 'FoodsTable.globalFilter';
     const [globalFilter, setGlobalFilter] = React.useState(() => {
-        return sessionStorage.getItem(SESSION_KEY) || "";
+        return sessionStorage.getItem(SESSION_STORAGE) || "";
     });
     const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({})
     const [preferencesReady, setPreferencesReady] = React.useState(false)
@@ -333,7 +333,7 @@ const FoodsTable: React.FC<FoodsTableProps> = ({setSelectedRowId, pagination, se
 
     // Persist globalFilter to sessionStorage
     React.useEffect(() => {
-        sessionStorage.setItem(SESSION_KEY, globalFilter);
+        sessionStorage.setItem(SESSION_STORAGE, globalFilter);
     }, [globalFilter]);
 
     // Global filter function for foods

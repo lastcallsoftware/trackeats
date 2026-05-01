@@ -10,6 +10,7 @@
  *   // token is the app JWT — store it with tokenStorage and call setApiToken()
  */
 
+import { Platform } from 'react-native';
 import * as WebBrowser from 'expo-web-browser';
 import * as AuthSession from 'expo-auth-session';
 import api from './api';
@@ -34,7 +35,7 @@ const FACEBOOK_APP_ID = process.env.EXPO_PUBLIC_FACEBOOK_APP_ID ?? '';
 async function exchangeWithBackend(
   provider: 'google' | 'facebook' | 'apple',
   token: string,
-  extra?: { name?: string },
+  extra?: { name?: string; platform?: string },
 ): Promise<string> {
   try {
     const response = await api.post('/api/social_login', {
@@ -63,11 +64,16 @@ async function exchangeWithBackend(
 export function useGoogleAuthRequest() {
   const discovery = AuthSession.useAutoDiscovery('https://accounts.google.com');
 
-  // Pick the right client ID for the platform
-  const clientId = (() => {
-    if (GOOGLE_EXPO_CLIENT_ID) return GOOGLE_EXPO_CLIENT_ID; // Expo Go / web
-    if (GOOGLE_ANDROID_CLIENT_ID) return GOOGLE_ANDROID_CLIENT_ID;
-    return GOOGLE_IOS_CLIENT_ID;
+  // Pick the right client ID and platform label for the current runtime
+  const { clientId, googlePlatform } = (() => {
+    if (GOOGLE_EXPO_CLIENT_ID && __DEV__) {
+      // Expo Go development — uses a web-type client ID
+      return { clientId: GOOGLE_EXPO_CLIENT_ID, googlePlatform: 'expo' as const };
+    }
+    if (Platform.OS === 'android') {
+      return { clientId: GOOGLE_ANDROID_CLIENT_ID, googlePlatform: 'android' as const };
+    }
+    return { clientId: GOOGLE_IOS_CLIENT_ID, googlePlatform: 'ios' as const };
   })();
 
   const redirectUri = AuthSession.makeRedirectUri({ scheme: 'trackeats' });
@@ -95,7 +101,7 @@ export function useGoogleAuthRequest() {
       if (!idToken) {
         throw new AuthError('Google did not return an id_token', 'NO_TOKEN');
       }
-      return exchangeWithBackend('google', idToken);
+      return exchangeWithBackend('google', idToken, { platform: googlePlatform });
     }
     if (result.type === 'cancel' || result.type === 'dismiss') {
       throw new AuthError('Sign-in was cancelled', 'CANCELLED');
