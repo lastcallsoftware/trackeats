@@ -9,7 +9,7 @@ import * as yup from 'yup';
 import { useState } from 'react';
 import authStore from '@/store/authStore';
 import {
-  useGoogleAuthRequest,
+  signInWithGoogle,
   useFacebookAuthRequest,
   loginWithApple,
 } from '@/services/socialAuthService';
@@ -19,8 +19,7 @@ const loginSchema = yup.object({
 });
 
 const hasGoogleLogin = Boolean(
-  process.env.EXPO_PUBLIC_GOOGLE_EXPO_CLIENT_ID
-  || process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID
+  process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID
   || process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID,
 );
 const hasFacebookLogin = Boolean(process.env.EXPO_PUBLIC_FACEBOOK_APP_ID);
@@ -37,7 +36,6 @@ export default function LoginScreen() {
   const [showPassword, setShowPassword] = useState(false);
   const [socialError, setSocialError] = useState<string | null>(null);
 
-  const { promptAsync: signInWithGoogle } = useGoogleAuthRequest();
   const { promptAsync: signInWithFacebook } = useFacebookAuthRequest();
   const showAppleLogin = Platform.OS === 'ios' && hasAppleLogin;
   const hasAnySocialLogin = hasGoogleLogin || hasFacebookLogin || showAppleLogin;

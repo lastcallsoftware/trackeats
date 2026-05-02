@@ -51,18 +51,18 @@ def _verify_google_token(token: str, platform: str) -> dict[str, Any]:
     """
     Verify a Google token and return identity claims.
 
-    platform must be one of: "web", "android", "ios", "expo"
+    platform must be one of: "web", "android", "ios"
 
     Each platform maps to exactly one backend client ID env var:
-    - "web"     → GOOGLE_WEB_CLIENT_ID   (access token, implicit flow)
-    - "android" → GOOGLE_ANDROID_CLIENT_ID (ID token, PKCE)
-    - "ios"     → GOOGLE_IOS_CLIENT_ID     (ID token, PKCE)
-    - "expo"    → GOOGLE_WEB_CLIENT_ID     (ID token, Expo Go uses web client)
+    - "web"     → GOOGLE_WEB_CLIENT_ID     (access token, web implicit flow)
+    - "android" → GOOGLE_ANDROID_CLIENT_ID (ID token, native SDK)
+    - "ios"     → GOOGLE_IOS_CLIENT_ID     (ID token, native SDK)
     """
     import requests as req  # type: ignore
 
     if platform == "android":
-        env_var = "GOOGLE_ANDROID_CLIENT_ID"
+        #env_var = "GOOGLE_ANDROID_CLIENT_ID"
+        env_var = "GOOGLE_WEB_CLIENT_ID"
     elif platform == "ios":
         env_var = "GOOGLE_IOS_CLIENT_ID"
     elif platform in ("web", "expo"):
@@ -78,8 +78,9 @@ def _verify_google_token(token: str, platform: str) -> dict[str, Any]:
     is_id_token = token.count('.') == 2
 
     if is_id_token:
-        from google.oauth2 import id_token as google_id_token  # type: ignore
-        from google.auth.transport import requests as grequests  # type: ignore
+        from google.oauth2 import id_token as google_id_token
+        from google.auth.transport import requests as grequests
+
         verified = cast(Any, google_id_token).verify_oauth2_token(
             token,
             cast(Any, grequests).Request(),
