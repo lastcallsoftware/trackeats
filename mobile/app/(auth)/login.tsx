@@ -58,15 +58,15 @@ export default function LoginScreen() {
   async function handleSocialLogin(provider: 'google' | 'facebook' | 'apple') {
     setSocialError(null);
     try {
-      let appToken: string;
+      let authData: { accessToken: string; username: string };
       if (provider === 'google') {
-        appToken = await signInWithGoogle();
+        authData = await signInWithGoogle();
       } else if (provider === 'facebook') {
-        appToken = await signInWithFacebook();
+        authData = await signInWithFacebook();
       } else {
-        appToken = await loginWithApple();
+        authData = await loginWithApple();
       }
-      await loginWithSocialToken(appToken);
+      await loginWithSocialToken(authData);
     } catch (err: any) {
       if (err?.code === 'CANCELLED') return; // user dismissed — no error shown
       setSocialError(err?.message ?? 'Sign-in failed. Please try again.');

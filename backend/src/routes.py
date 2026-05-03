@@ -104,11 +104,22 @@ def _verify_google_token(token: str, platform: str) -> dict[str, Any]:
         token_azp = info.get("azp")
         if token_aud != client_id and token_azp != client_id:
             raise ValueError("Google token was not issued for this app")
+
+        userinfo_resp = req.get(
+            "https://www.googleapis.com/oauth2/v3/userinfo",
+            headers={"Authorization": f"Bearer {token}"},
+            timeout=10,
+        )
+        userinfo_resp.raise_for_status()
+        userinfo = userinfo_resp.json()
+
         # Normalize to the same shape as an ID token payload
         return {
             "sub": info.get("sub"),
-            "email": info.get("email"),
-            "name": info.get("name"),
+            "email": userinfo.get("email") or info.get("email"),
+            "name": userinfo.get("name") or info.get("name"),
+            "given_name": userinfo.get("given_name"),
+            "family_name": userinfo.get("family_name"),
             "email_verified": info.get("email_verified"),
         }
 
@@ -708,7 +719,7 @@ def login():
     else:
         msg = f"User {email} authenticated, returning token"
         logging.info(msg)
-        return jsonify(access_token=access_token), 200
+        return jsonify(access_token=access_token, username=user.username), 200
 
 
 @bp.route("/api/social_login", methods=["POST"])
@@ -807,7 +818,7 @@ def social_login():
         return jsonify({"msg": msg}), 401
     else:
         logging.info(f"Social login succeeded: provider={provider}, oauth_id={oauth_id}, user={user.id}")
-        return jsonify(access_token=access_token), 200
+        return jsonify(access_token=access_token, username=user.username), 200
 
 
 @bp.route("/api/request_reset_password", methods=["POST"])

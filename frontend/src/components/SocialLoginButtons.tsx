@@ -2,7 +2,7 @@
  * SocialLoginButtons — Google, Facebook, and Apple sign-in buttons for the web login page.
  *
  * Each button triggers a provider OAuth flow, receives an id_token / access_token,
- * sends it to /api/social_login, and calls onSuccess(appToken) on success.
+ * sends it to /api/social_login, and calls onSuccess({ appToken, username }) on success.
  *
  * Set these env vars in frontend/.env:
  *   VITE_GOOGLE_CLIENT_ID=...
@@ -28,7 +28,7 @@ const APPLE_REDIRECT_URI = import.meta.env.VITE_APPLE_REDIRECT_URI ?? window.loc
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface Props {
-    onSuccess: (appToken: string) => void;
+    onSuccess: (authData: { appToken: string; username: string }) => void;
     disabled?: boolean;
 }
 
@@ -37,15 +37,17 @@ async function exchangeWithBackend(
     provider: 'google' | 'facebook' | 'apple',
     token: string,
     extra?: { name?: string; platform?: string },
-): Promise<string> {
+): Promise<{ appToken: string; username: string }> {
     const resp = await axios.post('/api/social_login', {
         provider,
         token,
         ...(extra ?? {}),
     });
     const appToken = resp.data?.access_token;
+    const username = resp.data?.username;
     if (!appToken) throw new Error('No token returned from server');
-    return appToken;
+    if (!username) throw new Error('No username returned from server');
+    return { appToken, username };
 }
 
 // ─── Facebook SDK loader (lazy) ───────────────────────────────────────────────
@@ -133,8 +135,8 @@ export default function SocialLoginButtons({ onSuccess, disabled = false }: Prop
                     }
                 }, { scope: 'email,public_profile' });
             });
-            const appToken = await exchangeWithBackend('facebook', fbAccessToken);
-            onSuccess(appToken);
+            const authData = await exchangeWithBackend('facebook', fbAccessToken);
+            onSuccess(authData);
         } catch (err: unknown) {
             const msg = err instanceof Error ? err.message : '';
             const apiMsg = (err as { response?: { data?: { msg?: string } } })?.response?.data?.msg;
@@ -167,8 +169,8 @@ export default function SocialLoginButtons({ onSuccess, disabled = false }: Prop
             const firstName = response.user?.name?.firstName ?? '';
             const lastName = response.user?.name?.lastName ?? '';
             const name = [firstName, lastName].filter(Boolean).join(' ') || undefined;
-            const appToken = await exchangeWithBackend('apple', idToken, { name });
-            onSuccess(appToken);
+            const authData = await exchangeWithBackend('apple', idToken, { name });
+            onSuccess(authData);
         } catch (err: unknown) {
             // Apple throws a plain object { error: 'popup_closed_by_user' } on cancel
             if ((err as { error?: string })?.error === 'popup_closed_by_user') {
@@ -273,7 +275,7 @@ interface GoogleLoginButtonProps {
     loadingProvider: string | null;
     setLoadingProvider: (provider: string | null) => void;
     setError: (message: string | null) => void;
-    onSuccess: (appToken: string) => void;
+    onSuccess: (authData: { appToken: string; username: string }) => void;
 }
 
 function GoogleLoginButton({
@@ -292,8 +294,8 @@ function GoogleLoginButton({
                     baseURL: '',
                     timeout: 10000,
                 });
-                const appToken = await exchangeWithBackend('google', tokenResponse.access_token, { platform: 'web' });
-                onSuccess(appToken);
+                const authData = await exchangeWithBackend('google', tokenResponse.access_token, { platform: 'web' });
+                onSuccess(authData);
             } catch (err: unknown) {
                 const apiMsg = (err as { response?: { data?: { msg?: string } } })?.response?.data?.msg;
                 const msg = err instanceof Error ? err.message : undefined;

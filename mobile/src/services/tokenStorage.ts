@@ -6,6 +6,7 @@
 import * as SecureStore from 'expo-secure-store';
 
 const TOKEN_KEY = 'auth_token';
+const USERNAME_KEY = 'auth_username';
 
 /**
  * Stores a token securely in SecureStore
@@ -45,5 +46,42 @@ export async function clearToken(): Promise<void> {
   } catch (error) {
     const originalError = error instanceof Error ? error.message : String(error);
     throw new Error(`Failed to clear token: ${originalError}`);
+  }
+}
+
+/**
+ * Stores a username in SecureStore
+ */
+export async function setUsername(username: string): Promise<void> {
+  try {
+    await SecureStore.setItemAsync(USERNAME_KEY, username);
+  } catch (error) {
+    const originalError = error instanceof Error ? error.message : String(error);
+    throw new Error(`Failed to store username: ${originalError}`);
+  }
+}
+
+/**
+ * Retrieves the stored username from SecureStore
+ */
+export async function getUsername(): Promise<string | null> {
+  try {
+    const username = await SecureStore.getItemAsync(USERNAME_KEY);
+    return username ?? null;
+  } catch (error) {
+    const originalError = error instanceof Error ? error.message : String(error);
+    throw new Error(`Failed to retrieve username: ${originalError}`);
+  }
+}
+
+/**
+ * Clears the stored username from SecureStore
+ */
+export async function clearUsername(): Promise<void> {
+  try {
+    await SecureStore.deleteItemAsync(USERNAME_KEY);
+  } catch (error) {
+    const originalError = error instanceof Error ? error.message : String(error);
+    throw new Error(`Failed to clear username: ${originalError}`);
   }
 }

@@ -32,6 +32,11 @@ const getStoredAccessToken = (): string => {
     return storedToken ? JSON.parse(storedToken) : ""
 }
 
+const getStoredUsername = (): string => {
+    const storedUsername = sessionStorage.getItem("username")
+    return storedUsername ? JSON.parse(storedUsername) : ""
+}
+
 const getDefaultPreferencesForContext = (context: string): Record<string, unknown> | null => {
     if (context === FOODS_COLUMNS_PREFERENCES_KEY) {
         return {
@@ -166,6 +171,8 @@ type DailyLogPayload = {
 }
 
 export type DataContextType = {
+    username: string;
+    currentUser: { username: string } | null;
     preferences: Record<string, Record<string, unknown>>;
     foods: IFood[];
     recipes: IRecipe[];
@@ -195,6 +202,8 @@ export type DataContextType = {
 }
 
 export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) => {
+    const [username, setUsername] = useState<string>(getStoredUsername)
+    const currentUser = username ? { username } : null
     const [preferences, setPreferences] = useState<Record<string, Record<string, unknown>>>({})
     const [foods, setFoods] = useState<IFood[]>([])
     const [recipes, setRecipes] = useState<IRecipe[]>([])
@@ -212,8 +221,10 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
 
     const removeToken = () => {
         sessionStorage.removeItem("access_token")
+        sessionStorage.removeItem("username")
         window.dispatchEvent(new Event(AUTH_CHANGED_EVENT))
         setAccessToken("")
+        setUsername("")
         setFoods([])
         setRecipes([])
         setIngredients([])
@@ -224,7 +235,9 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
     useEffect(() => {
         const syncAccessToken = () => {
             const nextAccessToken = getStoredAccessToken()
+            const nextUsername = getStoredUsername()
             setAccessToken(nextAccessToken)
+            setUsername(nextUsername)
             if (!nextAccessToken) {
                 setFoods([])
                 setRecipes([])
@@ -606,6 +619,8 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
 
     return (
         <DataContext.Provider value={{ 
+            username,
+            currentUser,
             preferences,
             foods, 
             recipes, 

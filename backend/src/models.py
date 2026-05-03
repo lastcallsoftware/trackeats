@@ -9,6 +9,7 @@ from schemas import FoodRequest, RecipeRequest, IngredientRequest, DailyLogItemR
 import enum
 import datetime
 import re
+import unicodedata
 import logging
 
 # We're using a library (flask-sqlalchemy) that handles database interactions
@@ -345,6 +346,8 @@ class User(db.Model):
         # Make sure the user has been confirmed
         if user.status != UserStatus.confirmed:
             raise ValueError(f"Email '{email}' has not been confirmed")
+        if not user.password_hash:
+            raise ValueError("Missing required value password_hash")        
 
         # Validate the password.
         # Note that the salt is stored as part of the hash, rather than as a 
@@ -400,20 +403,18 @@ class User(db.Model):
                 return user
 
         # 3. Create a new account
-        # Derive a username from the display name or email, falling back to provider+id
+        # Derive a username from the first token of the display name, email, or provider+id
         if display_name:
-            base = re.sub(r"[^a-zA-Z0-9_]", "", display_name.replace(" ", "_"))[:30]
+            first_token = display_name.strip().split()[0] if display_name.strip() else ""
+            normalized = unicodedata.normalize("NFKD", first_token)
+            ascii_name = normalized.encode("ascii", "ignore").decode("ascii")
+            base = re.sub(r"[^a-zA-Z0-9_]", "", ascii_name)[:30]
         elif email:
             base = email.split("@")[0][:30]
         else:
             base = f"{provider}user"
 
-        # Make username unique by appending a counter if needed
         username = base if len(base) >= 3 else f"{base}_{provider}"
-        counter = 1
-        while db.session.scalar(db.select(User).where(User.username == username)):
-            username = f"{base}_{counter}"
-            counter += 1
 
         now = datetime.datetime.now()
         encrypted_email_addr: bytes | None = None

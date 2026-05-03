@@ -56,7 +56,7 @@ function LoginPage(props: any) {
                 { email: formData.email, password: formData.password },
                 { timeout: 10000 }
             );
-            props.storeTokenFunction(response.data.access_token);
+            props.storeTokenFunction(response.data.access_token, response.data.username);
             navigate("/foods")
         } catch (error) {
             console.log(error)
@@ -183,8 +183,8 @@ function LoginPage(props: any) {
 
                         <SocialLoginButtons
                             disabled={isSubmitting}
-                            onSuccess={(appToken) => {
-                                props.storeTokenFunction(appToken);
+                            onSuccess={({ appToken, username }) => {
+                                props.storeTokenFunction(appToken, username);
                                 navigate("/foods");
                             }}
                         />

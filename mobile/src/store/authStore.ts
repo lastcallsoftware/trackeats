@@ -13,9 +13,14 @@ export interface AuthError {
   code: string;
 }
 
+export interface AuthUser {
+  username: string;
+}
+
 export interface AuthStoreState {
   isLoggedIn: boolean;
   username: string | null;
+  currentUser: AuthUser | null;
   error: AuthError | null;
   isLoading: boolean;
   pendingVerification: boolean;
@@ -24,7 +29,7 @@ export interface AuthStoreState {
 export interface AuthStoreActions {
   initialize: () => Promise<void>;
   login: (email: string, password: string) => Promise<void>;
-  loginWithSocialToken: (appToken: string) => Promise<void>;
+  loginWithSocialToken: (authData: { accessToken: string; username: string }) => Promise<void>;
   register: (username: string, password: string, email: string) => Promise<void>;
   confirm: (token: string) => Promise<void>;
   logout: () => Promise<void>;
@@ -35,6 +40,7 @@ export interface AuthStoreActions {
 const initialState: AuthStoreState = {
   isLoggedIn: false,
   username: null,
+  currentUser: null,
   error: null,
   isLoading: false,
   pendingVerification: false,
@@ -93,7 +99,10 @@ const authStore = create<AuthStoreState & AuthStoreActions>((set, get) => ({
    */
   initialize: async () => {
     try {
-      const token = await tokenStorage.getToken();
+      const [token, username] = await Promise.all([
+        tokenStorage.getToken(),
+        tokenStorage.getUsername(),
+      ]);
 
       if (!token) {
         console.debug('[AUTH] No stored token found');
@@ -115,9 +124,8 @@ const authStore = create<AuthStoreState & AuthStoreActions>((set, get) => ({
       setApiToken(token);
       set({
         isLoggedIn: true,
-        // Username would need to be stored separately or extracted from JWT
-        // For now, we'll set it during login
-        username: decoded?.sub || null,
+        username,
+        currentUser: username ? { username } : null,
       });
     } catch (error) {
       console.error('[AUTH] Initialize failed:', error);
@@ -132,23 +140,22 @@ const authStore = create<AuthStoreState & AuthStoreActions>((set, get) => ({
     set({ isLoading: true, error: null });
 
     try {
-      const token = await authService.login(email, password);
+      const { accessToken, username } = await authService.login(email, password);
 
-      // Store token securely
-      await tokenStorage.setToken(token);
+      // Store auth payload securely
+      await Promise.all([
+        tokenStorage.setToken(accessToken),
+        tokenStorage.setUsername(username),
+      ]);
 
       // Update API client
-      setApiToken(token);
-
-      // Extract email from JWT token for display (using email as the subject)
-      // The JWT identity is now the email address
-      const decoded = decodeJWT(token);
-      const displayEmail = decoded?.sub || email;
+      setApiToken(accessToken);
 
       // Update state
       set({
         isLoggedIn: true,
-        username: displayEmail,  // Store email in username field for now (state field name kept for compatibility)
+        username,
+        currentUser: { username },
         error: null,
         isLoading: false,
       });
@@ -173,14 +180,21 @@ const authStore = create<AuthStoreState & AuthStoreActions>((set, get) => ({
    * Call this after the social provider flow succeeds and the backend has
    * returned an access_token via /api/social_login.
    */
-  loginWithSocialToken: async (appToken: string) => {
+  loginWithSocialToken: async (authData: { accessToken: string; username: string }) => {
     set({ isLoading: true, error: null });
     try {
-      await tokenStorage.setToken(appToken);
-      setApiToken(appToken);
-      const decoded = decodeJWT(appToken);
-      const displayName = decoded?.sub ?? null;
-      set({ isLoggedIn: true, username: displayName, error: null, isLoading: false });
+      await Promise.all([
+        tokenStorage.setToken(authData.accessToken),
+        tokenStorage.setUsername(authData.username),
+      ]);
+      setApiToken(authData.accessToken);
+      set({
+        isLoggedIn: true,
+        username: authData.username,
+        currentUser: { username: authData.username },
+        error: null,
+        isLoading: false,
+      });
     } catch (error: any) {
       const errorMsg = error?.message ?? String(error);
       set({
@@ -255,12 +269,16 @@ const authStore = create<AuthStoreState & AuthStoreActions>((set, get) => ({
    */
   logout: async () => {
     try {
-      await tokenStorage.clearToken();
+      await Promise.all([
+        tokenStorage.clearToken(),
+        tokenStorage.clearUsername(),
+      ]);
       setApiToken(null);
 
       set({
         isLoggedIn: false,
         username: null,
+        currentUser: null,
         error: null,
         isLoading: false,
         pendingVerification: false,
@@ -271,6 +289,7 @@ const authStore = create<AuthStoreState & AuthStoreActions>((set, get) => ({
       set({
         isLoggedIn: false,
         username: null,
+        currentUser: null,
         error: null,
         isLoading: false,
         pendingVerification: false,
@@ -285,11 +304,13 @@ const authStore = create<AuthStoreState & AuthStoreActions>((set, get) => ({
     // Set error and clear token/session
     try {
       tokenStorage.clearToken();
+      tokenStorage.clearUsername();
       setApiToken(null);
 
       set({
         isLoggedIn: false,
         username: null,
+        currentUser: null,
         error: {
           message: 'Your session has expired. Please log in again.',
           code: 'SESSION_EXPIRED',

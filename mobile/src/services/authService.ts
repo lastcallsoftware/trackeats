@@ -86,10 +86,10 @@ export async function resendConfirmation(token: string): Promise<void> {
 
 /**
  * Log in user with credentials
- * @returns Access token string
+ * @returns Access token and username
  * @throws AuthError on failure
  */
-export async function login(email: string, password: string): Promise<string> {
+export async function login(email: string, password: string): Promise<{ accessToken: string; username: string }> {
   try {
     const response = await api.post('/api/login', {
       email,
@@ -97,11 +97,15 @@ export async function login(email: string, password: string): Promise<string> {
     });
 
     const token = response.data.access_token;
+    const username = response.data.username;
     if (!token) {
       throw new AuthError('No token received from server', 'NO_TOKEN');
     }
+    if (!username) {
+      throw new AuthError('No username received from server', 'NO_USERNAME');
+    }
 
-    return token;
+    return { accessToken: token, username };
   } catch (error: any) {
     // If it's already an AuthError, re-throw it
     if (error instanceof AuthError) {

@@ -17,6 +17,11 @@ import { GoogleSignin, isErrorWithCode, statusCodes } from '@react-native-google
 import api from './api';
 import { AuthError } from '@/types/auth';
 
+export type SocialLoginResult = {
+  accessToken: string;
+  username: string;
+};
+
 // Required so that expo-auth-session redirect flows (Facebook) work on web.
 WebBrowser.maybeCompleteAuthSession();
 
@@ -55,7 +60,7 @@ async function exchangeWithBackend(
   provider: 'google' | 'facebook' | 'apple',
   token: string,
   extra?: { name?: string; platform?: string },
-): Promise<string> {
+): Promise<SocialLoginResult> {
   try {
     const response = await api.post('/api/social_login', {
       provider,
@@ -63,10 +68,14 @@ async function exchangeWithBackend(
       ...(extra ?? {}),
     });
     const appToken = response.data?.access_token;
+    const username = response.data?.username;
     if (!appToken) {
       throw new AuthError('No token returned from server', 'NO_TOKEN');
     }
-    return appToken;
+    if (!username) {
+      throw new AuthError('No username returned from server', 'NO_USERNAME');
+    }
+    return { accessToken: appToken, username };
   } catch (error: any) {
     if (error instanceof AuthError) throw error;
     const message = error?.response?.data?.msg ?? error?.message ?? 'Social login failed';
@@ -93,7 +102,7 @@ async function exchangeWithBackend(
  *   3. Extract the idToken from the result.
  *   4. Exchange the idToken with the Trackeats backend for an app JWT.
  */
-export async function signInWithGoogle(): Promise<string> {
+export async function signInWithGoogle(): Promise<SocialLoginResult> {
   // Fail fast rather than letting the sign-in dialog open with a broken config.
   if (!GOOGLE_WEB_CLIENT_ID) {
     throw new AuthError(
@@ -162,7 +171,7 @@ export function useFacebookAuthRequest() {
     discovery,
   );
 
-  async function loginWithFacebook(): Promise<string> {
+  async function loginWithFacebook(): Promise<SocialLoginResult> {
     if (!FACEBOOK_APP_ID) {
       throw new AuthError(
         'Facebook App ID is not configured. Set EXPO_PUBLIC_FACEBOOK_APP_ID.',
@@ -189,7 +198,7 @@ export function useFacebookAuthRequest() {
 // ─────────────────────────────────────────────────────────────────────────────
 // Apple  (iOS only — expo-apple-authentication)
 // ─────────────────────────────────────────────────────────────────────────────
-export async function loginWithApple(): Promise<string> {
+export async function loginWithApple(): Promise<SocialLoginResult> {
   // Dynamically imported so the module doesn't crash on Android / web where
   // expo-apple-authentication is not available
   const AppleAuthentication = await import('expo-apple-authentication').catch(() => null);

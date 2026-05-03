@@ -66,7 +66,7 @@ const buttonSx = {
 function App() {
     const theme = useTheme();
     const isNarrow = useMediaQuery(theme.breakpoints.down('md'));
-    const { deleteAccount, recalculateRecipeNutrition, isLoading, isRecalculatingRecipes } = useData();
+    const { deleteAccount, recalculateRecipeNutrition, isLoading, isRecalculatingRecipes, username } = useData();
     const [isAuthenticated, setAuthenticated] = useState(sessionStorage.getItem("access_token") != null);
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
     const [optionsAnchorEl, setOptionsAnchorEl] = useState<null | HTMLElement>(null);
@@ -81,14 +81,16 @@ function App() {
         return () => window.removeEventListener(AUTH_CHANGED_EVENT, syncAuth);
     }, []);
 
-    const storeToken = (token: string): undefined => {
+    const storeToken = (token: string, username: string): undefined => {
         sessionStorage.setItem("access_token", JSON.stringify(token))
+        sessionStorage.setItem("username", JSON.stringify(username))
         window.dispatchEvent(new Event(AUTH_CHANGED_EVENT))
         setAuthenticated(true)
     }
 
     const removeToken = () => {
         sessionStorage.removeItem("access_token")
+        sessionStorage.removeItem("username")
         window.dispatchEvent(new Event(AUTH_CHANGED_EVENT))
         setAuthenticated(false)
         navigate("/")
@@ -218,17 +220,34 @@ function App() {
                         {/* Right controls: Log In/Log Out/Options (always) */}
                         {isAuthenticated ? (
                             <>
-                                <Button
-                                    color="primary"
-                                    onClick={handleOptionsOpen}
-                                    sx={buttonSx}
-                                    aria-label="Options"
-                                    endIcon={
-                                        <span style={{ display: 'flex', alignItems: 'center', marginTop: '3px' }}>
-                                            <SettingsIcon sx={{ fontSize: '36px !important' }} />
-                                        </span>
-                                    }
-                                />
+                                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                    <Button
+                                        color="primary"
+                                        onClick={handleOptionsOpen}
+                                        sx={buttonSx}
+                                        aria-label="Options"
+                                        endIcon={
+                                            <span style={{ display: 'flex', alignItems: 'center', marginTop: '3px' }}>
+                                                <SettingsIcon sx={{ fontSize: '36px !important' }} />
+                                            </span>
+                                        }
+                                    />
+                                    {username ? (
+                                        <Typography
+                                            variant="body1"
+                                            color="primary"
+                                            sx={{
+                                                fontWeight: 500,
+                                                whiteSpace: 'nowrap',
+                                                maxWidth: { xs: 110, sm: 180 },
+                                                overflow: 'hidden',
+                                                textOverflow: 'ellipsis',
+                                            }}
+                                        >
+                                            {username}
+                                        </Typography>
+                                    ) : null}
+                                </Box>
                                 <Menu
                                     anchorEl={optionsAnchorEl}
                                     open={Boolean(optionsAnchorEl)}
