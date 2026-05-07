@@ -768,6 +768,12 @@ def social_login():
             if provider not in ("google", "facebook", "apple"):
                 raise ValueError(f"Unsupported provider: {provider!r}")
 
+            raw_seed_requested = body.get("seed_requested", False)
+            if isinstance(raw_seed_requested, bool):
+                seed_requested = raw_seed_requested
+            else:
+                raise ValueError("seed_requested must be a boolean")
+
             # Verify the token with the provider and extract identity claims
             if provider == "google":
                 platform = _required_string(body, "platform")
@@ -793,6 +799,7 @@ def social_login():
                 oauth_id=oauth_id,
                 email=email,
                 display_name=display_name,
+                seed_requested=seed_requested,
             )
 
             # Seed database for brand-new users who requested it

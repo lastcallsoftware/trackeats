@@ -378,6 +378,7 @@ class User(db.Model):
         oauth_id: str,
         email: str | None,
         display_name: str | None,
+        seed_requested: bool = False,
     ) -> "User":
         """
         Find or create a User for a verified OAuth identity.
@@ -437,6 +438,7 @@ class User(db.Model):
             password_hash=None,  # No password for social-only accounts
             oauth_provider=provider,
             oauth_id=oauth_id,
+            seed_requested=seed_requested,
         )
         db.session.add(new_user)
         return new_user
