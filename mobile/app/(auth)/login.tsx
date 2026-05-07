@@ -2,7 +2,9 @@
  * Login screen - email/password + social authentication
  */
 
-import { Platform, View, TextInput, TouchableOpacity, Text, ActivityIndicator, StyleSheet } from 'react-native';
+import { Platform, View, TextInput, TouchableOpacity, Text, ActivityIndicator, StyleSheet, Alert } from 'react-native';
+//import { Platform, View, Image, TextInput, TouchableOpacity, Text, ActivityIndicator, StyleSheet } from 'react-native';
+import Logo from '../../assets/trackeats-neon-logo.svg';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import * as yup from 'yup';
@@ -12,7 +14,9 @@ import {
   signInWithGoogle,
   useFacebookAuthRequest,
   loginWithApple,
+  exchangeSocialPayload,
 } from '@/services/socialAuthService';
+import { getSocialSeedPromptSeen, setSocialSeedPromptSeen } from '@/services/tokenStorage';
 
 const loginSchema = yup.object({
   email: yup.string().trim().required('Email address is required').email('Please enter a valid email address'),
@@ -35,10 +39,41 @@ export default function LoginScreen() {
   const [emailError, setEmailError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const [socialError, setSocialError] = useState<string | null>(null);
+  const [showEmailLogin, setShowEmailLogin] = useState(false);
 
   const { promptAsync: signInWithFacebook } = useFacebookAuthRequest();
   const showAppleLogin = Platform.OS === 'ios' && hasAppleLogin;
   const hasAnySocialLogin = hasGoogleLogin || hasFacebookLogin || showAppleLogin;
+
+  const promptForSocialSeedChoice = async (): Promise<boolean> => {
+    const alreadyPrompted = await getSocialSeedPromptSeen();
+    if (alreadyPrompted) {
+      return false;
+    }
+
+    return await new Promise<boolean>((resolve) => {
+      Alert.alert(
+        'Seed Starter Data?',
+        'Would you like us to seed starter foods and recipes in your database?',
+        [
+          {
+            text: 'No',
+            style: 'cancel',
+            onPress: () => resolve(false),
+          },
+          {
+            text: 'Yes',
+            onPress: () => resolve(true),
+          },
+        ],
+        {
+          cancelable: false,
+        }
+      );
+    }).finally(async () => {
+      await setSocialSeedPromptSeen(true);
+    });
+  };
 
   const handleLogin = async () => {
     try {
@@ -58,14 +93,17 @@ export default function LoginScreen() {
   async function handleSocialLogin(provider: 'google' | 'facebook' | 'apple') {
     setSocialError(null);
     try {
-      let authData: { accessToken: string; username: string };
+      let socialPayload;
       if (provider === 'google') {
-        authData = await signInWithGoogle();
+        socialPayload = await signInWithGoogle();
       } else if (provider === 'facebook') {
-        authData = await signInWithFacebook();
+        socialPayload = await signInWithFacebook();
       } else {
-        authData = await loginWithApple();
+        socialPayload = await loginWithApple();
       }
+
+      const seedRequested = await promptForSocialSeedChoice();
+      const authData = await exchangeSocialPayload(socialPayload, seedRequested);
       await loginWithSocialToken(authData);
     } catch (err: any) {
       if (err?.code === 'CANCELLED') return; // user dismissed — no error shown
@@ -75,8 +113,75 @@ export default function LoginScreen() {
 
   return (
     <View style={styles.container}>
+      <View style={styles.logoContainer}>
+        <Logo width={120} height={120} />
+      </View>
       <Text style={styles.title}>Login</Text>
 
+      {hasAnySocialLogin ? (
+        <>
+          {/* ── Social login buttons ── */}
+          <View style={styles.socialRow}>
+            {hasGoogleLogin ? (
+              <TouchableOpacity
+                style={[styles.socialButton, styles.googleButton]}
+                onPress={() => handleSocialLogin('google')}
+                activeOpacity={0.8}
+                testID="google-login-button"
+                disabled={isLoading}
+              >
+                <Text style={styles.googleButtonIcon}>G</Text>
+                <Text style={styles.googleButtonText}>Sign in with Google</Text>
+              </TouchableOpacity>
+            ) : null}
+
+            {hasFacebookLogin ? (
+              <TouchableOpacity
+                style={[styles.socialButton, styles.facebookButton]}
+                onPress={() => handleSocialLogin('facebook')}
+                activeOpacity={0.8}
+                testID="facebook-login-button"
+                disabled={isLoading}
+              >
+                <Ionicons name="logo-facebook" size={20} color="#fff" />
+                <Text style={styles.facebookButtonText}>Facebook</Text>
+              </TouchableOpacity>
+            ) : null}
+
+            {showAppleLogin ? (
+              <TouchableOpacity
+                style={[styles.socialButton, styles.appleButton]}
+                onPress={() => handleSocialLogin('apple')}
+                activeOpacity={0.8}
+                testID="apple-login-button"
+                disabled={isLoading}
+              >
+                <Ionicons name="logo-apple" size={20} color="#fff" />
+                <Text style={styles.appleButtonText}>Apple</Text>
+              </TouchableOpacity>
+            ) : null}
+          </View>
+
+          {socialError ? (
+            <Text style={styles.errorText} testID="social-error-message">
+              {socialError}
+            </Text>
+          ) : null}
+
+          {/* ── Email toggle ── */}
+          <TouchableOpacity
+            style={styles.emailToggleButton}
+            onPress={() => setShowEmailLogin((v) => !v)}
+            activeOpacity={0.7}
+            testID="email-toggle-button"
+          >
+            <Text style={styles.emailToggleButtonText}>Sign in with email</Text>
+          </TouchableOpacity>
+        </>
+      ) : null}
+
+      {(showEmailLogin || !hasAnySocialLogin) ? (
+        <>
       <TextInput
         style={[styles.input, emailError && styles.inputError]}
         placeholder="Email Address"
@@ -128,65 +233,6 @@ export default function LoginScreen() {
         </TouchableOpacity>
       )}
 
-      {hasAnySocialLogin ? (
-        <>
-          {/* ── Divider ── */}
-          <View style={styles.dividerRow}>
-            <View style={styles.dividerLine} />
-            <Text style={styles.dividerText}>or continue with</Text>
-            <View style={styles.dividerLine} />
-          </View>
-
-          {/* ── Social login buttons ── */}
-          <View style={styles.socialRow}>
-            {hasGoogleLogin ? (
-              <TouchableOpacity
-                style={[styles.socialButton, styles.googleButton]}
-                onPress={() => handleSocialLogin('google')}
-                activeOpacity={0.8}
-                testID="google-login-button"
-                disabled={isLoading}
-              >
-                <Text style={styles.googleButtonIcon}>G</Text>
-                <Text style={styles.googleButtonText}>Google</Text>
-              </TouchableOpacity>
-            ) : null}
-
-            {hasFacebookLogin ? (
-              <TouchableOpacity
-                style={[styles.socialButton, styles.facebookButton]}
-                onPress={() => handleSocialLogin('facebook')}
-                activeOpacity={0.8}
-                testID="facebook-login-button"
-                disabled={isLoading}
-              >
-                <Ionicons name="logo-facebook" size={20} color="#fff" />
-                <Text style={styles.facebookButtonText}>Facebook</Text>
-              </TouchableOpacity>
-            ) : null}
-
-            {showAppleLogin ? (
-              <TouchableOpacity
-                style={[styles.socialButton, styles.appleButton]}
-                onPress={() => handleSocialLogin('apple')}
-                activeOpacity={0.8}
-                testID="apple-login-button"
-                disabled={isLoading}
-              >
-                <Ionicons name="logo-apple" size={20} color="#fff" />
-                <Text style={styles.appleButtonText}>Apple</Text>
-              </TouchableOpacity>
-            ) : null}
-          </View>
-
-          {socialError ? (
-            <Text style={styles.errorText} testID="social-error-message">
-              {socialError}
-            </Text>
-          ) : null}
-        </>
-      ) : null}
-
       <TouchableOpacity
         onPress={() => router.push('/forgot-password')}
         testID="forgot-password-link"
@@ -202,6 +248,8 @@ export default function LoginScreen() {
           <Text style={styles.signupLink}>Sign up</Text>
         </TouchableOpacity>
       </View>
+        </>
+      ) : null}
     </View>
   );
 }
@@ -212,6 +260,19 @@ const styles = StyleSheet.create({
     padding: 20,
     justifyContent: 'center',
     backgroundColor: '#fff',
+  },
+  logoContainer: {
+    width: '100%',
+    aspectRatio: 1.833,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 16,
+    overflow: 'hidden',
+    marginBottom: 20,
+  },
+  logo: {
+    width: '100%',
+    height: '100%',
   },
   title: {
     fontSize: 24,
@@ -224,6 +285,7 @@ const styles = StyleSheet.create({
     borderColor: '#ccc',
     borderRadius: 8,
     padding: 12,
+    marginTop: 15,
     marginBottom: 15,
     fontSize: 16,
   },
@@ -264,7 +326,7 @@ const styles = StyleSheet.create({
     padding: 15,
     borderRadius: 8,
     alignItems: 'center',
-    marginTop: 10,
+    marginTop: 15,
   },
   buttonText: {
     color: '#fff',
@@ -274,27 +336,25 @@ const styles = StyleSheet.create({
   loader: {
     marginTop: 20,
   },
-  // Divider
-  dividerRow: {
-    flexDirection: 'row',
+  // Email toggle button
+  emailToggleButton: {
+    borderWidth: 1,
+    borderColor: '#007AFF',
+    paddingVertical: 11,
+    paddingHorizontal: 16,
+    borderRadius: 8,
     alignItems: 'center',
-    marginVertical: 22,
+    marginTop: 15,
   },
-  dividerLine: {
-    flex: 1,
-    height: 1,
-    backgroundColor: '#e0e0e0',
-  },
-  dividerText: {
-    marginHorizontal: 12,
-    color: '#999',
-    fontSize: 13,
+  emailToggleButtonText: {
+    color: '#007AFF',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
   // Social buttons
   socialRow: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: 10,
+    flexDirection: 'column',
+    gap: 15,
   },
   socialButton: {
     flexDirection: 'row',
@@ -303,7 +363,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     borderRadius: 8,
     gap: 7,
-    minWidth: 95,
     justifyContent: 'center',
   },
   googleButton: {

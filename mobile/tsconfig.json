@@ -36,7 +36,8 @@
     "src",
     "app",
     "App.tsx",
-    "index.ts"
+    "index.ts",
+    "svg.d.ts"
   ],
   "extends": "expo/tsconfig.base"
 }
