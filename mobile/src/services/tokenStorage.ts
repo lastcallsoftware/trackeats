@@ -7,6 +7,7 @@ import * as SecureStore from 'expo-secure-store';
 
 const TOKEN_KEY = 'auth_token';
 const USERNAME_KEY = 'auth_username';
+const SOCIAL_SEED_PROMPT_SEEN_KEY = 'social_seed_prompt_seen';
 
 /**
  * Stores a token securely in SecureStore
@@ -83,5 +84,30 @@ export async function clearUsername(): Promise<void> {
   } catch (error) {
     const originalError = error instanceof Error ? error.message : String(error);
     throw new Error(`Failed to clear username: ${originalError}`);
+  }
+}
+
+/**
+ * Tracks whether the user has already been asked the one-time social seed prompt.
+ */
+export async function getSocialSeedPromptSeen(): Promise<boolean> {
+  try {
+    const value = await SecureStore.getItemAsync(SOCIAL_SEED_PROMPT_SEEN_KEY);
+    return value === 'true';
+  } catch (error) {
+    const originalError = error instanceof Error ? error.message : String(error);
+    throw new Error(`Failed to retrieve social seed prompt state: ${originalError}`);
+  }
+}
+
+/**
+ * Persists whether the one-time social seed prompt has already been shown.
+ */
+export async function setSocialSeedPromptSeen(value: boolean): Promise<void> {
+  try {
+    await SecureStore.setItemAsync(SOCIAL_SEED_PROMPT_SEEN_KEY, value ? 'true' : 'false');
+  } catch (error) {
+    const originalError = error instanceof Error ? error.message : String(error);
+    throw new Error(`Failed to store social seed prompt state: ${originalError}`);
   }
 }
