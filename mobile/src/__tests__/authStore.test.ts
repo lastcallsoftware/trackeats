@@ -41,7 +41,10 @@ describe('authStore', () => {
   describe('login', () => {
     it('should login user successfully', async () => {
       const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ1c2VyMTIzIiwiZXhwIjo5OTk5OTk5OTk5fQ.test';
-      mockAuthService.login.mockResolvedValueOnce(token);
+      mockAuthService.login.mockResolvedValueOnce({
+        accessToken: token,
+        username: 'user123',
+      });
       mockTokenStorage.setToken.mockResolvedValueOnce(undefined);
 
       await authStore.getState().login('user123', 'password123');
@@ -76,7 +79,10 @@ describe('authStore', () => {
     it('should set isLoading to true while logging in', async () => {
       const token = 'test-token';
       mockAuthService.login.mockImplementation(
-        () => new Promise((resolve) => setTimeout(() => resolve(token), 50))
+        () =>
+          new Promise((resolve) =>
+            setTimeout(() => resolve({ accessToken: token, username: 'user' }), 50)
+          )
       );
       mockTokenStorage.setToken.mockResolvedValueOnce(undefined);
 
