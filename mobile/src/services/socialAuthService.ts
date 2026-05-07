@@ -22,6 +22,13 @@ export type SocialLoginResult = {
   username: string;
 };
 
+export type SocialAuthPayload = {
+  provider: 'google' | 'facebook' | 'apple';
+  token: string;
+  platform?: string;
+  name?: string;
+};
+
 // Required so that expo-auth-session redirect flows (Facebook) work on web.
 WebBrowser.maybeCompleteAuthSession();
 
@@ -57,15 +64,16 @@ GoogleSignin.configure({
 // Backend exchange
 // ─────────────────────────────────────────────────────────────────────────────
 async function exchangeWithBackend(
-  provider: 'google' | 'facebook' | 'apple',
-  token: string,
-  extra?: { name?: string; platform?: string },
+  payload: SocialAuthPayload,
+  seedRequested: boolean = false,
 ): Promise<SocialLoginResult> {
   try {
     const response = await api.post('/api/social_login', {
-      provider,
-      token,
-      ...(extra ?? {}),
+      provider: payload.provider,
+      token: payload.token,
+      ...(payload.name ? { name: payload.name } : {}),
+      ...(payload.platform ? { platform: payload.platform } : {}),
+      seed_requested: seedRequested,
     });
     const appToken = response.data?.access_token;
     const username = response.data?.username;
@@ -86,6 +94,13 @@ async function exchangeWithBackend(
   }
 }
 
+export async function exchangeSocialPayload(
+  payload: SocialAuthPayload,
+  seedRequested: boolean = false,
+): Promise<SocialLoginResult> {
+  return exchangeWithBackend(payload, seedRequested);
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Google
 // ─────────────────────────────────────────────────────────────────────────────
@@ -102,7 +117,7 @@ async function exchangeWithBackend(
  *   3. Extract the idToken from the result.
  *   4. Exchange the idToken with the Trackeats backend for an app JWT.
  */
-export async function signInWithGoogle(): Promise<SocialLoginResult> {
+export async function signInWithGoogle(): Promise<SocialAuthPayload> {
   // Fail fast rather than letting the sign-in dialog open with a broken config.
   if (!GOOGLE_WEB_CLIENT_ID) {
     throw new AuthError(
@@ -128,7 +143,11 @@ export async function signInWithGoogle(): Promise<SocialLoginResult> {
 
     // Exchange with the backend — platform label lets the server select the
     // correct Google client ID when verifying the token.
-    return exchangeWithBackend('google', idToken, { platform: Platform.OS });
+    return {
+      provider: 'google',
+      token: idToken,
+      platform: Platform.OS,
+    };
   } catch (error: any) {
     if (error instanceof AuthError) throw error;
 
@@ -171,7 +190,7 @@ export function useFacebookAuthRequest() {
     discovery,
   );
 
-  async function loginWithFacebook(): Promise<SocialLoginResult> {
+  async function loginWithFacebook(): Promise<SocialAuthPayload> {
     if (!FACEBOOK_APP_ID) {
       throw new AuthError(
         'Facebook App ID is not configured. Set EXPO_PUBLIC_FACEBOOK_APP_ID.',
@@ -184,7 +203,10 @@ export function useFacebookAuthRequest() {
       if (!accessToken) {
         throw new AuthError('Facebook did not return an access_token', 'NO_TOKEN');
       }
-      return exchangeWithBackend('facebook', accessToken);
+      return {
+        provider: 'facebook',
+        token: accessToken,
+      };
     }
     if (result.type === 'cancel' || result.type === 'dismiss') {
       throw new AuthError('Sign-in was cancelled', 'CANCELLED');
@@ -198,7 +220,7 @@ export function useFacebookAuthRequest() {
 // ─────────────────────────────────────────────────────────────────────────────
 // Apple  (iOS only — expo-apple-authentication)
 // ─────────────────────────────────────────────────────────────────────────────
-export async function loginWithApple(): Promise<SocialLoginResult> {
+export async function loginWithApple(): Promise<SocialAuthPayload> {
   // Dynamically imported so the module doesn't crash on Android / web where
   // expo-apple-authentication is not available
   const AppleAuthentication = await import('expo-apple-authentication').catch(() => null);
@@ -232,7 +254,11 @@ export async function loginWithApple(): Promise<SocialLoginResult> {
         ? [fullName?.givenName, fullName?.familyName].filter(Boolean).join(' ')
         : undefined;
 
-    return exchangeWithBackend('apple', identityToken, { name });
+    return {
+      provider: 'apple',
+      token: identityToken,
+      ...(name ? { name } : {}),
+    };
   } catch (error: any) {
     if (error instanceof AuthError) throw error;
     if (error?.code === 'ERR_REQUEST_CANCELED') {
