@@ -1,13 +1,13 @@
 {
   "expo": {
     "owner": "last-call-software",
-    "name": "mobile",
-    "slug": "mobile",
+    "name": "TrackEats",
+    "slug": "trackeats",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
-    "newArchEnabled": true,
+    "newArchEnabled": false,
     "scheme": "trackeats",
     "splash": {
       "image": "./assets/splash-icon.png",
@@ -15,14 +15,17 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.lastcallsoftware.trackeats",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#000000"
       },
-      "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
       "intentFilters": [
         {
@@ -76,7 +79,7 @@
     ],
     "extra": {
       "eas": {
-        "projectId": "dc011603-01a8-450c-8659-804eec7be710"
+        "projectId": "00fd36db-63f3-47f6-94f7-bbe1560d5b82"
       }
     }
   }
