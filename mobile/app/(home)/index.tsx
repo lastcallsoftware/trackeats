@@ -22,7 +22,6 @@ export default function HomeScreen() {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Welcome to Trackeats!</Text>
-      <Text style={styles.subtitle}>Logged in as {username}</Text>
 
       <TouchableOpacity style={styles.logoutButton} onPress={handleLogout} testID="logout-button" activeOpacity={0.7}>
         <Text style={styles.logoutButtonText}>Log Out</Text>
@@ -42,17 +41,11 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    marginBottom: 10,
-    textAlign: 'center',
-  },
-  subtitle: {
-    fontSize: 16,
-    color: '#666',
     marginBottom: 40,
     textAlign: 'center',
   },
   logoutButton: {
-    backgroundColor: '#FF3B30',
+    backgroundColor: '#007AFF',
     padding: 15,
     borderRadius: 8,
     minWidth: 150,
