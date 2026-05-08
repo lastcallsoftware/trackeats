@@ -184,6 +184,32 @@ export async function resetPassword(token: string, newPassword: string): Promise
 }
 
 /**
+ * Change password for the currently authenticated user
+ * @throws AuthError on failure
+ */
+export async function changePassword(currentPassword: string, newPassword: string): Promise<void> {
+  try {
+    await api.post('/api/change_password', {}, {
+      params: {
+        old_password: currentPassword,
+        new_password: newPassword,
+      },
+      headers: { 'Content-Type': 'application/json' },
+    });
+  } catch (error: any) {
+    if (error instanceof AuthError) {
+      throw error;
+    }
+
+    const status = error?.response?.status ?? 0;
+    const message = error?.response?.data?.msg || error?.message || 'Failed to change password';
+    const code = mapStatusToCode(status);
+
+    throw new AuthError(message, code);
+  }
+}
+
+/**
  * Map HTTP status codes to AuthError codes
  */
 function mapStatusToCode(status: number): string {
