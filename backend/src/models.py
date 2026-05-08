@@ -441,6 +441,10 @@ class User(db.Model):
             seed_requested=seed_requested,
         )
         db.session.add(new_user)
+
+        # We need to flush so the new User record has an ID when we try to seed the database
+        db.session.flush()
+
         return new_user
 
 
