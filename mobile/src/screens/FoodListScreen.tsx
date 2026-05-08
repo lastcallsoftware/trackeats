@@ -84,6 +84,7 @@ export function FoodListScreen(): React.ReactElement {
             <FoodListItem
               id={item.id!}
               name={item.name}
+              subtype={item.subtype}
               vendor={item.vendor}
               calories={item.nutrition.calories}
             />
