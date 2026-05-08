@@ -5,11 +5,12 @@ import { useRouter } from 'expo-router'
 interface FoodListItemProps {
   id: number
   name: string
+  subtype?: string | null
   vendor: string
   calories: number
 }
 
-export const FoodListItem = memo(function FoodListItem({ id, name, vendor, calories }: FoodListItemProps) {
+export const FoodListItem = memo(function FoodListItem({ id, name, subtype, vendor, calories }: FoodListItemProps) {
   const router = useRouter()
   const handlePress = useCallback(() => {
     router.push(`/(foods)/${id}`)
@@ -21,6 +22,7 @@ export const FoodListItem = memo(function FoodListItem({ id, name, vendor, calor
         <View style={styles.textContainer}>
           <Text style={styles.name} numberOfLines={1}>
             {name}
+            {subtype ? <Text style={styles.subtype}>, {subtype}</Text> : null}
           </Text>
           <Text style={styles.vendor} numberOfLines={1}>
             {vendor}
@@ -51,6 +53,10 @@ const styles = StyleSheet.create({
   name: {
     fontSize: 16,
     fontWeight: 'bold',
+    color: '#000',
+  },
+  subtype: {
+    fontWeight: '400',
     color: '#000',
   },
   vendor: {
