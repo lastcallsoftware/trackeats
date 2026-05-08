@@ -73,6 +73,21 @@
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-icon.png",
+          "imageWidth": 300,
+          "resizeMode": "contain",
+          "backgroundColor": "#ffffff",
+          "android": {
+            "image": "./assets/adaptive-icon.png",
+            "imageWidth": 240,
+            "resizeMode": "contain",
+            "backgroundColor": "#ffffff"
+          }
+        }
+      ],
       "expo-web-browser",
       "expo-apple-authentication",
       "@react-native-google-signin/google-signin"

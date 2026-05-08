@@ -3,12 +3,15 @@
  * Handles app initialization and routes between auth and main screens
  */
 
-import { useEffect, useState } from 'react';
-import { ActivityIndicator, View } from 'react-native';
+import { useCallback, useEffect, useState } from 'react';
+import { View } from 'react-native';
 import { Stack, Tabs } from 'expo-router';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Ionicons } from '@expo/vector-icons';
+import * as SplashScreen from 'expo-splash-screen';
 import authStore from '@/store/authStore';
+
+void SplashScreen.preventAutoHideAsync();
 
 // Create a client for react-query (used in S02)
 const queryClient = new QueryClient();
@@ -16,6 +19,12 @@ const queryClient = new QueryClient();
 export default function RootLayout() {
   const { isLoggedIn } = authStore();
   const [isInitializing, setIsInitializing] = useState(true);
+
+  const onLayoutRootView = useCallback(async () => {
+    if (!isInitializing) {
+      await SplashScreen.hideAsync();
+    }
+  }, [isInitializing]);
 
   // Initialize auth on app startup
   useEffect(() => {
@@ -34,17 +43,10 @@ export default function RootLayout() {
     initAuth();
   }, []);
 
-  if (isInitializing) {
-    return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <ActivityIndicator size="large" color="#0000ff" />
-      </View>
-    );
-  }
-
   return (
-    <QueryClientProvider client={queryClient}>
-      {isLoggedIn ? (
+    <View style={{ flex: 1 }} onLayout={onLayoutRootView}>
+      <QueryClientProvider client={queryClient}>
+      {!isInitializing && (isLoggedIn ? (
         // Main app (logged in)
         <Tabs
           screenOptions={{
@@ -98,7 +100,11 @@ export default function RootLayout() {
           />
           <Tabs.Screen
             name="(auth)"
-            options={{ href: null }}
+            options={{
+              href: null,
+              headerShown: false,
+              title: '',
+            }}
           />
         </Tabs>
       ) : (
@@ -109,9 +115,17 @@ export default function RootLayout() {
             animation: 'default',
           }}
         >
-          <Stack.Screen name="(auth)" options={{ animation: 'none' }} />
+          <Stack.Screen
+            name="(auth)"
+            options={{
+              animation: 'none',
+              headerShown: false,
+              title: '',
+            }}
+          />
         </Stack>
-      )}
-    </QueryClientProvider>
+      ))}
+      </QueryClientProvider>
+    </View>
   );
 }
