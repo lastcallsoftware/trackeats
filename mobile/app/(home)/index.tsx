@@ -8,7 +8,6 @@ import authStore from '@/store/authStore';
 
 export default function HomeScreen() {
   const router = useRouter();
-  const { username } = authStore();
 
   const handleLogout = async () => {
     try {
