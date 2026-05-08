@@ -16,7 +16,6 @@ import {
   loginWithApple,
   exchangeSocialPayload,
 } from '@/services/socialAuthService';
-import { getSocialSeedPromptSeen, setSocialSeedPromptSeen } from '@/services/tokenStorage';
 
 const loginSchema = yup.object({
   email: yup.string().trim().required('Email address is required').email('Please enter a valid email address'),
@@ -39,6 +38,7 @@ export default function LoginScreen() {
   const [emailError, setEmailError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const [socialError, setSocialError] = useState<string | null>(null);
+  const [isSocialLoading, setIsSocialLoading] = useState(false);
   const [showEmailLogin, setShowEmailLogin] = useState(false);
 
   const { promptAsync: signInWithFacebook } = useFacebookAuthRequest();
@@ -46,11 +46,6 @@ export default function LoginScreen() {
   const hasAnySocialLogin = hasGoogleLogin || hasFacebookLogin || showAppleLogin;
 
   const promptForSocialSeedChoice = async (): Promise<boolean> => {
-    const alreadyPrompted = await getSocialSeedPromptSeen();
-    if (alreadyPrompted) {
-      return false;
-    }
-
     return await new Promise<boolean>((resolve) => {
       Alert.alert(
         'Seed Starter Data?',
@@ -70,8 +65,6 @@ export default function LoginScreen() {
           cancelable: false,
         }
       );
-    }).finally(async () => {
-      await setSocialSeedPromptSeen(true);
     });
   };
 
@@ -103,8 +96,13 @@ export default function LoginScreen() {
       }
 
       const seedRequested = await promptForSocialSeedChoice();
-      const authData = await exchangeSocialPayload(socialPayload, seedRequested);
-      await loginWithSocialToken(authData);
+      setIsSocialLoading(true);
+      try {
+        const authData = await exchangeSocialPayload(socialPayload, seedRequested);
+        await loginWithSocialToken(authData);
+      } finally {
+        setIsSocialLoading(false);
+      }
     } catch (err: any) {
       if (err?.code === 'CANCELLED') return; // user dismissed — no error shown
       setSocialError(err?.message ?? 'Sign-in failed. Please try again.');
@@ -250,6 +248,13 @@ export default function LoginScreen() {
       </View>
         </>
       ) : null}
+
+      {isSocialLoading ? (
+        <View style={styles.loadingOverlay} testID="social-loading-overlay">
+          <ActivityIndicator size="large" color="#007AFF" />
+          <Text style={styles.loadingText}>Signing in...</Text>
+        </View>
+      ) : null}
     </View>
   );
 }
@@ -335,6 +340,18 @@ const styles = StyleSheet.create({
   },
   loader: {
     marginTop: 20,
+  },
+  loadingOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(255, 255, 255, 0.85)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 12,
+  },
+  loadingText: {
+    fontSize: 16,
+    color: '#444',
+    fontWeight: '600',
   },
   // Email toggle button
   emailToggleButton: {
