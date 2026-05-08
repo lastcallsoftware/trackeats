@@ -5,7 +5,7 @@
 import { useState } from 'react';
 import { View, TextInput, TouchableOpacity, Text, ActivityIndicator, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
-import * as authService from '@/services/authService';
+import { changePassword } from '@/services/authService';
 
 export default function ChangePasswordScreen() {
   const router = useRouter();
@@ -50,7 +50,7 @@ export default function ChangePasswordScreen() {
     setIsLoading(true);
 
     try {
-      await authService.changePassword(currentPassword, newPassword);
+      await changePassword(currentPassword, newPassword);
       setSuccess(true);
     } catch (err: any) {
       setError(err?.message || 'Failed to change password');
