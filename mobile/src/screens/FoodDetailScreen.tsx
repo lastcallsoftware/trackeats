@@ -93,6 +93,11 @@ export const FoodDetailScreen: React.FC<FoodDetailScreenProps> = ({ foodId: prop
         <Text style={{ fontSize: 28, fontWeight: 'bold', color: '#333', marginBottom: 4 }}>
           {food.name}
         </Text>
+        {food.subtype ? (
+          <Text style={{ fontSize: 16, color: '#555', marginBottom: 2 }}>
+            {food.subtype}
+          </Text>
+        ) : null}
         <Text style={{ fontSize: 16, color: '#666', marginBottom: 2 }}>
           {food.vendor}
         </Text>
