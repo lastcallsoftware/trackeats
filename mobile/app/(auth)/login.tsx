@@ -2,13 +2,24 @@
  * Login screen - email/password + social authentication
  */
 
-import { Platform, View, TextInput, TouchableOpacity, Text, ActivityIndicator, StyleSheet, Alert } from 'react-native';
+import {
+  Platform,
+  View,
+  TextInput,
+  TouchableOpacity,
+  Text,
+  ActivityIndicator,
+  StyleSheet,
+  Alert,
+  LayoutAnimation,
+  UIManager,
+} from 'react-native';
 //import { Platform, View, Image, TextInput, TouchableOpacity, Text, ActivityIndicator, StyleSheet } from 'react-native';
 import Logo from '../../assets/trackeats-neon-logo.svg';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import * as yup from 'yup';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import authStore from '@/store/authStore';
 import {
   signInWithGoogle,
@@ -44,6 +55,17 @@ export default function LoginScreen() {
   const { promptAsync: signInWithFacebook } = useFacebookAuthRequest();
   const showAppleLogin = Platform.OS === 'ios' && hasAppleLogin;
   const hasAnySocialLogin = hasGoogleLogin || hasFacebookLogin || showAppleLogin;
+
+  useEffect(() => {
+    if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
+      UIManager.setLayoutAnimationEnabledExperimental(true);
+    }
+  }, []);
+
+  const toggleEmailLogin = () => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setShowEmailLogin((v) => !v);
+  };
 
   const promptForSocialSeedChoice = async (): Promise<boolean> => {
     return await new Promise<boolean>((resolve) => {
@@ -169,11 +191,21 @@ export default function LoginScreen() {
           {/* ── Email toggle ── */}
           <TouchableOpacity
             style={styles.emailToggleButton}
-            onPress={() => setShowEmailLogin((v) => !v)}
+            onPress={toggleEmailLogin}
             activeOpacity={0.7}
             testID="email-toggle-button"
+            accessibilityRole="button"
+            accessibilityState={{ expanded: showEmailLogin }}
           >
-            <Text style={styles.emailToggleButtonText}>Sign in with email</Text>
+            <View style={styles.emailToggleContent}>
+              <Text style={styles.emailToggleButtonText}>Sign in with email</Text>
+              <Ionicons
+                name={showEmailLogin ? 'chevron-up-outline' : 'chevron-down-outline'}
+                size={18}
+                color="#007AFF"
+                style={styles.emailToggleIcon}
+              />
+            </View>
           </TouchableOpacity>
         </>
       ) : null}
@@ -363,10 +395,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 15,
   },
+  emailToggleContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    width: '100%',
+  },
   emailToggleButtonText: {
     color: '#007AFF',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  emailToggleIcon: {
+    marginLeft: 8,
   },
   // Social buttons
   socialRow: {
