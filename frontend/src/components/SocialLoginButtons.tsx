@@ -30,6 +30,7 @@ const APPLE_REDIRECT_URI = import.meta.env.VITE_APPLE_REDIRECT_URI ?? window.loc
 interface Props {
     onSuccess: (authData: { appToken: string; username: string }) => void;
     disabled?: boolean;
+    showDivider?: boolean;
 }
 
 // ─── Backend exchange ─────────────────────────────────────────────────────────
@@ -104,7 +105,7 @@ function loadAppleSdk(): Promise<void> {
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
-export default function SocialLoginButtons({ onSuccess, disabled = false }: Props) {
+export default function SocialLoginButtons({ onSuccess, disabled = false, showDivider = true }: Props) {
     const [loadingProvider, setLoadingProvider] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
 
@@ -191,11 +192,13 @@ export default function SocialLoginButtons({ onSuccess, disabled = false }: Prop
 
     return (
         <Box sx={{ mt: 1 }}>
-            <Divider sx={{ my: 2 }}>
-                <Typography variant="body2" color="text.secondary">
-                    or continue with
-                </Typography>
-            </Divider>
+            {showDivider ? (
+                <Divider sx={{ my: 2 }}>
+                    <Typography variant="body2" color="text.secondary">
+                        or continue with
+                    </Typography>
+                </Divider>
+            ) : null}
 
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
                 {hasGoogleLogin ? (

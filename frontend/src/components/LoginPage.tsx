@@ -5,11 +5,13 @@ import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
+import Collapse from '@mui/material/Collapse';
 import Backdrop from '@mui/material/Backdrop';
 import CircularProgress from '@mui/material/CircularProgress';
 import Paper from '@mui/material/Paper';
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
+import ExpandMore from '@mui/icons-material/ExpandMore';
 import IconButton from '@mui/material/IconButton';
 import InputAdornment from '@mui/material/InputAdornment';
 import SocialLoginButtons from './SocialLoginButtons';
@@ -28,6 +30,12 @@ function LoginPage(props: any) {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [pageState, setPageState] = useState<"login" | "confirmed">("login")
     const [confirmedEmail, setConfirmedEmail] = useState("")
+    const hasAnySocialLogin = Boolean(
+        import.meta.env.VITE_GOOGLE_CLIENT_ID
+        || import.meta.env.VITE_FACEBOOK_APP_ID
+        || import.meta.env.VITE_APPLE_CLIENT_ID,
+    );
+    const [showEmailLogin, setShowEmailLogin] = useState<boolean>(() => isConfirm || !hasAnySocialLogin);
 
     const emailIsValid = formData.email.length > 0;
     const passwordIsValid = formData.password.length > 0;
@@ -112,7 +120,7 @@ function LoginPage(props: any) {
                     Login
                 </Typography>
                 <Typography variant="subtitle1" color="text.secondary">
-                    Please enter your email address and password to sign in
+                    Choose a sign-in method below.
                 </Typography>
             </Paper>
             <Paper
@@ -131,63 +139,154 @@ function LoginPage(props: any) {
             >
                 <form onSubmit={handleSubmit}>
                     <Box display="flex" flexDirection="column" gap={3}>
-                        <TextField
-                            label="Email Address"
-                            variant="outlined"
-                            type="email"
-                            value={formData.email}
-                            onChange={(e) => setFormData(prevState => ({...prevState, email: e.target.value}))}
-                            required
-                            autoFocus
-                            disabled={isSubmitting}
-                        />
-                        <TextField
-                            label="Password"
-                            variant="outlined"
-                            type={showPassword ? 'text' : 'password'}
-                            value={formData.password}
-                            onChange={(e) => setFormData(prevState => ({...prevState, password: e.target.value}))}
-                            required
-                            disabled={isSubmitting}
-                            InputProps={{
-                                endAdornment: (
-                                    <InputAdornment position="end">
-                                        <IconButton
-                                            aria-label="toggle password visibility"
-                                            onClick={() => setShowPassword((show) => !show)}
-                                            edge="end"
-                                            disabled={isSubmitting}
-                                        >
-                                            {showPassword ? <Visibility /> : <VisibilityOff />}
-                                        </IconButton>
-                                    </InputAdornment>
-                                ),
-                            }}
-                        />
-                        {isConfirm && (
-                            <Box>
-                                <Typography variant="body2" color="primary">Check your inbox for an email from Trackeats.</Typography>
-                                <Typography variant="body2">Click on the link in that email (or paste it into a browser) to complete registration and activate your account. Then you will be able to log in.</Typography>
-                            </Box>
-                        )}
-                        <Button variant="contained" color="primary" type="submit" disabled={loginIsDisabled} sx={{ height: 48 }}>
-                            Login
-                        </Button>
-                        <Typography variant="body2">
-                            Forgot your password? <RouterLink to="/reset_password_request">Reset it here</RouterLink>.
-                        </Typography>
-                        <Typography variant="body2">Not a TrackEats user yet? <RouterLink to="/register">Register here</RouterLink>.</Typography>
-                        {loginMessage && (
-                            <Typography className="errorText" color="error">{loginMessage}</Typography>
-                        )}
-
                         <SocialLoginButtons
                             disabled={isSubmitting}
+                            showDivider={false}
                             onSuccess={({ appToken, username }) => {
                                 props.storeTokenFunction(appToken, username);
                                 navigate("/foods");
                             }}
                         />
+
+                        {hasAnySocialLogin ? (
+                            <Button
+                                variant="outlined"
+                                onClick={() => setShowEmailLogin((v: boolean) => !v)}
+                                disabled={isSubmitting}
+                                aria-expanded={showEmailLogin}
+                                aria-controls="email-login-section"
+                                endIcon={
+                                    <ExpandMore
+                                        sx={{
+                                            transform: showEmailLogin ? 'rotate(180deg)' : 'rotate(0deg)',
+                                            transition: 'transform 200ms ease',
+                                        }}
+                                    />
+                                }
+                                sx={{
+                                    height: 48,
+                                    textTransform: 'none',
+                                    fontWeight: 600,
+                                    justifyContent: 'center',
+                                    position: 'relative',
+                                    '& .MuiButton-endIcon': {
+                                        position: 'absolute',
+                                        right: 16,
+                                        margin: 0,
+                                    },
+                                }}
+                            >
+                                Sign in with email
+                            </Button>
+                        ) : null}
+
+                        {hasAnySocialLogin ? (
+                            <Collapse in={showEmailLogin} timeout={220} unmountOnExit>
+                                <Box id="email-login-section" display="flex" flexDirection="column" gap={3}>
+                                    <TextField
+                                        label="Email Address"
+                                        variant="outlined"
+                                        type="email"
+                                        value={formData.email}
+                                        onChange={(e) => setFormData(prevState => ({...prevState, email: e.target.value}))}
+                                        required
+                                        autoFocus={showEmailLogin}
+                                        disabled={isSubmitting}
+                                    />
+                                    <TextField
+                                        label="Password"
+                                        variant="outlined"
+                                        type={showPassword ? 'text' : 'password'}
+                                        value={formData.password}
+                                        onChange={(e) => setFormData(prevState => ({...prevState, password: e.target.value}))}
+                                        required
+                                        disabled={isSubmitting}
+                                        InputProps={{
+                                            endAdornment: (
+                                                <InputAdornment position="end">
+                                                    <IconButton
+                                                        aria-label="toggle password visibility"
+                                                        onClick={() => setShowPassword((show) => !show)}
+                                                        edge="end"
+                                                        disabled={isSubmitting}
+                                                    >
+                                                        {showPassword ? <Visibility /> : <VisibilityOff />}
+                                                    </IconButton>
+                                                </InputAdornment>
+                                            ),
+                                        }}
+                                    />
+                                    {isConfirm && (
+                                        <Box>
+                                            <Typography variant="body2" color="primary">Check your inbox for an email from Trackeats.</Typography>
+                                            <Typography variant="body2">Click on the link in that email (or paste it into a browser) to complete registration and activate your account. Then you will be able to log in.</Typography>
+                                        </Box>
+                                    )}
+                                    <Button variant="contained" color="primary" type="submit" disabled={loginIsDisabled} sx={{ height: 48 }}>
+                                        Login
+                                    </Button>
+                                    <Typography variant="body2">
+                                        Forgot your password? <RouterLink to="/reset_password_request">Reset it here</RouterLink>.
+                                    </Typography>
+                                    <Typography variant="body2">Not a TrackEats user yet? <RouterLink to="/register">Register here</RouterLink>.</Typography>
+                                    {loginMessage && (
+                                        <Typography className="errorText" color="error">{loginMessage}</Typography>
+                                    )}
+                                </Box>
+                            </Collapse>
+                        ) : (
+                            <>
+                                <TextField
+                                    label="Email Address"
+                                    variant="outlined"
+                                    type="email"
+                                    value={formData.email}
+                                    onChange={(e) => setFormData(prevState => ({...prevState, email: e.target.value}))}
+                                    required
+                                    autoFocus
+                                    disabled={isSubmitting}
+                                />
+                                <TextField
+                                    label="Password"
+                                    variant="outlined"
+                                    type={showPassword ? 'text' : 'password'}
+                                    value={formData.password}
+                                    onChange={(e) => setFormData(prevState => ({...prevState, password: e.target.value}))}
+                                    required
+                                    disabled={isSubmitting}
+                                    InputProps={{
+                                        endAdornment: (
+                                            <InputAdornment position="end">
+                                                <IconButton
+                                                    aria-label="toggle password visibility"
+                                                    onClick={() => setShowPassword((show) => !show)}
+                                                    edge="end"
+                                                    disabled={isSubmitting}
+                                                >
+                                                    {showPassword ? <Visibility /> : <VisibilityOff />}
+                                                </IconButton>
+                                            </InputAdornment>
+                                        ),
+                                    }}
+                                />
+                                {isConfirm && (
+                                    <Box>
+                                        <Typography variant="body2" color="primary">Check your inbox for an email from Trackeats.</Typography>
+                                        <Typography variant="body2">Click on the link in that email (or paste it into a browser) to complete registration and activate your account. Then you will be able to log in.</Typography>
+                                    </Box>
+                                )}
+                                <Button variant="contained" color="primary" type="submit" disabled={loginIsDisabled} sx={{ height: 48 }}>
+                                    Login
+                                </Button>
+                                <Typography variant="body2">
+                                    Forgot your password? <RouterLink to="/reset_password_request">Reset it here</RouterLink>.
+                                </Typography>
+                                <Typography variant="body2">Not a TrackEats user yet? <RouterLink to="/register">Register here</RouterLink>.</Typography>
+                                {loginMessage && (
+                                    <Typography className="errorText" color="error">{loginMessage}</Typography>
+                                )}
+                            </>
+                        )}
                     </Box>
                 </form>
             </Paper>
