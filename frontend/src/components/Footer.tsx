@@ -1,4 +1,4 @@
-import logo from '../assets/lcs-logo-thin-white-text-outline.svg';
+import logo from '../assets/lcs-logo-with-text.svg';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import { styled } from '@mui/material/styles';

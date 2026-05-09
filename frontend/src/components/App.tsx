@@ -3,7 +3,7 @@ import { useTheme } from '@mui/material/styles';
 import { useEffect, useState } from 'react';
 import { useData } from '@/utils/useData';
 import { Routes, Route, Link as RouterLink, useNavigate } from 'react-router-dom';
-import trackEatsIcon from '../assets/trackeats-icon-32x32.png';
+import trackEatsIcon from '../assets/trackeats-logo-32x32.png';
 import HomePage from './HomePage';
 import AboutPage from './AboutPage';
 import React, { Suspense, lazy } from 'react';
