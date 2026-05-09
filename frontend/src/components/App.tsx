@@ -3,7 +3,7 @@ import { useTheme } from '@mui/material/styles';
 import { useEffect, useState } from 'react';
 import { useData } from '@/utils/useData';
 import { Routes, Route, Link as RouterLink, useNavigate } from 'react-router-dom';
-import trackEatsIcon from '../assets/trackeats-logo-32x32.png';
+import trackEatsIcon from '../assets/trackeats-logo.svg';
 import HomePage from './HomePage';
 import AboutPage from './AboutPage';
 import React, { Suspense, lazy } from 'react';
@@ -206,7 +206,7 @@ function App() {
                                 component="img"
                                 src={trackEatsIcon}
                                 alt="TrackEats icon"
-                                sx={{ width: 28, height: 28, borderRadius: 1 }}
+                                sx={{ width: 48, height: 48, borderRadius: 1 }}
                             />
                             <span style={{ fontFamily: 'Outfit, sans-serif', fontSize: '1.4rem', fontWeight: 700 }}>TrackEats</span>
                         </Button>
