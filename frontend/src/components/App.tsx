@@ -81,9 +81,14 @@ function App() {
         return () => window.removeEventListener(AUTH_CHANGED_EVENT, syncAuth);
     }, []);
 
-    const storeToken = (token: string, username: string): undefined => {
+    const storeToken = (
+        token: string,
+        username: string,
+        authMethod: 'email' | 'google' | 'facebook' | 'apple' = 'email',
+    ): undefined => {
         sessionStorage.setItem("access_token", JSON.stringify(token))
         sessionStorage.setItem("username", JSON.stringify(username))
+        sessionStorage.setItem("auth_method", authMethod)
         window.dispatchEvent(new Event(AUTH_CHANGED_EVENT))
         setAuthenticated(true)
     }
@@ -91,6 +96,7 @@ function App() {
     const removeToken = () => {
         sessionStorage.removeItem("access_token")
         sessionStorage.removeItem("username")
+        sessionStorage.removeItem("auth_method")
         window.dispatchEvent(new Event(AUTH_CHANGED_EVENT))
         setAuthenticated(false)
         navigate("/")
@@ -121,6 +127,16 @@ function App() {
         handleOptionsClose();
         await recalculateRecipeNutrition(null);
     }
+
+    const authMethod = sessionStorage.getItem("auth_method")
+    const authMethodLabel = authMethod === 'google'
+        ? 'Google'
+        : authMethod === 'facebook'
+            ? 'Facebook'
+            : authMethod === 'apple'
+                ? 'Apple'
+                : 'Email';
+    const canChangePassword = authMethod !== 'google' && authMethod !== 'facebook' && authMethod !== 'apple'
 
     const overlayOpen = isLoading || isRecalculatingRecipes
     const overlayMessage = isRecalculatingRecipes ? "Recalculating recipes..." : "Loading data..."
@@ -253,8 +269,11 @@ function App() {
                                     open={Boolean(optionsAnchorEl)}
                                     onClose={handleOptionsClose}
                                 >
+                                    <MenuItem disabled>Signed in with: {authMethodLabel}</MenuItem>
                                     <MenuItem onClick={() => { handleOptionsClose(); removeToken(); }}>Log out</MenuItem>
-                                    <MenuItem onClick={() => { handleOptionsClose(); navigate('/change_password'); }}>Change password</MenuItem>
+                                    {canChangePassword ? (
+                                        <MenuItem onClick={() => { handleOptionsClose(); navigate('/change_password'); }}>Change password</MenuItem>
+                                    ) : null}
                                     <MenuItem onClick={handleRecalculateRecipes} disabled={isRecalculatingRecipes}>Recalculate recipes</MenuItem>
                                     <MenuItem onClick={handleDeleteAccountClick}>Delete my account</MenuItem>
                                 </Menu>

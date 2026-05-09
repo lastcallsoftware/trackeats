@@ -19,6 +19,8 @@ import {
 import { generateIngredientSummary } from "../utils/generateIngredientSummary";
 import { useSnackbar } from '@/utils/useSnackbar';
 
+const SOCIAL_SEED_PROMPT_SEEN_KEY = 'social_seed_prompt_seen';
+
 // The purpose of this component is to provide a context that can be used to share
 // data between components.  It wraps any child components in a context provider
 // that provides data and functions that can be used to manipulate it.
@@ -222,6 +224,7 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
     const removeToken = () => {
         sessionStorage.removeItem("access_token")
         sessionStorage.removeItem("username")
+        sessionStorage.removeItem("auth_method")
         window.dispatchEvent(new Event(AUTH_CHANGED_EVENT))
         setAccessToken("")
         setUsername("")
@@ -390,6 +393,11 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
     const deleteAccount = async (): Promise<boolean> => {
         try {
             await axios.delete<void>("/api/user")
+            try {
+                window.localStorage.removeItem(SOCIAL_SEED_PROMPT_SEEN_KEY)
+            } catch {
+                // Ignore local storage failures and continue account cleanup.
+            }
             removeToken()
             return true
         } catch (error) {

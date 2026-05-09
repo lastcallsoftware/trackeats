@@ -210,6 +210,26 @@ export async function changePassword(currentPassword: string, newPassword: strin
 }
 
 /**
+ * Delete the currently authenticated user account
+ * @throws AuthError on failure
+ */
+export async function deleteAccount(): Promise<void> {
+  try {
+    await api.delete('/api/user');
+  } catch (error: any) {
+    if (error instanceof AuthError) {
+      throw error;
+    }
+
+    const status = error?.response?.status ?? 0;
+    const message = error?.response?.data?.msg || error?.message || 'Failed to delete account';
+    const code = mapStatusToCode(status);
+
+    throw new AuthError(message, code);
+  }
+}
+
+/**
  * Map HTTP status codes to AuthError codes
  */
 function mapStatusToCode(status: number): string {

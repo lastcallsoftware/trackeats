@@ -7,7 +7,10 @@ import * as SecureStore from 'expo-secure-store';
 
 const TOKEN_KEY = 'auth_token';
 const USERNAME_KEY = 'auth_username';
+const AUTH_METHOD_KEY = 'auth_method';
 const SOCIAL_SEED_PROMPT_SEEN_KEY = 'social_seed_prompt_seen';
+
+export type AuthMethod = 'email' | 'google' | 'facebook' | 'apple';
 
 /**
  * Stores a token securely in SecureStore
@@ -88,6 +91,49 @@ export async function clearUsername(): Promise<void> {
 }
 
 /**
+ * Stores which auth method the user used for their current session.
+ */
+export async function setAuthMethod(authMethod: AuthMethod): Promise<void> {
+  try {
+    await SecureStore.setItemAsync(AUTH_METHOD_KEY, authMethod);
+  } catch (error) {
+    const originalError = error instanceof Error ? error.message : String(error);
+    throw new Error(`Failed to store auth method: ${originalError}`);
+  }
+}
+
+/**
+ * Retrieves the stored auth method.
+ */
+export async function getAuthMethod(): Promise<AuthMethod | null> {
+  try {
+    const authMethod = await SecureStore.getItemAsync(AUTH_METHOD_KEY);
+    if (!authMethod) {
+      return null;
+    }
+    if (authMethod === 'email' || authMethod === 'google' || authMethod === 'facebook' || authMethod === 'apple') {
+      return authMethod;
+    }
+    return null;
+  } catch (error) {
+    const originalError = error instanceof Error ? error.message : String(error);
+    throw new Error(`Failed to retrieve auth method: ${originalError}`);
+  }
+}
+
+/**
+ * Clears the stored auth method.
+ */
+export async function clearAuthMethod(): Promise<void> {
+  try {
+    await SecureStore.deleteItemAsync(AUTH_METHOD_KEY);
+  } catch (error) {
+    const originalError = error instanceof Error ? error.message : String(error);
+    throw new Error(`Failed to clear auth method: ${originalError}`);
+  }
+}
+
+/**
  * Tracks whether the user has already been asked the one-time social seed prompt.
  */
 export async function getSocialSeedPromptSeen(): Promise<boolean> {
@@ -109,5 +155,17 @@ export async function setSocialSeedPromptSeen(value: boolean): Promise<void> {
   } catch (error) {
     const originalError = error instanceof Error ? error.message : String(error);
     throw new Error(`Failed to store social seed prompt state: ${originalError}`);
+  }
+}
+
+/**
+ * Clears the one-time social seed prompt state.
+ */
+export async function clearSocialSeedPromptSeen(): Promise<void> {
+  try {
+    await SecureStore.deleteItemAsync(SOCIAL_SEED_PROMPT_SEEN_KEY);
+  } catch (error) {
+    const originalError = error instanceof Error ? error.message : String(error);
+    throw new Error(`Failed to clear social seed prompt state: ${originalError}`);
   }
 }

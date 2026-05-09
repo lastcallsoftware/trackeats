@@ -11,10 +11,15 @@
  *   VITE_APPLE_REDIRECT_URI=...     (must match what you registered in Apple developer portal)
  */
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { useGoogleLogin } from '@react-oauth/google';
 import Button from '@mui/material/Button';
 import Box from '@mui/material/Box';
+import Dialog from '@mui/material/Dialog';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
+import DialogContentText from '@mui/material/DialogContentText';
+import DialogTitle from '@mui/material/DialogTitle';
 import Divider from '@mui/material/Divider';
 import Typography from '@mui/material/Typography';
 import CircularProgress from '@mui/material/CircularProgress';
@@ -25,10 +30,11 @@ const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID ?? '';
 const FACEBOOK_APP_ID = import.meta.env.VITE_FACEBOOK_APP_ID ?? '';
 const APPLE_CLIENT_ID = import.meta.env.VITE_APPLE_CLIENT_ID ?? '';
 const APPLE_REDIRECT_URI = import.meta.env.VITE_APPLE_REDIRECT_URI ?? window.location.origin + '/login';
+const SOCIAL_SEED_PROMPT_SEEN_KEY = 'social_seed_prompt_seen';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface Props {
-    onSuccess: (authData: { appToken: string; username: string }) => void;
+    onSuccess: (authData: { appToken: string; username: string; authMethod: 'google' | 'facebook' | 'apple' }) => void;
     disabled?: boolean;
     showDivider?: boolean;
 }
@@ -37,18 +43,18 @@ interface Props {
 async function exchangeWithBackend(
     provider: 'google' | 'facebook' | 'apple',
     token: string,
-    extra?: { name?: string; platform?: string },
-): Promise<{ appToken: string; username: string }> {
+    extra?: { name?: string; platform?: string; seed_requested?: boolean },
+): Promise<{ appToken: string; username: string; authMethod: 'google' | 'facebook' | 'apple' }> {
     const resp = await axios.post('/api/social_login', {
         provider,
         token,
         ...(extra ?? {}),
-    });
+    }, { timeout: 10000 });
     const appToken = resp.data?.access_token;
     const username = resp.data?.username;
     if (!appToken) throw new Error('No token returned from server');
     if (!username) throw new Error('No username returned from server');
-    return { appToken, username };
+    return { appToken, username, authMethod: provider };
 }
 
 // ─── Facebook SDK loader (lazy) ───────────────────────────────────────────────
@@ -108,6 +114,35 @@ function loadAppleSdk(): Promise<void> {
 export default function SocialLoginButtons({ onSuccess, disabled = false, showDivider = true }: Props) {
     const [loadingProvider, setLoadingProvider] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
+    const [seedDialogOpen, setSeedDialogOpen] = useState(false);
+    const seedResolveRef = useRef<((value: boolean) => void) | null>(null);
+
+    const promptSeed = useCallback((): Promise<boolean> => {
+        // Ask only once; on subsequent social logins default to not seeding.
+        try {
+            if (window.localStorage.getItem(SOCIAL_SEED_PROMPT_SEEN_KEY) === 'true') {
+                return Promise.resolve(false);
+            }
+        } catch {
+            // If storage access fails, fall through and still show the dialog.
+        }
+
+        return new Promise((resolve) => {
+            seedResolveRef.current = resolve;
+            setSeedDialogOpen(true);
+        });
+    }, []);
+
+    const handleSeedChoice = useCallback((choice: boolean) => {
+        setSeedDialogOpen(false);
+        try {
+            window.localStorage.setItem(SOCIAL_SEED_PROMPT_SEEN_KEY, 'true');
+        } catch {
+            // Ignore storage failures; do not block login.
+        }
+        seedResolveRef.current?.(choice);
+        seedResolveRef.current = null;
+    }, []);
 
     const isLoading = loadingProvider !== null;
     const hasGoogleLogin = Boolean(GOOGLE_CLIENT_ID);
@@ -136,7 +171,8 @@ export default function SocialLoginButtons({ onSuccess, disabled = false, showDi
                     }
                 }, { scope: 'email,public_profile' });
             });
-            const authData = await exchangeWithBackend('facebook', fbAccessToken);
+            const seedRequested = await promptSeed();
+            const authData = await exchangeWithBackend('facebook', fbAccessToken, { seed_requested: seedRequested });
             onSuccess(authData);
         } catch (err: unknown) {
             const msg = err instanceof Error ? err.message : '';
@@ -147,7 +183,7 @@ export default function SocialLoginButtons({ onSuccess, disabled = false, showDi
         } finally {
             setLoadingProvider(null);
         }
-    }, [onSuccess]);
+    }, [onSuccess, promptSeed]);
 
     // ── Apple ──
     const onAppleClick = useCallback(async () => {
@@ -170,7 +206,8 @@ export default function SocialLoginButtons({ onSuccess, disabled = false, showDi
             const firstName = response.user?.name?.firstName ?? '';
             const lastName = response.user?.name?.lastName ?? '';
             const name = [firstName, lastName].filter(Boolean).join(' ') || undefined;
-            const authData = await exchangeWithBackend('apple', idToken, { name });
+            const seedRequested = await promptSeed();
+            const authData = await exchangeWithBackend('apple', idToken, { name, seed_requested: seedRequested });
             onSuccess(authData);
         } catch (err: unknown) {
             // Apple throws a plain object { error: 'popup_closed_by_user' } on cancel
@@ -184,7 +221,7 @@ export default function SocialLoginButtons({ onSuccess, disabled = false, showDi
         } finally {
             setLoadingProvider(null);
         }
-    }, [onSuccess]);
+    }, [onSuccess, promptSeed]);
 
     if (!hasAnySocialLogin) {
         return null;
@@ -192,6 +229,18 @@ export default function SocialLoginButtons({ onSuccess, disabled = false, showDi
 
     return (
         <Box sx={{ mt: 1 }}>
+            <Dialog open={seedDialogOpen} onClose={() => handleSeedChoice(false)}>
+                <DialogTitle>Seed starter data?</DialogTitle>
+                <DialogContent>
+                    <DialogContentText>
+                        Would you like us to add a starter set of foods and recipes to your account?
+                    </DialogContentText>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => handleSeedChoice(false)}>No thanks</Button>
+                    <Button onClick={() => handleSeedChoice(true)} variant="contained">Yes, seed my account</Button>
+                </DialogActions>
+            </Dialog>
             {showDivider ? (
                 <Divider sx={{ my: 2 }}>
                     <Typography variant="body2" color="text.secondary">
@@ -209,6 +258,7 @@ export default function SocialLoginButtons({ onSuccess, disabled = false, showDi
                         setLoadingProvider={setLoadingProvider}
                         setError={setError}
                         onSuccess={onSuccess}
+                        promptSeed={promptSeed}
                     />
                 ) : null}
 
@@ -278,7 +328,8 @@ interface GoogleLoginButtonProps {
     loadingProvider: string | null;
     setLoadingProvider: (provider: string | null) => void;
     setError: (message: string | null) => void;
-    onSuccess: (authData: { appToken: string; username: string }) => void;
+    onSuccess: (authData: { appToken: string; username: string; authMethod: 'google' | 'facebook' | 'apple' }) => void;
+    promptSeed: () => Promise<boolean>;
 }
 
 function GoogleLoginButton({
@@ -288,6 +339,7 @@ function GoogleLoginButton({
     setLoadingProvider,
     setError,
     onSuccess,
+    promptSeed,
 }: GoogleLoginButtonProps) {
     const handleGoogleLogin = useGoogleLogin({
         onSuccess: async (tokenResponse) => {
@@ -297,7 +349,11 @@ function GoogleLoginButton({
                     baseURL: '',
                     timeout: 10000,
                 });
-                const authData = await exchangeWithBackend('google', tokenResponse.access_token, { platform: 'web' });
+                const seedRequested = await promptSeed();
+                const authData = await exchangeWithBackend('google', tokenResponse.access_token, {
+                    platform: 'web',
+                    seed_requested: seedRequested,
+                });
                 onSuccess(authData);
             } catch (err: unknown) {
                 const apiMsg = (err as { response?: { data?: { msg?: string } } })?.response?.data?.msg;

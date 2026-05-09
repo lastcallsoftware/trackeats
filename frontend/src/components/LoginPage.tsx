@@ -142,8 +142,8 @@ function LoginPage(props: any) {
                         <SocialLoginButtons
                             disabled={isSubmitting}
                             showDivider={false}
-                            onSuccess={({ appToken, username }) => {
-                                props.storeTokenFunction(appToken, username);
+                            onSuccess={({ appToken, username, authMethod }) => {
+                                props.storeTokenFunction(appToken, username, authMethod);
                                 navigate("/foods");
                             }}
                         />

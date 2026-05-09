@@ -6,15 +6,37 @@ import { useState } from 'react';
 import { View, TextInput, TouchableOpacity, Text, ActivityIndicator, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
 import { changePassword } from '@/services/authService';
+import authStore from '@/store/authStore';
 
 export default function ChangePasswordScreen() {
   const router = useRouter();
+  const { authMethod } = authStore();
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+
+  if (authMethod === 'google' || authMethod === 'facebook' || authMethod === 'apple') {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.title}>Password Managed by Provider</Text>
+        <Text style={styles.successText}>
+          This account uses social sign-in. Please change your password through your sign-in provider.
+        </Text>
+
+        <TouchableOpacity
+          style={styles.button}
+          onPress={() => router.back()}
+          testID="back-to-home-button"
+          activeOpacity={0.7}
+        >
+          <Text style={styles.buttonText}>Back</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
 
   const validatePasswords = (): boolean => {
     if (!currentPassword.trim()) {

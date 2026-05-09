@@ -12,14 +12,13 @@ import {
   StyleSheet,
   Alert,
   LayoutAnimation,
-  UIManager,
 } from 'react-native';
 //import { Platform, View, Image, TextInput, TouchableOpacity, Text, ActivityIndicator, StyleSheet } from 'react-native';
 import Logo from '../../assets/trackeats-neon-logo.svg';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import * as yup from 'yup';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import authStore from '@/store/authStore';
 import {
   signInWithGoogle,
@@ -27,6 +26,7 @@ import {
   loginWithApple,
   exchangeSocialPayload,
 } from '@/services/socialAuthService';
+import { getSocialSeedPromptSeen, setSocialSeedPromptSeen } from '@/services/tokenStorage';
 
 const loginSchema = yup.object({
   email: yup.string().trim().required('Email address is required').email('Please enter a valid email address'),
@@ -55,12 +55,6 @@ export default function LoginScreen() {
   const { promptAsync: signInWithFacebook } = useFacebookAuthRequest();
   const showAppleLogin = Platform.OS === 'ios' && hasAppleLogin;
   const hasAnySocialLogin = hasGoogleLogin || hasFacebookLogin || showAppleLogin;
-
-  useEffect(() => {
-    if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
-      UIManager.setLayoutAnimationEnabledExperimental(true);
-    }
-  }, []);
 
   const toggleEmailLogin = () => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
@@ -117,7 +111,19 @@ export default function LoginScreen() {
         socialPayload = await loginWithApple();
       }
 
-      const seedRequested = await promptForSocialSeedChoice();
+      let seedRequested = false;
+      try {
+        const seedPromptSeen = await getSocialSeedPromptSeen();
+        if (!seedPromptSeen) {
+          seedRequested = await promptForSocialSeedChoice();
+          await setSocialSeedPromptSeen(true);
+        }
+      } catch (storageError) {
+        console.debug('[LOGIN] Seed prompt state error:', storageError);
+        // If prompt state cannot be read/written, still allow the user to choose.
+        seedRequested = await promptForSocialSeedChoice();
+      }
+
       setIsSocialLoading(true);
       try {
         const authData = await exchangeSocialPayload(socialPayload, seedRequested);

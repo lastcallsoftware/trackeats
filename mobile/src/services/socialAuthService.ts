@@ -20,6 +20,7 @@ import { AuthError } from '@/types/auth';
 export type SocialLoginResult = {
   accessToken: string;
   username: string;
+  authMethod: 'google' | 'facebook' | 'apple';
 };
 
 export type SocialAuthPayload = {
@@ -83,7 +84,7 @@ async function exchangeWithBackend(
     if (!username) {
       throw new AuthError('No username returned from server', 'NO_USERNAME');
     }
-    return { accessToken: appToken, username };
+    return { accessToken: appToken, username, authMethod: payload.provider };
   } catch (error: any) {
     if (error instanceof AuthError) throw error;
     const message = error?.response?.data?.msg ?? error?.message ?? 'Social login failed';
