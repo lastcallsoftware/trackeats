@@ -2,14 +2,36 @@
 <!-- Created with Inkscape (http://www.inkscape.org/) -->
 
 <svg
-   width="88.617584mm"
-   height="86.010559mm"
-   viewBox="0 0 88.617584 86.010559"
+   width="1024"
+   height="1024"
+   viewBox="0 0 270.93333 270.93333"
    version="1.1"
    id="svg1"
    xml:space="preserve"
+   sodipodi:docname="trackeats-logo.svg"
+   inkscape:version="1.4.3 (0d15f75, 2025-12-25)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns="http://www.w3.org/2000/svg"
-   xmlns:svg="http://www.w3.org/2000/svg"><defs
+   xmlns:svg="http://www.w3.org/2000/svg"><sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:document-units="px"
+     inkscape:zoom="0.44319345"
+     inkscape:cx="674.64896"
+     inkscape:cy="538.13972"
+     inkscape:window-width="1920"
+     inkscape:window-height="1017"
+     inkscape:window-x="1912"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg1" /><defs
      id="defs1"><linearGradient
        id="swatch3"><stop
          style="stop-color:#000000;stop-opacity:1;"
@@ -168,7 +190,7 @@
          stdDeviation="0.6774023"
          id="feGaussianBlur66" /></filter></defs><g
      id="layer1"
-     transform="translate(-59.063417,-32.511613)"><g
+     transform="matrix(3.0651304,0,0,2.8182887,-181.38264,-77.361724)"><g
        id="g67"><g
          id="g40"
          transform="translate(-4.3189864,-118.77213)"><g
