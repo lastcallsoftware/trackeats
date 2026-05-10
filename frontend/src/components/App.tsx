@@ -10,6 +10,7 @@ import React, { Suspense, lazy } from 'react';
 const FoodsPage = lazy(() => import('./FoodsPage'));
 const RecipesPage = lazy(() => import('./RecipesPage'));
 const DailyLogPage = lazy(() => import('./DailyLogPage'));
+const AdminPage = lazy(() => import('./AdminPage'));
 import LoginPage from './LoginPage';
 import RegisterPage from './RegisterPage';
 import Footer from './Footer';
@@ -165,6 +166,11 @@ function App() {
             {isAuthenticated && (
                 <Button component={RouterLink} to="/dailylog" color="primary" sx={buttonSx}>
                     Daily Log
+                </Button>
+            )}
+            {isAuthenticated && username === 'admin' && (
+                <Button component={RouterLink} to="/admin" color="primary" sx={buttonSx}>
+                    Admin
                 </Button>
             )}
             <Button
@@ -337,6 +343,7 @@ function App() {
                         <Route path="/food/edit/:id" element={<FoodForm />} />
                         <Route path="/recipe/add" element={<RecipeForm />} />
                         <Route path="/recipe/edit/:id" element={<RecipeForm />} />
+                        <Route path="/admin" element={<AdminPage />} />
                     </Routes>
                 </Suspense>
             </Box>
