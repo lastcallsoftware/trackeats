@@ -404,16 +404,19 @@ const styles = StyleSheet.create({
   emailToggleContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    justifyContent: 'center',
     width: '100%',
+    position: 'relative',
   },
   emailToggleButtonText: {
     color: '#007AFF',
     fontSize: 16,
     fontWeight: 'bold',
+    textAlign: 'center',
   },
   emailToggleIcon: {
-    marginLeft: 8,
+    position: 'absolute',
+    right: 0,
   },
   // Social buttons
   socialRow: {
