@@ -189,7 +189,8 @@ class User(db.Model):
             "reset_email_sent_at": self.reset_email_sent_at,
             "seed_requested": self.seed_requested,
             "seed_version": self.seed_version,
-            "seeded_at": self.seeded_at
+            "seeded_at": self.seeded_at,
+            "oauth_provider": self.oauth_provider,
         }
     
 
