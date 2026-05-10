@@ -15,7 +15,7 @@ on:
         default: 'production'
         type: choice
         options:
-          - test
+          - development
           - production
     
 concurrency:
@@ -40,16 +40,6 @@ jobs:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_PASSWORD }}
 
-#      - name: Create cert files from secrets
-#        run: |
-#          mkdir -p ./frontend/certs
-#          echo "${{ secrets.LASTCALLSW_COM_CHAINED_CRT }}" > ./frontend/certs/lastcallsw_com.chained.crt
-#          echo "${{ secrets.LASTCALLSW_COM_KEY }}" > ./frontend/certs/lastcallsw_com.key
-#          chmod 600 ./frontend/certs/lastcallsw_com.key
-#
-#      - name: Verify cert files exist
-#        run: ls -la ./frontend/certs/
-
       - name: Build and push frontend image
         uses: docker/build-push-action@v7
         with:
@@ -59,6 +49,7 @@ jobs:
           build-args: |
             VITE_BACKEND_BASE_URL=${{ vars.BACKEND_BASE_URL}}
             VITE_PORTFOLIO_URL=${{ vars.PORTFOLIO_URL}}
+            VITE_GOOGLE_CLIENT_ID=${{ vars.VITE_GOOGLE_CLIENT_ID }}
           tags: lastcallsoftware/trackeats-frontend:latest,lastcallsoftware/trackeats-frontend:${{ github.sha }}
           cache-from: type=registry,ref=lastcallsoftware/trackeats-frontend:buildcache
           cache-to: type=registry,ref=lastcallsoftware/trackeats-frontend:buildcache,mode=max
