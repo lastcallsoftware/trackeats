@@ -94,6 +94,8 @@ jobs:
           FRONTEND_BASE_URL: ${{ vars.FRONTEND_BASE_URL }}
           BACKEND_BASE_URL: ${{ vars.BACKEND_BASE_URL }}
           PORTFOLIO_URL: ${{ vars.PORTFOLIO_URL }}
+          GOOGLE_WEB_CLIENT_ID: ${{ vars.GOOGLE_WEB_CLIENT_ID }}
+          GOOGLE_ANDROID_CLIENT_ID: ${{ vars.GOOGLE_ANDROID_CLIENT_ID }}
         with:
           host: ${{ secrets.APP_SERVER_HOST }}
           username: ${{ secrets.APP_SERVER_USERNAME }}

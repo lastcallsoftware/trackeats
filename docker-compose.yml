@@ -68,6 +68,8 @@ services:
       FRONTEND_BASE_URL: ${FRONTEND_BASE_URL:?}
       BACKEND_BASE_URL: ${BACKEND_BASE_URL:?}
       PORTFOLIO_URL: ${PORTFOLIO_URL:?}
+      GOOGLE_WEB_CLIENT_ID: ${GOOGLE_WEB_CLIENT_ID:?}
+      GOOGLE_ANDROID_CLIENT_ID: ${GOOGLE_ANDROID_CLIENT_ID:?}
     restart: on-failure
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5000/api/health')"]
