@@ -464,6 +464,38 @@ def delete_user():
         return jsonify({"msg": msg}), 200
 
 
+@bp.route("/api/user/<string:username>", methods = ["DELETE"])
+@admin_required
+@log_route
+def admin_delete_user(username: str):
+    """
+    Admin: Delete any user account and ALL THEIR DATA by username.
+    The same protected usernames that prevent self-deletion apply here.
+    """
+    try:
+        with db.session.begin():
+            if username in ("guest", "admin", "testuser"):
+                raise ValueError(f"The account '{username}' may not be deleted.")
+
+            user_dao = User.get(username)
+            if not user_dao:
+                raise ValueError(f"Could not retrieve user record for username '{username}'")
+            user_id = user_dao.id
+
+            Recipe.delete_all_for_user(user_id)
+            Food.delete_all_for_user(user_id)
+            db.session.delete(user_dao)
+
+    except Exception as e:
+        msg = f"User deletion failed: {str(e)}"
+        logging.error(msg)
+        return jsonify({"msg": msg}), 500
+    else:
+        msg = f"Admin deleted user {user_id} '{username}'"
+        logging.info(msg)
+        return jsonify({"msg": msg}), 200
+
+
 ##############################
 # REGISTRATION & LOGIN
 ##############################
