@@ -118,7 +118,9 @@ jobs:
             ACCESS_TOKEN_DURATION,
             FRONTEND_BASE_URL,
             BACKEND_BASE_URL,
-            PORTFOLIO_URL
+            PORTFOLIO_URL,
+            GOOGLE_WEB_CLIENT_ID,
+            GOOGLE_ANDROID_CLIENT_ID
           script: |
             cd ~/trackeats
             bash deploy.sh
