@@ -221,7 +221,7 @@ const authStore = create<AuthStoreState & AuthStoreActions>((set, get) => ({
     set({ isLoading: true, error: null });
 
     try {
-      await authService.register(username, password, email);
+      await authService.register(username, password, email, false);
 
       set({
         pendingVerification: true,

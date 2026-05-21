@@ -22,6 +22,7 @@ export async function register(
       password,
       email,
       seed_requested: seedRequested ?? false,
+      source: 'mobile',
     });
   } catch (error: any) {
     const message = error?.response?.data?.msg || error?.message || 'Registration failed';
@@ -252,5 +253,4 @@ function mapStatusToCode(status: number): string {
       return 'UNKNOWN';
   }
 }
-
 

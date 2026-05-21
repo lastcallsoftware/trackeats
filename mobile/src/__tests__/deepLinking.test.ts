@@ -6,18 +6,23 @@ import { parseVerifyToken } from '../utils/deepLinking';
 
 describe('deepLinking', () => {
   describe('parseVerifyToken', () => {
-    it('should extract token from trackeats://verify?token=abc123', () => {
-      const token = parseVerifyToken('trackeats://verify?token=abc123');
+    it('should extract token from https://trackeats.com/api/confirm?token=abc123', () => {
+      const token = parseVerifyToken('https://trackeats.com/api/confirm?token=abc123');
       expect(token).toBe('abc123');
     });
 
-    it('should extract token from https://trackeats.app/confirm?token=xyz', () => {
-      const token = parseVerifyToken('https://trackeats.app/confirm?token=xyz');
+    it('should extract token from https://trackeats.app/api/confirm?token=xyz', () => {
+      const token = parseVerifyToken('https://trackeats.app/api/confirm?token=xyz');
       expect(token).toBe('xyz');
     });
 
-    it('should return null for non-verify URLs like trackeats://home', () => {
-      const token = parseVerifyToken('trackeats://home');
+    it('should extract token from backend URL path /api/confirm', () => {
+      const token = parseVerifyToken('https://api.trackeats.app/api/confirm?token=xyz');
+      expect(token).toBe('xyz');
+    });
+
+    it('should return null for non-verify URLs like https://trackeats.com/home', () => {
+      const token = parseVerifyToken('https://trackeats.com/home');
       expect(token).toBeNull();
     });
 
@@ -27,18 +32,19 @@ describe('deepLinking', () => {
     });
 
     it('should return null when URL has no token parameter', () => {
-      const token = parseVerifyToken('trackeats://verify');
+      const token = parseVerifyToken('https://trackeats.com/api/confirm');
       expect(token).toBeNull();
     });
 
-    it('should handle verify path with trailing slash', () => {
-      const token = parseVerifyToken('trackeats://verify/?token=test123');
+    it('should handle /api/confirm path with trailing slash', () => {
+      const token = parseVerifyToken('https://trackeats.com/api/confirm/?token=test123');
       expect(token).toBe('test123');
     });
 
     it('should handle complex token values with special characters', () => {
-      const token = parseVerifyToken('trackeats://verify?token=abc123_xyz-DEF');
+      const token = parseVerifyToken('https://trackeats.com/api/confirm?token=abc123_xyz-DEF');
       expect(token).toBe('abc123_xyz-DEF');
     });
+
   });
 });

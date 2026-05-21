@@ -15,5 +15,11 @@
 #
 # After the build completes, download the APK from expo.dev and install it on
 # your device/emulator, or use the QR code EAS provides.
+#
+# Note that "npx eas-cli build..." and "eas build..." are functionally equivalent.
+# The former just downloads and installs the latest version of eas-cli first.
+# That may or may not be a good thing, as it could install a new version 
+# unexpectedly.  Since we have eas installed globally, that's probably preferable.
 
-npx eas-cli build --profile development --platform android
+#npx eas-cli build --profile development --platform android
+eas build --profile development --platform android

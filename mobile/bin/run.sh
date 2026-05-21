@@ -19,11 +19,10 @@
 # Rebuild the native APK with `eas build` only when native dependencies change
 # (e.g. adding a new native module).  Everyday JS/TypeScript changes are
 # handled entirely by Metro hot-reload with no rebuild needed.
-
-# ── Old command (Expo Go workflow — no longer used) ───────────────────────────
-# Expo Go cannot load native modules such as @react-native-google-signin/
-# google-signin, so this approach was abandoned in favour of the EAS dev build.
-# npm start -- --tunnel
+#
+# Run this script with the --clear parameter to clear Metro's cache if things
+# are weird.  But you usually don't want to do that because the cache is one
+# of the big reasons to use this app.
 
 # ── Start the Metro bundler ───────────────────────────────────────────────────
-npx expo start --dev-client --tunnel
+npx expo start --dev-client --tunnel "$@"

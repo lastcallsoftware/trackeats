@@ -1,3 +1,9 @@
+# Run this script (in native Windows, not WSL) so the mobile app on my phone can talk to the
+# backend running in WSL.  It needs to be run after WSL gets a new IP address.  Usually this
+# is not necessary even after a reboot.  To determine if it IS necessary you can run this commmand
+# in a PowerShell prompt as Administrator:
+# $wslIp=(wsl hostname -I).Trim().Split()[0]; $out=netsh interface portproxy show v4tov4; if($out -match "0\.0\.0\.0\s+5000\s+$([regex]::Escape($wslIp))\s+5000" -and $out -match "0\.0\.0\.0\s+8081\s+$([regex]::Escape($wslIp))\s+8081"){ "OK: portproxy rules match current WSL IP $wslIp" } else { "STALE OR MISSING: expected rules for WSL IP $wslIp"; $out } 
+
 # Route backend traffic from native Windows port 5000 to the WSL IP where the
 # Flask backend is running.  The mobile app hits the Windows host IP, so this
 # forwards that request across the WSL boundary.

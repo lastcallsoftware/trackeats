@@ -23,14 +23,11 @@ jest.mock('@/utils/deepLinking', () => ({
   parseVerifyToken: jest.fn((url: string | null) => {
     if (!url) return null;
     try {
-      const normalizedUrl = url.startsWith('trackeats://')
-        ? url.replace(/^trackeats:/, 'http://localhost')
-        : url;
-      const parsed = new URL(normalizedUrl);
+      const parsed = new URL(url);
       const pathname = parsed.pathname || '';
       const isVerifyUrl =
-        pathname.includes('/verify') || pathname.includes('/confirm') ||
-        pathname === '/verify' || pathname === '/confirm';
+        pathname.includes('/verify') || pathname.includes('/api/confirm') ||
+        pathname === '/verify' || pathname === '/api/confirm';
       const token = parsed.searchParams.get('token');
       return isVerifyUrl && token ? token : null;
     } catch (e) {
@@ -386,16 +383,16 @@ describe('Integration Scenarios', () => {
   });
 
   // ============================================================================
-  // Scenario 7: Deep-link token parsing
+  // Scenario 7: App-link token parsing
   // ============================================================================
-  describe('Scenario 7: Deep-Link Token Parsing', () => {
-    it('should parse token from trackeats://verify?token=abc123', () => {
-      const token = parseVerifyToken('trackeats://verify?token=abc123');
+  describe('Scenario 7: App-Link Token Parsing', () => {
+    it('should parse token from https://trackeats.com/verify?token=abc123', () => {
+      const token = parseVerifyToken('https://trackeats.com/verify?token=abc123');
       expect(token).toBe('abc123');
     });
 
-    it('should parse token from https://trackeats.app/confirm?token=xyz', () => {
-      const token = parseVerifyToken('https://trackeats.app/confirm?token=xyz');
+    it('should parse token from https://trackeats.app/api/confirm?token=xyz', () => {
+      const token = parseVerifyToken('https://trackeats.app/api/confirm?token=xyz');
       expect(token).toBe('xyz');
     });
   });

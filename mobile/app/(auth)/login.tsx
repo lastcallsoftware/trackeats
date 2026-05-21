@@ -15,7 +15,7 @@ import {
 } from 'react-native';
 //import { Platform, View, Image, TextInput, TouchableOpacity, Text, ActivityIndicator, StyleSheet } from 'react-native';
 import Logo from '../../assets/trackeats-neon-logo.svg';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import * as yup from 'yup';
 import { useState } from 'react';
@@ -40,9 +40,15 @@ const hasFacebookLogin = Boolean(process.env.EXPO_PUBLIC_FACEBOOK_APP_ID);
 // Apple mobile login also depends on backend/server-side config, so keep it opt-in.
 const hasAppleLogin = process.env.EXPO_PUBLIC_ENABLE_APPLE_LOGIN === 'true';
 
+function firstParam(value: string | string[] | undefined): string {
+  return Array.isArray(value) ? value[0] ?? '' : value ?? '';
+}
+
 export default function LoginScreen() {
   const router = useRouter();
+  const params = useLocalSearchParams<{ registration?: string }>();
   const { isLoading, error, loginWithSocialToken } = authStore();
+  const wasJustConfirmed = firstParam(params.registration) === 'confirmed';
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -50,7 +56,7 @@ export default function LoginScreen() {
   const [showPassword, setShowPassword] = useState(false);
   const [socialError, setSocialError] = useState<string | null>(null);
   const [isSocialLoading, setIsSocialLoading] = useState(false);
-  const [showEmailLogin, setShowEmailLogin] = useState(false);
+  const [showEmailLogin, setShowEmailLogin] = useState(wasJustConfirmed);
 
   const { promptAsync: signInWithFacebook } = useFacebookAuthRequest();
   const showAppleLogin = Platform.OS === 'ios' && hasAppleLogin;
@@ -143,6 +149,10 @@ export default function LoginScreen() {
         <Logo width={120} height={120} />
       </View>
       <Text style={styles.title}>Login</Text>
+
+      {wasJustConfirmed ? (
+        <Text style={styles.successText}>Email confirmed. You can now log in.</Text>
+      ) : null}
 
       {hasAnySocialLogin ? (
         <>
@@ -363,6 +373,13 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     fontSize: 14,
     textAlign: 'center',
+  },
+  successText: {
+    color: '#188038',
+    marginBottom: 15,
+    fontSize: 14,
+    textAlign: 'center',
+    fontWeight: '600',
   },
   button: {
     backgroundColor: '#007AFF',

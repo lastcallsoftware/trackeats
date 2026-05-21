@@ -104,7 +104,7 @@ describe('authStore', () => {
 
       await authStore.getState().register('user123', 'password123', 'user@example.com');
 
-      expect(mockAuthService.register).toHaveBeenCalledWith('user123', 'password123', 'user@example.com');
+      expect(mockAuthService.register).toHaveBeenCalledWith('user123', 'password123', 'user@example.com', false);
 
       const state = authStore.getState();
       expect(state.pendingVerification).toBe(true);
