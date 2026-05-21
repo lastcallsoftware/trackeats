@@ -27,6 +27,9 @@ flask-sqlalchemy
 # measure to protect against a common type of hacks.
 flask-cors
 
+# flask-limiter provides Flask-native request rate limiting.
+flask-limiter
+
 # flask-jwt-extended is basically a thin later on top of PyJWT that adds some
 # convenience functions for creating, validating and reading security tokens.
 # It also has a very handy decorator for Flask routes to only allow access to

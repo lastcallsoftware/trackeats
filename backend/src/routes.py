@@ -2,8 +2,8 @@ import os
 import logging
 from functools import wraps
 from datetime import datetime, timedelta, timezone
-from typing import Any, Callable, TypeVar, cast
-from flask import Blueprint, abort, jsonify, make_response, request
+from typing import Any, Callable, ParamSpec, TypeVar, cast
+from flask import Blueprint, abort, jsonify, make_response, redirect, request
 from flask_jwt_extended import (
     jwt_required,  # type:ignore
     create_access_token,  # type:ignore
@@ -11,42 +11,307 @@ from flask_jwt_extended import (
     verify_jwt_in_request, # type:ignore
     get_jwt  # type:ignore
 )
-
 from pydantic import ValidationError
 from sendmail import Sendmail
 from models import db, User, Preferences, UserStatus, Food, Recipe, Ingredient, DailyLogItem
 from schemas import (
-    RegistrationRequest, ResendConfirmationRequest, LoginRequest,
+    RegistrationRequest, ResendConfirmationRequest, LoginRequest, SocialLoginRequest, SocialIdentityClaims,
     FoodRequest, RecipeRequest,
     DailyLogItemRequest, DailyLogItemUpdateRequest, PreferencesRequest
 )
 from crypto import Crypto
 from data import Data
 from sqlalchemy.sql import text
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
+from google.oauth2 import id_token as google_id_token
+from google.auth.transport import requests as grequests
+import requests as req
 
 
-def _required_string(mapping: dict[str, Any], key: str) -> str:
-    value = mapping.get(key)
-    if not isinstance(value, str):
-        raise ValueError(f"Missing {key}")
+RESET_TOKEN_EXPIRATION_SECONDS = 900  # 15 minutes
 
-    normalized = value.strip()
-    if not normalized:
-        raise ValueError(f"Missing {key}")
-
-    return normalized
+bp = Blueprint("auth", __name__)
 
 
-def _optional_string(mapping: dict[str, Any], key: str) -> str | None:
-    value = mapping.get(key)
-    if not isinstance(value, str):
-        return None
+##############################
+# CUSTOM EXCEPTIONS
+##############################
+class ExpiredToken(Exception):
+    pass
+class InvalidToken(Exception):
+    pass
+class UserAlreadyConfirmed(Exception):
+    pass
+class EmailDeliveryFailed(Exception):
+    pass
 
-    normalized = value.strip()
-    return normalized or None
 
-# Social login token verification helpers (imported lazily to avoid hard failures
-# if optional packages are missing in dev; errors surface at call time instead)
+##############################
+# CUSTOM DECORATORS
+##############################
+F = TypeVar("F", bound=Callable[..., Any])
+R = TypeVar("R")
+P = ParamSpec("P")
+
+def admin_required(f: F) -> F:
+    @wraps(f)
+    def decorated(*args: Any, **kwargs: Any) -> Any:
+        verify_jwt_in_request()
+        claims = cast(dict[str, Any], get_jwt())
+        if not bool(claims.get("is_admin", False)):
+            abort(403)
+        return f(*args, **kwargs)
+    return cast(F, decorated)
+
+
+def log_route(f: F) -> F:
+    @wraps(f)
+    def decorated(*args: Any, **kwargs: Any) -> Any:
+        logging.info(f"{request.path} [{request.method}]")
+        return f(*args, **kwargs)
+    return cast(F, decorated)
+
+
+limiter = cast(Any, Limiter(key_func=get_remote_address))
+
+def rate_limited(limit_value: str) -> Callable[[Callable[P, R]], Callable[P, R]]:
+    """
+    Typed wrapper around slowapi's untyped limiter decorator.
+    """
+    return cast(Callable[[Callable[P, R]], Callable[P, R]], limiter.limit(limit_value))
+
+
+##############################
+# MESSAGE FORMATTER
+##############################
+def _format_validation_error_message(error: ValidationError) -> str:
+    """Build a concise, user-facing message from Pydantic validation errors."""
+    details: list[str] = []
+    for err in error.errors(include_context=False):
+        loc = err["loc"]
+        field = ".".join(str(part) for part in loc) if loc else "field"
+
+        message = str(err.get("msg", "Invalid value"))
+        details.append(f"{field}: {message}")
+
+    if not details:
+        return "Invalid request"
+
+    return "Invalid request: " + "; ".join(details)
+
+
+def _confirmation_redirect_url(status: str) -> str:
+    base_url = os.environ.get("MOBILE_CONFIRM_REDIRECT_URL", "trackeats://confirm").rstrip("?&")
+    separator = "&" if "?" in base_url else "?"
+    return f"{base_url}{separator}status={status}"
+
+
+##############################
+# HEALTH
+##############################
+@bp.route("/api/health", methods = ["GET"])
+#@log_route
+def health():
+    """
+    Check the app's health.
+    """
+    try:
+        with db.session.begin():
+            db.session.execute(text("SELECT 1"))
+    except Exception as e:
+        msg = "Health check failed: " + str(e)
+        logging.error(msg)
+        return {"msg": msg}, 500
+    else:
+        msg = "Server OK"
+        #logging.info(msg)
+        return {"msg": msg}, 200
+
+
+##############################
+# EMAIL
+##############################
+@bp.route("/api/sendmail", methods=["GET"])
+@admin_required
+@log_route
+def sendmail():
+    """
+    SENDMAIL (Admin only) - Sends a test email to the specified user.  This is used 
+    exclusively for testing that the app's email mechanism works.
+    """
+    username = None
+    email_addr = None
+    token = None
+    try:
+        # Get request parameters from URL
+        username = request.args.get("username")
+        if username is None:
+            raise ValueError("Missing required parameter 'username'")
+
+        email_addr = request.args.get("addr")
+        if email_addr is None:
+            raise ValueError("Missing required parameter 'addr'")
+
+        # Generate an auth token
+        token = Crypto.generate_url_token(32)
+
+        # Send the confirmation email.
+        Sendmail.send_confirmation_email(username, token, email_addr)
+    except Exception as e:
+        if email_addr:
+            msg = f"Couldn't send email to {email_addr}: {str(e)}"
+        else:
+            msg = f"Couldn't send email: {str(e)}"
+        logging.error(msg)
+        return jsonify({"msg": msg}), 400
+    else:
+        msg = f"Email sent successfully to {email_addr}."
+        logging.info(msg)
+        return jsonify({"msg": msg}), 200
+
+
+def verify_turnstile(token: str, ip: str) -> bool:
+    res = req.post(
+        "https://challenges.cloudflare.com/turnstile/v1/siteverify",
+        data={
+            "secret": os.environ.get("TURNSTILE_SECRET_KEY"),
+            "response": token,
+            "remoteip": ip,
+        },
+    )
+    return res.json().get("success", False)
+
+
+@bp.route("/api/contact", methods=["POST"])
+@rate_limited("3/hour")
+def contact():
+    """
+    CONTACT - Send an email to admin
+    """
+    #data = request.get_json()
+    return jsonify({"msg": "test"}), 200
+
+
+##############################
+# DATABASE ADMIN ACTIONS
+##############################
+@bp.route("/api/db/init", methods=["GET"])
+@admin_required
+@log_route
+def db_init():
+    """
+    INIT (Admin only) - Wipe the database and recreate all the tables using the ORM classes in 
+    models.py.  Note that the tables will be EMPTY!
+    """
+    try:
+        with db.session.begin():
+            override_str = str(request.args.get("override", "false"))
+            override = override_str.lower() == 'true'
+
+            Data.init_db(override)
+    except Exception as e:
+        msg = "Initialization failed: " + str(e)
+        logging.error(msg)
+        return {"msg": msg}, 500
+    else:
+        msg = "Initialization complete"
+        logging.info(msg)
+        return {"msg": msg}, 200
+
+
+@bp.route("/api/db/purge", methods=["GET"])
+@admin_required
+@log_route
+def db_purge():
+    """
+    PURGE (Admin only) - Delete all data for a specified user
+    """
+    try:
+        with db.session.begin():
+            username = request.args.get("username")
+            if not username:
+                raise ValueError("Missing required parameter 'username'")
+
+            user_id = User.get_id(username)
+            if not user_id:
+                raise ValueError(f"Could not retrieve user record for username '{username}'")
+
+            for_user_id_str = request.args.get("for_user_id")
+            for_user_id = int(for_user_id_str) if for_user_id_str else None
+
+            Data.purge_data(user_id, for_user_id)
+    except Exception as e:
+        msg = "Data purge failed: " + str(e)
+        logging.error(msg)
+        return {"msg": msg}, 500
+    else:
+        msg = "Data purge complete"
+        logging.info(msg)
+        return {"msg": msg}, 200
+
+
+@bp.route("/api/db/load", methods=["GET"])
+@admin_required
+@log_route
+def db_load():
+    """
+    LOAD (Admin only) - Populate the (presumably newly created) database with test data.
+    Be aware that this API first deletes the contents of tables it populates!
+    """
+    try:
+        with db.session.begin():
+            username = request.args.get("username")
+            if not username:
+                raise ValueError("Missing required parameter 'username'")
+
+            user_id = User.get_id(username)
+            if not user_id:
+                raise ValueError(f"Could not retrieve user record for username '{username}'")
+        
+            Data.load(user_id)
+    except Exception as e:
+        msg = "Data load failed: " + str(e)
+        logging.error(msg)
+        return {"msg": msg}, 500
+    else:
+        msg = "Data load complete"
+        logging.info(msg)
+        return {"msg": msg}, 200
+
+
+@bp.route("/api/db/export", methods=["GET"])
+@admin_required
+@log_route
+def db_export():
+    """
+    EXPORT (Admin only) - Export selected data to JSON files for long-term storage
+    and reloading purposes.
+    """
+    try:
+        with db.session.begin():
+            username = request.args.get("username")
+            if not username:
+                raise ValueError("Missing required parameter 'username'")
+
+            user_id = User.get_id(username)
+            if not user_id:
+                raise ValueError(f"Could not retrieve user record for username '{username}'")
+
+            Data.export(user_id)
+    except Exception as e:
+        msg = "Data export failed: " + str(e)
+        logging.error(msg)
+        return {"msg": msg}, 500
+    else:
+        msg = "Data export complete"
+        logging.info(msg)
+        return {"msg": msg}, 200
+
+
+##############################
+# REGISTRATION ^& LOGIN
+##############################
 def _verify_google_token(token: str, platform: str) -> dict[str, Any]:
     """
     Verify a Google token and return identity claims.
@@ -78,9 +343,6 @@ def _verify_google_token(token: str, platform: str) -> dict[str, Any]:
     is_id_token = token.count('.') == 2
 
     if is_id_token:
-        from google.oauth2 import id_token as google_id_token
-        from google.auth.transport import requests as grequests
-
         verified = cast(Any, google_id_token).verify_oauth2_token(
             token,
             cast(Any, grequests).Request(),
@@ -192,313 +454,7 @@ def _verify_apple_token(identity_token: str) -> dict[str, Any]:
     )
     return cast(dict[str, Any], payload)
 
-bp = Blueprint("auth", __name__)
 
-RESET_TOKEN_EXPIRATION_SECONDS = 900  # 15 minutes
-
-
-##############################
-# CUSTOM EXCEPTIONS
-##############################
-class ExpiredToken(Exception):
-    pass
-class InvalidToken(Exception):
-    pass
-class UserAlreadyConfirmed(Exception):
-    pass
-class EmailDeliveryFailed(Exception):
-    pass
-
-
-##############################
-# CUSTOM DECORATORS
-##############################
-F = TypeVar("F", bound=Callable[..., Any])
-
-def admin_required(f: F) -> F:
-    @wraps(f)
-    def decorated(*args: Any, **kwargs: Any) -> Any:
-        verify_jwt_in_request()
-        claims = cast(dict[str, Any], get_jwt())
-        if not bool(claims.get("is_admin", False)):
-            abort(403)
-        return f(*args, **kwargs)
-
-    return cast(F, decorated)
-
-
-def log_route(f: F) -> F:
-    @wraps(f)
-    def decorated(*args: Any, **kwargs: Any) -> Any:
-        logging.info(f"{request.path} [{request.method}]")
-        return f(*args, **kwargs)
-
-    return cast(F, decorated)
-
-
-##############################
-# MESSAGE FORMATTER
-##############################
-def _format_validation_error_message(error: ValidationError) -> str:
-    """Build a concise, user-facing message from Pydantic validation errors."""
-    details: list[str] = []
-    for err in error.errors(include_context=False):
-        loc = err["loc"]
-        field = ".".join(str(part) for part in loc) if loc else "field"
-
-        message = str(err.get("msg", "Invalid value"))
-        details.append(f"{field}: {message}")
-
-    if not details:
-        return "Invalid request"
-
-    return "Invalid request: " + "; ".join(details)
-
-
-##############################
-# HEALTH
-##############################
-@bp.route("/api/health", methods = ["GET"])
-#@log_route
-def health():
-    """
-    Check the app's health.
-    """
-    try:
-        with db.session.begin():
-            db.session.execute(text("SELECT 1"))
-    except Exception as e:
-        msg = "Health check failed: " + str(e)
-        logging.error(msg)
-        return {"msg": msg}, 500
-    else:
-        msg = "Server OK"
-        #logging.info(msg)
-        return {"msg": msg}, 200
-
-
-##############################
-# ADMIN-ONLY ACTIONS
-##############################
-@bp.route("/api/db/init", methods=["GET"])
-@admin_required
-@log_route
-def db_init():
-    """
-    INIT - Wipe the database and recreate all the tables using the ORM classes in 
-    models.py.  Note that the tables will be EMPTY!
-    """
-    try:
-        with db.session.begin():
-            override_str = str(request.args.get("override", "false"))
-            override = override_str.lower() == 'true'
-
-            Data.init_db(override)
-    except Exception as e:
-        msg = "Initialization failed: " + str(e)
-        logging.error(msg)
-        return {"msg": msg}, 500
-    else:
-        msg = "Initialization complete"
-        logging.info(msg)
-        return {"msg": msg}, 200
-
-
-@bp.route("/api/db/purge", methods=["GET"])
-@admin_required
-@log_route
-def db_purge():
-    """
-    PURGE - Delete all data for a specified user
-    """
-    try:
-        with db.session.begin():
-            username = request.args.get("username")
-            if not username:
-                raise ValueError("Missing required parameter 'username'")
-
-            user_id = User.get_id(username)
-            if not user_id:
-                raise ValueError(f"Could not retrieve user record for username '{username}'")
-
-            for_user_id_str = request.args.get("for_user_id")
-            for_user_id = int(for_user_id_str) if for_user_id_str else None
-
-            Data.purge_data(user_id, for_user_id)
-    except Exception as e:
-        msg = "Data purge failed: " + str(e)
-        logging.error(msg)
-        return {"msg": msg}, 500
-    else:
-        msg = "Data purge complete"
-        logging.info(msg)
-        return {"msg": msg}, 200
-
-
-@bp.route("/api/db/load", methods=["GET"])
-@admin_required
-@log_route
-def db_load():
-    """
-    LOAD - Populate the (presumably newly created) database with test data.
-    Be aware that this API first deletes the contents of tables it populates!
-    """
-    try:
-        with db.session.begin():
-            username = request.args.get("username")
-            if not username:
-                raise ValueError("Missing required parameter 'username'")
-
-            user_id = User.get_id(username)
-            if not user_id:
-                raise ValueError(f"Could not retrieve user record for username '{username}'")
-        
-            Data.load(user_id)
-    except Exception as e:
-        msg = "Data load failed: " + str(e)
-        logging.error(msg)
-        return {"msg": msg}, 500
-    else:
-        msg = "Data load complete"
-        logging.info(msg)
-        return {"msg": msg}, 200
-
-
-@bp.route("/api/db/export", methods=["GET"])
-@admin_required
-@log_route
-def db_export():
-    """
-    EXPORT - Export selected data to JSON files for long-term storage and reloading purposes.
-    """
-    try:
-        with db.session.begin():
-            username = request.args.get("username")
-            if not username:
-                raise ValueError("Missing required parameter 'username'")
-
-            user_id = User.get_id(username)
-            if not user_id:
-                raise ValueError(f"Could not retrieve user record for username '{username}'")
-
-            Data.export(user_id)
-    except Exception as e:
-        msg = "Data export failed: " + str(e)
-        logging.error(msg)
-        return {"msg": msg}, 500
-    else:
-        msg = "Data export complete"
-        logging.info(msg)
-        return {"msg": msg}, 200
-
-
-@bp.route("/api/sendmail", methods=["GET"])
-@admin_required
-@log_route
-def sendmail():
-    """
-    SENDMAIL - Sends a test email to the specified user.  This is used exclusively for testing
-    that the app's email mechanism works.
-    """
-    username = None
-    email_addr = None
-    token = None
-    try:
-        # Get request parameters from URL
-        username = request.args.get("username")
-        if username is None:
-            raise ValueError("Missing required parameter 'username'")
-
-        email_addr = request.args.get("addr")
-        if email_addr is None:
-            raise ValueError("Missing required parameter 'addr'")
-
-        # Generate an auth token
-        token = Crypto.generate_url_token(32)
-
-        # Send the confirmation email.
-        Sendmail.send_confirmation_email(username, token, email_addr)
-    except Exception as e:
-        if email_addr:
-            msg = f"Couldn't send email to {email_addr}: {str(e)}"
-        else:
-            msg = f"Couldn't send email: {str(e)}"
-        logging.error(msg)
-        return jsonify({"msg": msg}), 400
-    else:
-        msg = f"Email sent successfully to {email_addr}."
-        logging.info(msg)
-        return jsonify({"msg": msg}), 200
-
-
-@bp.route("/api/user", methods = ["DELETE"])
-@jwt_required()
-@log_route
-def delete_user():
-    """
-    Delete a user and ALL THEIR DATA
-    """
-    try:
-        with db.session.begin():
-            # Get the user_id for the user identified by the token
-            email = get_jwt_identity()
-            user_dao = User.get_by_email(email)
-            if not user_dao:
-                raise ValueError(f"Could not retrieve user record for email '{email}'")
-            user_id = user_dao.id
-
-            if user_dao.username in ("guest", "admin", "testuser"):
-                raise ValueError("Nice try, but this account may not be deleted.")
-            
-            Recipe.delete_all_for_user(user_id)
-            Food.delete_all_for_user(user_id)
-            db.session.delete(user_dao)
-
-    except Exception as e:
-        msg = f"User deletion failed: {str(e)}"
-        logging.error(msg)
-        return jsonify({"msg": msg}), 500
-    else:
-        msg = f"User record deleted for user {user_id} '{email}'"
-        logging.info(msg)
-        return jsonify({"msg": msg}), 200
-
-
-@bp.route("/api/user/<string:username>", methods = ["DELETE"])
-@admin_required
-@log_route
-def admin_delete_user(username: str):
-    """
-    Admin: Delete any user account and ALL THEIR DATA by username.
-    The same protected usernames that prevent self-deletion apply here.
-    """
-    try:
-        with db.session.begin():
-            if username in ("guest", "admin", "testuser"):
-                raise ValueError(f"The account '{username}' may not be deleted.")
-
-            user_dao = User.get(username)
-            if not user_dao:
-                raise ValueError(f"Could not retrieve user record for username '{username}'")
-            user_id = user_dao.id
-
-            Recipe.delete_all_for_user(user_id)
-            Food.delete_all_for_user(user_id)
-            db.session.delete(user_dao)
-
-    except Exception as e:
-        msg = f"User deletion failed: {str(e)}"
-        logging.error(msg)
-        return jsonify({"msg": msg}), 500
-    else:
-        msg = f"Admin deleted user {user_id} '{username}'"
-        logging.info(msg)
-        return jsonify({"msg": msg}), 200
-
-
-##############################
-# REGISTRATION & LOGIN
-##############################
 @bp.route("/api/register", methods=["POST"])
 @log_route
 def register():
@@ -520,6 +476,7 @@ def register():
             password = reg_data.password
             email_addr = reg_data.email
             seed_requested = reg_data.seed_requested
+            source = reg_data.source
 
             # Ensure no user with this email already exists
             # UPDATE: This check is already performed in User.add
@@ -541,7 +498,7 @@ def register():
             logging.info(f"New user added to database: {username} at {email_addr}")
 
             # Send the confirmation email
-            error_msg = Sendmail.send_confirmation_email(username, token, email_addr)
+            error_msg = Sendmail.send_confirmation_email(username, token, email_addr, source)
             if error_msg is not None:
                 raise RuntimeError(f"Couldn't send email to {email_addr}: {error_msg}.")
             else:
@@ -701,6 +658,10 @@ def confirm():
         msg = f"User {email_addr} confirmed"
         return_data: dict[str,Any] = { "username": user.username, "msg": msg }
         logging.info(msg)
+        if request.args.get("source") == "mobile":
+            redirect_url = _confirmation_redirect_url("confirmed")
+            logging.info(f"Redirecting confirmed mobile registration to {redirect_url}")
+            return redirect(redirect_url, code=302)
         return jsonify(return_data), 200
 
 
@@ -778,52 +739,40 @@ def social_login():
         "name":     "Jane Smith"
       }
     """
-    body: dict[str, Any] = {}
+    provider_for_log = "unknown"
 
     try:
         with db.session.begin():
             if not request.is_json:
                 raise ValueError("Invalid request - not JSON")
 
-            raw_body = request.get_json(silent=False)
-            if not isinstance(raw_body, dict):
-                raise ValueError("Invalid request body")
-
-            typed_raw_body = cast(dict[Any, Any], raw_body)
-            body = {}
-            for raw_key, raw_value in typed_raw_body.items():
-                body[str(raw_key)] = raw_value
-
-            provider = _required_string(body, "provider").lower()
-            token = _required_string(body, "token")
-
-            if provider not in ("google", "facebook", "apple"):
-                raise ValueError(f"Unsupported provider: {provider!r}")
-
-            raw_seed_requested = body.get("seed_requested", False)
-            if isinstance(raw_seed_requested, bool):
-                seed_requested = raw_seed_requested
-            else:
-                raise ValueError("seed_requested must be a boolean")
+            social_data = SocialLoginRequest.model_validate(request.json)
+            provider = social_data.provider
+            provider_for_log = provider
+            token = social_data.token
+            seed_requested = social_data.seed_requested
 
             # Verify the token with the provider and extract identity claims
             if provider == "google":
-                platform = _required_string(body, "platform")
+                platform = cast(str, social_data.platform)
                 claims = _verify_google_token(token, platform)
-                oauth_id = _required_string(claims, "sub")
-                email = _optional_string(claims, "email")
-                display_name = _optional_string(claims, "name")
+                typed_claims = SocialIdentityClaims.model_validate(claims)
+                oauth_id = typed_claims.sub
+                email = typed_claims.email
+                display_name = typed_claims.name
             elif provider == "facebook":
                 claims = _verify_facebook_token(token)
-                oauth_id = _required_string(claims, "sub")
-                email = _optional_string(claims, "email")
-                display_name = _optional_string(claims, "name")
+                typed_claims = SocialIdentityClaims.model_validate(claims)
+                oauth_id = typed_claims.sub
+                email = typed_claims.email
+                display_name = typed_claims.name
             else:  # apple
                 claims = _verify_apple_token(token)
-                oauth_id = _required_string(claims, "sub")
-                email = _optional_string(claims, "email")
+                typed_claims = SocialIdentityClaims.model_validate(claims)
+                oauth_id = typed_claims.sub
+                email = typed_claims.email
                 # Apple only sends name on the very first sign-in; the client forwards it
-                display_name = _optional_string(body, "name")
+                display_name = social_data.name
 
             # Find or create a user for this OAuth identity
             user = User.get_or_create_oauth_user(
@@ -851,9 +800,13 @@ def social_login():
                 additional_claims={"is_admin": user.username == Data.ADMIN_USER_NAME}
             )
 
+    except ValidationError as e:
+        msg = _format_validation_error_message(e)
+        logging.error(f"Social login validation failed for provider={provider_for_log}: {msg}")
+        return jsonify({"msg": msg, "errors": e.errors(include_context=False)}), 422
     except Exception as e:
         msg = str(e)
-        logging.error(f"Social login failed for provider={body.get('provider')}: {msg}")
+        logging.error(f"Social login failed for provider={provider_for_log}: {msg}")
         return jsonify({"msg": msg}), 401
     else:
         logging.info(f"Social login succeeded: provider={provider}, oauth_id={oauth_id}, user={user.id}")
@@ -997,7 +950,7 @@ def change_password():
 @log_route
 def get_users():
     """
-    Return the list of all Users
+    GET ALL USERS - Return the list of all Users
     """
     users: list[Any] = []
     try:
@@ -1025,7 +978,7 @@ def get_users():
 @log_route
 def get_user(username: str):
     """
-    Get a particular User
+    GET USER - Get a particular User by username
     """
     try:
         with db.session.begin():
@@ -1040,6 +993,71 @@ def get_user(username: str):
         msg = f"User record retrieved for {username}"
         logging.info(user_dao)
         return jsonify(user_dao.json()), 200
+
+
+@bp.route("/api/user", methods = ["DELETE"])
+@jwt_required()
+@log_route
+def delete_user():
+    """
+    DELETE SELF - Delete the User's own account and ALL THEIR DATA
+    """
+    try:
+        with db.session.begin():
+            # Get the user_id for the user identified by the token
+            email = get_jwt_identity()
+            user_dao = User.get_by_email(email)
+            if not user_dao:
+                raise ValueError(f"Could not retrieve user record for email '{email}'")
+            user_id = user_dao.id
+
+            if user_dao.username in ("guest", "admin", "testuser"):
+                raise ValueError(f"The account '{user_dao.username}' may not be deleted.")
+            
+            Recipe.delete_all_for_user(user_id)
+            Food.delete_all_for_user(user_id)
+            db.session.delete(user_dao)
+
+    except Exception as e:
+        msg = f"User deletion failed: {str(e)}"
+        logging.error(msg)
+        return jsonify({"msg": msg}), 500
+    else:
+        msg = f"User record deleted for user {user_id} '{email}'"
+        logging.info(msg)
+        return jsonify({"msg": msg}), 200
+
+
+@bp.route("/api/user/<string:username>", methods = ["DELETE"])
+@admin_required
+@log_route
+def admin_delete_user(username: str):
+    """
+    DELETE USER (Admin only) - Delete any user account and ALL THEIR DATA by username.
+    The same protected usernames prohibited from self-deletion apply here.
+    """
+    try:
+        with db.session.begin():
+            if username in ("guest", "admin", "testuser"):
+                raise ValueError(f"The account '{username}' may not be deleted.")
+
+            user_dao = User.get(username)
+            if not user_dao:
+                raise ValueError(f"Could not retrieve user record for username '{username}'")
+            user_id = user_dao.id
+
+            Recipe.delete_all_for_user(user_id)
+            Food.delete_all_for_user(user_id)
+            db.session.delete(user_dao)
+
+    except Exception as e:
+        msg = f"User deletion failed: {str(e)}"
+        logging.error(msg)
+        return jsonify({"msg": msg}), 500
+    else:
+        msg = f"Admin deleted user {user_id} '{username}'"
+        logging.info(msg)
+        return jsonify({"msg": msg}), 200
 
 
 ##############################

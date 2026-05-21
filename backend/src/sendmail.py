@@ -86,16 +86,19 @@ RESET_EMAIL_TEMPLATE_HTML = (
 
 class Sendmail:
     @staticmethod
-    def send_confirmation_email(username: str, token:str, email_address: str) -> None:
+    def send_confirmation_email(username: str, token: str, email_address: str, source: str = "web") -> None:
         """
         Send an email to a user to verify their email address.
         """
-        # Create the link they'll use to confirm.
-        #base_url = os.environ.get("BACKEND_BASE_URL")
-        base_url = os.environ.get("MOBILE_DEEP_LINK_BASE_URL") or os.environ.get("FRONTEND_BASE_URL")
-        #link = f"{base_url}/confirm?username={username}&token={token}"
-        link = f"{base_url}/confirm?token={token}"
-        #logging.info(link)
+        link_base_url = os.environ.get("CONFIRM_LINK_BASE_URL") or os.environ.get("BACKEND_BASE_URL")
+        if not link_base_url:
+            raise ValueError("CONFIRM_LINK_BASE_URL or BACKEND_BASE_URL must be configured")
+
+        link_base_url = link_base_url.rstrip("/")
+        link = f"{link_base_url}/api/confirm?token={token}"
+        if source == "mobile":
+            link = f"{link}&source=mobile"
+
         email_body_text = VERIFY_EMAIL_TEMPLATE_TEXT.format(link=link)
         email_body_html = VERIFY_EMAIL_TEMPLATE_HTML.format(link=link)
         #logging.info("email_body_text: " + email_body_text)
@@ -109,7 +112,10 @@ class Sendmail:
         """
         Send an email to the user to reset their password
         """
-        base_url = os.environ.get("MOBILE_DEEP_LINK_BASE_URL") or os.environ.get("FRONTEND_BASE_URL")
+        base_url = os.environ.get("FRONTEND_BASE_URL")
+        if not base_url:
+            raise ValueError("FRONTEND_BASE_URL must be configured")
+        base_url = base_url.rstrip("/")
         link = f"{base_url}/reset_password?token={token}"
 
         email_body_text = RESET_EMAIL_TEMPLATE_TEXT.format(link=link, support_email_addr=EMAIL_SENDER_ADDRESS)

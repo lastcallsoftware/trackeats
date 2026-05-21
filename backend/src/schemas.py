@@ -11,7 +11,7 @@ Each schema is used to validate request.json before passing to the model layer.
 """
 
 from datetime import datetime
-from typing import Any, TypeVar
+from typing import Any, Literal, TypeVar
 from pydantic import BaseModel, field_validator, model_validator, EmailStr, Field
 
 
@@ -27,6 +27,7 @@ class RegistrationRequest(BaseModel):
     password: str
     email: EmailStr
     seed_requested: bool = False
+    source: Literal["web", "mobile"] = "web"
 
     @field_validator("username")
     @classmethod
@@ -63,6 +64,60 @@ class LoginRequest(BaseModel):
     """Validate a login request."""
     email: str
     password: str
+
+
+class SocialLoginRequest(BaseModel):
+    """Validate a social login request payload."""
+    provider: Literal["google", "facebook", "apple"]
+    token: str
+    platform: Literal["web", "android", "ios", "expo"] | None = None
+    name: str | None = None
+    seed_requested: bool = False
+
+    @field_validator("token")
+    @classmethod
+    def validate_token(cls, v: str) -> str:
+        normalized = v.strip()
+        if not normalized:
+            raise ValueError("token cannot be empty")
+        return normalized
+
+    @field_validator("name")
+    @classmethod
+    def validate_name(cls, v: str | None) -> str | None:
+        if v is None:
+            return None
+        normalized = v.strip()
+        return normalized or None
+
+    @model_validator(mode="after")
+    def validate_google_platform(self) -> "SocialLoginRequest":
+        if self.provider == "google" and self.platform is None:
+            raise ValueError("platform is required for provider 'google'")
+        return self
+
+
+class SocialIdentityClaims(BaseModel):
+    """Normalized identity claims extracted from provider token verification."""
+    sub: str
+    email: str | None = None
+    name: str | None = None
+
+    @field_validator("sub")
+    @classmethod
+    def validate_sub(cls, v: str) -> str:
+        normalized = v.strip()
+        if not normalized:
+            raise ValueError("sub cannot be empty")
+        return normalized
+
+    @field_validator("email", "name")
+    @classmethod
+    def normalize_optional_string(cls, v: str | None) -> str | None:
+        if v is None:
+            return None
+        normalized = v.strip()
+        return normalized or None
 
 
 ##############################

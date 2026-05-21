@@ -79,7 +79,7 @@ def test_register_success(client: FlaskClient, monkeypatch: pytest.MonkeyPatch) 
     def _add_user(payload: dict[str, Any]) -> SimpleNamespace:
         return created_user
 
-    def _send_confirmation(username: str, token: str, email: str) -> None:
+    def _send_confirmation(username: str, token: str, email: str, source: str = "web") -> None:
         return None
 
     monkeypatch.setattr(routes.Crypto, "generate_url_token", staticmethod(_token))
@@ -99,6 +99,41 @@ def test_register_success(client: FlaskClient, monkeypatch: pytest.MonkeyPatch) 
     assert resp.status_code == 200
     assert "User newuser registered" in resp.get_json()["msg"]
     assert created_user.confirmation_email_sent_at is not None
+
+
+def test_register_mobile_source_is_passed_to_confirmation_email(client: FlaskClient, monkeypatch: pytest.MonkeyPatch) -> None:
+    _mock_session(monkeypatch)
+
+    created_user = SimpleNamespace(username="newuser", confirmation_email_sent_at=None)
+
+    def _token() -> str:
+        return "token-123"
+
+    def _add_user(payload: dict[str, Any]) -> SimpleNamespace:
+        return created_user
+
+    captured: dict[str, str] = {}
+
+    def _send_confirmation(username: str, token: str, email: str, source: str = "web") -> None:
+        captured["source"] = source
+
+    monkeypatch.setattr(routes.Crypto, "generate_url_token", staticmethod(_token))
+    monkeypatch.setattr(routes.User, "add", staticmethod(_add_user))
+    monkeypatch.setattr(routes.Sendmail, "send_confirmation_email", staticmethod(_send_confirmation))
+
+    resp = client.post(
+        "/api/register",
+        json={
+            "username": "newuser",
+            "password": "password12345",
+            "email": "newuser@example.com",
+            "seed_requested": False,
+            "source": "mobile",
+        },
+    )
+
+    assert resp.status_code == 200
+    assert captured["source"] == "mobile"
 
 
 def test_resend_confirmation_success(client: FlaskClient, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -287,3 +322,31 @@ def test_confirm_success_sets_status_confirmed(client: FlaskClient, monkeypatch:
     assert resp.status_code == 200
     assert user.status == routes.UserStatus.confirmed
     assert "confirmed" in resp.get_json()["msg"]
+
+
+def test_confirm_mobile_source_redirects_to_app_after_confirmation(client: FlaskClient, monkeypatch: pytest.MonkeyPatch) -> None:
+    _mock_session(monkeypatch)
+    monkeypatch.setenv("MOBILE_CONFIRM_REDIRECT_URL", "trackeats://confirm")
+
+    user = SimpleNamespace(
+        username="user1",
+        encrypted_email_addr=b"encrypted_email",
+        confirmation_token="abc",
+        confirmation_email_sent_at=datetime.now() - timedelta(minutes=5),
+        status=None,
+    )
+
+    def _get_by_confirmation_token(token: str) -> SimpleNamespace:
+        return user
+
+    def _decrypt(data: bytes) -> str:
+        return "user1@example.com"
+
+    monkeypatch.setattr(routes.User, "get_by_confirmation_token", staticmethod(_get_by_confirmation_token))
+    monkeypatch.setattr(routes.Crypto, "decrypt", staticmethod(_decrypt))
+
+    resp = client.get("/api/confirm?token=abc&source=mobile")
+
+    assert resp.status_code == 302
+    assert user.status == routes.UserStatus.confirmed
+    assert resp.headers["Location"] == "trackeats://confirm?status=confirmed"

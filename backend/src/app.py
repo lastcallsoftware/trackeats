@@ -9,7 +9,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from waitress import serve
 from models import db
 from dotenv import load_dotenv
-from routes import bp
+from routes import bp, limiter
 import logging
 from crypto import Crypto
 from data import Data
@@ -155,6 +155,18 @@ def additional_app_config(app: Flask):
     # EVERYTHING.  This isn't secure, obviously, but I'll take my chances!
     #TODO: fix this!
     CORS(app, expose_headers=["Location"])
+
+    # RATE LIMITING
+    # -------------
+    # This sets up the Flask-Limiter "rate limiter", which prevents malignant callers from 
+    # spamming backend APIs not protected by JWT tokens.  In the route definitions, a custom
+    # decorator is defined which can be applied to any route API with a maximum rate per IP 
+    # addrss of the caller (e.g., "3/hour").
+    rate_limit_storage_uri = os.environ.get("RATELIMIT_STORAGE_URI")
+    if rate_limit_storage_uri:
+        app.config["RATELIMIT_STORAGE_URI"] = rate_limit_storage_uri
+
+    limiter.init_app(app)
 
 
 def verify_database_connection(app: Flask):

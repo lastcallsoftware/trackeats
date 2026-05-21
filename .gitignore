@@ -38,6 +38,9 @@ __pycache__
 *.key
 certs/
 
+# Mobile builds
+mobile/builds/
+
 # ---- backend-java / Java & IDE ----
 HELP.md
 application.properties
