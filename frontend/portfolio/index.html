@@ -27,13 +27,11 @@
     <!-- Main CSS File -->
     <link href="assets/css/main.css" rel="stylesheet">
 
-    <!-- =======================================================
-    * Template Name: iPortfolio
-    * Template URL: https://bootstrapmade.com/iportfolio-bootstrap-portfolio-websites-template/
-    * Updated: Jun 29 2024 with Bootstrap v5.3.3
-    * Author: BootstrapMade.com
-    * License: https://bootstrapmade.com/license/
-    ======================================================== -->
+    <meta name="backend-base-url" content="">
+
+    <!-- Cluodflare Turnstile setup -->
+    <link rel="preconnect" href="https://challenges.cloudflare.com" />
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" defer></script>
 </head>
 
 <body class="index-page">
@@ -46,8 +44,6 @@
         </div>
 
         <a href="index.html" class="logo d-flex align-items-center justify-content-center">
-            <!-- Uncomment the line below if you also wish to use an image logo -->
-            <!-- <img src="assets/img/logo.png" alt=""> -->
             <h1 class="sitename">Paul Holmes</h1>
         </a>
 
@@ -63,7 +59,7 @@
                 <li><a href="#about"><i class="bi bi-person navicon"></i> About Me</a></li>
                 <li><a href="#resume"><i class="bi bi-file-earmark-text navicon"></i> Resume</a></li>
                 <li><a href="#portfolio"><i class="bi bi-images navicon"></i> Portfolio</a></li>
-                <!--<li><a href="#contact"><i class="bi bi-envelope navicon"></i> Contact</a></li>-->
+                <li><a href="#contact"><i class="bi bi-envelope navicon"></i> Contact</a></li>
             </ul>
         </nav>
 
@@ -93,16 +89,17 @@
                     I've been passionate about programming since I was 12 and have worked
                     professionally as a software engineer for over 25 years.  I've always loved 
                     solving puzzles, and for me, programming has always felt like that -- recognizing
-                    patterns, realizing the proper solution, and composing many simple pieces into a
-                    complex system.  When people think of creative disciplines, they usually picture 
-                    musicians, artists, or writers -- not programmers.  But building a quality
-                    application demands as much imagination as technical skill.  
+                    patterns, realizing the proper approach, and composing many simple pieces into a
+                    single complex yet elegant solution.  When people think of creative disciplines,
+                    they usually picture musicians, artists, or writers -- not programmers.  But 
+                    building a quality application demands as much imagination as technical skill.  
                 </p>
                 <br>
                 <p>
-                    After a period of personal exploration and renewal -- including learning many
-                    new skills, earning professional certifications, and developing a new portfolio app --
-                    I'm excited to return to the field with fresh perspective and renewed focus.
+                    After a period of personal exploration and renewal -- including the completion of
+                    an Ivy League degree in AI, learning many new skills, earning professional 
+                    certifications, and developing a new portfolio app -- I'm excited to return to the
+                    field with fresh perspective and renewed focus.
                 </p>
                 <br/>
             </div>
@@ -114,20 +111,20 @@
                     </div>
                     <div class="col-lg-8 content">
                         <h2>Why You Need Me</h2>
-                        <p>AI has revolutionized the software development landscape, and will continue to do so
-                            for the forserable future.  Like many other tools of past eras, it has enabled one
-                            person to do the work of many.
+                        <p>AI has revolutionized the software development landscape, and will continue 
+                            to do so for the forserable future.  Like many other tools of past eras, 
+                            it has enabled one person to do the work of many.
                         </p>
-                        <p>But also like any tool, you still need someone to wield it.  At least today, you 
-                            can't simply tell an AI to create an app for you, and then come back the next day
-                            and expect to find anything remotely usable.  Anyone who tells you otherwise is 
-                            trying to sell something.  The stories I could tell you about some of the ways 
-                            even top-tier AIs have responded to fairly straightforward requests would make for
-                            a pretty good comedy series.
+                        <p>But also like any tool, you still need someone to wield it.  You can't simply 
+                            tell an AI to create an app for you and expect it to build anything remotely 
+                            usable.  Anyone who claims otherwise is trying to sell something.  The stories
+                            I could tell about some of the ways even top-tier AIs have responded to fairly
+                            straightforward prompts would make for some pretty good comedy.
                         </p>
-                        <p>More than ever, you need someone with experience and insight at the helm to spot an
-                            AI's mistakes and keep it on course, especially considering how completely confident 
-                            they are in even their most outrageous hallucinations.  <b>You need someone like me.</b>
+                        <p>More than ever, you need someone with experience and insight at the helm to guide
+                            AI-driven development, spot its mistakes, and keep it on course -- especially 
+                            considering how completely confident AIs are in even their most outlandish 
+                            hallucinations.  <b>You need someone like me.</b>
                         </p>
                     </div>
                 </div>
@@ -157,7 +154,8 @@
                             <p><em>Highly experienced engineer with a career-long focus on best practices 
                                 and sound methodology, a strong background in both front-end and back-end 
                                 technologies, and deep experience in Java and web services.  Demonstrated 
-                                expertise as lead developer, designer, mentor, team leader and staff manager.</em></p>
+                                expertise as lead developer, designer, mentor, team leader and staff manager.
+                            </em></p>
                         </div><!-- End Resume Item -->
 
                         <h3 class="resume-title pt-3">Skills</h3>
@@ -425,11 +423,10 @@
         </section><!-- /Portfolio Section -->
 
         <!-- Contact Section -->
-        <!--
         <section id="contact" class="contact section">
 
             <div class="container section-title" data-aos="fade-up">
-                <h2>Contact</h2>
+                <h2>Contact Me</h2>
                 <p>If you'd like to get in touch, please use the form below.</p>
             </div>
 
@@ -437,8 +434,8 @@
 
                 <div class="row gy-4">
 
-                    <div class="col-lg-7">
-                        <form action="forms/contact.php" method="post" class="php-email-form" data-aos="fade-up" data-aos-delay="200">
+                    <div class="col-lg-8">
+                        <form id="contact-form" class="contact-form" data-aos="fade-up" data-aos-delay="200">
                             <div class="row gy-4">
 
                                 <div class="col-md-6">
@@ -448,12 +445,12 @@
 
                                 <div class="col-md-6">
                                     <label for="email-field" class="pb-2">Your Email</label>
-                                    <input type="email" class="form-control" name="email" id="email-field" required="">
+                                    <input type="email" name="email" id="email-field" class="form-control" required="">
                                 </div>
 
                                 <div class="col-md-12">
                                     <label for="subject-field" class="pb-2">Subject</label>
-                                    <input type="text" class="form-control" name="subject" id="subject-field" required="">
+                                    <input type="text" name="subject" id="subject-field" class="form-control" required="">
                                 </div>
 
                                 <div class="col-md-12">
@@ -461,8 +458,12 @@
                                     <textarea class="form-control" name="message" rows="10" id="message-field" required=""></textarea>
                                 </div>
 
+                                <div class="col-md-12">
+                                    <small class="text-muted">Turnstile verification will be added here next.</small>
+                                </div>
+
                                 <div class="col-md-12 text-center">
-                                    <div class="loading">Loading</div>
+                                    <div class="loading">Sending your message...</div>
                                     <div class="error-message"></div>
                                     <div class="sent-message">Your message has been sent. Thank you!</div>
 
@@ -478,7 +479,6 @@
             </div>
 
         </section>
-        -->
 
     </main>
 
@@ -486,7 +486,7 @@
 
         <div class="container">
             <div class="copyright text-center ">
-                <p>© <span>Copyright</span> <strong class="px-1 sitename">iPortfolio</strong> <span>All Rights Reserved</span></p>
+                <p>© <span>Copyright</span> <strong class="px-1 sitename">Last Call Software</strong> <span>All Rights Reserved</span></p>
             </div>
         </div>
 
@@ -502,15 +502,6 @@
     <script src="assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
     <script src="assets/vendor/aos/aos.js"></script>
     <script src="assets/vendor/glightbox/js/glightbox.min.js"></script>
-    <!--
-    <script src="assets/vendor/php-email-form/validate.js"></script>
-    <script src="assets/vendor/typed.js/typed.umd.js"></script>
-    <script src="assets/vendor/purecounter/purecounter_vanilla.js"></script>
-    <script src="assets/vendor/waypoints/noframework.waypoints.js"></script>
-    <script src="assets/vendor/imagesloaded/imagesloaded.pkgd.min.js"></script>
-    <script src="assets/vendor/isotope-layout/isotope.pkgd.min.js"></script>
-    <script src="assets/vendor/swiper/swiper-bundle.min.js"></script>
-    -->
 
     <!-- Main JS File -->
     <script src="assets/js/main.js"></script>

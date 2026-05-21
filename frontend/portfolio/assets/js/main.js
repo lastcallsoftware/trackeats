@@ -1,13 +1,27 @@
-/**
-* Template Name: iPortfolio
-* Template URL: https://bootstrapmade.com/iportfolio-bootstrap-portfolio-websites-template/
-* Updated: Jun 29 2024 with Bootstrap v5.3.3
-* Author: BootstrapMade.com
-* License: https://bootstrapmade.com/license/
-*/
-
 (function() {
   "use strict";
+
+  function getBackendBaseUrl() {
+    const configuredBaseUrl = document
+      .querySelector('meta[name="backend-base-url"]')
+      ?.getAttribute('content')
+      ?.trim();
+
+    if (configuredBaseUrl) {
+      return configuredBaseUrl.replace(/\/$/, '');
+    }
+
+    const { hostname } = window.location;
+    if (hostname === 'localhost' || hostname === '127.0.0.1') {
+      return 'http://localhost:5000';
+    }
+
+    if (hostname === 'pwholmes.lastcallsw.com') {
+      return 'https://trackeats.lastcallsw.com:5443';
+    }
+
+    return window.location.origin;
+  }
 
   /**
    * Header toggle
@@ -115,11 +129,6 @@
       backDelay: 2000
     });
   }
-
-  /**
-   * Initiate Pure Counter
-   */
-  new PureCounter();
 
   /**
    * Animate the skills items on reveal
@@ -236,5 +245,124 @@
   }
   window.addEventListener('load', navmenuScrollspy);
   document.addEventListener('scroll', navmenuScrollspy);
+
+  /**
+   * Contact form submission
+   */
+  const contactForm = document.querySelector('#contact-form');
+  if (contactForm) {
+    const contactApiUrl = `${getBackendBaseUrl()}/api/contact`;
+
+    contactForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+
+      const form = event.currentTarget;
+      if (!(form instanceof HTMLFormElement)) {
+        return;
+      }
+
+      const nameInput = form.querySelector('#name-field');
+      const emailInput = form.querySelector('#email-field');
+      const subjectInput = form.querySelector('#subject-field');
+      const messageInput = form.querySelector('#message-field');
+      const loadingEl = form.querySelector('.loading');
+      const errorEl = form.querySelector('.error-message');
+      const sentEl = form.querySelector('.sent-message');
+      const submitButton = form.querySelector('button[type="submit"]');
+
+      if (!(nameInput instanceof HTMLInputElement)
+        || !(emailInput instanceof HTMLInputElement)
+        || !(subjectInput instanceof HTMLInputElement)
+        || !(messageInput instanceof HTMLTextAreaElement)) {
+        return;
+      }
+
+      const name = nameInput.value.trim();
+      const email = emailInput.value.trim();
+      const subject = subjectInput.value.trim();
+      const message = messageInput.value.trim();
+
+      if (!name || !email || !subject || !message) {
+        if (errorEl) {
+          errorEl.textContent = 'Please provide your name, email, subject, and message.';
+          errorEl.style.display = 'block';
+        }
+        if (sentEl) {
+          sentEl.style.display = 'none';
+        }
+        return;
+      }
+
+      if (!emailInput.checkValidity()) {
+        if (errorEl) {
+          errorEl.textContent = 'Please provide a valid email address.';
+          errorEl.style.display = 'block';
+        }
+        if (sentEl) {
+          sentEl.style.display = 'none';
+        }
+        return;
+      }
+
+      if (loadingEl) {
+        loadingEl.style.display = 'block';
+      }
+      if (errorEl) {
+        errorEl.textContent = '';
+        errorEl.style.display = 'none';
+      }
+      if (sentEl) {
+        sentEl.style.display = 'none';
+      }
+      if (submitButton instanceof HTMLButtonElement) {
+        submitButton.disabled = true;
+      }
+
+      try {
+        const response = await fetch(contactApiUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            name,
+            email,
+            subject,
+            message,
+          }),
+        });
+
+        if (!response.ok) {
+          let backendMessage = '';
+          try {
+            const payload = await response.json();
+            if (payload && typeof payload.msg === 'string') {
+              backendMessage = payload.msg;
+            }
+          } catch (_) {
+            backendMessage = '';
+          }
+          throw new Error(backendMessage || `Request failed with status ${response.status}`);
+        }
+
+        form.reset();
+        if (sentEl) {
+          sentEl.style.display = 'block';
+        }
+      } catch (error) {
+        if (errorEl) {
+          errorEl.textContent = error instanceof Error ? error.message : 'Unable to send message right now.';
+          errorEl.style.display = 'block';
+        }
+      } finally {
+        if (loadingEl) {
+          loadingEl.style.display = 'none';
+        }
+        if (submitButton instanceof HTMLButtonElement) {
+          submitButton.disabled = false;
+        }
+      }
+    });
+  }
 
 })();
