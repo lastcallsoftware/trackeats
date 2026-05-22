@@ -3,9 +3,10 @@
  */
 
 import { useState } from 'react';
-import { View, TextInput, TouchableOpacity, Text, ActivityIndicator, StyleSheet } from 'react-native';
+import { TextInput, TouchableOpacity, Text, ActivityIndicator, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
 import * as authService from '@/services/authService';
+import AuthScreen from '@/components/AuthScreen';
 
 export default function ForgotPasswordScreen() {
   const router = useRouter();
@@ -36,8 +37,7 @@ export default function ForgotPasswordScreen() {
 
   if (submitted) {
     return (
-      <View style={styles.container}>
-        <Text style={styles.title}>Check Your Email</Text>
+      <AuthScreen title="Check Your Email">
         <Text style={styles.successText}>
           If an account exists with that email, you'll receive a password reset link shortly.
           The link will expire in 15 minutes.
@@ -51,22 +51,12 @@ export default function ForgotPasswordScreen() {
         >
           <Text style={styles.buttonText}>Back to Login</Text>
         </TouchableOpacity>
-      </View>
+      </AuthScreen>
     );
   }
 
   return (
-    <View style={styles.container}>
-      <TouchableOpacity
-        onPress={() => router.back()}
-        testID="back-button"
-        activeOpacity={0.7}
-        style={styles.backButton}
-      >
-        <Text style={styles.backButtonText}>← Back</Text>
-      </TouchableOpacity>
-
-      <Text style={styles.title}>Reset Password</Text>
+    <AuthScreen title="Reset Password">
       <Text style={styles.subtitle}>
         Enter the email address associated with your account and we'll send you a link to reset your password.
       </Text>
@@ -84,6 +74,9 @@ export default function ForgotPasswordScreen() {
         testID="email-input"
         keyboardType="email-address"
         autoCapitalize="none"
+        autoCorrect={false}
+        returnKeyType="go"
+        onSubmitEditing={handleRequestReset}
       />
 
       {error && (
@@ -104,33 +97,11 @@ export default function ForgotPasswordScreen() {
           <Text style={styles.buttonText}>Send Reset Link</Text>
         </TouchableOpacity>
       )}
-    </View>
+    </AuthScreen>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 20,
-    justifyContent: 'center',
-    backgroundColor: '#fff',
-  },
-  backButton: {
-    alignSelf: 'flex-start',
-    marginBottom: 20,
-    padding: 5,
-  },
-  backButtonText: {
-    color: '#007AFF',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 15,
-    textAlign: 'center',
-  },
   subtitle: {
     fontSize: 14,
     color: '#666',

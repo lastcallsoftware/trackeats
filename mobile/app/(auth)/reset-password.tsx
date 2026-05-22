@@ -3,11 +3,12 @@
  * This screen is reached via deep-link from the password reset email
  */
 
-import { useState, useEffect } from 'react';
-import { View, TextInput, TouchableOpacity, Text, ActivityIndicator, StyleSheet } from 'react-native';
+import { useEffect, useRef, useState } from 'react';
+import { TextInput, TouchableOpacity, Text, ActivityIndicator, StyleSheet } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import * as authService from '@/services/authService';
 import { useDeepLink, type DeepLinkData } from '@/utils/deepLinking';
+import AuthScreen from '@/components/AuthScreen';
 
 export default function ResetPasswordScreen() {
   const router = useRouter();
@@ -19,6 +20,7 @@ export default function ResetPasswordScreen() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const confirmPasswordRef = useRef<TextInput>(null);
 
   // Handle deep-link tokens
   const handleDeepLink = (data: DeepLinkData) => {
@@ -79,8 +81,7 @@ export default function ResetPasswordScreen() {
 
   if (success) {
     return (
-      <View style={styles.container}>
-        <Text style={styles.title}>Password Reset Successful</Text>
+      <AuthScreen title="Password Reset Successful">
         <Text style={styles.successText}>Your password has been changed. You can now log in with your new password.</Text>
 
         <TouchableOpacity
@@ -91,14 +92,13 @@ export default function ResetPasswordScreen() {
         >
           <Text style={styles.buttonText}>Go to Login</Text>
         </TouchableOpacity>
-      </View>
+      </AuthScreen>
     );
   }
 
   if (!token) {
     return (
-      <View style={styles.container}>
-        <Text style={styles.title}>Invalid Reset Link</Text>
+      <AuthScreen title="Invalid Reset Link">
         <Text style={styles.errorText}>{error}</Text>
 
         <TouchableOpacity
@@ -109,13 +109,12 @@ export default function ResetPasswordScreen() {
         >
           <Text style={styles.buttonText}>Request New Reset</Text>
         </TouchableOpacity>
-      </View>
+      </AuthScreen>
     );
   }
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Create New Password</Text>
+    <AuthScreen title="Create New Password">
       <Text style={styles.subtitle}>Enter a new password for your account</Text>
 
       <TextInput
@@ -123,6 +122,8 @@ export default function ResetPasswordScreen() {
         placeholder="New Password"
         placeholderTextColor="#999"
         secureTextEntry
+        autoCapitalize="none"
+        autoCorrect={false}
         value={password}
         onChangeText={(text) => {
           setPassword(text);
@@ -130,13 +131,19 @@ export default function ResetPasswordScreen() {
         }}
         editable={!isLoading}
         testID="password-input"
+        returnKeyType="next"
+        onSubmitEditing={() => confirmPasswordRef.current?.focus()}
+        blurOnSubmit={false}
       />
 
       <TextInput
+        ref={confirmPasswordRef}
         style={styles.input}
         placeholder="Confirm Password"
         placeholderTextColor="#999"
         secureTextEntry
+        autoCapitalize="none"
+        autoCorrect={false}
         value={confirmPassword}
         onChangeText={(text) => {
           setConfirmPassword(text);
@@ -144,6 +151,8 @@ export default function ResetPasswordScreen() {
         }}
         editable={!isLoading}
         testID="confirm-password-input"
+        returnKeyType="go"
+        onSubmitEditing={handleResetPassword}
       />
 
       {error && (
@@ -173,23 +182,11 @@ export default function ResetPasswordScreen() {
       >
         <Text style={styles.link}>Back to Login</Text>
       </TouchableOpacity>
-    </View>
+    </AuthScreen>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 20,
-    justifyContent: 'center',
-    backgroundColor: '#fff',
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 15,
-    textAlign: 'center',
-  },
   subtitle: {
     fontSize: 14,
     color: '#666',

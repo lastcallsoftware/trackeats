@@ -4,9 +4,11 @@
  */
 
 import { useCallback, useEffect, useState } from 'react';
-import { View } from 'react-native';
+import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { Stack, Tabs } from 'expo-router';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { KeyboardProvider } from 'react-native-keyboard-controller';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import * as SplashScreen from 'expo-splash-screen';
 import authStore from '@/store/authStore';
@@ -45,8 +47,14 @@ export default function RootLayout() {
 
   return (
     <View style={{ flex: 1 }} onLayout={onLayoutRootView}>
+      <SafeAreaProvider>
+      <KeyboardProvider>
       <QueryClientProvider client={queryClient}>
-      {!isInitializing && (isLoggedIn ? (
+      {isInitializing ? (
+        <View style={styles.loading}>
+          <ActivityIndicator size="large" color="#007AFF" />
+        </View>
+      ) : isLoggedIn ? (
         // Main app (logged in)
         <Tabs
           screenOptions={{
@@ -124,8 +132,19 @@ export default function RootLayout() {
             }}
           />
         </Stack>
-      ))}
+      )}
       </QueryClientProvider>
+      </KeyboardProvider>
+      </SafeAreaProvider>
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  loading: {
+    flex: 1,
+    backgroundColor: '#fff',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+});

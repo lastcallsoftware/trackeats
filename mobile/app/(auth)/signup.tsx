@@ -2,10 +2,12 @@
  * Signup screen - user registration with email verification
  */
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { View, TextInput, TouchableOpacity, Text, ActivityIndicator, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 import authStore from '@/store/authStore';
+import AuthScreen from '@/components/AuthScreen';
 
 export default function SignupScreen() {
   const router = useRouter();
@@ -14,6 +16,9 @@ export default function SignupScreen() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [email, setEmail] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const passwordRef = useRef<TextInput>(null);
+  const usernameRef = useRef<TextInput>(null);
   const [fieldErrors, setFieldErrors] = useState<{
     username?: string;
     password?: string;
@@ -54,13 +59,63 @@ export default function SignupScreen() {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Sign Up</Text>
+    <AuthScreen title="Sign Up">
+      <TextInput
+        style={[styles.input, fieldErrors.email && styles.inputError]}
+        placeholder="Email"
+        placeholderTextColor="#999"
+        keyboardType="email-address"
+        autoCapitalize="none"
+        autoCorrect={false}
+        returnKeyType="next"
+        onSubmitEditing={() => passwordRef.current?.focus()}
+        blurOnSubmit={false}
+        value={email}
+        onChangeText={setEmail}
+        editable={!isLoading}
+        testID="email-input"
+      />
+      {fieldErrors.email && <Text style={styles.fieldErrorText}>{fieldErrors.email}</Text>}
+
+      <View style={[styles.passwordContainer, fieldErrors.password && styles.inputError]}>
+        <TextInput
+          ref={passwordRef}
+          style={styles.passwordInput}
+          placeholder="Password"
+          placeholderTextColor="#999"
+          secureTextEntry={!showPassword}
+          autoCapitalize="none"
+          autoCorrect={false}
+          returnKeyType="next"
+          onSubmitEditing={() => usernameRef.current?.focus()}
+          blurOnSubmit={false}
+          value={password}
+          onChangeText={setPassword}
+          editable={!isLoading}
+          testID="password-input"
+        />
+        <TouchableOpacity
+          onPress={() => setShowPassword((v) => !v)}
+          testID="toggle-password-visibility"
+          activeOpacity={0.7}
+          style={styles.eyeButton}
+        >
+          <Ionicons name={showPassword ? 'eye-off-outline' : 'eye-outline'} size={22} color="#666" />
+        </TouchableOpacity>
+      </View>
+      {fieldErrors.password && (
+        <Text style={styles.fieldErrorText}>{fieldErrors.password}</Text>
+      )}
 
       <TextInput
+        ref={usernameRef}
         style={[styles.input, fieldErrors.username && styles.inputError]}
         placeholder="Username"
         placeholderTextColor="#999"
+        autoCapitalize="none"
+        autoCorrect={false}
+        returnKeyType="go"
+        onSubmitEditing={handleSignup}
         value={username}
         onChangeText={setUsername}
         editable={!isLoading}
@@ -69,32 +124,6 @@ export default function SignupScreen() {
       {fieldErrors.username && (
         <Text style={styles.fieldErrorText}>{fieldErrors.username}</Text>
       )}
-
-      <TextInput
-        style={[styles.input, fieldErrors.password && styles.inputError]}
-        placeholder="Password"
-        placeholderTextColor="#999"
-        secureTextEntry
-        value={password}
-        onChangeText={setPassword}
-        editable={!isLoading}
-        testID="password-input"
-      />
-      {fieldErrors.password && (
-        <Text style={styles.fieldErrorText}>{fieldErrors.password}</Text>
-      )}
-
-      <TextInput
-        style={[styles.input, fieldErrors.email && styles.inputError]}
-        placeholder="Email"
-        placeholderTextColor="#999"
-        keyboardType="email-address"
-        value={email}
-        onChangeText={setEmail}
-        editable={!isLoading}
-        testID="email-input"
-      />
-      {fieldErrors.email && <Text style={styles.fieldErrorText}>{fieldErrors.email}</Text>}
 
       {error && (
         <Text style={styles.errorText} testID="error-message">
@@ -112,27 +141,19 @@ export default function SignupScreen() {
 
       <View style={styles.loginContainer}>
         <Text style={styles.loginText}>Already have an account? </Text>
-        <TouchableOpacity onPress={() => router.push('/login')} testID="login-link" activeOpacity={0.7}>
+        <TouchableOpacity
+          onPress={() => router.push({ pathname: '/login', params: { from: 'signup' } })}
+          testID="login-link"
+          activeOpacity={0.7}
+        >
           <Text style={styles.loginLink}>Log in</Text>
         </TouchableOpacity>
       </View>
-    </View>
+    </AuthScreen>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 20,
-    justifyContent: 'center',
-    backgroundColor: '#fff',
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 30,
-    textAlign: 'center',
-  },
   input: {
     borderWidth: 1,
     borderColor: '#ccc',
@@ -140,6 +161,23 @@ const styles = StyleSheet.create({
     padding: 12,
     marginBottom: 5,
     fontSize: 16,
+  },
+  passwordContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 8,
+    marginBottom: 5,
+  },
+  passwordInput: {
+    flex: 1,
+    padding: 12,
+    fontSize: 16,
+  },
+  eyeButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 12,
   },
   inputError: {
     borderColor: '#ff0000',

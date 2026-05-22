@@ -13,13 +13,12 @@ import {
   Alert,
   LayoutAnimation,
 } from 'react-native';
-//import { Platform, View, Image, TextInput, TouchableOpacity, Text, ActivityIndicator, StyleSheet } from 'react-native';
-import Logo from '../../assets/trackeats-neon-logo.svg';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import * as yup from 'yup';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import authStore from '@/store/authStore';
+import AuthScreen from '@/components/AuthScreen';
 import {
   signInWithGoogle,
   useFacebookAuthRequest,
@@ -46,9 +45,10 @@ function firstParam(value: string | string[] | undefined): string {
 
 export default function LoginScreen() {
   const router = useRouter();
-  const params = useLocalSearchParams<{ registration?: string }>();
+  const params = useLocalSearchParams<{ registration?: string; from?: string }>();
   const { isLoading, error, loginWithSocialToken } = authStore();
   const wasJustConfirmed = firstParam(params.registration) === 'confirmed';
+  const cameFromSignup = firstParam(params.from) === 'signup';
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -56,7 +56,8 @@ export default function LoginScreen() {
   const [showPassword, setShowPassword] = useState(false);
   const [socialError, setSocialError] = useState<string | null>(null);
   const [isSocialLoading, setIsSocialLoading] = useState(false);
-  const [showEmailLogin, setShowEmailLogin] = useState(wasJustConfirmed);
+  const [showEmailLogin, setShowEmailLogin] = useState(wasJustConfirmed || cameFromSignup);
+  const passwordRef = useRef<TextInput>(null);
 
   const { promptAsync: signInWithFacebook } = useFacebookAuthRequest();
   const showAppleLogin = Platform.OS === 'ios' && hasAppleLogin;
@@ -143,13 +144,15 @@ export default function LoginScreen() {
     }
   }
 
-  return (
-    <View style={styles.container}>
-      <View style={styles.logoContainer}>
-        <Logo width={120} height={120} />
-      </View>
-      <Text style={styles.title}>Login</Text>
+  const overlay = isSocialLoading ? (
+    <View style={styles.loadingOverlay} testID="social-loading-overlay">
+      <ActivityIndicator size="large" color="#007AFF" />
+      <Text style={styles.loadingText}>Signing in...</Text>
+    </View>
+  ) : null;
 
+  return (
+    <AuthScreen title="Login" overlay={overlay}>
       {wasJustConfirmed ? (
         <Text style={styles.successText}>Email confirmed. You can now log in.</Text>
       ) : null}
@@ -241,19 +244,28 @@ export default function LoginScreen() {
         testID="email-input"
         keyboardType="email-address"
         autoCapitalize="none"
+        autoCorrect={false}
+        returnKeyType="next"
+        onSubmitEditing={() => passwordRef.current?.focus()}
+        blurOnSubmit={false}
       />
       {emailError && <Text style={styles.fieldErrorText}>{emailError}</Text>}
 
       <View style={styles.passwordContainer}>
         <TextInput
+          ref={passwordRef}
           style={styles.passwordInput}
           placeholder="Password"
           placeholderTextColor="#999"
           secureTextEntry={!showPassword}
+          autoCapitalize="none"
+          autoCorrect={false}
           value={password}
           onChangeText={setPassword}
           editable={!isLoading}
           testID="password-input"
+          returnKeyType="go"
+          onSubmitEditing={handleLogin}
         />
         <TouchableOpacity
           onPress={() => setShowPassword((v) => !v)}
@@ -296,43 +308,11 @@ export default function LoginScreen() {
       </View>
         </>
       ) : null}
-
-      {isSocialLoading ? (
-        <View style={styles.loadingOverlay} testID="social-loading-overlay">
-          <ActivityIndicator size="large" color="#007AFF" />
-          <Text style={styles.loadingText}>Signing in...</Text>
-        </View>
-      ) : null}
-    </View>
+    </AuthScreen>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 20,
-    justifyContent: 'center',
-    backgroundColor: '#fff',
-  },
-  logoContainer: {
-    width: '100%',
-    aspectRatio: 1.833,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: 16,
-    overflow: 'hidden',
-    marginBottom: 20,
-  },
-  logo: {
-    width: '100%',
-    height: '100%',
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 30,
-    textAlign: 'center',
-  },
   input: {
     borderWidth: 1,
     borderColor: '#ccc',
