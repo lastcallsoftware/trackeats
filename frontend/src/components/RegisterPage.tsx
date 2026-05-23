@@ -22,14 +22,12 @@ import InputAdornment from '@mui/material/InputAdornment';
 function RegisterPage() {
     const defaultFormData = {username: "", usernameTouched: false, usernameMessage: "",
                              password: "", passwordTouched: false, passwordMessage: "",
-                             password2: "", password2Touched: false, password2Message: "",
                              email: "", emailTouched: false, emailMessage: "",
                              seed_requested: true}
     const [formData, setFormData] = useState(defaultFormData);
     const [registrationMessage, setRegistrationMessage] = useState("");
     const navigate = useNavigate();
     const [showPassword, setShowPassword] = useState(false);
-    const [showPassword2, setShowPassword2] = useState(false);
 
     const usernameChanged = (e: React.ChangeEvent<HTMLInputElement>) => {
         const username = e.target.value;
@@ -47,15 +45,6 @@ function RegisterPage() {
         const password = e.target.value;
         const msg = validatePassword(password);
         setFormData(prevState => ({...prevState, password: password, passwordMessage: msg}))
-    }
-
-    const password2Changed = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const password2 = e.target.value;
-        let msg = ""
-        if (!(formData.password === password2)) {
-            msg = "Passwords do not match";
-        }
-        setFormData(prevState => ({...prevState, password2: password2, password2Message: msg}))
     }
 
     const emailChanged = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -103,8 +92,6 @@ function RegisterPage() {
                                formData.usernameMessage.length > 0 ||
                                formData.password.length == 0 ||
                                formData.passwordMessage.length > 0 ||
-                               formData.password2.length == 0 ||
-                               formData.password2Message.length > 0 ||
                                formData.emailMessage.length > 0;
 
     const handleSubmit = async (e: { preventDefault: () => void; }) => {
@@ -213,29 +200,6 @@ function RegisterPage() {
                             helperText={formData.emailTouched && formData.email.length > 0 ? (formData.emailMessage || " ") : " "}
                             fullWidth
                         />
-                        {/* Username */}
-                        <TextField
-                            label="Username"
-                            id="username"
-                            required
-                            value={formData.username}
-                            inputProps={{ maxLength: 100 }}
-                            onFocus={() => setFormData(prev => ({ ...prev, usernameTouched: false }))}
-                            onBlur={() => setFormData(prev => ({ ...prev, usernameTouched: true }))}
-                            onChange={usernameChanged}
-                            error={!!(formData.usernameMessage && formData.usernameTouched && formData.username.length > 0)}
-                            helperText={formData.usernameTouched && formData.username.length > 0 ? (formData.usernameMessage || " ") : " "}
-                            fullWidth
-                            InputProps={{
-                                endAdornment: (
-                                    <InputAdornment position="end">
-                                        <Tooltip title="This is the display name TrackEats will use for you. Login uses your email address.">
-                                            <HelpOutlineIcon fontSize="small" sx={{ color: 'text.secondary', cursor: 'default' }} />
-                                        </Tooltip>
-                                    </InputAdornment>
-                                )
-                            }}
-                        />
                         {/* Password */}
                         <TextField
                             label="Password"
@@ -264,32 +228,27 @@ function RegisterPage() {
                                 ),
                             }}
                         />
-                        {/* Retype Password */}
+                        {/* Username */}
                         <TextField
-                            label="Retype Password"
-                            id="password2"
-                            type={showPassword2 ? 'text' : 'password'}
+                            label="Username"
+                            id="username"
                             required
-                            value={formData.password2}
+                            value={formData.username}
                             inputProps={{ maxLength: 100 }}
-                            onFocus={() => setFormData(prev => ({ ...prev, password2Touched: false }))}
-                            onBlur={() => setFormData(prev => ({ ...prev, password2Touched: true }))}
-                            onChange={password2Changed}
-                            error={!!(formData.password2Message && formData.password2Touched && formData.password2.length > 0)}
-                            helperText={formData.password2Touched && formData.password2.length > 0 ? (formData.password2Message || " ") : " "}
+                            onFocus={() => setFormData(prev => ({ ...prev, usernameTouched: false }))}
+                            onBlur={() => setFormData(prev => ({ ...prev, usernameTouched: true }))}
+                            onChange={usernameChanged}
+                            error={!!(formData.usernameMessage && formData.usernameTouched && formData.username.length > 0)}
+                            helperText={formData.usernameTouched && formData.username.length > 0 ? (formData.usernameMessage || " ") : " "}
                             fullWidth
                             InputProps={{
                                 endAdornment: (
                                     <InputAdornment position="end">
-                                        <IconButton
-                                            aria-label="toggle password visibility"
-                                            onClick={() => setShowPassword2((show) => !show)}
-                                            edge="end"
-                                        >
-                                            {showPassword2 ? <Visibility /> : <VisibilityOff />}
-                                        </IconButton>
+                                        <Tooltip title="This is the display name TrackEats will use for you. Login uses your email address.">
+                                            <HelpOutlineIcon fontSize="small" sx={{ color: 'text.secondary', cursor: 'default' }} />
+                                        </Tooltip>
                                     </InputAdornment>
-                                ),
+                                )
                             }}
                         />
                         {/* Seed Data Checkbox */}
