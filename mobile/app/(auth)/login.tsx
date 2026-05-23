@@ -247,7 +247,7 @@ export default function LoginScreen() {
         autoCorrect={false}
         returnKeyType="next"
         onSubmitEditing={() => passwordRef.current?.focus()}
-        blurOnSubmit={false}
+        submitBehavior="submit"
       />
       {emailError && <Text style={styles.fieldErrorText}>{emailError}</Text>}
 
@@ -318,8 +318,8 @@ const styles = StyleSheet.create({
     borderColor: '#ccc',
     borderRadius: 8,
     padding: 12,
-    marginTop: 15,
-    marginBottom: 15,
+    marginTop: 5,
+    marginBottom: 5,
     fontSize: 16,
   },
   passwordContainer: {
@@ -328,7 +328,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#ccc',
     borderRadius: 8,
-    marginBottom: 15,
+    marginBottom: 5,
   },
   passwordInput: {
     flex: 1,
@@ -341,11 +341,10 @@ const styles = StyleSheet.create({
   },
   inputError: {
     borderColor: 'red',
-    marginBottom: 6,
   },
   fieldErrorText: {
     color: 'red',
-    marginBottom: 12,
+    marginBottom: 10,
     fontSize: 14,
   },
   errorText: {
@@ -366,7 +365,7 @@ const styles = StyleSheet.create({
     padding: 15,
     borderRadius: 8,
     alignItems: 'center',
-    marginTop: 15,
+    marginTop: 20,
   },
   buttonText: {
     color: '#fff',
@@ -377,7 +376,11 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   loadingOverlay: {
-    ...StyleSheet.absoluteFillObject,
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    bottom: 0,
+    left: 0,
     backgroundColor: 'rgba(255, 255, 255, 0.85)',
     alignItems: 'center',
     justifyContent: 'center',
@@ -472,7 +475,7 @@ const styles = StyleSheet.create({
   signupContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
-    marginTop: 20,
+    marginTop: 10,
   },
   signupText: {
     fontSize: 14,
