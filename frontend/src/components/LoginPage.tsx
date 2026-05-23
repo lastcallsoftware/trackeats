@@ -90,10 +90,11 @@ function LoginPage(props: any) {
     return (
         <Box
             sx={{
-                minHeight: '100dvh',
+                minHeight: 'auto',
                 overflowY: 'auto',
                 background: 'linear-gradient(135deg, #e3f2fd 0%, #fce4ec 100%)',
-                py: { xs: 1.5, md: 4 },
+                pt: { xs: 1.5, md: 4 },
+                pb: { xs: 6, md: 6 },
                 px: { xs: 1.5, md: 0 },
                 display: 'flex',
                 flexDirection: 'column',
