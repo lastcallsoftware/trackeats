@@ -50,7 +50,7 @@ export default function LoginScreen() {
   const wasJustConfirmed = firstParam(params.registration) === 'confirmed';
   const cameFromSignup = firstParam(params.from) === 'signup';
 
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState(authStore.getState().registrationEmail ?? '');
   const [password, setPassword] = useState('');
   const [emailError, setEmailError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);

@@ -26,6 +26,8 @@ export interface AuthStoreState {
   error: AuthError | null;
   isLoading: boolean;
   pendingVerification: boolean;
+  /** Email captured at registration time; pre-fills the login screen after confirmation */
+  registrationEmail: string | null;
 }
 
 export interface AuthStoreActions {
@@ -47,6 +49,7 @@ const initialState: AuthStoreState = {
   error: null,
   isLoading: false,
   pendingVerification: false,
+  registrationEmail: null,
 };
 
 function decodeBase64Url(value: string): string {
@@ -165,6 +168,7 @@ const authStore = create<AuthStoreState & AuthStoreActions>((set, get) => ({
         currentUser: { username },
         error: null,
         isLoading: false,
+        registrationEmail: null,
       });
     } catch (error: any) {
       // Handle both AuthError instances and regular errors
@@ -203,6 +207,7 @@ const authStore = create<AuthStoreState & AuthStoreActions>((set, get) => ({
         currentUser: { username: authData.username },
         error: null,
         isLoading: false,
+        registrationEmail: null,
       });
     } catch (error: any) {
       const errorMsg = error?.message ?? String(error);
@@ -225,6 +230,7 @@ const authStore = create<AuthStoreState & AuthStoreActions>((set, get) => ({
 
       set({
         pendingVerification: true,
+        registrationEmail: email,
         error: null,
         isLoading: false,
       });
@@ -293,6 +299,7 @@ const authStore = create<AuthStoreState & AuthStoreActions>((set, get) => ({
         error: null,
         isLoading: false,
         pendingVerification: false,
+        registrationEmail: null,
       });
     } catch (error) {
       console.error('[AUTH] Logout error:', error);
@@ -305,6 +312,7 @@ const authStore = create<AuthStoreState & AuthStoreActions>((set, get) => ({
         error: null,
         isLoading: false,
         pendingVerification: false,
+        registrationEmail: null,
       });
     }
   },
@@ -331,6 +339,7 @@ const authStore = create<AuthStoreState & AuthStoreActions>((set, get) => ({
         },
         isLoading: false,
         pendingVerification: false,
+        registrationEmail: null,
       });
     } catch (error) {
       console.error('[AUTH] Failed to handle session expiry:', error);

@@ -35,6 +35,7 @@ describe('authStore', () => {
       error: null,
       isLoading: false,
       pendingVerification: false,
+      registrationEmail: null,
     });
   });
 
