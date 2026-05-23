@@ -21,15 +21,15 @@ SMTP_PORT = 465
 
 # The email address of the sender.  This address must be verified by AWS.
 EMAIL_SENDER_ADDRESS = 'support@trackeats.com'
-EMAIL_SENDER_NAME = 'Trackeats'
+EMAIL_SENDER_NAME = 'TrackEats'
 
 # The subject line of the email.
-VERIFY_EMAIL_SUBJECT = 'Trackeats Email Verification'
+VERIFY_EMAIL_SUBJECT = 'TrackEats Email Verification'
 
 # The email body for recipients with non-HTML email clients.
 VERIFY_EMAIL_TEMPLATE_TEXT = (
-    "Trackeats Email Verification\r\n"
-    "Enter this link in a browser to verify your email address and complete registration of the Trackeats app:\r\n"
+    "TrackEats Email Verification\r\n"
+    "Enter this link in a browser to verify your email address and complete registration of the TrackEats app:\r\n"
     "{link}\r\n"
     )
 
@@ -38,19 +38,19 @@ VERIFY_EMAIL_TEMPLATE_HTML = (
     "<html>"
     "   <head></head>"
     "   <body>"
-    "       <h1>Trackeats Email Verification</h1>"
-    "       <p>Click on this link to verify your email address and complete registration of the Trackeats app:</p>"
+    "       <h1>TrackEats Email Verification</h1>"
+    "       <p>Click on this link to verify your email address and complete registration of the TrackEats app:</p>"
     "       <a href='{link}'>{link}</a>"
     "   </body>"
     "</html>"
     )
 
 # The subject line of the reset email
-RESET_EMAIL_SUBJECT = "Trackeats Password Reset Request"
+RESET_EMAIL_SUBJECT = "TrackEats Password Reset Request"
 
 # The email body for recipients with non-HTML email clients.
 RESET_EMAIL_TEMPLATE_TEXT = (
-    "Trackeats Password Reset Requested\r\n"
+    "TrackEats Password Reset Requested\r\n"
     "Hi,\r\n"
     "We received a request to reset the password for the account associated with this email address.\r\n"
     "If you made this request, you can set a new password by clicking the link below:\r\n"
@@ -68,7 +68,7 @@ RESET_EMAIL_TEMPLATE_HTML = (
     "<html>"
     "   <head></head>"
     "   <body>"
-    "       <h1>Trackeats Password Reset Requested</h1>"
+    "       <h1>TrackEats Password Reset Requested</h1>"
     "       <p>Hi,</p>"
     "       <p>We received a request to reset the password for the account associated with this email address.</p>"
     "       <p>If you made this request, you can set a new password by clicking the link below:</p>"
@@ -224,9 +224,9 @@ class Sendmail:
     # ------------------------------------------
     # def sendmail_boto3(email_address: str):
     #     sender_email_address = "admin@lastcallsw.com"
-    #     message_subject = "Trackeats User Verification"
-    #     message_text = "Hello from Trackeats!"
-    #     message_html = "<p>Hello from <b>Trackeats!</b></p>"
+    #     message_subject = "TrackEats User Verification"
+    #     message_text = "Hello from TrackEats!"
+    #     message_html = "<p>Hello from <b>TrackEats!</b></p>"
     #
     #     send_args = {
     #         "Source": sender_email_address,
