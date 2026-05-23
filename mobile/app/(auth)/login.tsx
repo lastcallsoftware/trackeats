@@ -19,6 +19,7 @@ import * as yup from 'yup';
 import { useRef, useState } from 'react';
 import authStore from '@/store/authStore';
 import AuthScreen from '@/components/AuthScreen';
+import GoogleIcon from '@/components/GoogleIcon';
 import {
   signInWithGoogle,
   useFacebookAuthRequest,
@@ -169,7 +170,7 @@ export default function LoginScreen() {
                 testID="google-login-button"
                 disabled={isLoading}
               >
-                <Text style={styles.googleButtonIcon}>G</Text>
+                <GoogleIcon size={20} />
                 <Text style={styles.googleButtonText}>Sign in with Google</Text>
               </TouchableOpacity>
             ) : null}
@@ -436,11 +437,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderWidth: 1,
     borderColor: '#dadce0',
-  },
-  googleButtonIcon: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#4285F4',
   },
   googleButtonText: {
     color: '#3c4043',
