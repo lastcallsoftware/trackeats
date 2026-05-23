@@ -62,7 +62,7 @@ export default function SignupScreen() {
     <AuthScreen title="Sign Up">
       <TextInput
         style={[styles.input, fieldErrors.email && styles.inputError]}
-        placeholder="Email"
+        placeholder="Email Address"
         placeholderTextColor="#999"
         keyboardType="email-address"
         autoCapitalize="none"
