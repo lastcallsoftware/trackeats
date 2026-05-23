@@ -55,7 +55,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderRadius: 16,
     overflow: 'hidden',
-    marginBottom: 20,
+    marginBottom: 10,
   },
   title: {
     fontSize: 24,
