@@ -21,6 +21,9 @@ class Data:
     GUEST_USER_ID = 3
     GUEST_USER_NAME = "guest"
     GUEST_USER_EMAIL = "guest@lastcallsoftware.com"
+    IMPORTER_USER_ID = 4
+    IMPORTER_USER_NAME = "usda-importer"
+    IMPORTER_USER_EMAIL = "usda-importer@lastcallsoftware.com"
 
     ###################
     # INITIALIZATION
@@ -129,6 +132,8 @@ class Data:
         if not guest_password:
             raise ValueError("APP_GUEST_PASSWORD not set")
 
+        importer_password = os.environ.get("APP_IMPORTER_PASSWORD", admin_password)
+
         admin_user_dao = User.get("admin")
         if admin_user_dao:
             admin_user_dao.set_password(admin_password)
@@ -168,6 +173,20 @@ class Data:
                 "username": Data.GUEST_USER_NAME,
                 "password": guest_password,
                 "email": Data.GUEST_USER_EMAIL,
+                "status": UserStatus.confirmed
+            })
+
+        importer_user_dao = User.get(Data.IMPORTER_USER_NAME)
+        if importer_user_dao:
+            importer_user_dao.set_password(importer_password)
+            importer_user_dao.set_email_addr(Data.IMPORTER_USER_EMAIL)
+            importer_user_dao.status = UserStatus.confirmed
+        else:
+            User.add({
+                "id": Data.IMPORTER_USER_ID,
+                "username": Data.IMPORTER_USER_NAME,
+                "password": importer_password,
+                "email": Data.IMPORTER_USER_EMAIL,
                 "status": UserStatus.confirmed
             })
 

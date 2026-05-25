@@ -2,7 +2,7 @@ import useMediaQuery from '@mui/material/useMediaQuery';
 import { useTheme } from '@mui/material/styles';
 import { useEffect, useState } from 'react';
 import { useData } from '@/utils/useData';
-import { Routes, Route, Link as RouterLink, useNavigate } from 'react-router-dom';
+import { Routes, Route, Link as RouterLink, useNavigate, Navigate } from 'react-router-dom';
 import trackEatsIcon from '../assets/trackeats-logo.svg';
 import HomePage from './HomePage';
 import AboutPage from './AboutPage';
@@ -61,6 +61,7 @@ console.log("import.meta.env.VITE_PORTFOLIO_URL:", portfolioUrl.trim())
 
 const buttonSx = {
     fontSize: '1.1rem',
+    whiteSpace: 'nowrap',
     '&:hover': { backgroundColor: 'transparent', textDecoration: 'underline' }
 }
 
@@ -343,7 +344,14 @@ function App() {
                         <Route path="/food/edit/:id" element={<FoodForm />} />
                         <Route path="/recipe/add" element={<RecipeForm />} />
                         <Route path="/recipe/edit/:id" element={<RecipeForm />} />
-                        <Route path="/admin" element={<AdminPage />} />
+                        <Route
+                            path="/admin"
+                            element={
+                                isAuthenticated && username === 'admin'
+                                    ? <AdminPage />
+                                    : <Navigate to="/home" replace />
+                            }
+                        />
                     </Routes>
                 </Suspense>
             </Box>

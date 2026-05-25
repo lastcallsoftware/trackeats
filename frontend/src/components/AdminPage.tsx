@@ -21,6 +21,12 @@ import DialogContentText from '@mui/material/DialogContentText';
 import DialogActions from '@mui/material/DialogActions';
 import Button from '@mui/material/Button';
 import Alert from '@mui/material/Alert';
+import Divider from '@mui/material/Divider';
+import Stack from '@mui/material/Stack';
+import TextField from '@mui/material/TextField';
+import Checkbox from '@mui/material/Checkbox';
+import FormControlLabel from '@mui/material/FormControlLabel';
+import MuiPagination from '@mui/material/Pagination';
 import { MdDeleteForever, MdRefresh } from 'react-icons/md';
 import DataPageLayout from './DataPageLayout';
 
@@ -39,6 +45,35 @@ type UserRecord = {
 
 type SortField = 'id' | 'username' | 'status' | 'login_method' | 'created_at';
 type SortDir   = 'asc' | 'desc';
+
+type FdcSearchFood = {
+    fdcId: number;
+    description: string;
+    dataType: string;
+    brandOwner?: string;
+};
+
+type FdcSearchResponse = {
+    totalHits: number;
+    currentPage: number;
+    totalPages: number;
+    foods: FdcSearchFood[];
+};
+
+type FdcImportItem = {
+    fdc_id: number;
+    food_id: number;
+    name: string;
+    action: 'created' | 'updated';
+};
+
+type FdcImportResponse = {
+    imported_count: number;
+    created_count: number;
+    updated_count: number;
+    failures: Array<{ fdc_id: number; error: string }>;
+    items: FdcImportItem[];
+};
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -78,6 +113,17 @@ function AdminPage() {
     const [targetUser, setTargetUser] = useState<UserRecord | null>(null);
     const [deleting, setDeleting]     = useState(false);
     const [flashMsg, setFlashMsg]     = useState<string | null>(null);
+    const [fdcQuery, setFdcQuery] = useState('');
+    const [fdcPageSize, setFdcPageSize] = useState(25);
+    const [fdcPageNumber, setFdcPageNumber] = useState(1);
+    const [fdcTotalHits, setFdcTotalHits] = useState(0);
+    const [fdcTotalPages, setFdcTotalPages] = useState(0);
+    const [fdcResults, setFdcResults] = useState<FdcSearchFood[]>([]);
+    const [fdcSelectedIds, setFdcSelectedIds] = useState<Set<number>>(new Set());
+    const [fdcLoading, setFdcLoading] = useState(false);
+    const [fdcImporting, setFdcImporting] = useState(false);
+    const [fdcError, setFdcError] = useState<string | null>(null);
+    const [fdcImportResult, setFdcImportResult] = useState<FdcImportResponse | null>(null);
 
     const fetchUsers = useCallback(async () => {
         setLoading(true);
@@ -96,6 +142,75 @@ function AdminPage() {
     }, []);
 
     useEffect(() => { fetchUsers(); }, [fetchUsers]);
+
+    const runFdcSearch = useCallback(async (pageNumber: number) => {
+        const query = fdcQuery.trim();
+        if (!query) {
+            setFdcError('Search query is required.');
+            return;
+        }
+        setFdcLoading(true);
+        setFdcError(null);
+        try {
+            const res = await axios.get<FdcSearchResponse>('/api/import/fdc/search', {
+                params: {
+                    query,
+                    pageNumber,
+                    pageSize: fdcPageSize,
+                },
+            });
+            setFdcResults(res.data.foods ?? []);
+            setFdcTotalHits(res.data.totalHits ?? 0);
+            setFdcTotalPages(res.data.totalPages ?? 0);
+            setFdcPageNumber(res.data.currentPage ?? pageNumber);
+        } catch (err: unknown) {
+            const msg = axios.isAxiosError(err)
+                ? (err.response?.data?.msg ?? err.message)
+                : String(err);
+            setFdcError(msg);
+        } finally {
+            setFdcLoading(false);
+        }
+    }, [fdcPageSize, fdcQuery]);
+
+    const toggleFdcSelected = (fdcId: number) => {
+        setFdcSelectedIds((prev) => {
+            const next = new Set(prev);
+            if (next.has(fdcId)) {
+                next.delete(fdcId);
+            } else {
+                next.add(fdcId);
+            }
+            return next;
+        });
+    };
+
+    const runFdcImport = async () => {
+        const selected = Array.from(fdcSelectedIds);
+        if (selected.length === 0) {
+            setFdcError('Select at least one USDA food to import.');
+            return;
+        }
+
+        setFdcImporting(true);
+        setFdcError(null);
+        try {
+            const res = await axios.post<FdcImportResponse>('/api/import/fdc/import', {
+                fdc_ids: selected,
+            });
+            setFdcImportResult(res.data);
+            if ((res.data.failures?.length ?? 0) === 0) {
+                setFdcSelectedIds(new Set());
+            }
+        } catch (err: unknown) {
+            const msg = axios.isAxiosError(err)
+                ? (err.response?.data?.msg ?? err.message)
+                : String(err);
+            setFdcError(msg);
+        } finally {
+            setFdcImporting(false);
+        }
+    };
 
     // ── Sorting ──────────────────────────────────────────────────────────────
 
@@ -280,13 +395,139 @@ function AdminPage() {
                     </Button>
                 </DialogActions>
             </Dialog>
+
+            <Divider sx={{ my: 3 }} />
+
+            <Box>
+                <Typography variant="h6" sx={{ mb: 1 }}>USDA Food Import</Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                    Search USDA FoodData Central (Branded + Foundation), select foods, and import them into the shared TrackEats catalog.
+                </Typography>
+
+                {fdcError && (
+                    <Alert severity="error" onClose={() => setFdcError(null)} sx={{ mb: 2 }}>
+                        {fdcError}
+                    </Alert>
+                )}
+
+                <Stack direction={{ xs: 'column', md: 'row' }} spacing={1.5} sx={{ mb: 2 }}>
+                    <TextField
+                        label="Search query"
+                        value={fdcQuery}
+                        onChange={(e) => {
+                            setFdcQuery(e.target.value)
+                            setFdcPageNumber(1)
+                        }}
+                        size="small"
+                        fullWidth
+                    />
+                    <TextField
+                        label="Page size"
+                        type="number"
+                        value={fdcPageSize}
+                        onChange={(e) => {
+                            setFdcPageSize(Math.max(1, Math.min(200, Number(e.target.value) || 25)))
+                            setFdcPageNumber(1)
+                        }}
+                        size="small"
+                        sx={{ width: { xs: '100%', md: 140 } }}
+                    />
+                    <Button
+                        variant="contained"
+                        onClick={() => runFdcSearch(1)}
+                        disabled={fdcLoading || fdcImporting}
+                    >
+                        {fdcLoading ? 'Searching...' : 'Search'}
+                    </Button>
+                </Stack>
+
+                <Stack direction={{ xs: 'column', md: 'row' }} spacing={1.5} sx={{ mb: 1 }} alignItems="center">
+                    <Typography variant="body2" color="text.secondary">
+                        {fdcTotalHits} hits
+                    </Typography>
+                    <Box sx={{ flexGrow: 1 }} />
+                    {fdcTotalHits > 0 && (
+                        <MuiPagination
+                            count={Math.max(1, fdcTotalPages)}
+                            page={Math.max(1, fdcPageNumber)}
+                            onChange={(_, p) => { void runFdcSearch(p) }}
+                            size="small"
+                            disabled={fdcLoading || fdcImporting}
+                        />
+                    )}
+                </Stack>
+
+                <TableContainer component={Paper} elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 1.5, mb: 2 }}>
+                    <Table size="small" stickyHeader>
+                        <TableHead>
+                            <TableRow sx={{ '& th': { backgroundColor: 'grey.50' } }}>
+                                <TableCell sx={{ fontWeight: 700, width: 90 }}>Select</TableCell>
+                                <TableCell sx={{ fontWeight: 700, width: 140 }}>FDC ID</TableCell>
+                                <TableCell sx={{ fontWeight: 700 }}>Description</TableCell>
+                                <TableCell sx={{ fontWeight: 700, width: 140 }}>Type</TableCell>
+                                <TableCell sx={{ fontWeight: 700 }}>Brand</TableCell>
+                            </TableRow>
+                        </TableHead>
+                        <TableBody>
+                            {fdcResults.map((food) => (
+                                <TableRow key={food.fdcId} hover>
+                                    <TableCell>
+                                        <FormControlLabel
+                                            control={
+                                                <Checkbox
+                                                    size="small"
+                                                    checked={fdcSelectedIds.has(food.fdcId)}
+                                                    onChange={() => toggleFdcSelected(food.fdcId)}
+                                                />
+                                            }
+                                            label=""
+                                        />
+                                    </TableCell>
+                                    <TableCell>{food.fdcId}</TableCell>
+                                    <TableCell>{food.description || '—'}</TableCell>
+                                    <TableCell>{food.dataType || '—'}</TableCell>
+                                    <TableCell>{food.brandOwner || '—'}</TableCell>
+                                </TableRow>
+                            ))}
+                            {!fdcLoading && fdcResults.length === 0 && (
+                                <TableRow>
+                                    <TableCell colSpan={5} align="center" sx={{ py: 3, color: 'text.secondary' }}>
+                                        No USDA results yet. Run a search to get started.
+                                    </TableCell>
+                                </TableRow>
+                            )}
+                        </TableBody>
+                    </Table>
+                </TableContainer>
+
+                <Stack direction={{ xs: 'column', md: 'row' }} spacing={1.5} alignItems={{ xs: 'flex-start', md: 'center' }}>
+                    <Typography variant="body2" color="text.secondary">
+                        {fdcSelectedIds.size} selected
+                    </Typography>
+                    <Button
+                        variant="contained"
+                        color="primary"
+                        onClick={runFdcImport}
+                        disabled={fdcImporting || fdcSelectedIds.size === 0}
+                    >
+                        {fdcImporting ? 'Importing...' : 'Import Selected'}
+                    </Button>
+                </Stack>
+
+                {fdcImportResult && (
+                    <Alert severity={fdcImportResult.failures.length > 0 ? 'warning' : 'success'} sx={{ mt: 2 }}>
+                        Imported {fdcImportResult.imported_count}. Created: {fdcImportResult.created_count}. Updated: {fdcImportResult.updated_count}.
+                        {fdcImportResult.failures.length > 0 && ` Failures: ${fdcImportResult.failures.length}.`}
+                    </Alert>
+                )}
+            </Box>
         </>
     );
 
     return (
         <DataPageLayout
             title="Admin"
-            subtitle="Manage user accounts"
+            subtitle="Manage user accounts and USDA imports"
             controlBarLeft={controlBarLeft}
             controlBarRight={controlBarRight}
             main={mainContent}

@@ -914,6 +914,10 @@ class Food(db.Model):
     price: Mapped[float | None] = mapped_column(db.Float, nullable=True)
     price_date: Mapped[datetime.date | None] = mapped_column(db.Date, nullable=True)
     shelf_life: Mapped[str | None] = mapped_column(db.String(150), nullable=True)
+    source: Mapped[str | None] = mapped_column(db.String(20), nullable=True)
+    fdc_id: Mapped[int | None] = mapped_column(db.Integer, nullable=True)
+    fdc_data_type: Mapped[str | None] = mapped_column(db.String(30), nullable=True)
+    last_synced_at: Mapped[datetime.datetime | None] = mapped_column(db.DateTime, nullable=True)
 
     def __init__(self, user_id: int, data: FoodRequest | None = None):
         if data is not None:
@@ -940,6 +944,9 @@ class Food(db.Model):
         self.price = food_request.price
         self.price_date = datetime.date.fromisoformat(food_request.price_date) if food_request.price_date else None
         self.shelf_life = food_request.shelf_life
+        self.source = food_request.source
+        self.fdc_id = food_request.fdc_id
+        self.fdc_data_type = food_request.fdc_data_type
         # Create nutrition record from nested schema
         if not self.nutrition:
             self.nutrition = Nutrition(user_id)
@@ -966,7 +973,11 @@ class Food(db.Model):
             "nutrition": self.nutrition.json(),
             "price": self.price,
             "price_date": self.price_date.strftime("%Y-%m-%d") if self.price_date else None,
-            "shelf_life": self.shelf_life
+            "shelf_life": self.shelf_life,
+            "source": self.source,
+            "fdc_id": self.fdc_id,
+            "fdc_data_type": self.fdc_data_type,
+            "last_synced_at": self.last_synced_at.isoformat() if self.last_synced_at else None,
             }
 
     
@@ -993,6 +1004,15 @@ class Food(db.Model):
         if not food_dao:
             raise ValueError(f"Food record not found for ID {food_id}")
         return food_dao
+
+
+    @staticmethod
+    def get_by_source_fdc_id(source: str, fdc_id: int) -> Food | None:
+        return db.session.scalar(
+            db.select(Food)
+            .where(Food.source == source)
+            .where(Food.fdc_id == fdc_id)
+        )
 
 
     @staticmethod

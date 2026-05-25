@@ -161,6 +161,9 @@ class FoodRequest(BaseModel):
     size_description_2: str | None = None
     size_oz: float | None = None
     size_g: int | None = None
+    source: str | None = None
+    fdc_id: int | None = None
+    fdc_data_type: str | None = None
     price: float | None = None
     price_date: str | None = None
     shelf_life: str | None = None

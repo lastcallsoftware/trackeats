@@ -28,6 +28,8 @@ from google.oauth2 import id_token as google_id_token
 from google.auth.transport import requests as grequests
 import requests as req
 
+from usda_fdc_importer import USDAFdcImporter, USDAFdcImporterError, USDA_SOURCE
+
 
 RESET_TOKEN_EXPIRATION_SECONDS = 900  # 15 minutes
 
@@ -105,6 +107,49 @@ def _confirmation_redirect_url(status: str) -> str:
     base_url = os.environ.get("MOBILE_CONFIRM_REDIRECT_URL", "trackeats://confirm").rstrip("?&")
     separator = "&" if "?" in base_url else "?"
     return f"{base_url}{separator}status={status}"
+
+
+def _get_importer() -> USDAFdcImporter:
+    api_key = os.environ.get("USDA_FDC_API_KEY", "")
+    timeout_seconds = int(os.environ.get("USDA_FDC_TIMEOUT_SECONDS", "10"))
+    return USDAFdcImporter(api_key=api_key, timeout=timeout_seconds)
+
+
+def _get_importer_user_id() -> int:
+    importer_user_id = User.get_id(Data.IMPORTER_USER_NAME)
+    if not importer_user_id:
+        Data.add_users()
+        importer_user_id = User.get_id(Data.IMPORTER_USER_NAME)
+    if not importer_user_id:
+        raise ValueError("Could not retrieve importer user")
+    return importer_user_id
+
+
+def _get_json_payload() -> dict[str, Any]:
+    payload = request.get_json(silent=True)
+    if isinstance(payload, dict):
+        return cast(dict[str, Any], payload)
+    return {}
+
+
+def _parse_fdc_ids(raw_fdc_ids: Any) -> list[int]:
+    if not isinstance(raw_fdc_ids, list):
+        raise ValueError("'fdc_ids' must be a non-empty array")
+
+    values = cast(list[Any], raw_fdc_ids)
+    parsed: list[int] = []
+    for value in values:
+        try:
+            food_id = int(value)
+        except (TypeError, ValueError):
+            raise ValueError("All 'fdc_ids' values must be numeric")
+        if food_id > 0:
+            parsed.append(food_id)
+
+    deduped = list(dict.fromkeys(parsed))
+    if len(deduped) == 0:
+        raise ValueError("'fdc_ids' must include at least one positive integer")
+    return deduped
 
 
 ##############################
@@ -1768,3 +1813,146 @@ def delete_daily_log_entry(log_id: int):
         msg = f"DailyLogItem entry {log_id} deleted"
         logging.info(msg)
         return jsonify({"msg": msg}), 200
+
+
+##############################
+# USDA FDC IMPORTER (ADMIN)
+##############################
+@bp.route("/api/import/fdc/search", methods=["GET"])
+@admin_required
+@log_route
+def fdc_search_foods():
+    query = str(request.args.get("query", "")).strip()
+    try:
+        page_number = int(request.args.get("pageNumber", 1))
+        page_size = int(request.args.get("pageSize", 25))
+    except Exception:
+        return jsonify({"msg": "pageNumber and pageSize must be numeric"}), 400
+
+    if not query:
+        return jsonify({"msg": "Missing required parameter 'query'"}), 400
+
+    try:
+        importer = _get_importer()
+        data = importer.search_foods(query=query, page_number=page_number, page_size=page_size)
+    except USDAFdcImporterError as e:
+        msg = f"USDA search failed: {str(e)}"
+        logging.error(msg)
+        return jsonify({"msg": msg}), 400
+    except Exception as e:
+        msg = f"USDA search failed: {str(e)}"
+        logging.error(msg)
+        return jsonify({"msg": msg}), 500
+
+    return jsonify(data), 200
+
+
+@bp.route("/api/import/fdc/preview", methods=["POST"])
+@admin_required
+@log_route
+def fdc_preview_foods():
+    try:
+        payload = _get_json_payload()
+        fdc_ids = _parse_fdc_ids(payload.get("fdc_ids"))
+    except ValueError as e:
+        return jsonify({"msg": str(e)}), 400
+
+    try:
+        importer = _get_importer()
+        foods = importer.get_foods_by_ids(fdc_ids)
+        previews: list[dict[str, Any]] = []
+        for food in foods:
+            mapped = importer.map_to_food_request(food)
+            previews.append(
+                {
+                    "fdcId": food.get("fdcId"),
+                    "dataType": food.get("dataType"),
+                    "description": food.get("description"),
+                    "mapped": mapped.model_dump(),
+                }
+            )
+    except USDAFdcImporterError as e:
+        msg = f"USDA preview failed: {str(e)}"
+        logging.error(msg)
+        return jsonify({"msg": msg}), 400
+    except Exception as e:
+        msg = f"USDA preview failed: {str(e)}"
+        logging.error(msg)
+        return jsonify({"msg": msg}), 500
+
+    return jsonify({"count": len(previews), "items": previews}), 200
+
+
+@bp.route("/api/import/fdc/import", methods=["POST"])
+@admin_required
+@log_route
+def fdc_import_foods():
+    try:
+        payload = _get_json_payload()
+        fdc_ids = _parse_fdc_ids(payload.get("fdc_ids"))
+    except ValueError as e:
+        return jsonify({"msg": str(e)}), 400
+
+    created_count = 0
+    updated_count = 0
+    failures: list[dict[str, Any]] = []
+    imported: list[dict[str, Any]] = []
+
+    try:
+        importer = _get_importer()
+        usda_foods = importer.get_foods_by_ids(fdc_ids)
+        by_fdc_id: dict[int, dict[str, Any]] = {
+            int(food["fdcId"]): food for food in usda_foods if food.get("fdcId") is not None
+        }
+
+        with db.session.begin():
+            importer_user_id = _get_importer_user_id()
+
+            for fdc_id in fdc_ids:
+                usda_food = by_fdc_id.get(fdc_id)
+                if usda_food is None:
+                    failures.append({"fdc_id": fdc_id, "error": "Food not found in USDA response"})
+                    continue
+
+                try:
+                    with db.session.begin_nested():
+                        mapped = importer.map_to_food_request(usda_food)
+                        existing = Food.get_by_source_fdc_id(USDA_SOURCE, fdc_id)
+                        if existing:
+                            updated_request = mapped.model_copy(update={"id": existing.id})
+                            food_dao = Food.update(importer_user_id, updated_request)
+                            updated_count += 1
+                            action = "updated"
+                        else:
+                            food_dao = Food.add(importer_user_id, mapped)
+                            created_count += 1
+                            action = "created"
+
+                        food_dao.last_synced_at = datetime.now(timezone.utc)
+                        imported.append(
+                            {
+                                "fdc_id": fdc_id,
+                                "food_id": food_dao.id,
+                                "name": food_dao.name,
+                                "action": action,
+                            }
+                        )
+                except Exception as e:
+                    failures.append({"fdc_id": fdc_id, "error": str(e)})
+    except USDAFdcImporterError as e:
+        msg = f"USDA import failed: {str(e)}"
+        logging.error(msg)
+        return jsonify({"msg": msg}), 400
+    except Exception as e:
+        msg = f"USDA import failed: {str(e)}"
+        logging.error(msg)
+        return jsonify({"msg": msg}), 500
+
+    response: dict[str, Any] = {
+        "imported_count": len(imported),
+        "created_count": created_count,
+        "updated_count": updated_count,
+        "failures": failures,
+        "items": imported,
+    }
+    return jsonify(response), 200
