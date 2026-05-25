@@ -86,3 +86,34 @@ def test_map_to_food_request_foundation_defaults_vendor_and_serving() -> None:
     assert request.nutrition.calories == 23
     assert request.nutrition.protein_g == 3
     assert request.nutrition.total_carbs_g == 4
+
+
+def test_search_foods_uses_required_term_query_operators(monkeypatch) -> None:
+    importer = USDAFdcImporter(api_key="test-key")
+
+    calls: list[dict[str, object]] = []
+
+    def fake_get(path: str, params: dict[str, object]) -> dict[str, object]:
+        assert path == "/v1/foods/search"
+        calls.append(params)
+        return {
+            "totalHits": 2,
+            "currentPage": 1,
+            "totalPages": 1,
+            "foods": [
+                {"fdcId": 3, "description": "Apple Juice", "dataType": "Branded", "brandOwner": "Acme"},
+                {"fdcId": 4, "description": "Organic Apple Juice Blend", "dataType": "Foundation"},
+            ],
+        }
+
+    monkeypatch.setattr(importer, "_get", fake_get)
+
+    first_page = importer.search_foods(query="apple juice", page_number=1, page_size=25)
+
+    assert first_page["totalHits"] == 2
+    assert first_page["totalPages"] == 1
+    assert first_page["currentPage"] == 1
+    assert [food["fdcId"] for food in first_page["foods"]] == [3, 4]
+
+    assert len(calls) == 1
+    assert calls[0]["query"] == "+apple +juice"

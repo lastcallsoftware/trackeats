@@ -1,4 +1,5 @@
 import os
+import re
 from typing import Any
 
 import requests as req
@@ -23,6 +24,22 @@ class USDAFdcImporter:
         self._base_url = os.environ.get("USDA_FDC_BASE_URL", "https://api.nal.usda.gov/fdc").rstrip("/")
 
     def search_foods(self, query: str, page_number: int = 1, page_size: int = 25) -> dict[str, Any]:
+        requested_page = max(1, page_number)
+        requested_page_size = max(1, min(page_size, 200))
+        effective_query = _build_required_terms_query(query)
+        payload = self._search_page(
+            query=effective_query,
+            page_number=requested_page,
+            page_size=requested_page_size,
+        )
+        return {
+            "totalHits": int(payload.get("totalHits", 0) or 0),
+            "currentPage": int(payload.get("currentPage", requested_page) or requested_page),
+            "totalPages": int(payload.get("totalPages", 0) or 0),
+            "foods": self._filtered_foods(payload),
+        }
+
+    def _search_page(self, query: str, page_number: int, page_size: int) -> dict[str, Any]:
         params = {
             "api_key": self._api_key,
             "query": query,
@@ -37,10 +54,12 @@ class USDAFdcImporter:
             payload = payload[0] if payload else {}
         if not isinstance(payload, dict):
             return {"totalHits": 0, "currentPage": 1, "totalPages": 0, "foods": []}
+        return payload
 
+    def _filtered_foods(self, payload: dict[str, Any]) -> list[dict[str, Any]]:
         foods = payload.get("foods")
         if not isinstance(foods, list):
-            foods = []
+            return []
 
         filtered: list[dict[str, Any]] = []
         for item in foods:
@@ -50,13 +69,7 @@ class USDAFdcImporter:
             if data_type not in _ALLOWED_DATA_TYPES:
                 continue
             filtered.append(item)
-
-        return {
-            "totalHits": int(payload.get("totalHits", 0) or 0),
-            "currentPage": int(payload.get("currentPage", page_number) or page_number),
-            "totalPages": int(payload.get("totalPages", 0) or 0),
-            "foods": filtered,
-        }
+        return filtered
 
     def get_foods_by_ids(self, fdc_ids: list[int]) -> list[dict[str, Any]]:
         deduped_ids = list(dict.fromkeys([food_id for food_id in fdc_ids if food_id > 0]))
@@ -197,6 +210,27 @@ def _to_float(value: float | int | None) -> float:
         return round(float(value), 3)
     except Exception:
         return 0.0
+
+
+def _query_terms(query: str) -> list[str]:
+    return [term for term in re.split(r"\s+", _normalize_search_text(query)) if term]
+
+
+def _normalize_search_text(value: str) -> str:
+    return re.sub(r"\s+", " ", value.strip().lower())
+
+
+def _build_required_terms_query(query: str) -> str:
+    normalized_query = re.sub(r"\s+", " ", query.strip())
+    terms = _query_terms(normalized_query)
+    if len(terms) <= 1:
+        return normalized_query
+
+    # Respect advanced user-entered search operators/field selectors.
+    if re.search(r'[+\-"*():]', normalized_query):
+        return normalized_query
+
+    return " ".join(f"+{term}" for term in terms)
 
 
 def _serving_size_fields(usda_food: dict[str, Any]) -> tuple[float | None, str | None]:
