@@ -2,12 +2,12 @@ import { useEffect, useState, useCallback } from 'react';
 import axios from 'axios';
 import Box from '@mui/material/Box';
 import Paper from '@mui/material/Paper';
-import Table from '@mui/material/Table';
-import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
 import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
+import Table from '@mui/material/Table';
+import TableBody from '@mui/material/TableBody';
 import TableSortLabel from '@mui/material/TableSortLabel';
 import Chip from '@mui/material/Chip';
 import IconButton from '@mui/material/IconButton';
@@ -24,11 +24,13 @@ import Alert from '@mui/material/Alert';
 import Divider from '@mui/material/Divider';
 import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
-import Checkbox from '@mui/material/Checkbox';
-import FormControlLabel from '@mui/material/FormControlLabel';
+import MenuItem from '@mui/material/MenuItem';
 import MuiPagination from '@mui/material/Pagination';
 import { MdDeleteForever, MdRefresh } from 'react-icons/md';
 import DataPageLayout from './DataPageLayout';
+import USDAFoodsTable from './USDAFoodsTable';
+import { NutritionLabel } from './NutritionLabel';
+import { INutrition } from '@/contexts/DataProvider';
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -51,6 +53,9 @@ type FdcSearchFood = {
     description: string;
     dataType: string;
     brandOwner?: string;
+    brandName?: string;
+    packageWeight?: string;
+    modifiedDate?: string;
 };
 
 type FdcSearchResponse = {
@@ -59,6 +64,8 @@ type FdcSearchResponse = {
     totalPages: number;
     foods: FdcSearchFood[];
 };
+
+type FdcDataTypeFilter = 'both' | 'Branded' | 'Foundation';
 
 type FdcImportItem = {
     fdc_id: number;
@@ -74,6 +81,36 @@ type FdcImportResponse = {
     failures: Array<{ fdc_id: number; error: string }>;
     items: FdcImportItem[];
 };
+
+type FdcPreviewResponse = {
+    count: number;
+    items: Array<{
+        fdcId: number;
+        dataType?: string;
+        description?: string;
+        calorieSource?: string;
+        mapped?: {
+            nutrition?: INutrition;
+        };
+    }>;
+};
+
+function calorieSourceLabel(source: string | null): string {
+    switch (source) {
+        case 'label':
+            return 'Calories source: label nutrients';
+        case 'direct_energy':
+            return 'Calories source: USDA direct energy nutrient';
+        case 'atwater_energy':
+            return 'Calories source: USDA Atwater energy nutrient';
+        case 'estimated_from_macros':
+            return 'Calories source: estimated from protein/carbs/fat';
+        case 'missing':
+            return 'Calories source: unavailable';
+        default:
+            return 'Calories source: unavailable';
+    }
+}
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -115,11 +152,15 @@ function AdminPage() {
     const [flashMsg, setFlashMsg]     = useState<string | null>(null);
     const [fdcQuery, setFdcQuery] = useState('');
     const [fdcPageSize, setFdcPageSize] = useState(25);
+    const [fdcDataType, setFdcDataType] = useState<FdcDataTypeFilter>('both');
     const [fdcPageNumber, setFdcPageNumber] = useState(1);
     const [fdcTotalHits, setFdcTotalHits] = useState(0);
     const [fdcTotalPages, setFdcTotalPages] = useState(0);
     const [fdcResults, setFdcResults] = useState<FdcSearchFood[]>([]);
     const [fdcSelectedIds, setFdcSelectedIds] = useState<Set<number>>(new Set());
+    const [fdcPreviewRowId, setFdcPreviewRowId] = useState<number | null>(null);
+    const [fdcPreviewNutrition, setFdcPreviewNutrition] = useState<INutrition | null>(null);
+    const [fdcPreviewCalorieSource, setFdcPreviewCalorieSource] = useState<string | null>(null);
     const [fdcLoading, setFdcLoading] = useState(false);
     const [fdcImporting, setFdcImporting] = useState(false);
     const [fdcError, setFdcError] = useState<string | null>(null);
@@ -157,12 +198,16 @@ function AdminPage() {
                     query,
                     pageNumber,
                     pageSize: fdcPageSize,
+                    dataType: fdcDataType,
                 },
             });
             setFdcResults(res.data.foods ?? []);
             setFdcTotalHits(res.data.totalHits ?? 0);
             setFdcTotalPages(res.data.totalPages ?? 0);
             setFdcPageNumber(res.data.currentPage ?? pageNumber);
+            setFdcPreviewRowId(null);
+            setFdcPreviewNutrition(null);
+            setFdcPreviewCalorieSource(null);
         } catch (err: unknown) {
             const msg = axios.isAxiosError(err)
                 ? (err.response?.data?.msg ?? err.message)
@@ -171,7 +216,7 @@ function AdminPage() {
         } finally {
             setFdcLoading(false);
         }
-    }, [fdcPageSize, fdcQuery]);
+    }, [fdcDataType, fdcPageSize, fdcQuery]);
 
     const toggleFdcSelected = (fdcId: number) => {
         setFdcSelectedIds((prev) => {
@@ -211,6 +256,46 @@ function AdminPage() {
             setFdcImporting(false);
         }
     };
+
+    const selectFdcPreviewRow = useCallback((fdcId: number) => {
+        setFdcPreviewRowId(fdcId)
+    }, []);
+
+    useEffect(() => {
+        if (!fdcPreviewRowId) {
+            return;
+        }
+
+        let cancelled = false;
+
+        const fetchPreview = async () => {
+            setFdcPreviewNutrition(null);
+            setFdcPreviewCalorieSource(null);
+            try {
+                const res = await axios.post<FdcPreviewResponse>('/api/import/fdc/preview', {
+                    fdc_ids: [fdcPreviewRowId],
+                });
+                if (cancelled) {
+                    return;
+                }
+                const item = res.data.items?.[0];
+                const nutrition = item?.mapped?.nutrition ?? null;
+                setFdcPreviewNutrition(nutrition);
+                setFdcPreviewCalorieSource(item?.calorieSource ?? null);
+            } catch {
+                if (!cancelled) {
+                    setFdcPreviewNutrition(null);
+                    setFdcPreviewCalorieSource(null);
+                }
+            }
+        };
+
+        void fetchPreview();
+
+        return () => {
+            cancelled = true;
+        };
+    }, [fdcPreviewRowId]);
 
     // ── Sorting ──────────────────────────────────────────────────────────────
 
@@ -432,6 +517,21 @@ function AdminPage() {
                         size="small"
                         sx={{ width: { xs: '100%', md: 140 } }}
                     />
+                    <TextField
+                        label="Data type"
+                        select
+                        value={fdcDataType}
+                        onChange={(e) => {
+                            setFdcDataType(e.target.value as FdcDataTypeFilter)
+                            setFdcPageNumber(1)
+                        }}
+                        size="small"
+                        sx={{ width: { xs: '100%', md: 180 } }}
+                    >
+                        <MenuItem value="both">Branded + Foundation</MenuItem>
+                        <MenuItem value="Branded">Branded only</MenuItem>
+                        <MenuItem value="Foundation">Foundation only</MenuItem>
+                    </TextField>
                     <Button
                         variant="contained"
                         onClick={() => runFdcSearch(1)}
@@ -457,48 +557,40 @@ function AdminPage() {
                     )}
                 </Stack>
 
-                <TableContainer component={Paper} elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 1.5, mb: 2 }}>
-                    <Table size="small" stickyHeader>
-                        <TableHead>
-                            <TableRow sx={{ '& th': { backgroundColor: 'grey.50' } }}>
-                                <TableCell sx={{ fontWeight: 700, width: 90 }}>Select</TableCell>
-                                <TableCell sx={{ fontWeight: 700, width: 140 }}>FDC ID</TableCell>
-                                <TableCell sx={{ fontWeight: 700 }}>Description</TableCell>
-                                <TableCell sx={{ fontWeight: 700, width: 140 }}>Type</TableCell>
-                                <TableCell sx={{ fontWeight: 700 }}>Brand</TableCell>
-                            </TableRow>
-                        </TableHead>
-                        <TableBody>
-                            {fdcResults.map((food) => (
-                                <TableRow key={food.fdcId} hover>
-                                    <TableCell>
-                                        <FormControlLabel
-                                            control={
-                                                <Checkbox
-                                                    size="small"
-                                                    checked={fdcSelectedIds.has(food.fdcId)}
-                                                    onChange={() => toggleFdcSelected(food.fdcId)}
-                                                />
-                                            }
-                                            label=""
-                                        />
-                                    </TableCell>
-                                    <TableCell>{food.fdcId}</TableCell>
-                                    <TableCell>{food.description || '—'}</TableCell>
-                                    <TableCell>{food.dataType || '—'}</TableCell>
-                                    <TableCell>{food.brandOwner || '—'}</TableCell>
-                                </TableRow>
-                            ))}
-                            {!fdcLoading && fdcResults.length === 0 && (
-                                <TableRow>
-                                    <TableCell colSpan={5} align="center" sx={{ py: 3, color: 'text.secondary' }}>
-                                        No USDA results yet. Run a search to get started.
-                                    </TableCell>
-                                </TableRow>
-                            )}
-                        </TableBody>
-                    </Table>
-                </TableContainer>
+                <Box
+                    sx={{
+                        display: 'flex',
+                        flexDirection: { xs: 'column', lg: 'row' },
+                        alignItems: 'flex-start',
+                        gap: 2,
+                    }}
+                >
+                    <Box sx={{ minWidth: 0, flex: 1 }}>
+                        <USDAFoodsTable
+                            foods={fdcResults}
+                            selectedIds={fdcSelectedIds}
+                            onToggleSelected={toggleFdcSelected}
+                            selectedRowId={fdcPreviewRowId}
+                            onSelectRow={selectFdcPreviewRow}
+                            loading={fdcLoading}
+                        />
+                    </Box>
+                    <Box
+                        sx={{
+                            width: { xs: '100%', lg: 'auto' },
+                            display: 'flex',
+                            justifyContent: { xs: 'center', lg: 'flex-start' },
+                            flexShrink: 0,
+                        }}
+                    >
+                        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: { xs: 'center', lg: 'flex-start' }, gap: 0.75 }}>
+                            <NutritionLabel nutrition={fdcPreviewNutrition} />
+                            <Typography variant="caption" color="text.secondary" sx={{ px: { xs: 1, lg: 0 } }}>
+                                {calorieSourceLabel(fdcPreviewCalorieSource)}
+                            </Typography>
+                        </Box>
+                    </Box>
+                </Box>
 
                 <Stack direction={{ xs: 'column', md: 'row' }} spacing={1.5} alignItems={{ xs: 'flex-start', md: 'center' }}>
                     <Typography variant="body2" color="text.secondary">

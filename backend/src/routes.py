@@ -152,6 +152,21 @@ def _parse_fdc_ids(raw_fdc_ids: Any) -> list[int]:
     return deduped
 
 
+def _parse_fdc_data_types(raw_value: str | None) -> list[str]:
+    if raw_value is None:
+        return ["Branded", "Foundation"]
+
+    cleaned = raw_value.strip().lower()
+    if cleaned in {"", "both", "all"}:
+        return ["Branded", "Foundation"]
+    if cleaned == "branded":
+        return ["Branded"]
+    if cleaned == "foundation":
+        return ["Foundation"]
+
+    raise ValueError("dataType must be one of: both, Branded, Foundation")
+
+
 ##############################
 # HEALTH
 ##############################
@@ -1823,18 +1838,24 @@ def delete_daily_log_entry(log_id: int):
 @log_route
 def fdc_search_foods():
     query = str(request.args.get("query", "")).strip()
+    raw_data_type = request.args.get("dataType")
     try:
         page_number = int(request.args.get("pageNumber", 1))
         page_size = int(request.args.get("pageSize", 25))
     except Exception:
         return jsonify({"msg": "pageNumber and pageSize must be numeric"}), 400
 
+    try:
+        data_types = _parse_fdc_data_types(str(raw_data_type) if raw_data_type is not None else None)
+    except ValueError as e:
+        return jsonify({"msg": str(e)}), 400
+
     if not query:
         return jsonify({"msg": "Missing required parameter 'query'"}), 400
 
     try:
         importer = _get_importer()
-        data = importer.search_foods(query=query, page_number=page_number, page_size=page_size)
+        data = importer.search_foods(query=query, page_number=page_number, page_size=page_size, data_types=data_types)
     except USDAFdcImporterError as e:
         msg = f"USDA search failed: {str(e)}"
         logging.error(msg)
@@ -1868,6 +1889,7 @@ def fdc_preview_foods():
                     "fdcId": food.get("fdcId"),
                     "dataType": food.get("dataType"),
                     "description": food.get("description"),
+                    "calorieSource": importer.calorie_source(food),
                     "mapped": mapped.model_dump(),
                 }
             )

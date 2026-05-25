@@ -1,6 +1,6 @@
 import os
 import re
-from typing import Any
+from typing import Any, cast
 
 import requests as req
 
@@ -23,50 +23,69 @@ class USDAFdcImporter:
         self._timeout = timeout
         self._base_url = os.environ.get("USDA_FDC_BASE_URL", "https://api.nal.usda.gov/fdc").rstrip("/")
 
-    def search_foods(self, query: str, page_number: int = 1, page_size: int = 25) -> dict[str, Any]:
+    def search_foods(
+        self,
+        query: str,
+        page_number: int = 1,
+        page_size: int = 25,
+        data_types: list[str] | None = None,
+    ) -> dict[str, Any]:
         requested_page = max(1, page_number)
         requested_page_size = max(1, min(page_size, 200))
+        selected_data_types = _normalize_data_types(data_types)
+        terms = _query_terms(query)
+        use_visible_field_filter = len(terms) > 1 and not _has_search_operators(query)
         effective_query = _build_required_terms_query(query)
         payload = self._search_page(
             query=effective_query,
             page_number=requested_page,
             page_size=requested_page_size,
+            data_types=selected_data_types,
         )
+        foods = self._filtered_foods(payload, selected_data_types)
+        if use_visible_field_filter:
+            foods = [food for food in foods if _visible_fields_match_all_terms(food, terms)]
+
         return {
             "totalHits": int(payload.get("totalHits", 0) or 0),
             "currentPage": int(payload.get("currentPage", requested_page) or requested_page),
             "totalPages": int(payload.get("totalPages", 0) or 0),
-            "foods": self._filtered_foods(payload),
+            "foods": foods,
         }
 
-    def _search_page(self, query: str, page_number: int, page_size: int) -> dict[str, Any]:
-        params = {
+    def _search_page(self, query: str, page_number: int, page_size: int, data_types: list[str]) -> dict[str, Any]:
+        params: dict[str, Any] = {
             "api_key": self._api_key,
             "query": query,
             "pageNumber": max(1, page_number),
             "pageSize": max(1, min(page_size, 200)),
-            "dataType": _ALLOWED_DATA_TYPES,
+            "dataType": data_types,
         }
         payload = self._get("/v1/foods/search", params)
 
         # USDA docs claim list response, but actual payload is an object in practice.
         if isinstance(payload, list):
-            payload = payload[0] if payload else {}
+            payload_list = cast(list[Any], payload)
+            first_item_any: Any = payload_list[0] if len(payload_list) > 0 else None
+            payload = cast(dict[str, Any], first_item_any if isinstance(first_item_any, dict) else {})
         if not isinstance(payload, dict):
             return {"totalHits": 0, "currentPage": 1, "totalPages": 0, "foods": []}
-        return payload
+        return cast(dict[str, Any], payload)
 
-    def _filtered_foods(self, payload: dict[str, Any]) -> list[dict[str, Any]]:
+    def _filtered_foods(self, payload: dict[str, Any], allowed_data_types: list[str] | None = None) -> list[dict[str, Any]]:
         foods = payload.get("foods")
         if not isinstance(foods, list):
             return []
 
+        allowed_set = set(allowed_data_types if allowed_data_types else _ALLOWED_DATA_TYPES)
+
         filtered: list[dict[str, Any]] = []
-        for item in foods:
-            if not isinstance(item, dict):
+        for item_any in cast(list[Any], foods):
+            if not isinstance(item_any, dict):
                 continue
+            item = cast(dict[str, Any], item_any)
             data_type = str(item.get("dataType", ""))
-            if data_type not in _ALLOWED_DATA_TYPES:
+            if data_type not in allowed_set:
                 continue
             filtered.append(item)
         return filtered
@@ -86,8 +105,11 @@ class USDAFdcImporter:
                 {"api_key": self._api_key},
             )
             if isinstance(payload, list):
-                for item in payload:
-                    if isinstance(item, dict) and str(item.get("dataType", "")) in _ALLOWED_DATA_TYPES:
+                for item_any in cast(list[Any], payload):
+                    if not isinstance(item_any, dict):
+                        continue
+                    item = cast(dict[str, Any], item_any)
+                    if str(item.get("dataType", "")) in _ALLOWED_DATA_TYPES:
                         foods.append(item)
 
         return foods
@@ -108,12 +130,12 @@ class USDAFdcImporter:
         category_blob = " ".join(
             [
                 str(usda_food.get("brandedFoodCategory") or ""),
-                str((usda_food.get("foodCategory") or {}).get("description") or ""),
+                str(_food_category_description(usda_food) or ""),
                 description,
             ]
         ).strip()
 
-        subtype = str(usda_food.get("brandedFoodCategory") or (usda_food.get("foodCategory") or {}).get("description") or "").strip()
+        subtype = str(usda_food.get("brandedFoodCategory") or _food_category_description(usda_food) or "").strip()
         subtype = _truncate(subtype, 50) if subtype else None
 
         long_description = str(
@@ -128,25 +150,27 @@ class USDAFdcImporter:
         serving_size_description = _serving_size_description(usda_food, serving_size, serving_unit)
         serving_size_g, serving_size_oz = _serving_mass(serving_size, serving_unit)
 
+        calorie_value, _ = _calorie_value_with_source(usda_food)
+
         nutrition = NutritionRequest(
             serving_size_description=_truncate(serving_size_description, 50),
             serving_size_g=serving_size_g,
             serving_size_oz=serving_size_oz,
-            calories=_to_int(_calorie_value(usda_food)),
-            total_fat_g=_to_float(_nutrient_value(usda_food, "1004", "fat")),
-            saturated_fat_g=_to_float(_nutrient_value(usda_food, "1258", "saturatedFat")),
-            trans_fat_g=_to_float(_nutrient_value(usda_food, "1257", "transFat")),
-            cholesterol_mg=_to_int(_nutrient_value(usda_food, "1253", "cholesterol")),
-            sodium_mg=_to_int(_nutrient_value(usda_food, "1093", "sodium")),
-            total_carbs_g=_to_int(_nutrient_value(usda_food, "1005", "carbohydrates")),
-            fiber_g=_to_int(_nutrient_value(usda_food, "1079", "fiber")),
-            total_sugar_g=_to_int(_nutrient_value(usda_food, "2000", "sugars")),
-            added_sugar_g=_to_int(_nutrient_value(usda_food, "1235", None)),
-            protein_g=_to_int(_nutrient_value(usda_food, "1003", "protein")),
-            vitamin_d_mcg=_to_int(_nutrient_value(usda_food, "1114", None)),
-            calcium_mg=_to_int(_nutrient_value(usda_food, "1087", "calcium")),
-            iron_mg=_to_float(_nutrient_value(usda_food, "1089", "iron")),
-            potassium_mg=_to_int(_nutrient_value(usda_food, "1092", "postassium")),
+            calories=_to_int(calorie_value),
+            total_fat_g=_to_float(_nutrient_value_any(usda_food, ["1004", "204"], "fat")),
+            saturated_fat_g=_to_float(_nutrient_value_any(usda_food, ["1258", "606"], "saturatedFat")),
+            trans_fat_g=_to_float(_nutrient_value_any(usda_food, ["1257", "605"], "transFat")),
+            cholesterol_mg=_to_int(_nutrient_value_any(usda_food, ["1253", "601"], "cholesterol")),
+            sodium_mg=_to_int(_nutrient_value_any(usda_food, ["1093", "307"], "sodium")),
+            total_carbs_g=_to_int(_nutrient_value_any(usda_food, ["1005", "205"], "carbohydrates")),
+            fiber_g=_to_int(_nutrient_value_any(usda_food, ["1079", "291"], "fiber")),
+            total_sugar_g=_to_int(_nutrient_value_any(usda_food, ["2000", "269"], "sugars")),
+            added_sugar_g=_to_int(_nutrient_value_any(usda_food, ["1235", "539"], None)),
+            protein_g=_to_int(_nutrient_value_any(usda_food, ["1003", "203"], "protein")),
+            vitamin_d_mcg=_to_int(_nutrient_value_any(usda_food, ["1114", "328"], None)),
+            calcium_mg=_to_int(_nutrient_value_any(usda_food, ["1087", "301"], "calcium")),
+            iron_mg=_to_float(_nutrient_value_any(usda_food, ["1089", "303"], "iron")),
+            potassium_mg=_to_int(_nutrient_value_any(usda_food, ["1092", "306"], "postassium")),
         )
 
         return FoodRequest(
@@ -168,6 +192,10 @@ class USDAFdcImporter:
             shelf_life=None,
             nutrition=nutrition,
         )
+
+    def calorie_source(self, usda_food: dict[str, Any]) -> str:
+        _, source = _calorie_value_with_source(usda_food)
+        return source
 
     def _get(self, path: str, params: dict[str, Any]) -> Any:
         url = f"{self._base_url}{path}"
@@ -216,8 +244,35 @@ def _query_terms(query: str) -> list[str]:
     return [term for term in re.split(r"\s+", _normalize_search_text(query)) if term]
 
 
+def _normalize_data_types(data_types: list[str] | None) -> list[str]:
+    if not data_types:
+        return list(_ALLOWED_DATA_TYPES)
+
+    normalized: list[str] = []
+    seen: set[str] = set()
+    for value in data_types:
+        cleaned = str(value).strip().lower()
+        if cleaned == "branded":
+            canonical = "Branded"
+        elif cleaned == "foundation":
+            canonical = "Foundation"
+        else:
+            continue
+
+        if canonical not in seen:
+            normalized.append(canonical)
+            seen.add(canonical)
+
+    return normalized if normalized else list(_ALLOWED_DATA_TYPES)
+
+
 def _normalize_search_text(value: str) -> str:
     return re.sub(r"\s+", " ", value.strip().lower())
+
+
+def _has_search_operators(query: str) -> bool:
+    normalized_query = re.sub(r"\s+", " ", query.strip())
+    return bool(re.search(r'[+\-"*():]', normalized_query))
 
 
 def _build_required_terms_query(query: str) -> str:
@@ -227,10 +282,34 @@ def _build_required_terms_query(query: str) -> str:
         return normalized_query
 
     # Respect advanced user-entered search operators/field selectors.
-    if re.search(r'[+\-"*():]', normalized_query):
+    if _has_search_operators(normalized_query):
         return normalized_query
 
     return " ".join(f"+{term}" for term in terms)
+
+
+def _food_category_description(usda_food: dict[str, Any]) -> str:
+    food_category = usda_food.get("foodCategory")
+    if isinstance(food_category, dict):
+        typed_food_category = cast(dict[str, Any], food_category)
+        return str(typed_food_category.get("description") or "")
+    return ""
+
+
+def _visible_fields_match_all_terms(usda_food: dict[str, Any], terms: list[str]) -> bool:
+    if not terms:
+        return True
+
+    visible_search_text = _normalize_search_text(
+        " ".join(
+            [
+                str(usda_food.get("description") or ""),
+                str(usda_food.get("brandOwner") or ""),
+                str(usda_food.get("dataType") or ""),
+            ]
+        )
+    )
+    return all(term in visible_search_text for term in terms)
 
 
 def _serving_size_fields(usda_food: dict[str, Any]) -> tuple[float | None, str | None]:
@@ -278,24 +357,63 @@ def _serving_mass(size: float | None, unit: str | None) -> tuple[int | None, flo
 def _label_nutrient(usda_food: dict[str, Any], field: str | None) -> float | None:
     if not field:
         return None
-    label_nutrients = usda_food.get("labelNutrients")
-    if not isinstance(label_nutrients, dict):
+    label_nutrients_any = usda_food.get("labelNutrients")
+    if not isinstance(label_nutrients_any, dict):
         return None
-    nutrient_obj = label_nutrients.get(field)
-    if not isinstance(nutrient_obj, dict):
+    label_nutrients = cast(dict[str, Any], label_nutrients_any)
+    nutrient_obj_any = label_nutrients.get(field)
+    if not isinstance(nutrient_obj_any, dict):
         return None
+    nutrient_obj = cast(dict[str, Any], nutrient_obj_any)
     value = nutrient_obj.get("value")
+    if value is None:
+        return None
     try:
         return float(value)
     except Exception:
         return None
 
 
-def _calorie_value(usda_food: dict[str, Any]) -> float | None:
+def _calorie_value_with_source(usda_food: dict[str, Any]) -> tuple[float | None, str]:
     label_value = _label_nutrient(usda_food, "calories")
     if label_value is not None:
+        return label_value, "label"
+
+    direct_energy_value = _nutrient_value_any(usda_food, ["1008", "208"], None)
+    if direct_energy_value is not None:
+        return direct_energy_value, "direct_energy"
+
+    # USDA Foundation entries often report calories via Atwater energy IDs.
+    atwater_energy_value = _nutrient_value_any(usda_food, ["957", "958"], None)
+    if atwater_energy_value is not None:
+        return atwater_energy_value, "atwater_energy"
+
+    # Last fallback: estimate calories from macros when explicit energy is missing.
+    protein_g = _nutrient_value_any(usda_food, ["1003", "203"], "protein") or 0.0
+    carbs_g = _nutrient_value_any(usda_food, ["1005", "205"], "carbohydrates") or 0.0
+    fat_g = _nutrient_value_any(usda_food, ["1004", "204"], "fat") or 0.0
+    estimated = (protein_g * 4.0) + (carbs_g * 4.0) + (fat_g * 9.0)
+    if estimated > 0:
+        return estimated, "estimated_from_macros"
+
+    return None, "missing"
+
+
+def _nutrient_value_any(
+    usda_food: dict[str, Any],
+    nutrient_numbers: list[str],
+    label_field: str | None,
+) -> float | None:
+    label_value = _label_nutrient(usda_food, label_field)
+    if label_value is not None:
         return label_value
-    return _nutrient_value(usda_food, "1008", None)
+
+    for nutrient_number in nutrient_numbers:
+        matched = _nutrient_value(usda_food, nutrient_number, None)
+        if matched is not None:
+            return matched
+
+    return None
 
 
 def _nutrient_value(usda_food: dict[str, Any], nutrient_number: str, label_field: str | None) -> float | None:
@@ -307,9 +425,10 @@ def _nutrient_value(usda_food: dict[str, Any], nutrient_number: str, label_field
     if not isinstance(food_nutrients, list):
         return None
 
-    for nutrient_item in food_nutrients:
-        if not isinstance(nutrient_item, dict):
+    for nutrient_item_any in cast(list[Any], food_nutrients):
+        if not isinstance(nutrient_item_any, dict):
             continue
+        nutrient_item = cast(dict[str, Any], nutrient_item_any)
 
         number_candidate = nutrient_item.get("number")
         if number_candidate is None:
@@ -321,6 +440,8 @@ def _nutrient_value(usda_food: dict[str, Any], nutrient_number: str, label_field
             continue
 
         value = nutrient_item.get("amount")
+        if value is None:
+            return None
         try:
             return float(value)
         except Exception:
