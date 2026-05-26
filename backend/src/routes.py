@@ -1890,6 +1890,7 @@ def fdc_preview_foods():
                     "dataType": food.get("dataType"),
                     "description": food.get("description"),
                     "calorieSource": importer.calorie_source(food),
+                    "nutritionStatus": importer.nutrition_status(food),
                     "mapped": mapped.model_dump(),
                 }
             )

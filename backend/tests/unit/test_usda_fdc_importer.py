@@ -253,3 +253,82 @@ def test_calorie_source_estimated_from_macros() -> None:
     }
 
     assert importer.calorie_source(usda_food) == "estimated_from_macros"
+
+
+def test_map_to_food_request_uses_median_when_amount_missing() -> None:
+    importer = USDAFdcImporter(api_key="test-key")
+    usda_food = {
+        "fdcId": 90005,
+        "dataType": "Foundation",
+        "description": "Median-only nutrient test",
+        "foodNutrients": [
+            {"nutrient": {"number": "208"}, "median": 50.0},
+            {"nutrient": {"number": "203"}, "median": 2.5},
+            {"nutrient": {"number": "205"}, "median": 11.0},
+        ],
+    }
+
+    request = importer.map_to_food_request(usda_food)
+
+    assert request.nutrition.calories == 50
+    assert request.nutrition.protein_g == 2
+    assert request.nutrition.total_carbs_g == 11
+
+
+def test_nutrition_status_missing_core_when_only_non_core_nutrients_present() -> None:
+    importer = USDAFdcImporter(api_key="test-key")
+    usda_food = {
+        "fdcId": 90006,
+        "dataType": "Foundation",
+        "description": "Sparse nutrient test",
+        "foodNutrients": [
+            {"nutrient": {"number": "255"}, "amount": 74.5},
+            {"nutrient": {"number": "606"}, "amount": 0.7},
+            {"nutrient": {"number": "269.3"}, "amount": 1.1},
+        ],
+    }
+
+    assert importer.nutrition_status(usda_food) == "missing_core"
+
+
+def test_nutrition_status_available_when_core_nutrients_present() -> None:
+    importer = USDAFdcImporter(api_key="test-key")
+    usda_food = {
+        "fdcId": 90007,
+        "dataType": "Foundation",
+        "description": "Core nutrient test",
+        "foodNutrients": [
+            {"nutrient": {"number": "957"}, "amount": 65.0},
+            {"nutrient": {"number": "205"}, "amount": 16.0},
+        ],
+    }
+
+    assert importer.nutrition_status(usda_food) == "available"
+
+
+def test_get_foods_by_ids_falls_back_for_ids_omitted_by_batch(monkeypatch) -> None:
+    importer = USDAFdcImporter(api_key="test-key")
+
+    post_calls: list[tuple[str, list[int]]] = []
+
+    def fake_post(path: str, json_payload: dict[str, object], params: dict[str, object]) -> list[dict[str, object]]:
+        assert path == "/v1/foods"
+        fdc_ids = [int(v) for v in json_payload["fdcIds"]]  # type: ignore[index]
+        post_calls.append((path, fdc_ids))
+        if fdc_ids == [100, 200]:
+            # Simulate USDA intermittently omitting one requested ID in batch response.
+            return [{"fdcId": 100, "dataType": "Foundation", "description": "Food 100"}]
+        if fdc_ids == [200]:
+            # Per-ID retry should recover the omitted item.
+            return [{"fdcId": 200, "dataType": "Foundation", "description": "Food 200"}]
+        return []
+
+    monkeypatch.setattr(importer, "_post", fake_post)
+
+    foods = importer.get_foods_by_ids([100, 200])
+
+    assert [int(food["fdcId"]) for food in foods] == [100, 200]
+    assert post_calls[:2] == [
+        ("/v1/foods", [100, 200]),
+        ("/v1/foods", [200]),
+    ]

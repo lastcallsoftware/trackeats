@@ -96,6 +96,7 @@ class USDAFdcImporter:
             return []
 
         foods: list[dict[str, Any]] = []
+        seen_ids: set[int] = set()
         chunk_size = 20
         for i in range(0, len(deduped_ids), chunk_size):
             chunk = deduped_ids[i : i + chunk_size]
@@ -109,8 +110,54 @@ class USDAFdcImporter:
                     if not isinstance(item_any, dict):
                         continue
                     item = cast(dict[str, Any], item_any)
-                    if str(item.get("dataType", "")) in _ALLOWED_DATA_TYPES:
-                        foods.append(item)
+                    if str(item.get("dataType", "")) not in _ALLOWED_DATA_TYPES:
+                        continue
+                    item_fdc_id = item.get("fdcId")
+                    if item_fdc_id is None:
+                        continue
+                    try:
+                        parsed_fdc_id = int(item_fdc_id)
+                    except Exception:
+                        continue
+                    foods.append(item)
+                    seen_ids.add(parsed_fdc_id)
+
+        # USDA batch endpoint can intermittently omit requested IDs.
+        missing_ids = [fdc_id for fdc_id in deduped_ids if fdc_id not in seen_ids]
+        for missing_id in missing_ids:
+            retry_attempts = 3
+            for _ in range(retry_attempts):
+                retry_payload = self._post(
+                    "/v1/foods",
+                    {"fdcIds": [missing_id], "format": "full"},
+                    {"api_key": self._api_key},
+                )
+                if not isinstance(retry_payload, list):
+                    continue
+
+                found_missing_id = False
+                for retry_item_any in cast(list[Any], retry_payload):
+                    if not isinstance(retry_item_any, dict):
+                        continue
+                    retry_item = cast(dict[str, Any], retry_item_any)
+                    if str(retry_item.get("dataType", "")) not in _ALLOWED_DATA_TYPES:
+                        continue
+                    retry_fdc_id = retry_item.get("fdcId")
+                    if retry_fdc_id is None:
+                        continue
+                    try:
+                        parsed_retry_fdc_id = int(retry_fdc_id)
+                    except Exception:
+                        continue
+                    if parsed_retry_fdc_id in seen_ids:
+                        continue
+                    foods.append(retry_item)
+                    seen_ids.add(parsed_retry_fdc_id)
+                    if parsed_retry_fdc_id == missing_id:
+                        found_missing_id = True
+
+                if found_missing_id:
+                    break
 
         return foods
 
@@ -196,6 +243,9 @@ class USDAFdcImporter:
     def calorie_source(self, usda_food: dict[str, Any]) -> str:
         _, source = _calorie_value_with_source(usda_food)
         return source
+
+    def nutrition_status(self, usda_food: dict[str, Any]) -> str:
+        return "available" if _has_core_nutrition_data(usda_food) else "missing_core"
 
     def _get(self, path: str, params: dict[str, Any]) -> Any:
         url = f"{self._base_url}{path}"
@@ -399,6 +449,19 @@ def _calorie_value_with_source(usda_food: dict[str, Any]) -> tuple[float | None,
     return None, "missing"
 
 
+def _has_core_nutrition_data(usda_food: dict[str, Any]) -> bool:
+    calorie_value, calorie_source = _calorie_value_with_source(usda_food)
+    if calorie_value is not None and calorie_source != "missing":
+        return True
+
+    protein = _nutrient_value_any(usda_food, ["1003", "203"], "protein")
+    carbs = _nutrient_value_any(usda_food, ["1005", "205"], "carbohydrates")
+    total_fat = _nutrient_value_any(usda_food, ["1004", "204"], "fat")
+    sodium = _nutrient_value_any(usda_food, ["1093", "307"], "sodium")
+
+    return any(value is not None for value in [protein, carbs, total_fat, sodium])
+
+
 def _nutrient_value_any(
     usda_food: dict[str, Any],
     nutrient_numbers: list[str],
@@ -440,6 +503,8 @@ def _nutrient_value(usda_food: dict[str, Any], nutrient_number: str, label_field
             continue
 
         value = nutrient_item.get("amount")
+        if value is None:
+            value = nutrient_item.get("median")
         if value is None:
             return None
         try:

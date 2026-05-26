@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import axios from 'axios';
 import Box from '@mui/material/Box';
 import Paper from '@mui/material/Paper';
@@ -89,11 +89,14 @@ type FdcPreviewResponse = {
         dataType?: string;
         description?: string;
         calorieSource?: string;
+        nutritionStatus?: string;
         mapped?: {
             nutrition?: INutrition;
         };
     }>;
 };
+
+type FdcPreviewItem = FdcPreviewResponse['items'][number];
 
 function calorieSourceLabel(source: string | null): string {
     switch (source) {
@@ -159,12 +162,13 @@ function AdminPage() {
     const [fdcResults, setFdcResults] = useState<FdcSearchFood[]>([]);
     const [fdcSelectedIds, setFdcSelectedIds] = useState<Set<number>>(new Set());
     const [fdcPreviewRowId, setFdcPreviewRowId] = useState<number | null>(null);
-    const [fdcPreviewNutrition, setFdcPreviewNutrition] = useState<INutrition | null>(null);
-    const [fdcPreviewCalorieSource, setFdcPreviewCalorieSource] = useState<string | null>(null);
+    const [fdcPreviewItems, setFdcPreviewItems] = useState<Record<number, FdcPreviewItem>>({});
+    const [fdcPreviewLoading, setFdcPreviewLoading] = useState(false);
     const [fdcLoading, setFdcLoading] = useState(false);
     const [fdcImporting, setFdcImporting] = useState(false);
     const [fdcError, setFdcError] = useState<string | null>(null);
     const [fdcImportResult, setFdcImportResult] = useState<FdcImportResponse | null>(null);
+    const fdcPreviewRequestSeq = useRef(0);
 
     const fetchUsers = useCallback(async () => {
         setLoading(true);
@@ -184,6 +188,42 @@ function AdminPage() {
 
     useEffect(() => { fetchUsers(); }, [fetchUsers]);
 
+    const fetchFdcPreviews = useCallback(async (foods: FdcSearchFood[]) => {
+        const fdcIds = foods.map((food) => food.fdcId);
+        if (fdcIds.length === 0) {
+            setFdcPreviewItems({});
+            setFdcPreviewLoading(false);
+            return;
+        }
+
+        const requestSeq = ++fdcPreviewRequestSeq.current;
+        setFdcPreviewLoading(true);
+        setFdcPreviewItems({});
+
+        try {
+            const res = await axios.post<FdcPreviewResponse>('/api/import/fdc/preview', {
+                fdc_ids: fdcIds,
+            });
+            if (requestSeq !== fdcPreviewRequestSeq.current) {
+                return;
+            }
+
+            const nextItems: Record<number, FdcPreviewItem> = {};
+            for (const item of res.data.items ?? []) {
+                nextItems[item.fdcId] = item;
+            }
+            setFdcPreviewItems(nextItems);
+        } catch {
+            if (requestSeq === fdcPreviewRequestSeq.current) {
+                setFdcPreviewItems({});
+            }
+        } finally {
+            if (requestSeq === fdcPreviewRequestSeq.current) {
+                setFdcPreviewLoading(false);
+            }
+        }
+    }, []);
+
     const runFdcSearch = useCallback(async (pageNumber: number) => {
         const query = fdcQuery.trim();
         if (!query) {
@@ -201,18 +241,20 @@ function AdminPage() {
                     dataType: fdcDataType,
                 },
             });
-            setFdcResults(res.data.foods ?? []);
+            const foods = res.data.foods ?? [];
+            setFdcResults(foods);
             setFdcTotalHits(res.data.totalHits ?? 0);
             setFdcTotalPages(res.data.totalPages ?? 0);
             setFdcPageNumber(res.data.currentPage ?? pageNumber);
             setFdcPreviewRowId(null);
-            setFdcPreviewNutrition(null);
-            setFdcPreviewCalorieSource(null);
+            setFdcPreviewLoading(false);
+            void fetchFdcPreviews(foods);
         } catch (err: unknown) {
             const msg = axios.isAxiosError(err)
                 ? (err.response?.data?.msg ?? err.message)
                 : String(err);
             setFdcError(msg);
+            setFdcPreviewLoading(false);
         } finally {
             setFdcLoading(false);
         }
@@ -258,44 +300,8 @@ function AdminPage() {
     };
 
     const selectFdcPreviewRow = useCallback((fdcId: number) => {
-        setFdcPreviewRowId(fdcId)
+        setFdcPreviewRowId(fdcId);
     }, []);
-
-    useEffect(() => {
-        if (!fdcPreviewRowId) {
-            return;
-        }
-
-        let cancelled = false;
-
-        const fetchPreview = async () => {
-            setFdcPreviewNutrition(null);
-            setFdcPreviewCalorieSource(null);
-            try {
-                const res = await axios.post<FdcPreviewResponse>('/api/import/fdc/preview', {
-                    fdc_ids: [fdcPreviewRowId],
-                });
-                if (cancelled) {
-                    return;
-                }
-                const item = res.data.items?.[0];
-                const nutrition = item?.mapped?.nutrition ?? null;
-                setFdcPreviewNutrition(nutrition);
-                setFdcPreviewCalorieSource(item?.calorieSource ?? null);
-            } catch {
-                if (!cancelled) {
-                    setFdcPreviewNutrition(null);
-                    setFdcPreviewCalorieSource(null);
-                }
-            }
-        };
-
-        void fetchPreview();
-
-        return () => {
-            cancelled = true;
-        };
-    }, [fdcPreviewRowId]);
 
     // ── Sorting ──────────────────────────────────────────────────────────────
 
@@ -374,6 +380,18 @@ function AdminPage() {
             </IconButton>
         </Tooltip>
     );
+
+    const selectedFdcPreview = fdcPreviewRowId ? fdcPreviewItems[fdcPreviewRowId] ?? null : null;
+    const selectedFdcNutrition = selectedFdcPreview?.mapped?.nutrition ?? null;
+    const selectedFdcCalorieSource = selectedFdcPreview?.calorieSource ?? null;
+    const selectedFdcNutritionStatus = selectedFdcPreview?.nutritionStatus ?? null;
+    const selectedFdcPreviewPending = Boolean(fdcPreviewRowId) && fdcPreviewLoading && !selectedFdcPreview;
+    const selectedFdcPreviewUnavailable = Boolean(fdcPreviewRowId)
+        && !selectedFdcPreviewPending
+        && !selectedFdcPreview;
+    const selectedFdcPreviewMissingCore = Boolean(fdcPreviewRowId)
+        && !selectedFdcPreviewPending
+        && selectedFdcNutritionStatus === 'missing_core';
 
     const mainContent = (
         <>
@@ -584,9 +602,84 @@ function AdminPage() {
                         }}
                     >
                         <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: { xs: 'center', lg: 'flex-start' }, gap: 0.75 }}>
-                            <NutritionLabel nutrition={fdcPreviewNutrition} />
+                            {selectedFdcPreviewPending ? (
+                                <Box
+                                    sx={{
+                                        width: 280,
+                                        minHeight: 360,
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        border: '2px solid',
+                                        borderColor: 'divider',
+                                        borderRadius: 2,
+                                        bgcolor: 'background.paper',
+                                    }}
+                                >
+                                    <Stack spacing={1} alignItems="center">
+                                        <CircularProgress size={28} />
+                                        <Typography variant="body2" color="text.secondary">
+                                            Loading nutrition preview...
+                                        </Typography>
+                                    </Stack>
+                                </Box>
+                            ) : selectedFdcPreviewUnavailable ? (
+                                <Box
+                                    sx={{
+                                        width: 280,
+                                        minHeight: 360,
+                                        p: 2,
+                                        border: '2px solid',
+                                        borderColor: 'divider',
+                                        borderRadius: 2,
+                                        bgcolor: 'background.paper',
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        justifyContent: 'center',
+                                        gap: 1,
+                                    }}
+                                >
+                                    <Typography variant="h6" sx={{ fontWeight: 700 }}>
+                                        Nutrition Preview Unavailable
+                                    </Typography>
+                                    <Typography variant="body2" color="text.secondary">
+                                        USDA did not return preview data for this record. Try searching again.
+                                    </Typography>
+                                </Box>
+                            ) : selectedFdcPreviewMissingCore ? (
+                                <Box
+                                    sx={{
+                                        width: 280,
+                                        minHeight: 360,
+                                        p: 2,
+                                        border: '2px solid',
+                                        borderColor: 'divider',
+                                        borderRadius: 2,
+                                        bgcolor: 'background.paper',
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        justifyContent: 'center',
+                                        gap: 1,
+                                    }}
+                                >
+                                    <Typography variant="h6" sx={{ fontWeight: 700 }}>
+                                        Nutrition Data N/A
+                                    </Typography>
+                                    <Typography variant="body2" color="text.secondary">
+                                        USDA did not provide the core nutrition fields for this record.
+                                    </Typography>
+                                </Box>
+                            ) : (
+                                <NutritionLabel nutrition={selectedFdcNutrition} />
+                            )}
                             <Typography variant="caption" color="text.secondary" sx={{ px: { xs: 1, lg: 0 } }}>
-                                {calorieSourceLabel(fdcPreviewCalorieSource)}
+                                {selectedFdcPreviewPending
+                                    ? 'Loading calorie source...'
+                                    : (selectedFdcPreviewUnavailable
+                                        ? 'Calories source: unavailable (record missing from USDA preview response)'
+                                        : (selectedFdcPreviewMissingCore
+                                            ? 'Calories source: N/A (missing in USDA record)'
+                                            : calorieSourceLabel(selectedFdcCalorieSource)))}
                             </Typography>
                         </Box>
                     </Box>
