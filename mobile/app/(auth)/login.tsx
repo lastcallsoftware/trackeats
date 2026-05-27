@@ -28,6 +28,8 @@ import {
 } from '@/services/socialAuthService';
 import { getSocialSeedPromptSeen, setSocialSeedPromptSeen } from '@/services/tokenStorage';
 
+const GUEST_EMAIL = 'guest@lastcallsoftware.com';
+
 const loginSchema = yup.object({
   email: yup.string().trim().required('Email address is required').email('Please enter a valid email address'),
 });
@@ -145,6 +147,16 @@ export default function LoginScreen() {
     }
   }
 
+  const handleGuestLogin = async () => {
+    setSocialError(null);
+    await authStore.getState().login(GUEST_EMAIL, '');
+
+    const latestError = authStore.getState().error;
+    if (latestError) {
+      setSocialError(latestError.message);
+    }
+  };
+
   const overlay = isSocialLoading ? (
     <View style={styles.loadingOverlay} testID="social-loading-overlay">
       <ActivityIndicator size="large" color="#007AFF" />
@@ -158,77 +170,90 @@ export default function LoginScreen() {
         <Text style={styles.successText}>Email confirmed. You can now log in.</Text>
       ) : null}
 
-      {hasAnySocialLogin ? (
-        <>
-          {/* ── Social login buttons ── */}
-          <View style={styles.socialRow}>
-            {hasGoogleLogin ? (
-              <TouchableOpacity
-                style={[styles.socialButton, styles.googleButton]}
-                onPress={() => handleSocialLogin('google')}
-                activeOpacity={0.8}
-                testID="google-login-button"
-                disabled={isLoading}
-              >
-                <GoogleIcon size={20} />
-                <Text style={styles.googleButtonText}>Sign in with Google</Text>
-              </TouchableOpacity>
-            ) : null}
+      <View style={styles.loginButtonsStack}>
+        <TouchableOpacity
+          style={[styles.socialButton, styles.guestButton]}
+          onPress={handleGuestLogin}
+          activeOpacity={0.8}
+          testID="guest-login-button"
+          disabled={isLoading}
+        >
+          <Ionicons name="person-outline" size={20} color="#3c4043" />
+          <Text style={styles.guestButtonText}>Log in as Guest</Text>
+        </TouchableOpacity>
 
-            {hasFacebookLogin ? (
-              <TouchableOpacity
-                style={[styles.socialButton, styles.facebookButton]}
-                onPress={() => handleSocialLogin('facebook')}
-                activeOpacity={0.8}
-                testID="facebook-login-button"
-                disabled={isLoading}
-              >
-                <Ionicons name="logo-facebook" size={20} color="#fff" />
-                <Text style={styles.facebookButtonText}>Facebook</Text>
-              </TouchableOpacity>
-            ) : null}
+        {socialError ? (
+          <Text style={styles.errorText} testID="social-error-message">
+            {socialError}
+          </Text>
+        ) : null}
 
-            {showAppleLogin ? (
-              <TouchableOpacity
-                style={[styles.socialButton, styles.appleButton]}
-                onPress={() => handleSocialLogin('apple')}
-                activeOpacity={0.8}
-                testID="apple-login-button"
-                disabled={isLoading}
-              >
-                <Ionicons name="logo-apple" size={20} color="#fff" />
-                <Text style={styles.appleButtonText}>Apple</Text>
-              </TouchableOpacity>
-            ) : null}
-          </View>
+        {hasAnySocialLogin ? (
+          <>
+            {/* ── Social login buttons ── */}
+            <View style={styles.socialRow}>
+              {hasGoogleLogin ? (
+                <TouchableOpacity
+                  style={[styles.socialButton, styles.googleButton]}
+                  onPress={() => handleSocialLogin('google')}
+                  activeOpacity={0.8}
+                  testID="google-login-button"
+                  disabled={isLoading}
+                >
+                  <GoogleIcon size={20} />
+                  <Text style={styles.googleButtonText}>Sign in with Google</Text>
+                </TouchableOpacity>
+              ) : null}
 
-          {socialError ? (
-            <Text style={styles.errorText} testID="social-error-message">
-              {socialError}
-            </Text>
-          ) : null}
+              {hasFacebookLogin ? (
+                <TouchableOpacity
+                  style={[styles.socialButton, styles.facebookButton]}
+                  onPress={() => handleSocialLogin('facebook')}
+                  activeOpacity={0.8}
+                  testID="facebook-login-button"
+                  disabled={isLoading}
+                >
+                  <Ionicons name="logo-facebook" size={20} color="#fff" />
+                  <Text style={styles.facebookButtonText}>Facebook</Text>
+                </TouchableOpacity>
+              ) : null}
 
-          {/* ── Email toggle ── */}
-          <TouchableOpacity
-            style={styles.emailToggleButton}
-            onPress={toggleEmailLogin}
-            activeOpacity={0.7}
-            testID="email-toggle-button"
-            accessibilityRole="button"
-            accessibilityState={{ expanded: showEmailLogin }}
-          >
-            <View style={styles.emailToggleContent}>
-              <Text style={styles.emailToggleButtonText}>Sign in with email</Text>
-              <Ionicons
-                name={showEmailLogin ? 'chevron-up-outline' : 'chevron-down-outline'}
-                size={18}
-                color="#007AFF"
-                style={styles.emailToggleIcon}
-              />
+              {showAppleLogin ? (
+                <TouchableOpacity
+                  style={[styles.socialButton, styles.appleButton]}
+                  onPress={() => handleSocialLogin('apple')}
+                  activeOpacity={0.8}
+                  testID="apple-login-button"
+                  disabled={isLoading}
+                >
+                  <Ionicons name="logo-apple" size={20} color="#fff" />
+                  <Text style={styles.appleButtonText}>Apple</Text>
+                </TouchableOpacity>
+              ) : null}
             </View>
-          </TouchableOpacity>
-        </>
-      ) : null}
+
+            {/* ── Email toggle ── */}
+            <TouchableOpacity
+              style={styles.emailToggleButton}
+              onPress={toggleEmailLogin}
+              activeOpacity={0.7}
+              testID="email-toggle-button"
+              accessibilityRole="button"
+              accessibilityState={{ expanded: showEmailLogin }}
+            >
+              <View style={styles.emailToggleContent}>
+                <Text style={styles.emailToggleButtonText}>Sign in with email</Text>
+                <Ionicons
+                  name={showEmailLogin ? 'chevron-up-outline' : 'chevron-down-outline'}
+                  size={18}
+                  color="#007AFF"
+                  style={styles.emailToggleIcon}
+                />
+              </View>
+            </TouchableOpacity>
+          </>
+        ) : null}
+      </View>
 
       {(showEmailLogin || !hasAnySocialLogin) ? (
         <>
@@ -442,6 +467,19 @@ const styles = StyleSheet.create({
     color: '#3c4043',
     fontWeight: '600',
     fontSize: 14,
+  },
+  guestButton: {
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#dadce0',
+  },
+  guestButtonText: {
+    color: '#3c4043',
+    fontWeight: '600',
+    fontSize: 14,
+  },
+  loginButtonsStack: {
+    gap: 15,
   },
   facebookButton: {
     backgroundColor: '#1877F2',

@@ -228,7 +228,7 @@ export default function SocialLoginButtons({ onSuccess, disabled = false, showDi
     }
 
     return (
-        <Box sx={{ mt: 1 }}>
+        <Box sx={{ mt: showDivider ? 1 : 0 }}>
             <Dialog open={seedDialogOpen} onClose={() => handleSeedChoice(false)}>
                 <DialogTitle>Seed starter data?</DialogTitle>
                 <DialogContent>

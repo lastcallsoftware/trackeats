@@ -250,7 +250,7 @@ class User(db.Model):
         """
         # Pull fields from dictionary
         username: str = data["username"]
-        password: str = data["password"]
+        password: str | None = data.get("password")
         email_addr: str = data["email"]
         status: UserStatus = data.get("status", UserStatus.pending)
         confirmation_email_sent_at: datetime.datetime|None = data.get("confirmation_email_sent_at")
@@ -268,25 +268,28 @@ class User(db.Model):
             raise ValueError("Username must be at least 3 characters")
         elif len(username) > 100:
             raise ValueError("Username must be at most 100 characters")
-            
-        if not password:
-            raise ValueError("Password is required.")
-        password = password.strip()
-        errors: list[str] = []
-        if len(password) < 8:
-            errors.append("Password must be at least 8 characters")
-        elif len(password) > 100:
-            errors.append("Password must be at most 100 characters")
-        if not re.search(r"[a-z]", password):
-            errors.append("Password must contain at least one lowercase letter")
-        if not re.search(r"[A-Z]", password):
-            errors.append("Password must contain at least one uppercase letter")
-        if not re.search(r"\d", password):
-            errors.append("Password must contain at least one digit")
-        if not re.search(r"[!@#$%^&*()_+\-=\[\]{};':\"\\|,.<>\/?]", password):
-            errors.append("Password must contain at least one special character")
-        if len(errors) > 0:
-            raise ValueError(errors)
+
+        password_hash_str: str | None = None
+        if password is not None:
+            password = password.strip()
+            if not password:
+                raise ValueError("Password is required.")
+            errors: list[str] = []
+            if len(password) < 8:
+                errors.append("Password must be at least 8 characters")
+            elif len(password) > 100:
+                errors.append("Password must be at most 100 characters")
+            if not re.search(r"[a-z]", password):
+                errors.append("Password must contain at least one lowercase letter")
+            if not re.search(r"[A-Z]", password):
+                errors.append("Password must contain at least one uppercase letter")
+            if not re.search(r"\d", password):
+                errors.append("Password must contain at least one digit")
+            if not re.search(r"[!@#$%^&*()_+\-=\[\]{};':\"\\|,.<>\/?]", password):
+                errors.append("Password must contain at least one special character")
+            if len(errors) > 0:
+                raise ValueError(errors)
+            password_hash_str = Crypto.hash_password(password)
 
         if not email_addr:
             raise ValueError("Email address is required")
@@ -301,9 +304,6 @@ class User(db.Model):
 
         # Encrypt the email address
         encrypted_email_addr = Crypto.encrypt(email_addr)
-
-        # Salt and hash the password
-        password_hash_str = Crypto.hash_password(password)
 
         # Store the user record in the database
         now = datetime.datetime.now()
@@ -335,8 +335,8 @@ class User(db.Model):
         """
         if not email:
             raise ValueError("Email is required")
-        if not password:
-            raise ValueError("Password is required")
+
+        password = password.strip() if password else ""
 
         # Validate the credentials
         # Retrieve user record from database by email
@@ -347,6 +347,14 @@ class User(db.Model):
         # Make sure the user has been confirmed
         if user.status != UserStatus.confirmed:
             raise ValueError(f"Email '{email}' has not been confirmed")
+
+        if user.username == "guest":
+            if not password:
+                return user
+            raise ValueError("Password is not required for guest")
+
+        if not password:
+            raise ValueError("Password is required")
         if not user.password_hash:
             raise ValueError("Missing required value password_hash")        
 

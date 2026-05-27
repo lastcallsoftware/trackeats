@@ -41,10 +41,9 @@ const HomePage: React.FC = () => {
                     </Typography>
                     <Typography variant="body1" sx={{ mb: 1.5 }}>
                         To use the app you can Register your own new account, or log on with the 
-                        guest account:
+                        guest account using the Login page button:
                     </Typography>
                     <Typography component="div" sx={{ pl: 3.5, fontFamily: 'monospace' }}>Email Address: guest@lastcallsoftware.com</Typography>
-                    <Typography component="div" sx={{ pl: 3.5, mb: 1.5, fontFamily: 'monospace' }}>Password: Guest*123</Typography>
                     <Typography variant="body1" sx={{ mb: 1 }}>Feel free to play around -- all the data (including user accounts) is reset to a snapshot regularly.</Typography>
                     <Typography variant="body1" sx={{ mb: 1 }}>See the About TrackEats page for more info about the app's technical design.</Typography>
                     <Typography variant="body1">Note that TrackEats is a browser app, not a mobile app.  It incorporates

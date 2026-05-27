@@ -128,10 +128,6 @@ class Data:
         if not testuser_password:
             raise ValueError("APP_TEST_PASSWORD not set")
 
-        guest_password = os.environ.get("APP_GUEST_PASSWORD")
-        if not guest_password:
-            raise ValueError("APP_GUEST_PASSWORD not set")
-
         importer_password = os.environ.get("APP_IMPORTER_PASSWORD", admin_password)
 
         admin_user_dao = User.get("admin")
@@ -164,14 +160,14 @@ class Data:
 
         guest_user_dao = User.get("guest")
         if guest_user_dao:
-            guest_user_dao.set_password(guest_password)
+            guest_user_dao.password_hash = None
             guest_user_dao.set_email_addr(Data.GUEST_USER_EMAIL)
             guest_user_dao.status = UserStatus.confirmed
         else:
             User.add({
                 "id": Data.GUEST_USER_ID,
                 "username": Data.GUEST_USER_NAME,
-                "password": guest_password,
+                "password": None,
                 "email": Data.GUEST_USER_EMAIL,
                 "status": UserStatus.confirmed
             })

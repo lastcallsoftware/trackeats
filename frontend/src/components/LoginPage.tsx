@@ -12,9 +12,12 @@ import Paper from '@mui/material/Paper';
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import ExpandMore from '@mui/icons-material/ExpandMore';
+import PersonOutline from '@mui/icons-material/PersonOutline';
 import IconButton from '@mui/material/IconButton';
 import InputAdornment from '@mui/material/InputAdornment';
 import SocialLoginButtons from './SocialLoginButtons';
+
+const GUEST_EMAIL = 'guest@lastcallsoftware.com';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function LoginPage(props: any) {
@@ -62,6 +65,30 @@ function LoginPage(props: any) {
             const response = await axios.post(
                 "/api/login",
                 { email: formData.email, password: formData.password },
+                { timeout: 10000 }
+            );
+            props.storeTokenFunction(response.data.access_token, response.data.username);
+            navigate("/foods")
+        } catch (error) {
+            console.log(error)
+            if (axios.isAxiosError(error) && error.response)
+                setLoginMessage(error.response.data.msg)
+            else if (error instanceof Error)
+                setLoginMessage(error.message)
+            else
+                setLoginMessage("Unable to log in right now.")
+            setIsSubmitting(false);
+        }
+    }
+
+    const handleGuestLogin = async () => {
+        setLoginMessage("");
+        setIsSubmitting(true);
+
+        try {
+            const response = await axios.post(
+                "/api/login",
+                { email: GUEST_EMAIL, password: "" },
                 { timeout: 10000 }
             );
             props.storeTokenFunction(response.data.access_token, response.data.username);
@@ -142,15 +169,36 @@ function LoginPage(props: any) {
                 }}
             >
                 <form onSubmit={handleSubmit}>
-                    <Box display="flex" flexDirection="column" gap={3}>
-                        <SocialLoginButtons
-                            disabled={isSubmitting}
-                            showDivider={false}
-                            onSuccess={({ appToken, username, authMethod }) => {
-                                props.storeTokenFunction(appToken, username, authMethod);
-                                navigate("/foods");
-                            }}
-                        />
+                    <Box display="flex" flexDirection="column" gap={hasAnySocialLogin ? 1.5 : 3}>
+                        <Box display="flex" flexDirection="column" gap={1.5}>
+                            <Button
+                                type="button"
+                                variant="outlined"
+                                fullWidth
+                                onClick={handleGuestLogin}
+                                disabled={isSubmitting}
+                                startIcon={<PersonOutline />}
+                                sx={{
+                                    height: 44,
+                                    textTransform: 'none',
+                                    fontWeight: 500,
+                                    borderColor: '#dadce0',
+                                    color: '#3c4043',
+                                    '&:hover': { borderColor: '#bdc1c6', backgroundColor: '#f8f9fa' },
+                                }}
+                            >
+                                Log in as Guest
+                            </Button>
+
+                            <SocialLoginButtons
+                                disabled={isSubmitting}
+                                showDivider={false}
+                                onSuccess={({ appToken, username, authMethod }) => {
+                                    props.storeTokenFunction(appToken, username, authMethod);
+                                    navigate("/foods");
+                                }}
+                            />
+                        </Box>
 
                         {hasAnySocialLogin ? (
                             <Button
@@ -185,7 +233,7 @@ function LoginPage(props: any) {
                         ) : null}
 
                         {hasAnySocialLogin ? (
-                            <Collapse in={showEmailLogin} timeout={220} unmountOnExit>
+                            <Collapse in={showEmailLogin} timeout={220} unmountOnExit sx={{ mt: 1.5 }}>
                                 <Box id="email-login-section" display="flex" flexDirection="column" gap={3}>
                                     <TextField
                                         label="Email Address"
