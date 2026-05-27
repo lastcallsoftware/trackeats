@@ -35,20 +35,19 @@ const HomePage: React.FC = () => {
             <TitleCard title="Welcome to TrackEats" subtitle="Your ultimate app for tracking recipes, meals, and nutrition!" />
             <HomeCard elevation={2}>
                 <Paper sx={{ p: 2, mb: 3, bgcolor: '#fff', border: '1px solid rgba(0,0,0,0.2)', borderRadius: 1 }}>
-                    <Typography variant="body1" sx={{ mb: 1.5 }}>
-                        A NOTE FOR NEW GUESTS: TrackEats is a portfolio app, intended to showcase 
-                        my tech skills.
-                    </Typography>
-                    <Typography variant="body1" sx={{ mb: 1.5 }}>
-                        To use the app you can Register your own new account, or log on with the 
-                        guest account using the Login page button:
-                    </Typography>
-                    <Typography component="div" sx={{ pl: 3.5, fontFamily: 'monospace' }}>Email Address: guest@lastcallsoftware.com</Typography>
-                    <Typography variant="body1" sx={{ mb: 1 }}>Feel free to play around -- all the data (including user accounts) is reset to a snapshot regularly.</Typography>
-                    <Typography variant="body1" sx={{ mb: 1 }}>See the About TrackEats page for more info about the app's technical design.</Typography>
-                    <Typography variant="body1">Note that TrackEats is a browser app, not a mobile app.  It incorporates
-                        some reactive design techniques and will work well even if you shrink your browser window, 
-                        but it will not look great on a phone.  (A native mobile app is under development.)</Typography>
+                    <Typography variant="body1" sx={{ mb: 1.5 }}>A NOTE FOR NEW GUESTS</Typography>
+                    <Typography variant="body1" sx={{ mb: 1 }}>TrackEats is a portfolio app, intended to 
+                        showcase my tech skills.</Typography>
+                    <Typography variant="body1" sx={{ mb: 1 }}>To use the app you can register your own new
+                        account, or log on with the Guest account.</Typography>
+                    <Typography variant="body1" sx={{ mb: 1 }}>Feel free to play around -- all the data (including
+                        user accounts) is reset to a snapshot regularly.</Typography>
+                    <Typography variant="body1" sx={{ mb: 1 }}>See the About TrackEats page for more info about
+                        the app's technical design.</Typography>
+                    <Typography variant="body1">Note that TrackEats is a browser app, not a mobile app.  It
+                        incorporates some reactive design techniques and will work well even if you shrink your 
+                        browser window, but it will not look great on a phone.  (A native mobile app is under 
+                        development.)</Typography>
                 </Paper>
 
                 <List sx={{ listStyleType: 'disc', pl: 3.5, mb: 1.5 }}>
