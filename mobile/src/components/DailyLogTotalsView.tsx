@@ -13,14 +13,20 @@ interface DailyLogTotalsViewProps {
 
 /**
  * DailyLogTotalsView displays aggregated daily nutrition totals
- * Uses NutritionLabel component to render all 18 nutrition fields
+ * Uses NutritionLabel component to render nutrition totals
+ * Serving size rows are hidden for the daily aggregate view
  * Adds a heading 'Daily Totals' above the label
  */
 export function DailyLogTotalsView({ nutrition }: DailyLogTotalsViewProps): React.ReactElement {
   return (
     <View style={styles.container}>
       <Text style={styles.heading}>Daily Totals</Text>
-      <NutritionLabel nutrition={nutrition} />
+      <NutritionLabel
+        nutrition={nutrition}
+        showServingSizeRow={false}
+        emphasizeCalories={true}
+        excludeFields={['serving_size_oz', 'serving_size_g']}
+      />
     </View>
   )
 }
@@ -28,8 +34,6 @@ export function DailyLogTotalsView({ nutrition }: DailyLogTotalsViewProps): Reac
 const styles = StyleSheet.create({
   container: {
     backgroundColor: '#fff',
-    borderTopWidth: 1,
-    borderTopColor: '#e0e0e0',
     borderBottomWidth: 1,
     borderBottomColor: '#e0e0e0',
     marginVertical: 12,

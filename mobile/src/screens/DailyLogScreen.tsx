@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import {
   View,
   ScrollView,
@@ -10,6 +10,8 @@ import {
 } from 'react-native'
 import { useDailyLog } from '@/hooks/useDailyLog'
 import { useDailyLogMutation } from '@/hooks/useDailyLogMutation'
+import { useFoods } from '@/hooks/useFoods'
+import { useRecipes } from '@/hooks/useRecipes'
 import { aggregateNutrition } from '@/utils/nutritionAggregation'
 import { DatePicker } from '@/components/DatePicker'
 import { DailyLogTotalsView } from '@/components/DailyLogTotalsView'
@@ -37,6 +39,8 @@ export function DailyLogScreen(): React.ReactElement {
   const [editingEntry, setEditingEntry] = useState<IDailyLogItem | null>(null)
 
   const { data: entries, isLoading, error, refetch } = useDailyLog(selectedDate)
+  const { data: foods = [] } = useFoods()
+  const { data: recipes = [] } = useRecipes()
   const { addEntry, editEntry, deleteEntry } = useDailyLogMutation(selectedDate)
 
   // Get entries array, default to empty array
@@ -44,6 +48,9 @@ export function DailyLogScreen(): React.ReactElement {
 
   // Aggregate nutrition from entries
   const totals = aggregateNutrition(entriesArray)
+
+  const foodNameById = useMemo(() => new Map(foods.filter((food) => food.id !== undefined).map((food) => [food.id as number, food.name])), [foods])
+  const recipeNameById = useMemo(() => new Map(recipes.map((recipe) => [recipe.id, recipe.name])), [recipes])
 
   // Handle delete error
   useEffect(() => {
@@ -56,8 +63,10 @@ export function DailyLogScreen(): React.ReactElement {
   // Get label for editing entry (food or recipe name)
   const editingEntryLabel = editingEntry
     ? editingEntry.food_id !== null
-      ? `Food #${editingEntry.food_id}`
-      : `Recipe #${editingEntry.recipe_id}`
+      ? (foodNameById.get(editingEntry.food_id) ?? `Food #${editingEntry.food_id}`)
+      : (editingEntry.recipe_id !== null
+        ? (recipeNameById.get(editingEntry.recipe_id) ?? `Recipe #${editingEntry.recipe_id}`)
+        : 'Unknown item')
     : ''
 
   // Loading state — show only on initial load when no entries yet
@@ -107,12 +116,12 @@ export function DailyLogScreen(): React.ReactElement {
           </View>
         ) : (
           <>
-            <DailyLogTotalsView nutrition={totals} />
             <DailyLogListView
               items={entriesArray}
               onEdit={(item) => setEditingEntry(item)}
               onDelete={(item) => deleteEntry.mutate(item.id)}
             />
+            <DailyLogTotalsView nutrition={totals} />
           </>
         )}
       </ScrollView>

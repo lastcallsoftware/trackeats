@@ -1,17 +1,15 @@
-import React, { useState, useCallback, useRef } from 'react'
+import React, { useState, useCallback } from 'react'
 import {
   View,
   Modal,
   TextInput,
-  FlatList,
   TouchableOpacity,
   Text,
   StyleSheet,
   Alert,
   ScrollView,
-  KeyboardAvoidingView,
-  Platform,
 } from 'react-native'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { IFood } from '@/types/food'
 import { IRecipe } from '@/types/recipe'
 import { useFoods, filterFoods } from '@/hooks/useFoods'
@@ -34,11 +32,6 @@ interface AddDailyLogEntrySheetProps {
 
 /**
  * AddDailyLogEntrySheet is a modal for adding a new entry to the daily log
- * - Allows searching and selecting a food or recipe
- * - Takes servings input (decimal number)
- * - Validates: servings > 0 and exactly one of food_id/recipe_id is set
- * - Calls addEntry.mutate on submit with proper payload
- * - Shows errors via Alert.alert
  */
 export function AddDailyLogEntrySheet({
   visible,
@@ -46,79 +39,65 @@ export function AddDailyLogEntrySheet({
   addEntry,
   onClose,
 }: AddDailyLogEntrySheetProps): React.ReactElement {
-  // Food search state
-  const [foodSearch, setFoodSearch] = useState('')
+  const insets = useSafeAreaInsets()
+  const [hasSubmitted, setHasSubmitted] = useState(false)
+  const servingStep = 0.5
+
+  const [searchText, setSearchText] = useState('')
+  const [searchMode, setSearchMode] = useState<'food' | 'recipe'>('food')
   const [selectedFoodId, setSelectedFoodId] = useState<number | null>(null)
-
-  // Recipe search state
-  const [recipeSearch, setRecipeSearch] = useState('')
   const [selectedRecipeId, setSelectedRecipeId] = useState<number | null>(null)
+  const [servingsText, setServingsText] = useState('1')
 
-  // Servings input
-  const [servingsText, setServingsText] = useState('')
-
-  // Debounce timers
-  const foodSearchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const recipeSearchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-
-  // Fetch foods and recipes
   const { data: allFoods = [] } = useFoods()
   const { data: allRecipes = [] } = useRecipes()
 
-  // Filter foods with debounce
-  const filteredFoods = foodSearch.trim() ? filterFoods(allFoods, foodSearch, null) : []
+  const filteredFoods = searchMode === 'food' && searchText.trim() ? filterFoods(allFoods, searchText, null) : []
+  const filteredRecipes = searchMode === 'recipe' && searchText.trim() ? filterRecipes(allRecipes, searchText, null) : []
 
-  // Filter recipes with debounce
-  const filteredRecipes = recipeSearch.trim() ? filterRecipes(allRecipes, recipeSearch, null) : []
-
-  // Handle food search (debounced)
-  const handleFoodSearchChange = useCallback((text: string) => {
-    setFoodSearch(text)
-    if (foodSearchTimeoutRef.current) {
-      clearTimeout(foodSearchTimeoutRef.current)
-    }
-    // Debounce at 300ms
-    foodSearchTimeoutRef.current = setTimeout(() => {
-      // Filter will happen via state update
-    }, 300)
+  const handleSearchModeChange = useCallback((mode: 'food' | 'recipe') => {
+    setSearchMode(mode)
+    setSearchText('')
   }, [])
 
-  // Handle recipe search (debounced)
-  const handleRecipeSearchChange = useCallback((text: string) => {
-    setRecipeSearch(text)
-    if (recipeSearchTimeoutRef.current) {
-      clearTimeout(recipeSearchTimeoutRef.current)
-    }
-    // Debounce at 300ms
-    recipeSearchTimeoutRef.current = setTimeout(() => {
-      // Filter will happen via state update
-    }, 300)
+  const formatServings = useCallback((value: number): string => {
+    const rounded = Math.round(value * 100) / 100
+    return String(rounded)
   }, [])
 
-  // Handle food selection
+  const handleDecreaseServings = useCallback(() => {
+    const current = parseFloat(servingsText)
+    const safeCurrent = isNaN(current) ? 1 : current
+    const next = Math.max(servingStep, safeCurrent - servingStep)
+    setServingsText(formatServings(next))
+  }, [servingsText, formatServings])
+
+  const handleIncreaseServings = useCallback(() => {
+    const current = parseFloat(servingsText)
+    const safeCurrent = isNaN(current) ? 1 : current
+    const next = safeCurrent + servingStep
+    setServingsText(formatServings(next))
+  }, [servingsText, formatServings])
+
   const handleSelectFood = useCallback((food: IFood) => {
     setSelectedFoodId(food.id || null)
-    setSelectedRecipeId(null) // Clear recipe selection
-    setFoodSearch('') // Clear search
+    setSelectedRecipeId(null)
+    setSearchText('')
   }, [])
 
-  // Handle recipe selection
   const handleSelectRecipe = useCallback((recipe: IRecipe) => {
     setSelectedRecipeId(recipe.id)
-    setSelectedFoodId(null) // Clear food selection
-    setRecipeSearch('') // Clear search
+    setSelectedFoodId(null)
+    setSearchText('')
   }, [])
 
-  // Handle submit
   const handleSubmit = useCallback(() => {
-    // Validate servings
     const servings = parseFloat(servingsText)
     if (isNaN(servings) || servings <= 0) {
       Alert.alert('Validation Error', 'Servings must be greater than 0')
       return
     }
 
-    // Validate selection: exactly one of food_id or recipe_id
     if (selectedFoodId === null && selectedRecipeId === null) {
       Alert.alert('Validation Error', 'Please select a food or recipe')
       return
@@ -129,9 +108,7 @@ export function AddDailyLogEntrySheet({
       return
     }
 
-    console.log('[DAILY_LOG] Adding entry for', date)
-
-    // Call mutation
+    setHasSubmitted(true)
     addEntry.mutate({
       date,
       food_id: selectedFoodId ?? undefined,
@@ -140,29 +117,31 @@ export function AddDailyLogEntrySheet({
     })
   }, [servingsText, selectedFoodId, selectedRecipeId, date, addEntry])
 
-  // Handle mutation success
   React.useEffect(() => {
-    if (addEntry.isSuccess) {
-      console.log('[DAILY_LOG] Entry added')
-      // Reset form
-      setFoodSearch('')
+    if (visible && hasSubmitted && addEntry.isSuccess) {
+      setSearchText('')
+      setSearchMode('food')
       setSelectedFoodId(null)
-      setRecipeSearch('')
       setSelectedRecipeId(null)
-      setServingsText('')
+      setServingsText('1')
+      setHasSubmitted(false)
       onClose()
     }
-  }, [addEntry.isSuccess, onClose])
+  }, [visible, hasSubmitted, addEntry.isSuccess, onClose])
 
-  // Handle mutation error
   React.useEffect(() => {
-    if (addEntry.isError && addEntry.error) {
-      console.error('[DAILY_LOG] Mutation error:', addEntry.error.message)
-      Alert.alert('Error', addEntry.error.message ?? 'Failed to add entry')
+    if (visible) {
+      setHasSubmitted(false)
     }
-  }, [addEntry.isError, addEntry.error])
+  }, [visible])
 
-  // Get selected food or recipe name for display
+  React.useEffect(() => {
+    if (visible && hasSubmitted && addEntry.isError && addEntry.error) {
+      Alert.alert('Error', addEntry.error.message ?? 'Failed to add entry')
+      setHasSubmitted(false)
+    }
+  }, [visible, hasSubmitted, addEntry.isError, addEntry.error])
+
   const selectedFood = allFoods.find((f) => f.id === selectedFoodId)
   const selectedRecipe = allRecipes.find((r) => r.id === selectedRecipeId)
   const selectedLabel = selectedFood
@@ -173,103 +152,104 @@ export function AddDailyLogEntrySheet({
 
   return (
     <Modal visible={visible} animationType="slide" presentationStyle="pageSheet">
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.container}
-      >
+      <View style={styles.container}>
         <ScrollView style={styles.scrollContent} contentContainerStyle={styles.scrollContentContainer}>
           <View style={styles.header}>
             <Text style={styles.headerTitle}>Add Entry</Text>
           </View>
 
-          {/* Food Search Section */}
           <View style={styles.section}>
-            <Text style={styles.sectionLabel}>Food</Text>
+            <Text style={styles.sectionLabel}>Item Type</Text>
+            <View style={styles.segmentedControl}>
+              <TouchableOpacity
+                style={[styles.segment, styles.segmentLeft, searchMode === 'food' && styles.segmentActive]}
+                onPress={() => handleSearchModeChange('food')}
+                activeOpacity={0.8}
+              >
+                <Text style={[styles.segmentText, searchMode === 'food' ? styles.segmentTextActive : styles.segmentTextInactive]}>Food</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.segment, styles.segmentRight, searchMode === 'recipe' && styles.segmentActive]}
+                onPress={() => handleSearchModeChange('recipe')}
+                activeOpacity={0.8}
+              >
+                <Text style={[styles.segmentText, searchMode === 'recipe' ? styles.segmentTextActive : styles.segmentTextInactive]}>Recipe</Text>
+              </TouchableOpacity>
+            </View>
+
+            <Text style={styles.sectionLabel}>Search</Text>
             <TextInput
               style={styles.searchInput}
-              placeholder="Search foods..."
-              value={foodSearch}
-              onChangeText={handleFoodSearchChange}
-              editable={selectedRecipeId === null}
+              placeholder={searchMode === 'food' ? 'Search foods...' : 'Search recipes...'}
+              value={searchText}
+              onChangeText={setSearchText}
               placeholderTextColor="#999"
             />
-            {filteredFoods.length > 0 && (
+            {searchMode === 'food' && filteredFoods.length > 0 && (
               <View style={styles.listContainer}>
-                <FlatList
-                  data={filteredFoods}
-                  keyExtractor={(item) => String(item.id)}
-                  renderItem={({ item }) => (
+                <ScrollView style={styles.resultsScroll} nestedScrollEnabled={true} keyboardShouldPersistTaps="handled">
+                  {filteredFoods.map((item) => (
                     <TouchableOpacity
+                      key={String(item.id)}
                       style={styles.itemButton}
                       onPress={() => handleSelectFood(item)}
+                      activeOpacity={0.75}
                     >
                       <Text style={styles.itemText}>{item.name}</Text>
-                      <Text style={styles.itemSubtext}>{item.vendor}</Text>
+                      <Text style={styles.itemSubtext}>
+                        {[item.subtype, item.nutrition?.serving_size_description, item.vendor].filter(Boolean).join(' • ') || '—'}
+                      </Text>
                     </TouchableOpacity>
-                  )}
-                  scrollEnabled={false}
-                />
+                  ))}
+                </ScrollView>
+              </View>
+            )}
+            {searchMode === 'recipe' && filteredRecipes.length > 0 && (
+              <View style={styles.listContainer}>
+                <ScrollView style={styles.resultsScroll} nestedScrollEnabled={true} keyboardShouldPersistTaps="handled">
+                  {filteredRecipes.map((item) => (
+                    <TouchableOpacity
+                      key={String(item.id)}
+                      style={styles.itemButton}
+                      onPress={() => handleSelectRecipe(item)}
+                      activeOpacity={0.75}
+                    >
+                      <Text style={styles.itemText}>{item.name}</Text>
+                      {item.cuisine && <Text style={styles.itemSubtext}>{item.cuisine}</Text>}
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
               </View>
             )}
             {selectedLabel && <Text style={styles.selectedText}>{selectedLabel}</Text>}
           </View>
 
-          {/* Recipe Search Section */}
-          <View style={styles.section}>
-            <Text style={styles.sectionLabel}>Recipe</Text>
-            <TextInput
-              style={styles.searchInput}
-              placeholder="Search recipes..."
-              value={recipeSearch}
-              onChangeText={handleRecipeSearchChange}
-              editable={selectedFoodId === null}
-              placeholderTextColor="#999"
-            />
-            {filteredRecipes.length > 0 && (
-              <View style={styles.listContainer}>
-                <FlatList
-                  data={filteredRecipes}
-                  keyExtractor={(item) => String(item.id)}
-                  renderItem={({ item }) => (
-                    <TouchableOpacity
-                      style={styles.itemButton}
-                      onPress={() => handleSelectRecipe(item)}
-                    >
-                      <Text style={styles.itemText}>{item.name}</Text>
-                      {item.cuisine && <Text style={styles.itemSubtext}>{item.cuisine}</Text>}
-                    </TouchableOpacity>
-                  )}
-                  scrollEnabled={false}
-                />
-              </View>
-            )}
-            {selectedLabel && selectedRecipeId && (
-              <Text style={styles.selectedText}>{selectedLabel}</Text>
-            )}
-          </View>
-
-          {/* Servings Input */}
           <View style={styles.section}>
             <Text style={styles.sectionLabel}>Servings</Text>
-            <TextInput
-              style={styles.servingsInput}
-              placeholder="Servings"
-              keyboardType="decimal-pad"
-              value={servingsText}
-              onChangeText={setServingsText}
-              placeholderTextColor="#999"
-            />
+            <View style={styles.servingsSpinnerRow}>
+              <TouchableOpacity style={[styles.servingsSpinnerButton, styles.servingsSpinnerButtonLeft]} onPress={handleDecreaseServings} activeOpacity={0.8}>
+                <Text style={styles.servingsSpinnerButtonText}>-</Text>
+              </TouchableOpacity>
+
+              <TextInput
+                style={styles.servingsSpinnerInput}
+                keyboardType="decimal-pad"
+                value={servingsText}
+                onChangeText={setServingsText}
+                placeholderTextColor="#999"
+                textAlign="center"
+              />
+
+              <TouchableOpacity style={[styles.servingsSpinnerButton, styles.servingsSpinnerButtonRight]} onPress={handleIncreaseServings} activeOpacity={0.8}>
+                <Text style={styles.servingsSpinnerButtonText}>+</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </ScrollView>
 
-        {/* Action Buttons */}
-        <View style={styles.buttonContainer}>
-          <TouchableOpacity
-            style={[styles.button, styles.cancelButton]}
-            onPress={onClose}
-            disabled={addEntry.isPending}
-            activeOpacity={0.7}
-          >
+        <View style={[styles.buttonContainer, { paddingBottom: Math.max(12, insets.bottom + 8) }]}>
+          <TouchableOpacity style={[styles.button, styles.cancelButton]} onPress={onClose} disabled={addEntry.isPending} activeOpacity={0.7}>
             <Text style={styles.cancelButtonText}>Cancel</Text>
           </TouchableOpacity>
           <TouchableOpacity
@@ -278,12 +258,10 @@ export function AddDailyLogEntrySheet({
             disabled={addEntry.isPending}
             activeOpacity={0.7}
           >
-            <Text style={styles.submitButtonText}>
-              {addEntry.isPending ? 'Adding...' : 'Add Entry'}
-            </Text>
+            <Text style={styles.submitButtonText}>{addEntry.isPending ? 'Adding...' : 'Add Entry'}</Text>
           </TouchableOpacity>
         </View>
-      </KeyboardAvoidingView>
+      </View>
     </Modal>
   )
 }
@@ -322,6 +300,40 @@ const styles = StyleSheet.create({
     color: '#333',
     marginBottom: 8,
   },
+  segmentedControl: {
+    flexDirection: 'row',
+    borderWidth: 1,
+    borderColor: '#007AFF',
+    borderRadius: 999,
+    overflow: 'hidden',
+    marginBottom: 12,
+  },
+  segment: {
+    flex: 1,
+    alignItems: 'center',
+    paddingVertical: 10,
+    backgroundColor: '#fff',
+  },
+  segmentLeft: {
+    borderRightWidth: 1,
+    borderRightColor: '#007AFF',
+  },
+  segmentRight: {
+    borderLeftWidth: 0,
+  },
+  segmentActive: {
+    backgroundColor: '#007AFF',
+  },
+  segmentText: {
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  segmentTextActive: {
+    color: '#fff',
+  },
+  segmentTextInactive: {
+    color: '#007AFF',
+  },
   searchInput: {
     borderWidth: 1,
     borderColor: '#ccc',
@@ -332,14 +344,42 @@ const styles = StyleSheet.create({
     color: '#333',
     marginBottom: 8,
   },
-  servingsInput: {
+  servingsSpinnerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
     borderWidth: 1,
     borderColor: '#ccc',
-    borderRadius: 6,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
+    borderRadius: 8,
+    overflow: 'hidden',
+  },
+  servingsSpinnerButton: {
+    width: 44,
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#f3f6fa',
+  },
+  servingsSpinnerButtonLeft: {
+    borderRightWidth: 1,
+    borderRightColor: '#d6dbe1',
+  },
+  servingsSpinnerButtonRight: {
+    borderLeftWidth: 1,
+    borderLeftColor: '#d6dbe1',
+  },
+  servingsSpinnerButtonText: {
+    fontSize: 22,
+    lineHeight: 24,
+    color: '#245a91',
+    fontWeight: '700',
+  },
+  servingsSpinnerInput: {
+    flex: 1,
+    height: 44,
     fontSize: 14,
+    fontWeight: '600',
     color: '#333',
+    paddingHorizontal: 10,
   },
   listContainer: {
     borderWidth: 1,
@@ -347,7 +387,9 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     overflow: 'hidden',
     marginVertical: 8,
-    maxHeight: 200,
+  },
+  resultsScroll: {
+    maxHeight: 280,
   },
   itemButton: {
     paddingHorizontal: 12,

@@ -110,7 +110,7 @@ export const FoodDetailScreen: React.FC<FoodDetailScreenProps> = ({ foodId: prop
         <NutritionLabel
           nutrition={food.nutrition}
           servings={food.servings}
-          servingSizeDescription={food.size_description}
+          servingSizeDescription={food.nutrition.serving_size_description}
           trailingRows={[
             { label: 'Price / serving', value: formatCurrency(pricePerServing) },
             { label: 'Price / 100 calories', value: formatCurrency(pricePer100Calories) },

@@ -2,9 +2,16 @@
  * Auth group layout - defines screen navigation for unauthenticated users
  */
 
-import { Stack } from 'expo-router';
+import { Redirect, Stack } from 'expo-router';
+import authStore from '@/store/authStore';
 
 export default function AuthLayout() {
+  const { isLoggedIn } = authStore();
+
+  if (isLoggedIn) {
+    return <Redirect href="/(home)" />;
+  }
+
   return (
     <Stack
       screenOptions={{

@@ -7,10 +7,9 @@ import {
   Text,
   StyleSheet,
   Alert,
-  KeyboardAvoidingView,
-  Platform,
   ScrollView,
 } from 'react-native'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { IDailyLogItem } from '@/types/dailylog'
 
 type MutationState = {
@@ -31,10 +30,6 @@ interface EditDailyLogEntrySheetProps {
 
 /**
  * EditDailyLogEntrySheet is a modal for editing servings of an existing entry
- * - Shows read-only label of the food or recipe
- * - Allows editing servings (decimal number, must be > 0)
- * - Calls editEntry.mutate with { id, servings }
- * - Shows errors via Alert.alert
  */
 export function EditDailyLogEntrySheet({
   visible,
@@ -43,48 +38,59 @@ export function EditDailyLogEntrySheet({
   editEntry,
   onClose,
 }: EditDailyLogEntrySheetProps): React.ReactElement {
+  const insets = useSafeAreaInsets()
   const [servingsText, setServingsText] = useState('')
+  const servingStep = 0.5
 
-  // Pre-fill servings when entry changes
+  const formatServings = (value: number): string => {
+    const rounded = Math.round(value * 100) / 100
+    return String(rounded)
+  }
+
+  const handleDecreaseServings = () => {
+    const current = parseFloat(servingsText)
+    const safeCurrent = isNaN(current) ? 1 : current
+    const next = Math.max(servingStep, safeCurrent - servingStep)
+    setServingsText(formatServings(next))
+  }
+
+  const handleIncreaseServings = () => {
+    const current = parseFloat(servingsText)
+    const safeCurrent = isNaN(current) ? 1 : current
+    const next = safeCurrent + servingStep
+    setServingsText(formatServings(next))
+  }
+
   useEffect(() => {
     if (entry) {
       setServingsText(String(entry.servings))
     }
   }, [entry, visible])
 
-  // Handle submit
   const handleSubmit = () => {
     if (!entry) return
 
-    // Validate servings
     const servings = parseFloat(servingsText)
     if (isNaN(servings) || servings <= 0) {
       Alert.alert('Validation Error', 'Servings must be greater than 0')
       return
     }
 
-    console.log('[DAILY_LOG] Editing entry', entry.id)
-
-    // Call mutation
     editEntry.mutate({
       id: entry.id,
       servings,
     })
   }
 
-  // Handle mutation success
   useEffect(() => {
     if (editEntry.isSuccess) {
-      console.log('[DAILY_LOG] Entry', entry?.id, 'updated')
       setServingsText('')
       onClose()
     }
-  }, [editEntry.isSuccess, entry?.id, onClose])
+  }, [editEntry.isSuccess, onClose])
 
-  // Handle mutation error
   useEffect(() => {
     if (editEntry.isError && editEntry.error) {
-      console.error('[DAILY_LOG] Mutation error:', editEntry.error.message)
       Alert.alert('Error', editEntry.error.message ?? 'Failed to edit entry')
     }
   }, [editEntry.isError, editEntry.error])
@@ -95,16 +101,12 @@ export function EditDailyLogEntrySheet({
 
   return (
     <Modal visible={visible} animationType="slide" presentationStyle="pageSheet">
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.container}
-      >
+      <View style={styles.container}>
         <ScrollView style={styles.scrollContent} contentContainerStyle={styles.scrollContentContainer}>
           <View style={styles.header}>
             <Text style={styles.headerTitle}>Edit Entry</Text>
           </View>
 
-          {/* Label (read-only) */}
           <View style={styles.section}>
             <Text style={styles.sectionLabel}>Item</Text>
             <View style={styles.labelContainer}>
@@ -112,42 +114,38 @@ export function EditDailyLogEntrySheet({
             </View>
           </View>
 
-          {/* Servings Input */}
           <View style={styles.section}>
             <Text style={styles.sectionLabel}>Servings</Text>
-            <TextInput
-              style={styles.servingsInput}
-              placeholder="Servings"
-              keyboardType="decimal-pad"
-              value={servingsText}
-              onChangeText={setServingsText}
-              placeholderTextColor="#999"
-            />
+            <View style={styles.servingsSpinnerRow}>
+              <TouchableOpacity style={[styles.servingsSpinnerButton, styles.servingsSpinnerButtonLeft]} onPress={handleDecreaseServings} activeOpacity={0.8}>
+                <Text style={styles.servingsSpinnerButtonText}>-</Text>
+              </TouchableOpacity>
+
+              <TextInput
+                style={styles.servingsSpinnerInput}
+                keyboardType="decimal-pad"
+                value={servingsText}
+                onChangeText={setServingsText}
+                placeholderTextColor="#999"
+                textAlign="center"
+              />
+
+              <TouchableOpacity style={[styles.servingsSpinnerButton, styles.servingsSpinnerButtonRight]} onPress={handleIncreaseServings} activeOpacity={0.8}>
+                <Text style={styles.servingsSpinnerButtonText}>+</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </ScrollView>
 
-        {/* Action Buttons */}
-        <View style={styles.buttonContainer}>
-          <TouchableOpacity
-            style={[styles.button, styles.cancelButton]}
-            onPress={onClose}
-            disabled={editEntry.isPending}
-            activeOpacity={0.7}
-          >
+        <View style={[styles.buttonContainer, { paddingBottom: Math.max(12, insets.bottom + 8) }]}>
+          <TouchableOpacity style={[styles.button, styles.cancelButton]} onPress={onClose} disabled={editEntry.isPending} activeOpacity={0.7}>
             <Text style={styles.cancelButtonText}>Cancel</Text>
           </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.button, styles.submitButton, editEntry.isPending && styles.submitButtonDisabled]}
-            onPress={handleSubmit}
-            disabled={editEntry.isPending}
-            activeOpacity={0.7}
-          >
-            <Text style={styles.submitButtonText}>
-              {editEntry.isPending ? 'Saving...' : 'Save'}
-            </Text>
+          <TouchableOpacity style={[styles.button, styles.submitButton, editEntry.isPending && styles.submitButtonDisabled]} onPress={handleSubmit} disabled={editEntry.isPending} activeOpacity={0.7}>
+            <Text style={styles.submitButtonText}>{editEntry.isPending ? 'Saving...' : 'Save'}</Text>
           </TouchableOpacity>
         </View>
-      </KeyboardAvoidingView>
+      </View>
     </Modal>
   )
 }
@@ -198,14 +196,42 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#333',
   },
-  servingsInput: {
+  servingsSpinnerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
     borderWidth: 1,
     borderColor: '#ccc',
-    borderRadius: 6,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
+    borderRadius: 8,
+    overflow: 'hidden',
+  },
+  servingsSpinnerButton: {
+    width: 44,
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#f3f6fa',
+  },
+  servingsSpinnerButtonLeft: {
+    borderRightWidth: 1,
+    borderRightColor: '#d6dbe1',
+  },
+  servingsSpinnerButtonRight: {
+    borderLeftWidth: 1,
+    borderLeftColor: '#d6dbe1',
+  },
+  servingsSpinnerButtonText: {
+    fontSize: 22,
+    lineHeight: 24,
+    color: '#245a91',
+    fontWeight: '700',
+  },
+  servingsSpinnerInput: {
+    flex: 1,
+    height: 44,
     fontSize: 14,
+    fontWeight: '600',
     color: '#333',
+    paddingHorizontal: 10,
   },
   buttonContainer: {
     flexDirection: 'row',

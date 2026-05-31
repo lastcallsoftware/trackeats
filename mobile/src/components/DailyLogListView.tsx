@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useMemo } from 'react'
 import {
   View,
   FlatList,
@@ -8,6 +8,8 @@ import {
   Alert,
 } from 'react-native'
 import { IDailyLogItem } from '@/types/dailylog'
+import { useFoods } from '@/hooks/useFoods'
+import { useRecipes } from '@/hooks/useRecipes'
 
 interface DailyLogListViewProps {
   items: IDailyLogItem[]
@@ -22,9 +24,26 @@ interface DailyLogListViewProps {
  * Optimized with FlatList using batching for performance
  */
 export function DailyLogListView({ items, onEdit, onDelete }: DailyLogListViewProps): React.ReactElement {
+  const { data: foods = [] } = useFoods()
+  const { data: recipes = [] } = useRecipes()
+
+  const foodNameById = useMemo(
+    () => new Map(foods.filter((food) => food.id !== undefined).map((food) => [food.id as number, food.name])),
+    [foods]
+  )
+
+  const recipeNameById = useMemo(
+    () => new Map(recipes.map((recipe) => [recipe.id, recipe.name])),
+    [recipes]
+  )
+
   const renderItem = ({ item, index }: { item: IDailyLogItem; index: number }) => {
-    // Determine label: "Food #X" or "Recipe #X"
-    const label = item.food_id !== null ? `Food #${item.food_id}` : `Recipe #${item.recipe_id}`
+    // Determine label using resolved item names with ID fallback if lookup data is unavailable.
+    const label = item.food_id !== null
+      ? (foodNameById.get(item.food_id) ?? `Food #${item.food_id}`)
+      : (item.recipe_id !== null
+        ? (recipeNameById.get(item.recipe_id) ?? `Recipe #${item.recipe_id}`)
+        : 'Unknown item')
 
     // Extract calories from item.nutrition, default to '—' if not available
     const calories =

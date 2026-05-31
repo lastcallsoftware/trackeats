@@ -39,6 +39,10 @@ interface NutritionLabelProps {
   servingSizeDescription?: string;
   // Fields to exclude from the nutrition label display
   excludeFields?: Array<keyof INutrition>;
+  // Whether to render the combined "Serving Size" row
+  showServingSizeRow?: boolean;
+  // Emphasize calories row (larger and bolder) when true
+  emphasizeCalories?: boolean;
   trailingRows?: Array<{ label: string; value: string }>;
 }
 
@@ -49,6 +53,8 @@ export const NutritionLabel: React.FC<NutritionLabelProps> = ({
   servingSizeOz,
   servingSizeDescription,
   excludeFields,
+  showServingSizeRow = true,
+  emphasizeCalories = false,
   trailingRows,
 }) => {
   const allFields: Array<keyof INutrition> = [
@@ -117,22 +123,24 @@ export const NutritionLabel: React.FC<NutritionLabelProps> = ({
         </View>
       )}
 
-      <View
-        style={{
-          flexDirection: 'row',
-          justifyContent: 'space-between',
-          paddingVertical: 8,
-          borderBottomWidth: 1,
-          borderBottomColor: '#e0e0e0',
-        }}
-      >
-        <Text style={{ fontSize: 14, color: '#333', flex: 1 }}>
-          Serving Size
-        </Text>
-        <Text style={{ fontSize: 14, color: '#333', fontWeight: '600' }}>
-          {servingSizeValue || '—'}
-        </Text>
-      </View>
+      {showServingSizeRow && (
+        <View
+          style={{
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            paddingVertical: 8,
+            borderBottomWidth: 1,
+            borderBottomColor: '#e0e0e0',
+          }}
+        >
+          <Text style={{ fontSize: 14, color: '#333', flex: 1 }}>
+            Serving Size
+          </Text>
+          <Text style={{ fontSize: 14, color: '#333', fontWeight: '600' }}>
+            {servingSizeValue || '—'}
+          </Text>
+        </View>
+      )}
 
       {fields.map((field) => (
         <View
@@ -145,10 +153,23 @@ export const NutritionLabel: React.FC<NutritionLabelProps> = ({
             borderBottomColor: '#e0e0e0',
           }}
         >
-          <Text style={{ fontSize: 14, color: '#333', flex: 1 }}>
+          <Text
+            style={{
+              fontSize: emphasizeCalories && field === 'calories' ? 16 : 14,
+              color: '#333',
+              flex: 1,
+              fontWeight: emphasizeCalories && field === 'calories' ? '700' : '400',
+            }}
+          >
             {NUTRITION_FIELD_LABELS[field]}
           </Text>
-          <Text style={{ fontSize: 14, color: '#333', fontWeight: '600' }}>
+          <Text
+            style={{
+              fontSize: emphasizeCalories && field === 'calories' ? 16 : 14,
+              color: '#333',
+              fontWeight: emphasizeCalories && field === 'calories' ? '800' : '600',
+            }}
+          >
             {formatValue(nutrition[field])}
           </Text>
         </View>

@@ -17,6 +17,9 @@ interface DatePickerProps {
  * Next button is capped at today — no future dates allowed
  */
 export function DatePicker({ date, onDateChange }: DatePickerProps): React.ReactElement {
+  const todayIso = new Date().toISOString().slice(0, 10)
+  const isToday = date === todayIso
+
   const handlePrevDay = () => {
     const current = new Date(date + 'T00:00:00')
     current.setDate(current.getDate() - 1)
@@ -25,8 +28,6 @@ export function DatePicker({ date, onDateChange }: DatePickerProps): React.React
   }
 
   const handleToday = () => {
-    const today = new Date()
-    const todayIso = today.toISOString().slice(0, 10)
     onDateChange(todayIso)
   }
 
@@ -36,64 +37,163 @@ export function DatePicker({ date, onDateChange }: DatePickerProps): React.React
     const newDate = current.toISOString().slice(0, 10)
 
     // Cap at today — do not allow future dates
-    const today = new Date()
-    const todayIso = today.toISOString().slice(0, 10)
     if (newDate <= todayIso) {
       onDateChange(newDate)
     }
   }
 
-  // Format date for display (e.g., 'Apr 18, 2026')
-  const displayDate = new Date(date + 'T00:00:00').toLocaleDateString('en-US', {
+  const selectedDate = new Date(date + 'T00:00:00')
+
+  const displayWeekday = selectedDate.toLocaleDateString('en-US', {
+    weekday: 'long',
+  })
+
+  const displayDate = selectedDate.toLocaleDateString('en-US', {
     month: 'short',
     day: 'numeric',
+  })
+
+  const displayYear = selectedDate.toLocaleDateString('en-US', {
     year: 'numeric',
   })
 
+  const nextDisabled = isToday
+
   return (
     <View style={styles.container}>
-      <TouchableOpacity style={styles.button} onPress={handlePrevDay} activeOpacity={0.7}>
-        <Text style={styles.buttonText}>‹ Prev</Text>
-      </TouchableOpacity>
+      <View style={styles.card}>
+        <View style={styles.topRow}>
+          <View>
+            <Text style={styles.weekdayText}>{displayWeekday}</Text>
+            <View style={styles.dateRow}>
+              <Text style={styles.dateText}>{displayDate}</Text>
+              <Text style={styles.yearText}>{displayYear}</Text>
+            </View>
+          </View>
 
-      <Text style={styles.dateText}>{displayDate}</Text>
+          <TouchableOpacity
+            style={[styles.todayChip, isToday && styles.todayChipActive]}
+            onPress={handleToday}
+            disabled={isToday}
+            activeOpacity={0.8}
+          >
+            <Text style={[styles.todayChipText, isToday && styles.todayChipTextActive]}>Today</Text>
+          </TouchableOpacity>
+        </View>
 
-      <TouchableOpacity style={styles.button} onPress={handleToday} activeOpacity={0.7}>
-        <Text style={styles.buttonText}>Today</Text>
-      </TouchableOpacity>
+        <View style={styles.navRow}>
+          <TouchableOpacity style={[styles.navButton, styles.prevButton]} onPress={handlePrevDay} activeOpacity={0.8}>
+            <Text style={styles.navButtonText}>‹ Previous</Text>
+          </TouchableOpacity>
 
-      <TouchableOpacity style={styles.button} onPress={handleNextDay} activeOpacity={0.7}>
-        <Text style={styles.buttonText}>Next ›</Text>
-      </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.navButton, nextDisabled && styles.navButtonDisabled]}
+            onPress={handleNextDay}
+            disabled={nextDisabled}
+            activeOpacity={0.8}
+          >
+            <Text style={[styles.navButtonText, nextDisabled && styles.navButtonTextDisabled]}>Next ›</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
     </View>
   )
 }
 
 const styles = StyleSheet.create({
   container: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    paddingTop: 10,
     paddingHorizontal: 16,
+  },
+  card: {
+    backgroundColor: '#eef6ff',
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: '#d4e8ff',
+    paddingHorizontal: 14,
     paddingVertical: 12,
-    backgroundColor: '#f8f8f8',
-    borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
+    shadowColor: '#2f5f97',
+    shadowOpacity: 0.12,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 2,
   },
-  button: {
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    backgroundColor: '#007AFF',
-    borderRadius: 4,
+  topRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10,
   },
-  buttonText: {
-    color: '#fff',
-    fontSize: 14,
-    fontWeight: '600',
+  weekdayText: {
+    fontSize: 12,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: 0.8,
+    color: '#2c5d90',
+    marginBottom: 2,
+  },
+  dateRow: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    gap: 8,
   },
   dateText: {
-    fontSize: 14,
+    fontSize: 22,
+    fontWeight: '700',
+    color: '#123a66',
+  },
+  yearText: {
+    fontSize: 15,
     fontWeight: '600',
-    color: '#333',
+    color: '#4f6f8e',
+  },
+  todayChip: {
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: '#7cb7f2',
+    backgroundColor: '#fff',
+  },
+  todayChipActive: {
+    borderColor: '#007AFF',
+    backgroundColor: '#007AFF',
+  },
+  todayChipText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#1a64a6',
+  },
+  todayChipTextActive: {
+    color: '#fff',
+  },
+  navRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  navButton: {
+    flex: 1,
+    paddingVertical: 11,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#8fc2f3',
+    backgroundColor: '#fff',
+    alignItems: 'center',
+  },
+  prevButton: {
+    borderColor: '#7cb7f2',
+  },
+  navButtonDisabled: {
+    borderColor: '#c8d7e6',
+    backgroundColor: '#f2f6fb',
+  },
+  navButtonText: {
+    color: '#15528b',
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  navButtonTextDisabled: {
+    color: '#9aaebe',
   },
 })

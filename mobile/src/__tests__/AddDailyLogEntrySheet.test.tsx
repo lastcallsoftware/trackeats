@@ -21,6 +21,15 @@ jest.mock('react-native', () => ({
   View: ({ children, ...props }: any) => <div {...props}>{children}</div>,
   Modal: ({ children, visible }: any) => (visible ? <div data-testid="modal">{children}</div> : null),
   TextInput: (props: any) => <input data-testid="text-input" {...props} />,
+  Switch: ({ value, onValueChange, ...props }: any) => (
+    <input
+      type="checkbox"
+      data-testid="switch"
+      checked={Boolean(value)}
+      onChange={(e) => onValueChange?.(e.target.checked)}
+      {...props}
+    />
+  ),
   FlatList: ({ data, renderItem }: any) =>
     data ? <div data-testid="flat-list">{data.map((item: any, i: number) => renderItem({ item, index: i }))}</div> : null,
   TouchableOpacity: ({ children, onPress, ...props }: any) => (
