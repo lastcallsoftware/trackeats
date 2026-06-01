@@ -45,6 +45,7 @@ WebBrowser.maybeCompleteAuthSession();
 const GOOGLE_WEB_CLIENT_ID = process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID ?? '';
 const GOOGLE_IOS_CLIENT_ID = process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID ?? '';
 const FACEBOOK_APP_ID = process.env.EXPO_PUBLIC_FACEBOOK_APP_ID ?? '';
+const FACEBOOK_REDIRECT_URI = process.env.EXPO_PUBLIC_FACEBOOK_REDIRECT_URI ?? '';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Google Sign-In — one-time SDK configuration
@@ -179,7 +180,12 @@ export function useFacebookAuthRequest() {
     tokenEndpoint: 'https://graph.facebook.com/v18.0/oauth/access_token',
   };
 
-  const redirectUri = AuthSession.makeRedirectUri({ scheme: 'trackeats' });
+  // Facebook requires a valid HTTPS redirect URI — custom schemes (trackeats://)
+  // and Expo Go URIs (exp://...) are rejected.  The Expo auth proxy is an HTTPS
+  // URL that Facebook accepts and that Expo then forwards back into the native app.
+  // This URL must also be listed in Facebook Login > Settings > Valid OAuth Redirect URIs.
+  // Set EXPO_PUBLIC_FACEBOOK_REDIRECT_URI in .env (e.g. https://auth.expo.io/@<owner>/<slug>).
+  const redirectUri = FACEBOOK_REDIRECT_URI;
 
   const [request, response, promptAsync] = AuthSession.useAuthRequest(
     {
@@ -187,6 +193,7 @@ export function useFacebookAuthRequest() {
       redirectUri,
       scopes: ['public_profile', 'email'],
       responseType: AuthSession.ResponseType.Token,
+      usePKCE: false,
     },
     discovery,
   );
@@ -198,6 +205,10 @@ export function useFacebookAuthRequest() {
         'CONFIG_ERROR',
       );
     }
+
+    console.log('FB redirectUri:', redirectUri);
+    console.log('FB request:', request);
+
     const result = await promptAsync();
     if (result.type === 'success') {
       const accessToken = result.params.access_token;
