@@ -38,7 +38,7 @@ const hasGoogleLogin = Boolean(
   process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID
   || process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID,
 );
-const hasFacebookLogin = Boolean(process.env.EXPO_PUBLIC_FACEBOOK_APP_ID);
+const hasFacebookLogin = Boolean(process.env.EXPO_PUBLIC_FACEBOOK_APP_ID) && Boolean(process.env.EXPO_PUBLIC_FACEBOOK_REDIRECT_URI);
 // Apple mobile login also depends on backend/server-side config, so keep it opt-in.
 const hasAppleLogin = process.env.EXPO_PUBLIC_ENABLE_APPLE_LOGIN === 'true';
 
@@ -213,8 +213,8 @@ export default function LoginScreen() {
                   testID="facebook-login-button"
                   disabled={isLoading}
                 >
-                  <Ionicons name="logo-facebook" size={20} color="#fff" />
-                  <Text style={styles.facebookButtonText}>Facebook</Text>
+                  <Ionicons name="logo-facebook" size={20} color="#1877F2" />
+                  <Text style={styles.facebookButtonText}>Sign in with Facebook</Text>
                 </TouchableOpacity>
               ) : null}
 
@@ -482,10 +482,12 @@ const styles = StyleSheet.create({
     gap: 15,
   },
   facebookButton: {
-    backgroundColor: '#1877F2',
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#dadce0',
   },
   facebookButtonText: {
-    color: '#fff',
+    color: '#3c4043',
     fontWeight: '600',
     fontSize: 14,
   },

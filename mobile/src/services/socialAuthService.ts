@@ -185,7 +185,11 @@ export function useFacebookAuthRequest() {
   // URL that Facebook accepts and that Expo then forwards back into the native app.
   // This URL must also be listed in Facebook Login > Settings > Valid OAuth Redirect URIs.
   // Set EXPO_PUBLIC_FACEBOOK_REDIRECT_URI in .env (e.g. https://auth.expo.io/@<owner>/<slug>).
-  const redirectUri = FACEBOOK_REDIRECT_URI;
+  //
+  // Fall back to a valid placeholder so AuthSession.useAuthRequest does not throw
+  // during render when the env var is missing.  The actual login function validates
+  // the config before invoking promptAsync().
+  const redirectUri = FACEBOOK_REDIRECT_URI || 'https://auth.expo.io/@placeholder/app';
 
   const [request, response, promptAsync] = AuthSession.useAuthRequest(
     {
@@ -199,9 +203,9 @@ export function useFacebookAuthRequest() {
   );
 
   async function loginWithFacebook(): Promise<SocialAuthPayload> {
-    if (!FACEBOOK_APP_ID) {
+    if (!FACEBOOK_APP_ID || !FACEBOOK_REDIRECT_URI) {
       throw new AuthError(
-        'Facebook App ID is not configured. Set EXPO_PUBLIC_FACEBOOK_APP_ID.',
+        'Facebook is not configured. Set EXPO_PUBLIC_FACEBOOK_APP_ID and EXPO_PUBLIC_FACEBOOK_REDIRECT_URI.',
         'CONFIG_ERROR',
       );
     }
