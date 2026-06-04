@@ -22,7 +22,7 @@ import AuthScreen from '@/components/AuthScreen';
 import GoogleIcon from '@/components/GoogleIcon';
 import {
   signInWithGoogle,
-  useFacebookAuthRequest,
+  signInWithFacebook,
   loginWithApple,
   exchangeSocialPayload,
 } from '@/services/socialAuthService';
@@ -38,7 +38,7 @@ const hasGoogleLogin = Boolean(
   process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID
   || process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID,
 );
-const hasFacebookLogin = Boolean(process.env.EXPO_PUBLIC_FACEBOOK_APP_ID) && Boolean(process.env.EXPO_PUBLIC_FACEBOOK_REDIRECT_URI);
+const hasFacebookLogin = Boolean(process.env.EXPO_PUBLIC_FACEBOOK_APP_ID);
 // Apple mobile login also depends on backend/server-side config, so keep it opt-in.
 const hasAppleLogin = process.env.EXPO_PUBLIC_ENABLE_APPLE_LOGIN === 'true';
 
@@ -62,7 +62,6 @@ export default function LoginScreen() {
   const [showEmailLogin, setShowEmailLogin] = useState(wasJustConfirmed || cameFromSignup);
   const passwordRef = useRef<TextInput>(null);
 
-  const { promptAsync: signInWithFacebook } = useFacebookAuthRequest();
   const showAppleLogin = Platform.OS === 'ios' && hasAppleLogin;
   const hasAnySocialLogin = hasGoogleLogin || hasFacebookLogin || showAppleLogin;
 
@@ -113,6 +112,7 @@ export default function LoginScreen() {
     setSocialError(null);
     try {
       let socialPayload;
+      let shouldPersistSeedPromptSeen = false;
       if (provider === 'google') {
         socialPayload = await signInWithGoogle();
       } else if (provider === 'facebook') {
@@ -126,7 +126,9 @@ export default function LoginScreen() {
         const seedPromptSeen = await getSocialSeedPromptSeen();
         if (!seedPromptSeen) {
           seedRequested = await promptForSocialSeedChoice();
-          await setSocialSeedPromptSeen(true);
+          // Only mark this prompt as seen after a successful backend exchange
+          // and session login so failed attempts keep prompting.
+          shouldPersistSeedPromptSeen = true;
         }
       } catch (storageError) {
         console.debug('[LOGIN] Seed prompt state error:', storageError);
@@ -138,12 +140,17 @@ export default function LoginScreen() {
       try {
         const authData = await exchangeSocialPayload(socialPayload, seedRequested);
         await loginWithSocialToken(authData);
+        if (shouldPersistSeedPromptSeen) {
+          await setSocialSeedPromptSeen(true);
+        }
       } finally {
         setIsSocialLoading(false);
       }
     } catch (err: any) {
       if (err?.code === 'CANCELLED') return; // user dismissed — no error shown
-      setSocialError(err?.message ?? 'Sign-in failed. Please try again.');
+      const message = err?.message ?? 'Sign-in failed. Please try again.';
+      setSocialError(message);
+      Alert.alert('Social sign-in error', message);
     }
   }
 

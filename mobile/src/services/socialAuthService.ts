@@ -11,8 +11,6 @@
  */
 
 import { Platform } from 'react-native';
-import * as WebBrowser from 'expo-web-browser';
-import * as AuthSession from 'expo-auth-session';
 import { GoogleSignin, isErrorWithCode, statusCodes } from '@react-native-google-signin/google-signin';
 import api from './api';
 import { AuthError } from '@/types/auth';
@@ -30,9 +28,6 @@ export type SocialAuthPayload = {
   name?: string;
 };
 
-// Required so that expo-auth-session redirect flows (Facebook) work on web.
-WebBrowser.maybeCompleteAuthSession();
-
 // ─────────────────────────────────────────────────────────────────────────────
 // Config — set these in your .env / app.config.js
 // ─────────────────────────────────────────────────────────────────────────────
@@ -45,7 +40,6 @@ WebBrowser.maybeCompleteAuthSession();
 const GOOGLE_WEB_CLIENT_ID = process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID ?? '';
 const GOOGLE_IOS_CLIENT_ID = process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID ?? '';
 const FACEBOOK_APP_ID = process.env.EXPO_PUBLIC_FACEBOOK_APP_ID ?? '';
-const FACEBOOK_REDIRECT_URI = process.env.EXPO_PUBLIC_FACEBOOK_REDIRECT_URI ?? '';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Google Sign-In — one-time SDK configuration
@@ -172,65 +166,57 @@ export async function signInWithGoogle(): Promise<SocialAuthPayload> {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Facebook
+// Facebook (native SDK)
 // ─────────────────────────────────────────────────────────────────────────────
-export function useFacebookAuthRequest() {
-  const discovery: AuthSession.DiscoveryDocument = {
-    authorizationEndpoint: 'https://www.facebook.com/v18.0/dialog/oauth',
-    tokenEndpoint: 'https://graph.facebook.com/v18.0/oauth/access_token',
-  };
+export async function signInWithFacebook(): Promise<SocialAuthPayload> {
+  if (!FACEBOOK_APP_ID) {
+    throw new AuthError(
+      'Facebook App ID is not configured. Set EXPO_PUBLIC_FACEBOOK_APP_ID.',
+      'CONFIG_ERROR',
+    );
+  }
 
-  // Facebook requires a valid HTTPS redirect URI — custom schemes (trackeats://)
-  // and Expo Go URIs (exp://...) are rejected.  The Expo auth proxy is an HTTPS
-  // URL that Facebook accepts and that Expo then forwards back into the native app.
-  // This URL must also be listed in Facebook Login > Settings > Valid OAuth Redirect URIs.
-  // Set EXPO_PUBLIC_FACEBOOK_REDIRECT_URI in .env (e.g. https://auth.expo.io/@<owner>/<slug>).
-  //
-  // Fall back to a valid placeholder so AuthSession.useAuthRequest does not throw
-  // during render when the env var is missing.  The actual login function validates
-  // the config before invoking promptAsync().
-  const redirectUri = FACEBOOK_REDIRECT_URI || 'https://auth.expo.io/@placeholder/app';
+  if (Platform.OS === 'web') {
+    throw new AuthError('Facebook sign-in is not supported on web in this app.', 'UNSUPPORTED');
+  }
 
-  const [request, response, promptAsync] = AuthSession.useAuthRequest(
-    {
-      clientId: FACEBOOK_APP_ID,
-      redirectUri,
-      scopes: ['public_profile', 'email'],
-      responseType: AuthSession.ResponseType.Token,
-      usePKCE: false,
-    },
-    discovery,
-  );
+  try {
+    // Lazy-load the native SDK so the app can still start on builds that
+    // do not yet include this native module.
+    const fbsdk = require('react-native-fbsdk-next') as {
+      AccessToken: { getCurrentAccessToken: () => Promise<{ accessToken?: { toString: () => string } } | null> };
+      LoginManager: { logInWithPermissions: (permissions: string[]) => Promise<{ isCancelled: boolean }> };
+    };
+    const { AccessToken, LoginManager } = fbsdk;
 
-  async function loginWithFacebook(): Promise<SocialAuthPayload> {
-    if (!FACEBOOK_APP_ID || !FACEBOOK_REDIRECT_URI) {
+    const result = await LoginManager.logInWithPermissions(['public_profile', 'email']);
+    if (result.isCancelled) {
+      throw new AuthError('Sign-in was cancelled', 'CANCELLED');
+    }
+
+    const accessTokenData = await AccessToken.getCurrentAccessToken();
+    const accessToken = accessTokenData?.accessToken?.toString();
+    if (!accessToken) {
       throw new AuthError(
-        'Facebook is not configured. Set EXPO_PUBLIC_FACEBOOK_APP_ID and EXPO_PUBLIC_FACEBOOK_REDIRECT_URI.',
-        'CONFIG_ERROR',
+        'Facebook sign-in completed but no access token was returned. Ensure Facebook SDK native config is valid for this build.',
+        'NO_TOKEN',
       );
     }
 
-    console.log('FB redirectUri:', redirectUri);
-    console.log('FB request:', request);
-
-    const result = await promptAsync();
-    if (result.type === 'success') {
-      const accessToken = result.params.access_token;
-      if (!accessToken) {
-        throw new AuthError('Facebook did not return an access_token', 'NO_TOKEN');
-      }
-      return {
-        provider: 'facebook',
-        token: accessToken,
-      };
+    return {
+      provider: 'facebook',
+      token: accessToken,
+    };
+  } catch (error: any) {
+    if (error instanceof AuthError) throw error;
+    if (error?.message?.includes('react-native-fbsdk-next') || error?.message?.includes('NativeModule')) {
+      throw new AuthError(
+        'Facebook SDK is not available in this installed build yet. Rebuild and reinstall the dev client, then try again.',
+        'NATIVE_MODULE_MISSING',
+      );
     }
-    if (result.type === 'cancel' || result.type === 'dismiss') {
-      throw new AuthError('Sign-in was cancelled', 'CANCELLED');
-    }
-    throw new AuthError('Facebook sign-in failed', 'SOCIAL_LOGIN_FAILED');
+    throw new AuthError(error?.message ?? 'Facebook sign-in failed', 'SOCIAL_LOGIN_FAILED');
   }
-
-  return { request, response, promptAsync: loginWithFacebook };
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
