@@ -538,13 +538,12 @@ function RecipeForm() {
                     flexDirection: 'column',
                 }}
             >
+                {!canWrite ? (
+                    <Alert severity="info" sx={{ mb: 2 }}>
+                        This account is read-only. Saving changes is disabled.
+                    </Alert>
+                ) : null}
                 <Box component="form" onSubmit={handleSubmit(onSubmit)} noValidate sx={{ width: '100%' }}>
-                    {!canWrite ? (
-                        <Alert severity="info" sx={{ mb: 2 }}>
-                            This account is read-only. Saving changes is disabled.
-                        </Alert>
-                    ) : null}
-
                     {/* ── Basic Info ── */}
                     <Grid container spacing={2} sx={{ mb: 3 }}>
                         <Grid size={{ xs: 12, sm: 3 }}>

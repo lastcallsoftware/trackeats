@@ -78,6 +78,13 @@ const FoodsPage = () => {
         <DataPageLayout
             title="Foods"
             subtitle="Manage your ingredients and nutrition data"
+            topContent={
+                !canWrite ? (
+                    <Alert severity="info" sx={{ mb: 2 }}>
+                        This account is read-only. Write actions are disabled.
+                    </Alert>
+                ) : null
+            }
             controlBarLeft={
                 foods.length > 0 && Math.ceil(filteredCount / pageSize) > 1 ? (
                     <Stack direction="row" spacing={1} alignItems="center">
@@ -129,12 +136,6 @@ const FoodsPage = () => {
             }
             main={
                 <>
-                    {!canWrite ? (
-                        <Alert severity="info" sx={{ mb: 2 }}>
-                            This account is read-only. Write actions are disabled.
-                        </Alert>
-                    ) : null}
-
                     {/* ── Empty state check ── */}
                     {foods.length === 0 ? (
                         <Box sx={{ textAlign: 'center', py: 8, color: 'text.secondary', fontSize: 20 }}>

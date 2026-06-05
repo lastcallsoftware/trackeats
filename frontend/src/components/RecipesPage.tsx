@@ -75,6 +75,13 @@ function RecipesPage() {
         <DataPageLayout
             title="Recipes"
             subtitle="Manage your recipes and nutritional info"
+            topContent={
+                !canWrite ? (
+                    <Alert severity="info" sx={{ mb: 2 }}>
+                        This account is read-only. Write actions are disabled.
+                    </Alert>
+                ) : null
+            }
             controlBarLeft={
                 recipes.length > 0 && Math.ceil(filteredCount / pageSize) > 1 ? (
                     <Stack direction="row" spacing={1} alignItems="center">
@@ -126,12 +133,6 @@ function RecipesPage() {
             }
             main={
                 <>
-                    {!canWrite ? (
-                        <Alert severity="info" sx={{ mb: 2 }}>
-                            This account is read-only. Write actions are disabled.
-                        </Alert>
-                    ) : null}
-
                     {/* ── Empty state check ── */}
                     {recipes.length === 0 ? (
                         <Box sx={{ textAlign: 'center', py: 8, color: 'text.secondary', fontSize: 20 }}>

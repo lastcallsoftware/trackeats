@@ -6,6 +6,7 @@ import TitleCard from './TitleCard';
 type DataPageLayoutProps = {
     title: string;
     subtitle: string;
+    topContent?: ReactNode;
     controlBarLeft?: ReactNode;
     controlBarRight?: ReactNode;
     aboveMain?: ReactNode;
@@ -16,6 +17,7 @@ type DataPageLayoutProps = {
 function DataPageLayout({
     title,
     subtitle,
+    topContent,
     controlBarLeft,
     controlBarRight,
     aboveMain,
@@ -51,6 +53,8 @@ function DataPageLayout({
                     gap: 1.5,
                 }}
             >
+                {topContent}
+
                 {/* ── Control bar ── */}
                 <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2, mb: 2, flexWrap: 'wrap' }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, minHeight: 40, flexWrap: 'wrap' }}>

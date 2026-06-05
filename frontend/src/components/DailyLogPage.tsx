@@ -575,6 +575,13 @@ function DailyLogPage() {
         <DataPageLayout
             title="Daily Log"
             subtitle="Track your daily nutritional intake"
+            topContent={
+                !canWrite ? (
+                    <Alert severity="info" sx={{ mb: 2 }}>
+                        This account is read-only. Write actions are disabled.
+                    </Alert>
+                ) : null
+            }
             controlBarLeft={
                 <>
                     <Stack direction="row" spacing={0}>
@@ -640,12 +647,6 @@ function DailyLogPage() {
             }
             aboveMain={
                 <>
-                    {!canWrite ? (
-                        <Alert severity="info" sx={{ mb: 2 }}>
-                            This account is read-only. Write actions are disabled.
-                        </Alert>
-                    ) : null}
-
                     {/* ── Add form ── */}
                     {showAddForm && (
                         <DailyLogEntryForm
