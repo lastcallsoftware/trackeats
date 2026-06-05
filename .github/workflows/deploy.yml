@@ -50,6 +50,7 @@ jobs:
             VITE_BACKEND_BASE_URL=${{ vars.BACKEND_BASE_URL}}
             VITE_PORTFOLIO_URL=${{ vars.PORTFOLIO_URL}}
             VITE_GOOGLE_CLIENT_ID=${{ vars.VITE_GOOGLE_CLIENT_ID }}
+            VITE_FACEBOOK_APP_ID=${{ vars.VITE_FACEBOOK_APP_ID }}
           tags: lastcallsoftware/trackeats-frontend:latest,lastcallsoftware/trackeats-frontend:${{ github.sha }}
           cache-from: type=registry,ref=lastcallsoftware/trackeats-frontend:buildcache
           cache-to: type=registry,ref=lastcallsoftware/trackeats-frontend:buildcache,mode=max
