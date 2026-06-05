@@ -39,9 +39,11 @@ const HomePage: React.FC = () => {
                     <Typography variant="body1" sx={{ mb: 1 }}>TrackEats is a portfolio app, intended to 
                         showcase my tech skills.</Typography>
                     <Typography variant="body1" sx={{ mb: 1 }}>To use the app you can register your own new
-                        account, or log on with the Guest account.</Typography>
-                    <Typography variant="body1" sx={{ mb: 1 }}>Feel free to play around -- all the data (including
-                        user accounts) is reset to a snapshot regularly.</Typography>
+                        account, or log on with the read-only Guest account.  Social logins through Google 
+                        and Facebook are also supported.</Typography>
+                    <Typography variant="body1" sx={{ mb: 1 }}>Feel free to play around -- though remember that 
+                        since this is a portfolio app, all the data (including user accounts) may be reset at 
+                        any time.</Typography>
                     <Typography variant="body1" sx={{ mb: 1 }}>See the About TrackEats page for more info about
                         the app's technical design.</Typography>
                     <Typography variant="body1">Note that TrackEats is a browser app, not a mobile app.  It
