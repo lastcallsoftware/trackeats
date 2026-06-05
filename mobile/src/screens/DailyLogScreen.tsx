@@ -19,6 +19,7 @@ import { DailyLogListView } from '@/components/DailyLogListView'
 import { AddDailyLogEntrySheet } from '@/components/AddDailyLogEntrySheet'
 import { EditDailyLogEntrySheet } from '@/components/EditDailyLogEntrySheet'
 import { IDailyLogItem } from '@/types/dailylog'
+import { useAuth } from '@/hooks/useAuth'
 
 /**
  * DailyLogScreen is the main screen for viewing daily food consumption
@@ -39,6 +40,7 @@ export function DailyLogScreen(): React.ReactElement {
   const [editingEntry, setEditingEntry] = useState<IDailyLogItem | null>(null)
 
   const { data: entries, isLoading, error, refetch } = useDailyLog(selectedDate)
+  const { canWrite } = useAuth()
   const { data: foods = [] } = useFoods()
   const { data: recipes = [] } = useRecipes()
   const { addEntry, editEntry, deleteEntry } = useDailyLogMutation(selectedDate)
@@ -59,6 +61,13 @@ export function DailyLogScreen(): React.ReactElement {
       Alert.alert('Error', deleteEntry.error.message ?? 'Failed to delete entry')
     }
   }, [deleteEntry.isError, deleteEntry.error])
+
+  useEffect(() => {
+    if (!canWrite) {
+      setAddSheetOpen(false)
+      setEditingEntry(null)
+    }
+  }, [canWrite])
 
   // Get label for editing entry (food or recipe name)
   const editingEntryLabel = editingEntry
@@ -104,11 +113,23 @@ export function DailyLogScreen(): React.ReactElement {
 
         <TouchableOpacity
           style={styles.addButton}
-          onPress={() => setAddSheetOpen(true)}
+          onPress={() => {
+            if (!canWrite) {
+              Alert.alert('Read-only account', 'This account is read-only. You cannot add, edit, or delete entries.')
+              return
+            }
+            setAddSheetOpen(true)
+          }}
           activeOpacity={0.7}
         >
           <Text style={styles.addButtonText}>Add Entry</Text>
         </TouchableOpacity>
+
+        {!canWrite ? (
+          <View style={styles.readOnlyBanner}>
+            <Text style={styles.readOnlyBannerText}>Read-only mode: write actions are disabled.</Text>
+          </View>
+        ) : null}
 
         {showEmptyState ? (
           <View style={styles.emptyStateContainer}>
@@ -118,8 +139,20 @@ export function DailyLogScreen(): React.ReactElement {
           <>
             <DailyLogListView
               items={entriesArray}
-              onEdit={(item) => setEditingEntry(item)}
-              onDelete={(item) => deleteEntry.mutate(item.id)}
+              onEdit={(item) => {
+                if (!canWrite) {
+                  Alert.alert('Read-only account', 'This account is read-only. You cannot add, edit, or delete entries.')
+                  return
+                }
+                setEditingEntry(item)
+              }}
+              onDelete={(item) => {
+                if (!canWrite) {
+                  Alert.alert('Read-only account', 'This account is read-only. You cannot add, edit, or delete entries.')
+                  return
+                }
+                deleteEntry.mutate(item.id)
+              }}
             />
             <DailyLogTotalsView nutrition={totals} />
           </>
@@ -127,14 +160,14 @@ export function DailyLogScreen(): React.ReactElement {
       </ScrollView>
 
       <AddDailyLogEntrySheet
-        visible={addSheetOpen}
+        visible={canWrite && addSheetOpen}
         date={selectedDate}
         addEntry={addEntry}
         onClose={() => setAddSheetOpen(false)}
       />
 
       <EditDailyLogEntrySheet
-        visible={editingEntry !== null}
+        visible={canWrite && editingEntry !== null}
         entry={editingEntry}
         label={editingEntryLabel}
         editEntry={editEntry}
@@ -205,5 +238,21 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: '#fff',
+  },
+  readOnlyBanner: {
+    marginHorizontal: 16,
+    marginBottom: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 6,
+    backgroundColor: '#e3f2fd',
+    borderWidth: 1,
+    borderColor: '#90caf9',
+  },
+  readOnlyBannerText: {
+    color: '#0d47a1',
+    fontSize: 13,
+    fontWeight: '500',
+    textAlign: 'center',
   },
 })

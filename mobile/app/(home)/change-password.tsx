@@ -10,13 +10,33 @@ import authStore from '@/store/authStore';
 
 export default function ChangePasswordScreen() {
   const router = useRouter();
-  const { authMethod } = authStore();
+  const { authMethod, canWrite } = authStore();
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+
+  if (!canWrite) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.title}>Read-only Account</Text>
+        <Text style={styles.successText}>
+          This account is read-only, so password changes are disabled.
+        </Text>
+
+        <TouchableOpacity
+          style={styles.button}
+          onPress={() => router.back()}
+          testID="back-to-home-button"
+          activeOpacity={0.7}
+        >
+          <Text style={styles.buttonText}>Back</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
 
   if (authMethod === 'google' || authMethod === 'facebook' || authMethod === 'apple') {
     return (

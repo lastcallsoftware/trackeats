@@ -27,6 +27,7 @@ import {
     Paper,
     IconButton,
     InputAdornment,
+    Alert,
 } from '@mui/material';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
@@ -112,7 +113,7 @@ function RecipeForm() {
     const theme = useTheme();
     const isNarrow = useMediaQuery(theme.breakpoints.down('sm'));
     const [searchParams] = useSearchParams();
-    const { foods, recipes, fetchIngredients, addRecipe, updateRecipe, setErrorMessage } = useData();
+    const { foods, recipes, fetchIngredients, addRecipe, updateRecipe, setErrorMessage, canWrite } = useData();
 
     const { id } = useParams();
     const isEditMode = Boolean(id)
@@ -147,7 +148,7 @@ function RecipeForm() {
 
     const [selectedFoodOrRecipeRowId, setSelectedFoodOrRecipeRowId] = useState<number|null>(null)
 
-    const saveIsDisabled = false;
+    const saveIsDisabled = !canWrite;
 
     const [ingredients, setIngredients] = useState<IIngredient[]>([])
 
@@ -156,6 +157,11 @@ function RecipeForm() {
     }, [initialRecipe, reset]);
 
     const onSubmit = async (data: RecipeFormValues) => {
+        if (!canWrite) {
+            setErrorMessage("Your account is read-only.")
+            return
+        }
+
         const recipeToSave = {
             ...data,
             nutrition: normalizeNutritionForApi(data.nutrition),
@@ -533,6 +539,11 @@ function RecipeForm() {
                 }}
             >
                 <Box component="form" onSubmit={handleSubmit(onSubmit)} noValidate sx={{ width: '100%' }}>
+                    {!canWrite ? (
+                        <Alert severity="info" sx={{ mb: 2 }}>
+                            This account is read-only. Saving changes is disabled.
+                        </Alert>
+                    ) : null}
 
                     {/* ── Basic Info ── */}
                     <Grid container spacing={2} sx={{ mb: 3 }}>
@@ -714,7 +725,7 @@ function RecipeForm() {
                                             type="button"
                                             variant="contained"
                                             size="small"
-                                            disabled={noFoodOrRecipeSelected || noServingsForAdd}
+                                            disabled={!canWrite || noFoodOrRecipeSelected || noServingsForAdd}
                                             onClick={addIngredient}
                                             sx={{ bgcolor: 'success.main', '&:hover': { bgcolor: 'success.dark' }, '&.Mui-disabled': { bgcolor: 'action.disabledBackground' } }}
                                         >
@@ -730,7 +741,7 @@ function RecipeForm() {
                                             type="button"
                                             variant="contained"
                                             size="small"
-                                            disabled={noIngredientSelected || invalidServingsForUpdate}
+                                            disabled={!canWrite || noIngredientSelected || invalidServingsForUpdate}
                                             onClick={updateIngredient}
                                             sx={{ bgcolor: 'warning.main', '&:hover': { bgcolor: 'warning.dark' }, '&.Mui-disabled': { bgcolor: 'action.disabledBackground' }, color: 'warning.contrastText' }}
                                         >
@@ -746,7 +757,7 @@ function RecipeForm() {
                                             type="button"
                                             variant="contained"
                                             size="small"
-                                            disabled={noIngredientSelected}
+                                            disabled={!canWrite || noIngredientSelected}
                                             onClick={removeIngredient}
                                             sx={{ bgcolor: 'error.main', '&:hover': { bgcolor: 'error.dark' }, '&.Mui-disabled': { bgcolor: 'action.disabledBackground' } }}
                                         >
@@ -764,7 +775,7 @@ function RecipeForm() {
                                             type="button"
                                             variant="outlined"
                                             size="small"
-                                            disabled={noIngredientSelected}
+                                            disabled={!canWrite || noIngredientSelected}
                                             onClick={moveIngredientUp}
                                             color="primary"
                                         >
@@ -780,7 +791,7 @@ function RecipeForm() {
                                             type="button"
                                             variant="outlined"
                                             size="small"
-                                            disabled={noIngredientSelected}
+                                            disabled={!canWrite || noIngredientSelected}
                                             onClick={moveIngredientDown}
                                             color="primary"
                                         >

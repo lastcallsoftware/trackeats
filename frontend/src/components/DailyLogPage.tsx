@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { MdAddCircleOutline, MdRemoveCircleOutline, MdEdit, MdChevronLeft, MdChevronRight } from 'react-icons/md';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
+import Alert from '@mui/material/Alert';
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
@@ -85,6 +86,7 @@ type DailyLogEntryFormProps = {
     onDecrementServings: () => void;
     onSave: () => void;
     onCancel: () => void;
+    readOnly?: boolean;
 };
 
 function DailyLogEntryForm({
@@ -97,6 +99,7 @@ function DailyLogEntryForm({
     onDecrementServings,
     onSave,
     onCancel,
+    readOnly = false,
 }: DailyLogEntryFormProps) {
     return (
         <Paper variant="outlined" sx={{ mt: 0, p: 2, mb: 2 }}>
@@ -110,12 +113,14 @@ function DailyLogEntryForm({
                     onChange={e => onEntryChange(prev => ({ ...prev, date: e.target.value }))}
                     InputLabelProps={{ shrink: true }}
                     sx={{ minWidth: 150 }}
+                    disabled={readOnly}
                 />
                 <Box sx={{ minWidth: 260, display: 'flex', flexDirection: 'column', gap: 0.75 }}>
                     <Button
                         variant="outlined"
                         onClick={onOpenEntryPicker}
                         sx={{ justifyContent: 'flex-start', textTransform: 'none' }}
+                        disabled={readOnly}
                     >
                         {selectedEntryLabel ?? 'Select Food or Recipe'}
                     </Button>
@@ -128,6 +133,7 @@ function DailyLogEntryForm({
                     onChange={e => onEntryChange(prev => ({ ...prev, servings: Number(e.target.value) }))}
                     inputProps={{ min: 0.25, step: 0.25 }}
                     sx={{ width: 100 }}
+                    disabled={readOnly}
                     slotProps={{
                         input: {
                             endAdornment: (
@@ -138,6 +144,7 @@ function DailyLogEntryForm({
                                             size="small"
                                             aria-label="Increase servings"
                                             onClick={onIncrementServings}
+                                            disabled={readOnly}
                                             sx={{ p: 0.25 }}
                                         >
                                             <KeyboardArrowUpIcon fontSize="small" />
@@ -147,6 +154,7 @@ function DailyLogEntryForm({
                                             size="small"
                                             aria-label="Decrease servings"
                                             onClick={onDecrementServings}
+                                            disabled={readOnly}
                                             sx={{ p: 0.25 }}
                                         >
                                             <KeyboardArrowDownIcon fontSize="small" />
@@ -163,12 +171,13 @@ function DailyLogEntryForm({
                     value={entry.notes ?? ''}
                     onChange={e => onEntryChange(prev => ({ ...prev, notes: e.target.value }))}
                     sx={{ flex: 1, minWidth: 160 }}
+                    disabled={readOnly}
                 />
                 <Button
                     variant="contained"
                     color="primary"
                     onClick={onSave}
-                    disabled={(!(entry.recipe_id != null || entry.food_id != null) || !entry.servings)}
+                    disabled={readOnly || (!(entry.recipe_id != null || entry.food_id != null) || !entry.servings)}
                 >
                     Save
                 </Button>
@@ -185,7 +194,7 @@ function DailyLogEntryForm({
 // ---------------------------------------------------------------------------
 
 function DailyLogPage() {
-    const { foods, recipes, dailyLogItems, getDailyLogItems, addDailyLogItem, updateDailyLogItem, deleteDailyLogItem } = useData();
+    const { foods, recipes, dailyLogItems, getDailyLogItems, addDailyLogItem, updateDailyLogItem, deleteDailyLogItem, canWrite } = useData();
 
     // -- View mode & date range --
     const [viewMode, setViewMode] = useState<ViewMode>('week');
@@ -491,6 +500,7 @@ function DailyLogPage() {
     };
 
     const handleAdd = async () => {
+        if (!canWrite) return;
         const newItem = await addDailyLogItem(addForm);
         if (!newItem) return;
 
@@ -504,6 +514,7 @@ function DailyLogPage() {
     };
 
     const toggleAddForm = () => {
+        if (!canWrite) return;
         setAddForm(prev => ({
             ...prev,
             date: selectedDateKey ?? toISODate(anchorDate),
@@ -526,12 +537,14 @@ function DailyLogPage() {
     };
 
     const handleEditOpen = () => {
+        if (!canWrite) return;
         if (!selectedItem) return;
         setEditForm({ ...selectedItem });
         setShowEditForm(true);
     };
 
     const handleEditSave = async () => {
+        if (!canWrite) return;
         if (!editForm) return;
         await updateDailyLogItem(editForm);
         await getDailyLogItems(toISODate(rangeStart), toISODate(rangeEnd));
@@ -541,11 +554,13 @@ function DailyLogPage() {
     };
 
     const handleDeleteOpen = () => {
+        if (!canWrite) return;
         if (!selectedItemId) return;
         setShowDeleteDialog(true);
     };
 
     const handleDeleteConfirm = async () => {
+        if (!canWrite) return;
         if (!selectedItemId) return;
         await deleteDailyLogItem(selectedItemId);
         setSelectedItemId(null);
@@ -599,7 +614,7 @@ function DailyLogPage() {
                         color="success"
                         startIcon={<MdAddCircleOutline />}
                         onClick={toggleAddForm}
-                        disabled={isFormInProgress}
+                        disabled={!canWrite || isFormInProgress}
                     >
                         Add
                     </Button>
@@ -607,7 +622,7 @@ function DailyLogPage() {
                         variant="contained"
                         color="warning"
                         startIcon={<MdEdit />}
-                        disabled={isFormInProgress || !selectedItemId}
+                        disabled={!canWrite || isFormInProgress || !selectedItemId}
                         onClick={handleEditOpen}
                     >
                         Edit
@@ -616,7 +631,7 @@ function DailyLogPage() {
                         variant="contained"
                         color="error"
                         startIcon={<MdRemoveCircleOutline />}
-                        disabled={isFormInProgress || !selectedItemId}
+                        disabled={!canWrite || isFormInProgress || !selectedItemId}
                         onClick={handleDeleteOpen}
                     >
                         Delete
@@ -625,6 +640,12 @@ function DailyLogPage() {
             }
             aboveMain={
                 <>
+                    {!canWrite ? (
+                        <Alert severity="info" sx={{ mb: 2 }}>
+                            This account is read-only. Write actions are disabled.
+                        </Alert>
+                    ) : null}
+
                     {/* ── Add form ── */}
                     {showAddForm && (
                         <DailyLogEntryForm
@@ -637,6 +658,7 @@ function DailyLogPage() {
                             onDecrementServings={decrementAddServings}
                             onSave={handleAdd}
                             onCancel={() => setShowAddForm(false)}
+                            readOnly={!canWrite}
                         />
                     )}
 
@@ -652,6 +674,7 @@ function DailyLogPage() {
                             onDecrementServings={decrementEditServings}
                             onSave={handleEditSave}
                             onCancel={() => setShowEditForm(false)}
+                            readOnly={!canWrite}
                         />
                     )}
                 </>

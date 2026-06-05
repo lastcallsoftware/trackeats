@@ -12,6 +12,10 @@ class DatabaseError(Exception):
     pass
 
 class Data:
+    ROLE_ADMIN = "admin"
+    ROLE_READONLY = "readonly"
+    ROLE_USER = "user"
+
     ADMIN_USER_ID = 1
     ADMIN_USER_NAME = "admin"
     ADMIN_USER_EMAIL = "admin@lastcallsoftware.com"

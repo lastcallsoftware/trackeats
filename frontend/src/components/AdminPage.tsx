@@ -140,8 +140,6 @@ function statusColor(status: string): 'success' | 'warning' | 'error' | 'default
     }
 }
 
-const PROTECTED = new Set(['admin', 'guest', 'testuser']);
-
 // ── Component ─────────────────────────────────────────────────────────────────
 
 function AdminPage() {
@@ -427,7 +425,6 @@ function AdminPage() {
                         </TableHead>
                         <TableBody>
                             {sorted.map(user => {
-                                const isProtected = PROTECTED.has(user.username);
                                 return (
                                     <TableRow
                                         key={user.id}
@@ -449,12 +446,11 @@ function AdminPage() {
                                         <TableCell sx={{ whiteSpace: 'nowrap' }}>{formatDate(user.confirmation_email_sent_at)}</TableCell>
                                         <TableCell sx={{ whiteSpace: 'nowrap' }}>{user.seeded_at ? formatDate(user.seeded_at) : '—'}</TableCell>
                                         <TableCell align="center">
-                                            <Tooltip title={isProtected ? 'This account cannot be deleted' : `Delete ${user.username}`}>
+                                            <Tooltip title={`Delete ${user.username}`}>
                                                 <span>
                                                     <IconButton
                                                         size="small"
                                                         color="error"
-                                                        disabled={isProtected}
                                                         onClick={() => handleDeleteClick(user)}
                                                         aria-label={`Delete ${user.username}`}
                                                     >

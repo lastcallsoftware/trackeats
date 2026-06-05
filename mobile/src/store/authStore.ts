@@ -21,6 +21,10 @@ export interface AuthUser {
 export interface AuthStoreState {
   isLoggedIn: boolean;
   username: string | null;
+  roles: string[];
+  isAdmin: boolean;
+  isReadonly: boolean;
+  canWrite: boolean;
   authMethod: AuthMethod | null;
   currentUser: AuthUser | null;
   error: AuthError | null;
@@ -44,6 +48,10 @@ export interface AuthStoreActions {
 const initialState: AuthStoreState = {
   isLoggedIn: false,
   username: null,
+  roles: [],
+  isAdmin: false,
+  isReadonly: false,
+  canWrite: true,
   authMethod: null,
   currentUser: null,
   error: null,
@@ -80,6 +88,25 @@ function decodeJWT(token: string): { exp?: number; [key: string]: any } | null {
     console.error('[AUTH] Failed to decode JWT:', e);
     return null;
   }
+}
+
+function extractRoles(token: string): string[] {
+  const decoded = decodeJWT(token);
+  const rawRoles = decoded?.roles;
+  if (!Array.isArray(rawRoles)) {
+    return [];
+  }
+  return rawRoles.filter((role): role is string => typeof role === 'string');
+}
+
+function roleFlags(roles: string[]): { isAdmin: boolean; isReadonly: boolean; canWrite: boolean } {
+  const isAdmin = roles.includes('admin');
+  const isReadonly = roles.includes('readonly');
+  return {
+    isAdmin,
+    isReadonly,
+    canWrite: !isReadonly,
+  };
 }
 
 /**
@@ -127,11 +154,15 @@ const authStore = create<AuthStoreState & AuthStoreActions>((set, get) => ({
       const decoded = decodeJWT(token);
       const expiryDate = decoded?.exp ? new Date(decoded.exp * 1000).toISOString() : 'unknown';
       console.debug(`[AUTH] Token found, expiry: ${expiryDate}`);
+      const roles = extractRoles(token);
+      const flags = roleFlags(roles);
 
       setApiToken(token);
       set({
         isLoggedIn: true,
         username,
+        roles,
+        ...flags,
         authMethod: authMethod ?? 'email',
         currentUser: username ? { username } : null,
       });
@@ -159,11 +190,15 @@ const authStore = create<AuthStoreState & AuthStoreActions>((set, get) => ({
 
       // Update API client
       setApiToken(accessToken);
+      const roles = extractRoles(accessToken);
+      const flags = roleFlags(roles);
 
       // Update state
       set({
         isLoggedIn: true,
         username,
+        roles,
+        ...flags,
         authMethod: 'email',
         currentUser: { username },
         error: null,
@@ -200,9 +235,13 @@ const authStore = create<AuthStoreState & AuthStoreActions>((set, get) => ({
         tokenStorage.setAuthMethod(authData.authMethod),
       ]);
       setApiToken(authData.accessToken);
+      const roles = extractRoles(authData.accessToken);
+      const flags = roleFlags(roles);
       set({
         isLoggedIn: true,
         username: authData.username,
+        roles,
+        ...flags,
         authMethod: authData.authMethod,
         currentUser: { username: authData.username },
         error: null,
@@ -294,6 +333,10 @@ const authStore = create<AuthStoreState & AuthStoreActions>((set, get) => ({
       set({
         isLoggedIn: false,
         username: null,
+        roles: [],
+        isAdmin: false,
+        isReadonly: false,
+        canWrite: true,
         authMethod: null,
         currentUser: null,
         error: null,
@@ -307,6 +350,10 @@ const authStore = create<AuthStoreState & AuthStoreActions>((set, get) => ({
       set({
         isLoggedIn: false,
         username: null,
+        roles: [],
+        isAdmin: false,
+        isReadonly: false,
+        canWrite: true,
         authMethod: null,
         currentUser: null,
         error: null,
@@ -331,6 +378,10 @@ const authStore = create<AuthStoreState & AuthStoreActions>((set, get) => ({
       set({
         isLoggedIn: false,
         username: null,
+        roles: [],
+        isAdmin: false,
+        isReadonly: false,
+        canWrite: true,
         authMethod: null,
         currentUser: null,
         error: {

@@ -9,6 +9,7 @@ import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import DialogActions from '@mui/material/DialogActions';
+import Alert from '@mui/material/Alert';
 import { useData } from "@/utils/useData";
 import FoodsTable from "./FoodsTable";
 import { NutritionLabel } from "./NutritionLabel";
@@ -21,7 +22,7 @@ const FoodsPage = () => {
     const [selectedRowId, setSelectedRowId] = useState<number|null>(null)
     const [filteredCount, setFilteredCount] = useState<number>(0)
     const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false)
-    const { foods, deleteFood, isLoading } = useData();
+    const { foods, deleteFood, isLoading, canWrite } = useData();
 
     // -- Pagination management --
     // Read page from URL as 1-based, convert to 0-based for state
@@ -100,6 +101,7 @@ const FoodsPage = () => {
                         startIcon={<MdAddCircleOutline />}
                         onClick={addRecord}
                         title="Add Food"
+                        disabled={!canWrite}
                     >
                         Add
                     </Button>
@@ -109,7 +111,7 @@ const FoodsPage = () => {
                         startIcon={<MdEdit />}
                         onClick={editRecord}
                         title="Edit Selected"
-                        disabled={!selectedRowId}
+                        disabled={!canWrite || !selectedRowId}
                     >
                         Edit
                     </Button>
@@ -119,7 +121,7 @@ const FoodsPage = () => {
                         startIcon={<MdRemoveCircleOutline />}
                         onClick={deleteRecord}
                         title="Delete Selected"
-                        disabled={!selectedRowId}
+                        disabled={!canWrite || !selectedRowId}
                     >
                         Delete
                     </Button>
@@ -127,6 +129,12 @@ const FoodsPage = () => {
             }
             main={
                 <>
+                    {!canWrite ? (
+                        <Alert severity="info" sx={{ mb: 2 }}>
+                            This account is read-only. Write actions are disabled.
+                        </Alert>
+                    ) : null}
+
                     {/* ── Empty state check ── */}
                     {foods.length === 0 ? (
                         <Box sx={{ textAlign: 'center', py: 8, color: 'text.secondary', fontSize: 20 }}>

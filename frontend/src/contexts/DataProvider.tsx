@@ -39,6 +39,31 @@ const getStoredUsername = (): string => {
     return storedUsername ? JSON.parse(storedUsername) : ""
 }
 
+type JwtPayload = {
+    roles?: unknown
+}
+
+const decodeJwtPayload = (token: string): JwtPayload | null => {
+    try {
+        const parts = token.split('.')
+        if (parts.length !== 3) return null
+
+        const normalized = parts[1].replace(/-/g, '+').replace(/_/g, '/')
+        const padded = normalized.padEnd(Math.ceil(normalized.length / 4) * 4, '=')
+        const decoded = atob(padded)
+        return JSON.parse(decoded) as JwtPayload
+    } catch {
+        return null
+    }
+}
+
+const getRolesFromToken = (token: string): string[] => {
+    if (!token) return []
+    const payload = decodeJwtPayload(token)
+    if (!payload || !Array.isArray(payload.roles)) return []
+    return payload.roles.filter((role): role is string => typeof role === 'string')
+}
+
 const getDefaultPreferencesForContext = (context: string): Record<string, unknown> | null => {
     if (context === FOODS_COLUMNS_PREFERENCES_KEY) {
         return {
@@ -174,6 +199,10 @@ type DailyLogPayload = {
 
 export type DataContextType = {
     username: string;
+    roles: string[];
+    isAdmin: boolean;
+    isReadonly: boolean;
+    canWrite: boolean;
     currentUser: { username: string } | null;
     preferences: Record<string, Record<string, unknown>>;
     foods: IFood[];
@@ -205,6 +234,10 @@ export type DataContextType = {
 
 export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) => {
     const [username, setUsername] = useState<string>(getStoredUsername)
+    const [roles, setRoles] = useState<string[]>(() => getRolesFromToken(getStoredAccessToken()))
+    const isAdmin = roles.includes('admin')
+    const isReadonly = roles.includes('readonly')
+    const canWrite = !isReadonly
     const currentUser = username ? { username } : null
     const [preferences, setPreferences] = useState<Record<string, Record<string, unknown>>>({})
     const [foods, setFoods] = useState<IFood[]>([])
@@ -228,6 +261,7 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
         window.dispatchEvent(new Event(AUTH_CHANGED_EVENT))
         setAccessToken("")
         setUsername("")
+        setRoles([])
         setFoods([])
         setRecipes([])
         setIngredients([])
@@ -241,6 +275,7 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
             const nextUsername = getStoredUsername()
             setAccessToken(nextAccessToken)
             setUsername(nextUsername)
+            setRoles(getRolesFromToken(nextAccessToken))
             if (!nextAccessToken) {
                 setFoods([])
                 setRecipes([])
@@ -333,6 +368,14 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
             setErrorMessage(error.message)
     }, [setErrorMessage]); // navigateRef is a ref, so it's stable and doesn't need to be a dependency
 
+    const ensureCanWrite = useCallback((): boolean => {
+        if (!canWrite) {
+            setErrorMessage("Your account is read-only.")
+            return false
+        }
+        return true
+    }, [canWrite, setErrorMessage])
+
     const getPreferences = useCallback(async (context: string): Promise<void> => {
         try {
             const response = await axios.get<IPreferences>("/api/preferences/" + context)
@@ -391,6 +434,9 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
 
     // Delete Account
     const deleteAccount = async (): Promise<boolean> => {
+        if (!ensureCanWrite()) {
+            return false
+        }
         try {
             await axios.delete<void>("/api/user")
             try {
@@ -407,16 +453,22 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
     }
 
     const updatePreferences = useCallback(async (context: string, prefs: Record<string, unknown>): Promise<void> => {
+        if (!ensureCanWrite()) {
+            return
+        }
         try {
             await axios.put<IPreferences>("/api/preferences/" + context, prefs)
             setPreferences(prev => ({ ...prev, [context]: prefs }));
         } catch (error) {
             handleError(error)
         } 
-    }, [handleError])
+    }, [ensureCanWrite, handleError])
 
     // Add Food
     const addFood = async (food: IFood): Promise<void> => {
+        if (!ensureCanWrite()) {
+            return
+        }
         try {
             const response = await axios.post<IFood>("/api/food", food)
             const newFood = response.data
@@ -428,6 +480,9 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
 
     // Update Food
     const updateFood = async (food: IFood): Promise<void> => {
+        if (!ensureCanWrite()) {
+            return
+        }
         try {
             const response = await axios.put<IFood>("/api/food", food)
             const updatedFood = response.data
@@ -445,6 +500,9 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
 
     // Delete Food
     const deleteFood = async (id: number): Promise<void> => {
+        if (!ensureCanWrite()) {
+            return
+        }
         try {
             await axios.delete<void>("/api/food/" + id)
             setFoods(prevItems => prevItems.filter(_item => _item.id != id));
@@ -455,6 +513,9 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
 
     // Add Recipe
     const addRecipe = async (recipe: IRecipe, ingredients: IIngredient[]): Promise<number|undefined> => {
+        if (!ensureCanWrite()) {
+            return undefined
+        }
         let recipe_id = undefined
         try {
             const payload = { ...recipe, ingredients };
@@ -470,6 +531,9 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
 
     // Update Recipe
     const updateRecipe = async (recipe: IRecipe, ingredients: IIngredient[]): Promise<void> => {
+        if (!ensureCanWrite()) {
+            return
+        }
         try {
             const payload = { ...recipe, ingredients };
             const response = await axios.put<IRecipe>("/api/recipe", payload)
@@ -488,6 +552,9 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
 
     // Delete Recipe
     const deleteRecipe = async (id: number): Promise<void> => {
+        if (!ensureCanWrite()) {
+            return
+        }
         try {
             await axios.delete<void>("/api/recipe/" + id)
             setRecipes(prevItems => prevItems.filter(_item => _item.id != id));
@@ -534,6 +601,9 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
 
     // Add Ingredient(s)
     const addIngredients = async (recipe_id: number, ingredients: IIngredient[]): Promise<void> => {
+        if (!ensureCanWrite()) {
+            return
+        }
         try {
             await axios.post<IIngredient>(`/api/recipe/${recipe_id}/ingredient`, ingredients)
         } catch(error) {
@@ -543,6 +613,9 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
 
     // Remove all Ingredients from a Recipe
     const removeIngredients = async (recipe_id: number): Promise<void> => {
+        if (!ensureCanWrite()) {
+            return
+        }
         try {
             await axios.delete<void>(`/api/recipe/${recipe_id}/ingredient`)
             setIngredients([])
@@ -553,6 +626,9 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
 
     // Recalculate nutrition totals for Recipes
     const recalculateRecipeNutrition = async (recipe_id: number | null): Promise<void> => {
+        if (!ensureCanWrite()) {
+            return
+        }
         setIsRecalculatingRecipes(true)
         try {
             if (recipe_id) {
@@ -591,6 +667,9 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
 
     // Add DailyLogItem
     const addDailyLogItem = async (item: IDailyLogItem): Promise<IDailyLogItem | null> => {
+        if (!ensureCanWrite()) {
+            return null
+        }
         try {
             const payload = buildDailyLogPayload(item)
             const response = await axios.post<IDailyLogItem>("/api/dailylogitem", payload)
@@ -605,6 +684,9 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
 
     // Update DailyLogItem (date and/or servings and/or notes)
     const updateDailyLogItem = async (item: IDailyLogItem): Promise<void> => {
+        if (!ensureCanWrite()) {
+            return
+        }
         try {
             const payload = buildDailyLogPayload(item)
             const response = await axios.put<IDailyLogItem>(`/api/dailylogitem/${item.id}`, payload)
@@ -617,6 +699,9 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
 
     // Delete DailyLogItem
     const deleteDailyLogItem = async (id: number): Promise<void> => {
+        if (!ensureCanWrite()) {
+            return
+        }
         try {
             await axios.delete<void>(`/api/dailylogitem/${id}`)
             setDailyLogItems(prev => prev.filter(i => i.id !== id))
@@ -628,6 +713,10 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
     return (
         <DataContext.Provider value={{ 
             username,
+            roles,
+            isAdmin,
+            isReadonly,
+            canWrite,
             currentUser,
             preferences,
             foods, 

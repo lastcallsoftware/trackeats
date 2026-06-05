@@ -16,7 +16,8 @@ import {
     MenuItem,
     Button,
     Divider,
-    Box
+    Box,
+    Alert,
 } from '@mui/material';
 
 const nutritionSchema = z.object({
@@ -71,7 +72,7 @@ type FoodFormValues = z.output<typeof foodSchema>;
 function FoodForm() {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
-    const { foods, addFood, updateFood } = useData();
+    const { foods, addFood, updateFood, canWrite, setErrorMessage } = useData();
 
     const { id } = useParams();
     const isEditMode = Boolean(id)
@@ -141,6 +142,11 @@ function FoodForm() {
     }, []);
 
     const onSubmit = async (data: FoodFormValues) => {
+        if (!canWrite) {
+            setErrorMessage("Your account is read-only.")
+            return
+        }
+
         const payload = {
             ...data,
             size_description_2: data.size_description_2 && data.size_description_2.trim().length > 0
@@ -181,6 +187,11 @@ function FoodForm() {
             <TitleCard title={isEditMode ? 'Edit Food' : 'Add Food'} subtitle="Enter food and nutrition details" />
             <Paper elevation={3} sx={{ maxWidth: 1200, width: '95%', p: 4 }}>
             <form onSubmit={handleSubmit(onSubmit)} autoComplete="off" noValidate>
+                {!canWrite ? (
+                    <Alert severity="info" sx={{ mb: 2 }}>
+                        This account is read-only. Saving changes is disabled.
+                    </Alert>
+                ) : null}
                 <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: 3, alignItems: 'flex-start' }}>
                 <Box sx={{ flex: 1, minWidth: 0, width: '100%' }}>
                 <Grid container spacing={2}>
@@ -367,6 +378,7 @@ function FoodForm() {
                             type="submit"
                             variant="contained"
                             color="primary"
+                            disabled={!canWrite}
                         >
                             Save
                         </Button>

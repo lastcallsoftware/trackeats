@@ -68,7 +68,7 @@ const buttonSx = {
 function App() {
     const theme = useTheme();
     const isNarrow = useMediaQuery(theme.breakpoints.down('md'));
-    const { deleteAccount, recalculateRecipeNutrition, isLoading, isRecalculatingRecipes, username } = useData();
+    const { deleteAccount, recalculateRecipeNutrition, isLoading, isRecalculatingRecipes, username, isAdmin, canWrite, isReadonly } = useData();
     const [isAuthenticated, setAuthenticated] = useState(sessionStorage.getItem("access_token") != null);
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
     const [optionsAnchorEl, setOptionsAnchorEl] = useState<null | HTMLElement>(null);
@@ -138,7 +138,7 @@ function App() {
             : authMethod === 'apple'
                 ? 'Apple'
                 : 'Email';
-    const canChangePassword = authMethod !== 'google' && authMethod !== 'facebook' && authMethod !== 'apple'
+    const canChangePassword = canWrite && authMethod !== 'google' && authMethod !== 'facebook' && authMethod !== 'apple'
 
     const overlayOpen = isLoading || isRecalculatingRecipes
     const overlayMessage = isRecalculatingRecipes ? "Recalculating recipes..." : "Loading data..."
@@ -169,7 +169,7 @@ function App() {
                     Daily Log
                 </Button>
             )}
-            {isAuthenticated && username === 'admin' && (
+            {isAuthenticated && isAdmin && (
                 <Button component={RouterLink} to="/admin" color="primary" sx={buttonSx}>
                     Admin
                 </Button>
@@ -277,12 +277,13 @@ function App() {
                                     onClose={handleOptionsClose}
                                 >
                                     <MenuItem disabled>Signed in with: {authMethodLabel}</MenuItem>
+                                    {isReadonly ? <MenuItem disabled>Role: Read-only</MenuItem> : null}
                                     <MenuItem onClick={() => { handleOptionsClose(); removeToken(); }}>Log out</MenuItem>
                                     {canChangePassword ? (
                                         <MenuItem onClick={() => { handleOptionsClose(); navigate('/change_password'); }}>Change password</MenuItem>
                                     ) : null}
-                                    <MenuItem onClick={handleRecalculateRecipes} disabled={isRecalculatingRecipes}>Recalculate recipes</MenuItem>
-                                    <MenuItem onClick={handleDeleteAccountClick}>Delete my account</MenuItem>
+                                    <MenuItem onClick={handleRecalculateRecipes} disabled={!canWrite || isRecalculatingRecipes}>Recalculate recipes</MenuItem>
+                                    <MenuItem onClick={handleDeleteAccountClick} disabled={!canWrite}>Delete my account</MenuItem>
                                 </Menu>
                                 <Dialog
                                     open={confirmOpen}
@@ -347,7 +348,7 @@ function App() {
                         <Route
                             path="/admin"
                             element={
-                                isAuthenticated && username === 'admin'
+                                isAuthenticated && isAdmin
                                     ? <AdminPage />
                                     : <Navigate to="/home" replace />
                             }

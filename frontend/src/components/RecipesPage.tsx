@@ -9,6 +9,7 @@ import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import DialogActions from '@mui/material/DialogActions';
+import Alert from '@mui/material/Alert';
 import { useData } from "@/utils/useData";
 import RecipesTable from "./RecipesTable";
 import { NutritionLabel } from "./NutritionLabel";
@@ -21,7 +22,7 @@ function RecipesPage() {
     const [selectedRowId, setSelectedRowId] = useState<number|null>(null)
     const [filteredCount, setFilteredCount] = useState<number>(0)
     const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false)
-    const { recipes, deleteRecipe } = useData();
+    const { recipes, deleteRecipe, canWrite } = useData();
 
     // -- Pagination management --
     // Read page from URL as 1-based, convert to 0-based for state
@@ -97,6 +98,7 @@ function RecipesPage() {
                         startIcon={<MdAddCircleOutline />}
                         onClick={addRecord}
                         title="Add Recipe"
+                        disabled={!canWrite}
                     >
                         Add
                     </Button>
@@ -106,7 +108,7 @@ function RecipesPage() {
                         startIcon={<MdEdit />}
                         onClick={editRecord}
                         title="Edit Selected"
-                        disabled={!selectedRowId}
+                        disabled={!canWrite || !selectedRowId}
                     >
                         Edit
                     </Button>
@@ -116,7 +118,7 @@ function RecipesPage() {
                         startIcon={<MdRemoveCircleOutline />}
                         onClick={deleteRecord}
                         title="Delete Selected"
-                        disabled={!selectedRowId}
+                        disabled={!canWrite || !selectedRowId}
                     >
                         Delete
                     </Button>
@@ -124,6 +126,12 @@ function RecipesPage() {
             }
             main={
                 <>
+                    {!canWrite ? (
+                        <Alert severity="info" sx={{ mb: 2 }}>
+                            This account is read-only. Write actions are disabled.
+                        </Alert>
+                    ) : null}
+
                     {/* ── Empty state check ── */}
                     {recipes.length === 0 ? (
                         <Box sx={{ textAlign: 'center', py: 8, color: 'text.secondary', fontSize: 20 }}>

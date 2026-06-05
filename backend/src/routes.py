@@ -56,15 +56,77 @@ F = TypeVar("F", bound=Callable[..., Any])
 R = TypeVar("R")
 P = ParamSpec("P")
 
-def admin_required(f: F) -> F:
+
+def _roles_from_claims(claims: dict[str, Any]) -> set[str]:
+    """
+    Normalize JWT role claims into a set of role names.
+
+    During migration, we still accept legacy tokens that only include
+    "is_admin" by mapping them to the admin role.
+    """
+    raw_roles = claims.get("roles", [])
+    roles: set[str] = set()
+
+    if isinstance(raw_roles, list):
+        role_values = cast(list[Any], raw_roles)
+        roles = {str(role) for role in role_values if role}
+
+    if bool(claims.get("is_admin", False)):
+        roles.add(Data.ROLE_ADMIN)
+
+    return roles
+
+
+def _get_roles_for_user(user: User) -> list[str]:
+    """
+    Assign roles when issuing tokens.
+
+    Username checks are intentionally limited to this auth boundary so the rest
+    of the app can rely on role checks instead of user-name checks.
+    """
+    if user.username == Data.ADMIN_USER_NAME:
+        return [Data.ROLE_ADMIN]
+    if user.username == Data.GUEST_USER_NAME:
+        return [Data.ROLE_READONLY]
+    return [Data.ROLE_USER]
+
+
+def role_required(*allowed_roles: str) -> Callable[[F], F]:
+    """
+    Require at least one of the specified roles in the JWT claims.
+    """
+    allowed = set(allowed_roles)
+
+    def decorator(f: F) -> F:
+        @wraps(f)
+        def decorated(*args: Any, **kwargs: Any) -> Any:
+            verify_jwt_in_request()
+            claims = cast(dict[str, Any], get_jwt())
+            roles = _roles_from_claims(claims)
+            if not roles.intersection(allowed):
+                abort(403, description="Forbidden: insufficient role")
+            return f(*args, **kwargs)
+        return cast(F, decorated)
+
+    return decorator
+
+
+def write_required(f: F) -> F:
+    """
+    Allow authenticated writes for all roles except readonly.
+    """
     @wraps(f)
     def decorated(*args: Any, **kwargs: Any) -> Any:
         verify_jwt_in_request()
         claims = cast(dict[str, Any], get_jwt())
-        if not bool(claims.get("is_admin", False)):
-            abort(403)
+        roles = _roles_from_claims(claims)
+        if Data.ROLE_READONLY in roles:
+            abort(403, description="Forbidden: readonly role cannot modify data")
         return f(*args, **kwargs)
     return cast(F, decorated)
+
+def admin_required(f: F) -> F:
+    return role_required(Data.ROLE_ADMIN)(f)
 
 
 def log_route(f: F) -> F:
@@ -752,13 +814,18 @@ def login():
             if user.seed_requested and user.seeded_at is None:
                 Data.seed_database(user)
 
-            # Generate a JWT token
-            # If it's for a user with admin rights, add a special thingie to it
+            # Generate a JWT token with role claims so all downstream auth checks
+            # can be role-based instead of username-based.
             token_duration = int(os.environ.get("ACCESS_TOKEN_DURATION", 120))
+            roles = _get_roles_for_user(user)
             access_token = create_access_token(
                 identity=email,
                 expires_delta=timedelta(minutes=token_duration),
-                additional_claims={"is_admin": user.username == Data.ADMIN_USER_NAME}
+                additional_claims={
+                    "roles": roles,
+                    # Keep legacy claim during migration.
+                    "is_admin": Data.ROLE_ADMIN in roles,
+                },
             )
 
     except ValidationError as e:
@@ -854,10 +921,15 @@ def social_login():
                 identity = f"{provider}:{oauth_id}"
 
             token_duration = int(os.environ.get("ACCESS_TOKEN_DURATION", 120))
+            roles = _get_roles_for_user(user)
             access_token = create_access_token(
                 identity=identity,
                 expires_delta=timedelta(minutes=token_duration),
-                additional_claims={"is_admin": user.username == Data.ADMIN_USER_NAME}
+                additional_claims={
+                    "roles": roles,
+                    # Keep legacy claim during migration.
+                    "is_admin": Data.ROLE_ADMIN in roles,
+                },
             )
 
     except ValidationError as e:
@@ -962,7 +1034,7 @@ def reset_password():
 
 
 @bp.route("/api/change_password", methods=["POST"])
-@jwt_required()
+@write_required
 @log_route
 def change_password():
     """
@@ -1056,7 +1128,7 @@ def get_user(username: str):
 
 
 @bp.route("/api/user", methods = ["DELETE"])
-@jwt_required()
+@write_required
 @log_route
 def delete_user():
     """
@@ -1071,7 +1143,7 @@ def delete_user():
                 raise ValueError(f"Could not retrieve user record for email '{email}'")
             user_id = user_dao.id
 
-            if user_dao.username in ("guest", "admin", "testuser"):
+            if user_dao.id in (Data.GUEST_USER_ID, Data.ADMIN_USER_ID, Data.TEST_USER_ID):
                 raise ValueError(f"The account '{user_dao.username}' may not be deleted.")
             
             Recipe.delete_all_for_user(user_id)
@@ -1098,13 +1170,13 @@ def admin_delete_user(username: str):
     """
     try:
         with db.session.begin():
-            if username in ("guest", "admin", "testuser"):
-                raise ValueError(f"The account '{username}' may not be deleted.")
-
             user_dao = User.get(username)
             if not user_dao:
                 raise ValueError(f"Could not retrieve user record for username '{username}'")
             user_id = user_dao.id
+
+            if user_id in (Data.GUEST_USER_ID, Data.ADMIN_USER_ID, Data.TEST_USER_ID):
+                raise ValueError(f"The account '{username}' may not be deleted.")
 
             Recipe.delete_all_for_user(user_id)
             Food.delete_all_for_user(user_id)
@@ -1150,7 +1222,7 @@ def get_preferences(context: str):
 
 
 @bp.route("/api/preferences/<string:context>", methods = ["PUT"])
-@jwt_required()
+@write_required
 @log_route
 def save_preferences(context: str):
     """
@@ -1268,7 +1340,7 @@ def get_food(food_id:int):
 
 
 @bp.route("/api/food", methods = ["POST"])
-@jwt_required()
+@write_required
 @log_route
 def add_food():
     """
@@ -1306,7 +1378,7 @@ def add_food():
 
 
 @bp.route("/api/food", methods = ["PUT"])
-@jwt_required()
+@write_required
 @log_route
 def update_food():
     """
@@ -1341,7 +1413,7 @@ def update_food():
 
 
 @bp.route("/api/food/<int:food_id>", methods = ["DELETE"])
-@jwt_required()
+@write_required
 @log_route
 def delete_food(food_id:int):
     """
@@ -1434,7 +1506,7 @@ def get_recipe(recipe_id: int):
 
 
 @bp.route("/api/recipe", methods = ["POST"])
-@jwt_required()
+@write_required
 @log_route
 def add_recipe():
     """
@@ -1472,7 +1544,7 @@ def add_recipe():
 
 
 @bp.route("/api/recipe", methods = ["PUT"])
-@jwt_required()
+@write_required
 @log_route
 def update_recipe():
     """
@@ -1507,7 +1579,7 @@ def update_recipe():
 
 
 @bp.route("/api/recipe/<int:recipe_id>", methods = ["DELETE"])
-@jwt_required()
+@write_required
 @log_route
 def delete_recipe(recipe_id: int):
     """
@@ -1542,7 +1614,7 @@ def delete_recipe(recipe_id: int):
 
 
 @bp.route("/api/recipe/<int:recipe_id>/recalc", methods = ["POST"])
-@jwt_required()
+@write_required
 @log_route
 def recalculate_recipe(recipe_id:int):
     """
@@ -1569,7 +1641,7 @@ def recalculate_recipe(recipe_id:int):
 
 
 @bp.route("/api/recipe/recalc", methods = ["POST"])
-@jwt_required()
+@write_required
 @log_route
 def recalculate_all_for_user():
     """
@@ -1709,7 +1781,7 @@ def get_daily_log_entry(log_id: int):
 
 
 @bp.route("/api/dailylogitem", methods = ["POST"])
-@jwt_required()
+@write_required
 @log_route
 def add_daily_log_entry():
     """
@@ -1761,7 +1833,7 @@ def add_daily_log_entry():
 
 
 @bp.route("/api/dailylogitem/<int:log_id>", methods = ["PUT"])
-@jwt_required()
+@write_required
 @log_route
 def update_daily_log_entry(log_id: int):
     """
@@ -1806,7 +1878,7 @@ def update_daily_log_entry(log_id: int):
 
 
 @bp.route("/api/dailylogitem/<int:log_id>", methods = ["DELETE"])
-@jwt_required()
+@write_required
 @log_route
 def delete_daily_log_entry(log_id: int):
     """

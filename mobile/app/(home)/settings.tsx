@@ -11,10 +11,10 @@ import { clearSocialSeedPromptSeen } from '@/services/tokenStorage';
 
 export default function SettingsScreen() {
   const router = useRouter();
-  const { authMethod } = authStore();
+  const { authMethod, canWrite } = authStore();
   const [isDeleting, setIsDeleting] = useState(false);
 
-  const canChangePassword = authMethod !== 'google' && authMethod !== 'facebook' && authMethod !== 'apple';
+  const canChangePassword = canWrite && authMethod !== 'google' && authMethod !== 'facebook' && authMethod !== 'apple';
 
   const handleDeleteAccount = async () => {
     setIsDeleting(true);
@@ -47,6 +47,11 @@ export default function SettingsScreen() {
   };
 
   const confirmDeleteAccount = () => {
+    if (!canWrite) {
+      Alert.alert('Read-only account', 'This account is read-only. Account deletion is disabled.');
+      return;
+    }
+
     Alert.alert(
       'Delete Account?',
       'This will permanently delete your account and all associated data. This action cannot be undone.',
@@ -60,6 +65,12 @@ export default function SettingsScreen() {
 
   return (
     <View style={styles.container}>
+      {!canWrite ? (
+        <View style={styles.readOnlyBox}>
+          <Text style={styles.readOnlyText}>Read-only mode: account changes are disabled.</Text>
+        </View>
+      ) : null}
+
       {canChangePassword ? (
         <TouchableOpacity
           style={styles.primaryButton}
@@ -73,7 +84,9 @@ export default function SettingsScreen() {
       ) : (
         <View style={styles.infoBox}>
           <Text style={styles.infoText}>
-            Password changes are managed by your social login provider.
+            {canWrite
+              ? 'Password changes are managed by your social login provider.'
+              : 'Read-only accounts cannot change passwords.'}
           </Text>
         </View>
       )}
@@ -83,7 +96,7 @@ export default function SettingsScreen() {
         onPress={confirmDeleteAccount}
         testID="settings-delete-account-button"
         activeOpacity={0.8}
-        disabled={isDeleting}
+        disabled={isDeleting || !canWrite}
       >
         {isDeleting ? (
           <ActivityIndicator color="#fff" />
@@ -124,6 +137,19 @@ const styles = StyleSheet.create({
     color: '#374151',
     fontSize: 14,
     lineHeight: 20,
+  },
+  readOnlyBox: {
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#90caf9',
+    backgroundColor: '#e3f2fd',
+    padding: 14,
+  },
+  readOnlyText: {
+    color: '#0d47a1',
+    fontSize: 14,
+    lineHeight: 20,
+    fontWeight: '600',
   },
   dangerButton: {
     backgroundColor: '#b91c1c',
