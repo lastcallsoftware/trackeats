@@ -97,6 +97,8 @@ jobs:
           PORTFOLIO_URL: ${{ vars.PORTFOLIO_URL }}
           GOOGLE_WEB_CLIENT_ID: ${{ vars.GOOGLE_WEB_CLIENT_ID }}
           GOOGLE_ANDROID_CLIENT_ID: ${{ vars.GOOGLE_ANDROID_CLIENT_ID }}
+          FACEBOOK_APP_ID: ${{ vars.FACEBOOK_APP_ID }}
+          FACEBOOK_APP_SECRET: ${{ secrets.FACEBOOK_APP_SECRET }}
           TURNSTILE_SECRET_KEY: ${{ secrets.TURNSTILE_SECRET_KEY }}
         with:
           host: ${{ secrets.APP_SERVER_HOST }}
@@ -123,6 +125,8 @@ jobs:
             PORTFOLIO_URL,
             GOOGLE_WEB_CLIENT_ID,
             GOOGLE_ANDROID_CLIENT_ID,
+            FACEBOOK_APP_ID,
+            FACEBOOK_APP_SECRET,
             TURNSTILE_SECRET_KEY
           script: |
             cd ~/trackeats
