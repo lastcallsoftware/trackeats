@@ -2,6 +2,7 @@ import React, { useMemo, useState } from 'react'
 import {
   View,
   FlatList,
+  ListRenderItem,
   ActivityIndicator,
   Text,
   TouchableOpacity,
@@ -76,21 +77,27 @@ export function FoodListScreen(): React.ReactElement {
   // Render list
   return (
     <View style={styles.container}>
-      <SearchBar
-        value={searchText}
-        onChangeText={setSearchText}
-        placeholder="Search foods..."
-      />
-      <GroupFilterTabs selected={selectedGroup} onSelect={setSelectedGroup} />
-
-      {filteredFoods.length === 0 ? (
-        <View style={styles.emptyStateContainer}>
-          <Text style={styles.emptyText}>No foods found</Text>
-        </View>
-      ) : (
+      <View style={styles.resultsSection}>
         <FlatList
+          style={styles.list}
+          stickyHeaderIndices={[0]}
+          ListHeaderComponent={
+            <View style={styles.stickyHeader}>
+              <SearchBar
+                value={searchText}
+                onChangeText={setSearchText}
+                placeholder="Search foods..."
+              />
+              <GroupFilterTabs selected={selectedGroup} onSelect={setSelectedGroup} />
+            </View>
+          }
+          ListEmptyComponent={
+            <View style={styles.emptyStateContainer}>
+              <Text style={styles.emptyText}>No foods found</Text>
+            </View>
+          }
           data={filteredFoods}
-          renderItem={({ item }) => (
+          renderItem={({ item }: Parameters<ListRenderItem<IFood>>[0]) => (
             <FoodListItem
               id={item.id!}
               name={item.name}
@@ -105,7 +112,7 @@ export function FoodListScreen(): React.ReactElement {
           updateCellsBatchingPeriod={50}
           removeClippedSubviews={true}
         />
-      )}
+      </View>
     </View>
   )
 }
@@ -122,10 +129,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 20,
   },
+  resultsSection: {
+    flex: 1,
+    minHeight: 0,
+  },
+  stickyHeader: {
+    backgroundColor: '#fff',
+  },
   emptyStateContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  list: {
+    flex: 1,
   },
   emptyText: {
     fontSize: 16,

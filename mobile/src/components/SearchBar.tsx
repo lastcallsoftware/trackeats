@@ -26,6 +26,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
         style={styles.input}
         placeholder={placeholder}
         placeholderTextColor="#999"
+        autoCapitalize="none"
         value={value}
         onChangeText={onChangeText}
       />
