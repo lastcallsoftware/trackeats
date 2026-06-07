@@ -1,4 +1,4 @@
-import { defineConfig } from 'vite'
+import { defineConfig, loadEnv } from 'vite'
 import react from '@vitejs/plugin-react-swc'
 import path from "path";
 
@@ -24,38 +24,55 @@ import path from "path";
 // I have no idea what it actully does.
 
 // https://vitejs.dev/config/
-export default defineConfig({
-  resolve: {
-    alias: {
-      "@": path.resolve(__dirname, "./src"),
+export default defineConfig(({ mode }) => {
+  const env = loadEnv(mode, process.cwd(), '')
+  const backendBaseUrl = env.VITE_BACKEND_BASE_URL?.trim()
+
+  if (!backendBaseUrl) {
+    throw new Error('VITE_BACKEND_BASE_URL must be set for the frontend build and dev server')
+  }
+
+  return {
+    resolve: {
+      alias: {
+        "@": path.resolve(__dirname, "./src"),
+      },
     },
-  },
-  base: "/",
-  plugins: [react()],
-  preview: {
-    port: 8080,
-    strictPort: true,
-  },
-  server: {
-    port: 8080,
-    strictPort: true,
-    host: true,
-  //  origin: "http://0.0.0.0:80",
-  },
-  // Bundle MUI as a separate chunk.  This greatly reduces the app's max 
-  // chunk size.  This shuts up the compiler warning about big chunks and it
-  // does has some real benefits:
-  // - modern browsers load an app's chunks in parallel
-  // - on subsequent visits after an app update, the MUI bundle will be 
-  //   cached and the user won't have to download it again
-  // I also tried bundling React separately but that had no effect.
-  build: {
-    rollupOptions: {
-      output: {
-        manualChunks: {
-          mui: ['@mui/material', '@mui/icons-material'],
-          icons: ['react-icons/md'],
-          table: ['@tanstack/react-table'],        }
+    base: "/",
+    plugins: [
+      react(),
+      {
+        name: 'portfolio-backend-url',
+        transformIndexHtml(html) {
+          return html.replaceAll('__BACKEND_BASE_URL__', backendBaseUrl)
+        },
+      },
+    ],
+    preview: {
+      port: 8080,
+      strictPort: true,
+    },
+    server: {
+      port: 8080,
+      strictPort: true,
+      host: true,
+    //  origin: "http://0.0.0.0:80",
+    },
+    // Bundle MUI as a separate chunk.  This greatly reduces the app's max 
+    // chunk size.  This shuts up the compiler warning about big chunks and it
+    // does has some real benefits:
+    // - modern browsers load an app's chunks in parallel
+    // - on subsequent visits after an app update, the MUI bundle will be 
+    //   cached and the user won't have to download it again
+    // I also tried bundling React separately but that had no effect.
+    build: {
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            mui: ['@mui/material', '@mui/icons-material'],
+            icons: ['react-icons/md'],
+            table: ['@tanstack/react-table'],        }
+        }
       }
     }
   }
