@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useMemo, useState } from 'react'
 import {
   View,
   FlatList,
@@ -12,11 +12,12 @@ import { FoodGroup, IFood } from '@/types/food'
 import { FoodListItem } from '@/components/FoodListItem'
 import { SearchBar } from '@/components/SearchBar'
 import { GroupFilterTabs } from '@/components/GroupFilterTabs'
+import { useDebouncedValue } from '@/hooks/useDebouncedValue'
 
 /**
  * Main food browsing screen
  * Displays a searchable, filterable list of foods
- * - Search by name/vendor (debounced)
+ * - Search by name/vendor (debounced filtering)
  * - Filter by food group
  * - Tap to view food detail
  */
@@ -25,15 +26,20 @@ export function FoodListScreen(): React.ReactElement {
   const { data: foods, isLoading, error, refetch } = query
   const [searchText, setSearchText] = useState('')
   const [selectedGroup, setSelectedGroup] = useState<string | null>(null)
+  const debouncedSearchText = useDebouncedValue(searchText, 220)
 
   // Type-safe foods array
   const foodsArray: IFood[] = foods && Array.isArray(foods) ? foods : []
 
   // Derive filtered list from search + group
-  const filteredFoods = filterFoods(
-    foodsArray,
-    searchText,
-    selectedGroup as FoodGroup | null
+  const filteredFoods = useMemo(
+    () =>
+      filterFoods(
+        foodsArray,
+        debouncedSearchText,
+        selectedGroup as FoodGroup | null
+      ),
+    [foodsArray, debouncedSearchText, selectedGroup]
   )
 
   // Loading state
@@ -70,7 +76,11 @@ export function FoodListScreen(): React.ReactElement {
   // Render list
   return (
     <View style={styles.container}>
-      <SearchBar value={searchText} onChangeText={setSearchText} />
+      <SearchBar
+        value={searchText}
+        onChangeText={setSearchText}
+        placeholder="Search foods..."
+      />
       <GroupFilterTabs selected={selectedGroup} onSelect={setSelectedGroup} />
 
       {filteredFoods.length === 0 ? (
@@ -79,6 +89,7 @@ export function FoodListScreen(): React.ReactElement {
         </View>
       ) : (
         <FlatList
+          style={styles.list}
           data={filteredFoods}
           renderItem={({ item }) => (
             <FoodListItem
@@ -114,8 +125,13 @@ const styles = StyleSheet.create({
   },
   emptyStateContainer: {
     flex: 1,
-    justifyContent: 'center',
+    justifyContent: 'flex-start',
     alignItems: 'center',
+    paddingTop: 24,
+  },
+  list: {
+    flex: 1,
+    alignSelf: 'stretch',
   },
   emptyText: {
     fontSize: 16,

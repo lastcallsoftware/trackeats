@@ -32,6 +32,7 @@ export const RecipeCompositionView: React.FC<RecipeCompositionViewProps> = ({
       ) : (
         sortedIngredients.map((ingredient) => {
           let name = 'Unknown'
+          let subtype: string | null = null
           let calories = 0
 
           // Resolve food ingredient
@@ -39,6 +40,7 @@ export const RecipeCompositionView: React.FC<RecipeCompositionViewProps> = ({
             const food = foods.find((f) => f.id === ingredient.food_ingredient_id)
             if (food) {
               name = food.name
+              subtype = food.subtype
               calories = food.nutrition.calories * ingredient.servings
             }
           }
@@ -57,6 +59,7 @@ export const RecipeCompositionView: React.FC<RecipeCompositionViewProps> = ({
               <View style={styles.ingredientInfo}>
                 <Text style={styles.ingredientName} numberOfLines={1}>
                   {name}
+                  {subtype?.trim() ? <Text style={styles.ingredientSubtype}>, {subtype}</Text> : null}
                 </Text>
                 <Text style={styles.ingredientMeta}>
                   {ingredient.servings} servings
@@ -107,6 +110,10 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#333',
     fontWeight: '500',
+  },
+  ingredientSubtype: {
+    color: '#666',
+    fontWeight: '400',
   },
   ingredientMeta: {
     fontSize: 12,

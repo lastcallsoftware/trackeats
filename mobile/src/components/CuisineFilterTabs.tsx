@@ -58,7 +58,8 @@ export const CuisineFilterTabs: React.FC<CuisineFilterTabsProps> = ({
 const styles = StyleSheet.create({
   container: {
     flexShrink: 0,
-    paddingVertical: 8,
+    paddingTop: 8,
+    paddingBottom: 0,
   },
   contentContainer: {
     paddingHorizontal: 12,

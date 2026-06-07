@@ -160,10 +160,15 @@ export const RecipeDetailScreen: React.FC<RecipeDetailScreenProps> = ({
       : null
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView style={styles.container} stickyHeaderIndices={[0]}>
+      <View style={styles.stickyHeader}>
+        <Text style={styles.stickyHeaderTitle} numberOfLines={1}>
+          {recipe.name}
+        </Text>
+      </View>
+
       {/* Recipe header */}
       <View style={styles.headerSection}>
-        <Text style={styles.recipeName}>{recipe.name}</Text>
         {recipe.cuisine && (
           <Text style={styles.cuisineLabel}>{recipe.cuisine.charAt(0).toUpperCase() + recipe.cuisine.slice(1)}</Text>
         )}
@@ -191,7 +196,6 @@ export const RecipeDetailScreen: React.FC<RecipeDetailScreenProps> = ({
       </View>
 
       {/* Ingredients composition */}
-      <View style={styles.divider} />
       {ingredientsLoading ? (
         <View style={styles.loadingSection}>
           <ActivityIndicator size="small" color="#007AFF" />
@@ -223,15 +227,21 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 20,
   },
+  stickyHeader: {
+    backgroundColor: '#fff',
+    borderBottomWidth: 1,
+    borderBottomColor: '#e8e8e8',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+  },
+  stickyHeaderTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#333',
+  },
   headerSection: {
     paddingHorizontal: 16,
     paddingVertical: 16,
-  },
-  recipeName: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 4,
   },
   cuisineLabel: {
     fontSize: 16,
@@ -254,8 +264,7 @@ const styles = StyleSheet.create({
     color: '#999',
   },
   nutritionSection: {
-    borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
+    marginBottom: 8,
   },
   divider: {
     borderBottomWidth: 1,

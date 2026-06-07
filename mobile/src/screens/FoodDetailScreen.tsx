@@ -88,11 +88,22 @@ export const FoodDetailScreen: React.FC<FoodDetailScreenProps> = ({ foodId: prop
   }
 
   return (
-    <ScrollView style={{ flex: 1 }}>
-      <View style={{ paddingHorizontal: 16, paddingVertical: 16 }}>
-        <Text style={{ fontSize: 28, fontWeight: 'bold', color: '#333', marginBottom: 4 }}>
+    <ScrollView style={{ flex: 1 }} stickyHeaderIndices={[0]}>
+      <View
+        style={{
+          backgroundColor: '#fff',
+          borderBottomWidth: 1,
+          borderBottomColor: '#e8e8e8',
+          paddingHorizontal: 16,
+          paddingVertical: 10,
+        }}
+      >
+        <Text style={{ fontSize: 18, fontWeight: '600', color: '#333' }} numberOfLines={1}>
           {food.name}
         </Text>
+      </View>
+
+      <View style={{ paddingHorizontal: 16, paddingVertical: 16 }}>
         {food.subtype ? (
           <Text style={{ fontSize: 16, color: '#555', marginBottom: 2 }}>
             {food.subtype}

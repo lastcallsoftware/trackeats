@@ -1,37 +1,22 @@
-import React, { useRef, useCallback } from 'react'
+import React, { useCallback } from 'react'
 import { View, TextInput, TouchableOpacity, Text, StyleSheet } from 'react-native'
 
 interface SearchBarProps {
   value: string
   onChangeText: (text: string) => void
+  placeholder?: string
 }
 
 /**
- * Search bar component with debounced text input
- * 300ms debounce using useRef setTimeout approach
+ * Search bar component with immediate text updates.
+ * Debouncing should happen in the parent where filtering work occurs.
  */
-export const SearchBar: React.FC<SearchBarProps> = ({ value, onChangeText }) => {
-  const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-
-  const handleChangeText = useCallback(
-    (text: string) => {
-      // Clear previous timeout
-      if (debounceTimerRef.current) {
-        clearTimeout(debounceTimerRef.current)
-      }
-
-      // Set new timeout for debounced callback
-      debounceTimerRef.current = setTimeout(() => {
-        onChangeText(text)
-      }, 300)
-    },
-    [onChangeText]
-  )
-
+export const SearchBar: React.FC<SearchBarProps> = ({
+  value,
+  onChangeText,
+  placeholder = 'Search...'
+}) => {
   const handleClear = useCallback(() => {
-    if (debounceTimerRef.current) {
-      clearTimeout(debounceTimerRef.current)
-    }
     onChangeText('')
   }, [onChangeText])
 
@@ -39,10 +24,10 @@ export const SearchBar: React.FC<SearchBarProps> = ({ value, onChangeText }) => 
     <View style={styles.container}>
       <TextInput
         style={styles.input}
-        placeholder="Search foods..."
+        placeholder={placeholder}
         placeholderTextColor="#999"
         value={value}
-        onChangeText={handleChangeText}
+        onChangeText={onChangeText}
       />
       {value.length > 0 && (
         <TouchableOpacity style={styles.clearButton} onPress={handleClear} activeOpacity={0.7}>

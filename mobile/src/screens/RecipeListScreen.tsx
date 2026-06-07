@@ -12,11 +12,12 @@ import { IRecipe } from '@/types/recipe'
 import { RecipeListItem } from '@/components/RecipeListItem'
 import { SearchBar } from '@/components/SearchBar'
 import { CuisineFilterTabs } from '@/components/CuisineFilterTabs'
+import { useDebouncedValue } from '@/hooks/useDebouncedValue'
 
 /**
  * Main recipe browsing screen
  * Displays a searchable, filterable list of recipes
- * - Search by name (debounced)
+ * - Search by name (debounced filtering)
  * - Filter by cuisine
  * - Tap to view recipe detail
  */
@@ -25,6 +26,7 @@ export function RecipeListScreen(): React.ReactElement {
   const { data: recipes, isLoading, error, refetch } = query
   const [searchText, setSearchText] = useState('')
   const [selectedCuisine, setSelectedCuisine] = useState<string | null>(null)
+  const debouncedSearchText = useDebouncedValue(searchText, 220)
 
   // Type-safe recipes array
   const recipesArray: IRecipe[] = recipes && Array.isArray(recipes) ? recipes : []
@@ -41,7 +43,10 @@ export function RecipeListScreen(): React.ReactElement {
   }, [recipesArray])
 
   // Derive filtered list from search + cuisine
-  const filteredRecipes = filterRecipes(recipesArray, searchText, selectedCuisine)
+  const filteredRecipes = useMemo(
+    () => filterRecipes(recipesArray, debouncedSearchText, selectedCuisine),
+    [recipesArray, debouncedSearchText, selectedCuisine]
+  )
 
   // Loading state
   if (isLoading && recipesArray.length === 0) {
@@ -79,7 +84,11 @@ export function RecipeListScreen(): React.ReactElement {
   // Render list
   return (
     <View style={styles.container}>
-      <SearchBar value={searchText} onChangeText={setSearchText} />
+      <SearchBar
+        value={searchText}
+        onChangeText={setSearchText}
+        placeholder="Search recipes..."
+      />
       <CuisineFilterTabs
         cuisines={uniqueCuisines}
         selected={selectedCuisine}
@@ -92,6 +101,7 @@ export function RecipeListScreen(): React.ReactElement {
         </View>
       ) : (
         <FlatList
+          style={styles.list}
           data={filteredRecipes}
           renderItem={({ item }) => (
             <RecipeListItem
@@ -133,8 +143,13 @@ const styles = StyleSheet.create({
   },
   emptyStateContainer: {
     flex: 1,
-    justifyContent: 'center',
+    justifyContent: 'flex-start',
     alignItems: 'center',
+    paddingTop: 24,
+  },
+  list: {
+    flex: 1,
+    alignSelf: 'stretch',
   },
   emptyText: {
     fontSize: 16,
