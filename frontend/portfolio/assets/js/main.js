@@ -154,6 +154,16 @@
     selector: '.glightbox'
   });
 
+  const glightboxMobile = GLightbox({
+    selector: '.glightbox-mobile',
+    onOpen: () => {
+      document.body.classList.add('trackeats-mobile-lightbox-open');
+    },
+    onClose: () => {
+      document.body.classList.remove('trackeats-mobile-lightbox-open');
+    }
+  });
+
   /**
    * Init isotope layout and filters
    */

@@ -300,24 +300,24 @@
                     <div class="col-lg-6">
                         <div class="card h-100 shadow-sm">
                             <div class="portfolio-content" style="min-height: 354px; border: 1px solid #000;">
-                                <img src="assets/img/trackeats-preview.png" class="img-fluid" alt="">
+                                <img src="assets/img/trackeats/01-trackeats-preview.png" class="img-fluid" alt="TrackEats preview">
                                 <div class="portfolio-info">
                                     <h4>TrackEats</h4>
                                     <p>My labor of love.</p>
-                                    <a href="assets/img/trackeats-preview.png" title="TrackEats preview" data-gallery="portfolio-gallery-app" class="glightbox preview-link"><i class="bi bi-zoom-in"></i></a>
+                                    <a href="assets/img/trackeats/01-trackeats-preview.png" title="TrackEats preview" data-gallery="portfolio-gallery-trackeats" class="glightbox preview-link"><i class="bi bi-zoom-in"></i></a>
                                 </div>
                             </div>
-                            <a href="https://trackeats.lastcallsw.com" class="text-center d-block pt-2" target="_blank" rel="noopener noreferrer">
-                                TrackEats <i class="bi bi-box-arrow-up-right" aria-label="Opens in new window"></i>
+                            <div class="text-center d-block pt-2 fw-semibold">TrackEats</div>
+                            <a href="https://trackeats.lastcallsw.com" class="text-center d-block" target="_blank" rel="noopener noreferrer">
+                                (go to website) <i class="bi bi-box-arrow-up-right" aria-label="Opens in new window"></i>
                             </a>
                             <div class="pt-3 px-3 pb-2">
                                 <p>
                                     TrackEats is a full-stack web application that allows users to accurately track the 
                                     nutritional content of their diet.
                                     <ul>
-                                        <li>Deployed in Docker containers on an AWS EC2 instance</li>
-                                        <li>Web front end is built with TypeScript, React, Tanstack Table and Axios</li>
-                                        <li>Mobile front end is built for Android with React Native</li>
+                                        <li>Deployed in Docker containers on an AWS EC2 instance using GitHub Actions/Docker Compose for CI/CD</li>
+                                        <li>Front end is built with TypeScript, React, Tanstack Table and Axios</li>
                                         <li>Back end is built with Python, Flask, and SQLAlchemy</li>
                                         <li>Database is MySQL</li>
                                         <li>Supports social logins using Google and Facebook</li>
@@ -328,19 +328,58 @@
                             </div>
                         </div>
                     </div>
-                    <!-- Box 2: CrossCracker -->
+                    <!-- Box 2: TrackEats Mobile -->
+                    <div class="col-lg-6">
+                        <div class="card h-100 shadow-sm">
+                            <div class="portfolio-content" style="height: 354px; border: 1px solid #000; display: flex; align-items: center; justify-content: center; overflow: hidden;">
+                                <img src="assets/img/trackeats-mobile/01-trackeats-mobile-preview.jpg" class="img-fluid" alt="TrackEats mobile preview" style="height: 100%; width: auto; max-width: 100%; object-fit: contain; border: 2px solid #000; border-radius: 14px;">
+                                <div class="portfolio-info">
+                                    <h4>TrackEats Mobile</h4>
+                                    <p>Companion mobile app.</p>
+                                    <a id="trackeats-mobile-gallery-trigger" href="assets/img/trackeats-mobile/02-login.jpg" title="TrackEats Mobile login" data-gallery="portfolio-gallery-trackeats-mobile" class="glightbox-mobile preview-link"><i class="bi bi-zoom-in"></i></a>
+                                    <a href="assets/img/trackeats-mobile/03-food-list.jpg" title="TrackEats Mobile foods list" data-gallery="portfolio-gallery-trackeats-mobile" class="glightbox-mobile d-none"></a>
+                                    <a href="assets/img/trackeats-mobile/04-food-list-filtered.jpg" title="TrackEats Mobile foods filtered" data-gallery="portfolio-gallery-trackeats-mobile" class="glightbox-mobile d-none"></a>
+                                    <a href="assets/img/trackeats-mobile/05-food-detail.jpg" title="TrackEats Mobile food detail" data-gallery="portfolio-gallery-trackeats-mobile" class="glightbox-mobile d-none"></a>
+                                    <a href="assets/img/trackeats-mobile/06-recipe-list.jpg" title="TrackEats Mobile recipes list" data-gallery="portfolio-gallery-trackeats-mobile" class="glightbox-mobile d-none"></a>
+                                    <a href="assets/img/trackeats-mobile/07-recipe-detail.jpg" title="TrackEats Mobile recipe detail" data-gallery="portfolio-gallery-trackeats-mobile" class="glightbox-mobile d-none"></a>
+                                    <a href="assets/img/trackeats-mobile/08-recipe-ingredients.jpg" title="TrackEats Mobile recipe ingredients" data-gallery="portfolio-gallery-trackeats-mobile" class="glightbox-mobile d-none"></a>
+                                    <a href="assets/img/trackeats-mobile/09-daily-log.jpg" title="TrackEats Mobile daily log" data-gallery="portfolio-gallery-trackeats-mobile" class="glightbox-mobile d-none"></a>
+                                </div>
+                            </div>
+                            <div class="text-center d-block pt-2 fw-semibold">TrackEats Mobile</div>
+                            <a href="#" class="text-center d-block" onclick="document.getElementById('trackeats-mobile-gallery-trigger').click(); return false;" title="TrackEats mobile screenshots">
+                                (view screenshots)
+                            </a>
+                            <div class="pt-3 px-3 pb-2">
+                                <p>
+                                    Native Android companion app for TrackEats.
+                                    <ul>
+                                        <li>Currently in development, eventual deployment targeted for the Google Play Store</li>
+                                        <li>Built with React Native, Expo Router, and Zustand</li>
+                                        <li>Uses the same Flask/MySQL REST API as the web app</li>
+                                        <li>Supports social login flows and secure token storage</li>
+                                        <li>Optimized touch-first flows for foods, recipes, and daily logging</li>
+                                    </ul>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div><!-- End Portfolio Row 1 -->
+                <div class="row gy-4 mt-2" data-aos="fade-up" data-aos-delay="250">
+                    <!-- Box 3: CrossCracker -->
                     <div class="col-lg-6">
                         <div class="card h-100 shadow-sm">
                             <div class="portfolio-content" style="min-height: 354px; border: 1px solid #000;">
-                                <img src="assets/img/crosscracker-2.0-preview.jpg" class="img-fluid" alt="CrossCracker preview">
+                                <img src="assets/img/crosscracker/01-crosscracker-2.0-preview.jpg" class="img-fluid" alt="CrossCracker preview">
                                 <div class="portfolio-info">
                                     <h4>CrossCracker</h4>
                                     <p>A crossword puzzle solver.</p>
                                     <a href="assets/video/crosscracker-2.0.mp4" title="CrossCracker demo video" data-gallery="portfolio-gallery-app" class="glightbox preview-link"><i class="bi bi-zoom-in"></i></a>
                                 </div>
                             </div>
-                            <a href="assets/video/crosscracker-2.0.mp4" class="text-center d-block pt-2 glightbox preview-link" title="CrossCracker demo video" data-gallery="portfolio-gallery-app">
-                                CrossCracker (play demo video)
+                            <div class="text-center d-block pt-2 fw-semibold">CrossCracker</div>
+                            <a href="assets/video/crosscracker-2.0.mp4" class="text-center d-block glightbox preview-link" title="CrossCracker demo video" data-gallery="portfolio-gallery-app">
+                                (play demo video)
                             </a>
                             <div class="pt-3 px-3 pb-2">
                                 <p>
@@ -388,21 +427,20 @@
                             </div>
                         </div>
                     </div>
-                </div><!-- End Portfolio Row 1 -->
-                <div class="row gy-4 mt-2" data-aos="fade-up" data-aos-delay="250">
-                    <!-- Box 3: New App Example -->
-                    <div class="col-lg-6 mx-auto">
+                    <!-- Box 4: NonoLogic -->
+                    <div class="col-lg-6">
                         <div class="card h-100 shadow-sm">
                             <div class="portfolio-content" style="min-height: 354px; border: 1px solid #000;">
-                                <img src="assets/img/nonologic-0.9-preview.png" class="img-fluid" alt="NonoLogic preview">
+                                <img src="assets/img/nonologic/01-nonologic-0.9-preview.png" class="img-fluid" alt="NonoLogic preview">
                                 <div class="portfolio-info">
                                     <h4>NonoLogic</h4>
                                     <p>A nonogram solver.</p>
                                     <a href="assets/video/nonologic-0.9.mp4" title="NonoLogic demo video" data-gallery="portfolio-gallery-app" class="glightbox preview-link"><i class="bi bi-zoom-in"></i></a>
                                 </div>
                             </div>
-                            <a href="assets/video/nonologic-0.9.mp4" class="text-center d-block pt-2 glightbox preview-link" title="NonoLogic demo video" data-gallery="portfolio-gallery-app">
-                                NonoLogic (play demo video)
+                            <div class="text-center d-block pt-2 fw-semibold">NonoLogic</div>
+                            <a href="assets/video/nonologic-0.9.mp4" class="text-center d-block glightbox preview-link" title="NonoLogic demo video" data-gallery="portfolio-gallery-app">
+                                (play demo video)
                             </a>
                             <div class="pt-3 px-3 pb-2">
                                 <p>
