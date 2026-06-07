@@ -65,6 +65,8 @@ const buttonSx = {
     '&:hover': { backgroundColor: 'transparent', textDecoration: 'underline' }
 }
 
+const PREFERRED_AUTH_METHOD_KEY = 'preferred_auth_method'
+
 function App() {
     const theme = useTheme();
     const isNarrow = useMediaQuery(theme.breakpoints.down('md'));
@@ -91,6 +93,11 @@ function App() {
         sessionStorage.setItem("access_token", JSON.stringify(token))
         sessionStorage.setItem("username", JSON.stringify(username))
         sessionStorage.setItem("auth_method", authMethod)
+        try {
+            localStorage.setItem(PREFERRED_AUTH_METHOD_KEY, authMethod)
+        } catch {
+            // Ignore storage failures; the current session still works.
+        }
         window.dispatchEvent(new Event(AUTH_CHANGED_EVENT))
         setAuthenticated(true)
     }

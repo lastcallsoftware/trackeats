@@ -8,6 +8,7 @@ import * as SecureStore from 'expo-secure-store';
 const TOKEN_KEY = 'auth_token';
 const USERNAME_KEY = 'auth_username';
 const AUTH_METHOD_KEY = 'auth_method';
+const PREFERRED_AUTH_METHOD_KEY = 'preferred_auth_method';
 const SOCIAL_SEED_PROMPT_SEEN_KEY = 'social_seed_prompt_seen';
 
 export type AuthMethod = 'email' | 'google' | 'facebook' | 'apple';
@@ -130,6 +131,37 @@ export async function clearAuthMethod(): Promise<void> {
   } catch (error) {
     const originalError = error instanceof Error ? error.message : String(error);
     throw new Error(`Failed to clear auth method: ${originalError}`);
+  }
+}
+
+/**
+ * Stores the last auth method the user used to sign in.
+ */
+export async function setPreferredAuthMethod(authMethod: AuthMethod): Promise<void> {
+  try {
+    await SecureStore.setItemAsync(PREFERRED_AUTH_METHOD_KEY, authMethod);
+  } catch (error) {
+    const originalError = error instanceof Error ? error.message : String(error);
+    throw new Error(`Failed to store preferred auth method: ${originalError}`);
+  }
+}
+
+/**
+ * Retrieves the last auth method the user used to sign in.
+ */
+export async function getPreferredAuthMethod(): Promise<AuthMethod | null> {
+  try {
+    const authMethod = await SecureStore.getItemAsync(PREFERRED_AUTH_METHOD_KEY);
+    if (!authMethod) {
+      return null;
+    }
+    if (authMethod === 'email' || authMethod === 'google' || authMethod === 'facebook' || authMethod === 'apple') {
+      return authMethod;
+    }
+    return null;
+  } catch (error) {
+    const originalError = error instanceof Error ? error.message : String(error);
+    throw new Error(`Failed to retrieve preferred auth method: ${originalError}`);
   }
 }
 

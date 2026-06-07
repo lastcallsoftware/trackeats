@@ -16,7 +16,7 @@ import {
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import * as yup from 'yup';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import authStore from '@/store/authStore';
 import AuthScreen from '@/components/AuthScreen';
 import GoogleIcon from '@/components/GoogleIcon';
@@ -26,7 +26,7 @@ import {
   loginWithApple,
   exchangeSocialPayload,
 } from '@/services/socialAuthService';
-import { getSocialSeedPromptSeen, setSocialSeedPromptSeen } from '@/services/tokenStorage';
+import { getPreferredAuthMethod, getSocialSeedPromptSeen, setSocialSeedPromptSeen } from '@/services/tokenStorage';
 
 const GUEST_EMAIL = 'guest@lastcallsoftware.com';
 
@@ -60,10 +60,36 @@ export default function LoginScreen() {
   const [socialError, setSocialError] = useState<string | null>(null);
   const [isSocialLoading, setIsSocialLoading] = useState(false);
   const [showEmailLogin, setShowEmailLogin] = useState(wasJustConfirmed || cameFromSignup);
+  const [preferredAuthMethod, setPreferredAuthMethod] = useState<'email' | 'google' | 'facebook' | 'apple' | null>(null);
   const passwordRef = useRef<TextInput>(null);
 
   const showAppleLogin = Platform.OS === 'ios' && hasAppleLogin;
   const hasAnySocialLogin = hasGoogleLogin || hasFacebookLogin || showAppleLogin;
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadPreferredAuthMethod = async () => {
+      try {
+        const authMethod = await getPreferredAuthMethod();
+        if (cancelled) {
+          return;
+        }
+        setPreferredAuthMethod(authMethod);
+        if (authMethod === 'email' && !wasJustConfirmed && !cameFromSignup) {
+          setShowEmailLogin(true);
+        }
+      } catch (storageError) {
+        console.debug('[LOGIN] Preferred auth method error:', storageError);
+      }
+    };
+
+    loadPreferredAuthMethod();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [cameFromSignup, wasJustConfirmed]);
 
   const toggleEmailLogin = () => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
@@ -171,6 +197,11 @@ export default function LoginScreen() {
     </View>
   ) : null;
 
+  const isPreferredEmail = preferredAuthMethod === 'email';
+  const isPreferredGoogle = preferredAuthMethod === 'google';
+  const isPreferredFacebook = preferredAuthMethod === 'facebook';
+  const isPreferredApple = preferredAuthMethod === 'apple';
+
   return (
     <AuthScreen title="Login" overlay={overlay}>
       {wasJustConfirmed ? (
@@ -200,64 +231,132 @@ export default function LoginScreen() {
             {/* ── Social login buttons ── */}
             <View style={styles.socialRow}>
               {hasGoogleLogin ? (
-                <TouchableOpacity
-                  style={[styles.socialButton, styles.googleButton]}
-                  onPress={() => handleSocialLogin('google')}
-                  activeOpacity={0.8}
-                  testID="google-login-button"
-                  disabled={isLoading}
-                >
-                  <GoogleIcon size={20} />
-                  <Text style={styles.googleButtonText}>Sign in with Google</Text>
-                </TouchableOpacity>
+                isPreferredGoogle ? (
+                  <View style={styles.preferredButtonFrame}>
+                    <TouchableOpacity
+                      style={[styles.socialButton, styles.googleButton, styles.selectedSocialButton, styles.preferredInnerButton]}
+                      onPress={() => handleSocialLogin('google')}
+                      activeOpacity={0.8}
+                      testID="google-login-button"
+                      disabled={isLoading}
+                    >
+                      <GoogleIcon size={20} />
+                      <Text style={styles.googleButtonText}>Sign in with Google</Text>
+                    </TouchableOpacity>
+                  </View>
+                ) : (
+                  <TouchableOpacity
+                    style={[styles.socialButton, styles.googleButton]}
+                    onPress={() => handleSocialLogin('google')}
+                    activeOpacity={0.8}
+                    testID="google-login-button"
+                    disabled={isLoading}
+                  >
+                    <GoogleIcon size={20} />
+                    <Text style={styles.googleButtonText}>Sign in with Google</Text>
+                  </TouchableOpacity>
+                )
               ) : null}
 
               {hasFacebookLogin ? (
-                <TouchableOpacity
-                  style={[styles.socialButton, styles.facebookButton]}
-                  onPress={() => handleSocialLogin('facebook')}
-                  activeOpacity={0.8}
-                  testID="facebook-login-button"
-                  disabled={isLoading}
-                >
-                  <Ionicons name="logo-facebook" size={20} color="#1877F2" />
-                  <Text style={styles.facebookButtonText}>Sign in with Facebook</Text>
-                </TouchableOpacity>
+                isPreferredFacebook ? (
+                  <View style={styles.preferredButtonFrame}>
+                    <TouchableOpacity
+                      style={[styles.socialButton, styles.facebookButton, styles.selectedSocialButton, styles.preferredInnerButton]}
+                      onPress={() => handleSocialLogin('facebook')}
+                      activeOpacity={0.8}
+                      testID="facebook-login-button"
+                      disabled={isLoading}
+                    >
+                      <Ionicons name="logo-facebook" size={20} color="#1877F2" />
+                      <Text style={styles.facebookButtonText}>Sign in with Facebook</Text>
+                    </TouchableOpacity>
+                  </View>
+                ) : (
+                  <TouchableOpacity
+                    style={[styles.socialButton, styles.facebookButton]}
+                    onPress={() => handleSocialLogin('facebook')}
+                    activeOpacity={0.8}
+                    testID="facebook-login-button"
+                    disabled={isLoading}
+                  >
+                    <Ionicons name="logo-facebook" size={20} color="#1877F2" />
+                    <Text style={styles.facebookButtonText}>Sign in with Facebook</Text>
+                  </TouchableOpacity>
+                )
               ) : null}
 
               {showAppleLogin ? (
-                <TouchableOpacity
-                  style={[styles.socialButton, styles.appleButton]}
-                  onPress={() => handleSocialLogin('apple')}
-                  activeOpacity={0.8}
-                  testID="apple-login-button"
-                  disabled={isLoading}
-                >
-                  <Ionicons name="logo-apple" size={20} color="#fff" />
-                  <Text style={styles.appleButtonText}>Apple</Text>
-                </TouchableOpacity>
+                isPreferredApple ? (
+                  <View style={styles.preferredButtonFrame}>
+                    <TouchableOpacity
+                      style={[styles.socialButton, styles.appleButton, styles.selectedAppleButton, styles.preferredInnerButton]}
+                      onPress={() => handleSocialLogin('apple')}
+                      activeOpacity={0.8}
+                      testID="apple-login-button"
+                      disabled={isLoading}
+                    >
+                      <Ionicons name="logo-apple" size={20} color="#fff" />
+                      <Text style={styles.appleButtonText}>Apple</Text>
+                    </TouchableOpacity>
+                  </View>
+                ) : (
+                  <TouchableOpacity
+                    style={[styles.socialButton, styles.appleButton]}
+                    onPress={() => handleSocialLogin('apple')}
+                    activeOpacity={0.8}
+                    testID="apple-login-button"
+                    disabled={isLoading}
+                  >
+                    <Ionicons name="logo-apple" size={20} color="#fff" />
+                    <Text style={styles.appleButtonText}>Apple</Text>
+                  </TouchableOpacity>
+                )
               ) : null}
             </View>
 
             {/* ── Email toggle ── */}
-            <TouchableOpacity
-              style={styles.emailToggleButton}
-              onPress={toggleEmailLogin}
-              activeOpacity={0.7}
-              testID="email-toggle-button"
-              accessibilityRole="button"
-              accessibilityState={{ expanded: showEmailLogin }}
-            >
-              <View style={styles.emailToggleContent}>
-                <Text style={styles.emailToggleButtonText}>Sign in with email</Text>
-                <Ionicons
-                  name={showEmailLogin ? 'chevron-up-outline' : 'chevron-down-outline'}
-                  size={18}
-                  color="#007AFF"
-                  style={styles.emailToggleIcon}
-                />
+            {isPreferredEmail ? (
+              <View style={styles.preferredEmailFrame}>
+                <TouchableOpacity
+                  style={[styles.emailToggleButton, styles.selectedEmailToggleButton, styles.preferredInnerButton]}
+                  onPress={toggleEmailLogin}
+                  activeOpacity={0.7}
+                  testID="email-toggle-button"
+                  accessibilityRole="button"
+                  accessibilityState={{ expanded: showEmailLogin }}
+                >
+                  <View style={styles.emailToggleContent}>
+                    <Text style={styles.emailToggleButtonText}>Sign in with email</Text>
+                    <Ionicons
+                      name={showEmailLogin ? 'chevron-up-outline' : 'chevron-down-outline'}
+                      size={18}
+                      color="#007AFF"
+                      style={styles.emailToggleIcon}
+                    />
+                  </View>
+                </TouchableOpacity>
               </View>
-            </TouchableOpacity>
+            ) : (
+              <TouchableOpacity
+                style={styles.emailToggleButton}
+                onPress={toggleEmailLogin}
+                activeOpacity={0.7}
+                testID="email-toggle-button"
+                accessibilityRole="button"
+                accessibilityState={{ expanded: showEmailLogin }}
+              >
+                <View style={styles.emailToggleContent}>
+                  <Text style={styles.emailToggleButtonText}>Sign in with email</Text>
+                  <Ionicons
+                    name={showEmailLogin ? 'chevron-up-outline' : 'chevron-down-outline'}
+                    size={18}
+                    color="#007AFF"
+                    style={styles.emailToggleIcon}
+                  />
+                </View>
+              </TouchableOpacity>
+            )}
           </>
         ) : null}
       </View>
@@ -433,6 +532,19 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     alignItems: 'center',
     marginTop: 15,
+    width: '100%',
+  },
+  preferredEmailFrame: {
+    marginTop: 15,
+    padding: 2,
+    borderWidth: 1,
+    borderColor: '#1976d2',
+    borderRadius: 10,
+    width: '100%',
+  },
+  selectedEmailToggleButton: {
+    borderColor: '#1976d2',
+    backgroundColor: '#e3f2fd',
   },
   emailToggleContent: {
     flexDirection: 'row',
@@ -464,6 +576,22 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     gap: 7,
     justifyContent: 'center',
+    width: '100%',
+  },
+  preferredButtonFrame: {
+    padding: 2,
+    borderWidth: 1,
+    borderColor: '#1976d2',
+    borderRadius: 10,
+    width: '100%',
+  },
+  preferredInnerButton: {
+    marginTop: 0,
+    width: '100%',
+  },
+  selectedSocialButton: {
+    borderColor: '#1976d2',
+    backgroundColor: '#e3f2fd',
   },
   googleButton: {
     backgroundColor: '#fff',
@@ -500,6 +628,10 @@ const styles = StyleSheet.create({
   },
   appleButton: {
     backgroundColor: '#000',
+  },
+  selectedAppleButton: {
+    borderWidth: 2,
+    borderColor: '#1976d2',
   },
   appleButtonText: {
     color: '#fff',

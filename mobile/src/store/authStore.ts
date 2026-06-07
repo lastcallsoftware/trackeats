@@ -186,6 +186,7 @@ const authStore = create<AuthStoreState & AuthStoreActions>((set, get) => ({
         tokenStorage.setToken(accessToken),
         tokenStorage.setUsername(username),
         tokenStorage.setAuthMethod('email'),
+        tokenStorage.setPreferredAuthMethod('email'),
       ]);
 
       // Update API client
@@ -233,6 +234,7 @@ const authStore = create<AuthStoreState & AuthStoreActions>((set, get) => ({
         tokenStorage.setToken(authData.accessToken),
         tokenStorage.setUsername(authData.username),
         tokenStorage.setAuthMethod(authData.authMethod),
+        tokenStorage.setPreferredAuthMethod(authData.authMethod),
       ]);
       setApiToken(authData.accessToken);
       const roles = extractRoles(authData.accessToken);

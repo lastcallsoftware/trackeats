@@ -37,6 +37,7 @@ interface Props {
     onSuccess: (authData: { appToken: string; username: string; authMethod: 'google' | 'facebook' | 'apple' }) => void;
     disabled?: boolean;
     showDivider?: boolean;
+    preferredAuthMethod?: 'email' | 'google' | 'facebook' | 'apple' | null;
 }
 
 // ─── Backend exchange ─────────────────────────────────────────────────────────
@@ -111,7 +112,7 @@ function loadAppleSdk(): Promise<void> {
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
-export default function SocialLoginButtons({ onSuccess, disabled = false, showDivider = true }: Props) {
+export default function SocialLoginButtons({ onSuccess, disabled = false, showDivider = true, preferredAuthMethod = null }: Props) {
     const [loadingProvider, setLoadingProvider] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [seedDialogOpen, setSeedDialogOpen] = useState(false);
@@ -259,6 +260,7 @@ export default function SocialLoginButtons({ onSuccess, disabled = false, showDi
                         setError={setError}
                         onSuccess={onSuccess}
                         promptSeed={promptSeed}
+                        preferred={preferredAuthMethod === 'google'}
                     />
                 ) : null}
 
@@ -281,6 +283,13 @@ export default function SocialLoginButtons({ onSuccess, disabled = false, showDi
                             height: 44,
                             borderColor: '#dadce0',
                             color: '#3c4043',
+                            ...(preferredAuthMethod === 'facebook' ? {
+                                borderColor: 'transparent',
+                                backgroundColor: '#e3f2fd',
+                                color: '#0d47a1',
+                                outline: '4px double #1976d2',
+                                outlineOffset: 2,
+                            } : {}),
                             '&:hover': { borderColor: '#bdc1c6', backgroundColor: '#f8f9fa' },
                         }}
                     >
@@ -306,6 +315,10 @@ export default function SocialLoginButtons({ onSuccess, disabled = false, showDi
                             fontWeight: 500,
                             height: 44,
                             backgroundColor: '#000',
+                            ...(preferredAuthMethod === 'apple' ? {
+                                outline: '4px double #1976d2',
+                                outlineOffset: 2,
+                            } : {}),
                             '&:hover': { backgroundColor: '#1a1a1a' },
                         }}
                     >
@@ -331,6 +344,7 @@ interface GoogleLoginButtonProps {
     setError: (message: string | null) => void;
     onSuccess: (authData: { appToken: string; username: string; authMethod: 'google' | 'facebook' | 'apple' }) => void;
     promptSeed: () => Promise<boolean>;
+    preferred: boolean;
 }
 
 function GoogleLoginButton({
@@ -341,6 +355,7 @@ function GoogleLoginButton({
     setError,
     onSuccess,
     promptSeed,
+    preferred,
 }: GoogleLoginButtonProps) {
     const handleGoogleLogin = useGoogleLogin({
         onSuccess: async (tokenResponse) => {
@@ -396,6 +411,13 @@ function GoogleLoginButton({
                 height: 44,
                 borderColor: '#dadce0',
                 color: '#3c4043',
+                ...(preferred ? {
+                    borderColor: 'transparent',
+                    backgroundColor: '#e3f2fd',
+                    color: '#0d47a1',
+                    outline: '4px double #1976d2',
+                    outlineOffset: 2,
+                } : {}),
                 '&:hover': { borderColor: '#bdc1c6', backgroundColor: '#f8f9fa' },
             }}
         >

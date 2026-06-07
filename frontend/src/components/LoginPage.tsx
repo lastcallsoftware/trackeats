@@ -17,7 +17,23 @@ import IconButton from '@mui/material/IconButton';
 import InputAdornment from '@mui/material/InputAdornment';
 import SocialLoginButtons from './SocialLoginButtons';
 
+type AuthMethod = 'email' | 'google' | 'facebook' | 'apple';
+
+const PREFERRED_AUTH_METHOD_KEY = 'preferred_auth_method';
+
 const GUEST_EMAIL = 'guest@lastcallsoftware.com';
+
+function getPreferredAuthMethod(): AuthMethod | null {
+    try {
+        const value = localStorage.getItem(PREFERRED_AUTH_METHOD_KEY);
+        if (value === 'email' || value === 'google' || value === 'facebook' || value === 'apple') {
+            return value;
+        }
+    } catch {
+        // Ignore storage access failures; the login page still works without the hint.
+    }
+    return null;
+}
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function LoginPage(props: any) {
@@ -38,11 +54,13 @@ function LoginPage(props: any) {
         || import.meta.env.VITE_FACEBOOK_APP_ID
         || import.meta.env.VITE_APPLE_CLIENT_ID,
     );
-    const [showEmailLogin, setShowEmailLogin] = useState<boolean>(() => isConfirm || !hasAnySocialLogin);
+    const preferredAuthMethod = getPreferredAuthMethod();
+    const [showEmailLogin, setShowEmailLogin] = useState<boolean>(() => isConfirm || preferredAuthMethod === 'email' || !hasAnySocialLogin);
 
     const emailIsValid = formData.email.length > 0;
     const passwordIsValid = formData.password.length > 0;
     const loginIsDisabled = !emailIsValid || !passwordIsValid || isSubmitting;
+    const isPreferredEmail = preferredAuthMethod === 'email';
 
     useEffect(() => {
     const channel = new BroadcastChannel("trackeats_auth");
@@ -193,6 +211,7 @@ function LoginPage(props: any) {
                             <SocialLoginButtons
                                 disabled={isSubmitting}
                                 showDivider={false}
+                                preferredAuthMethod={preferredAuthMethod}
                                 onSuccess={({ appToken, username, authMethod }) => {
                                     props.storeTokenFunction(appToken, username, authMethod);
                                     navigate("/foods");
@@ -221,6 +240,13 @@ function LoginPage(props: any) {
                                     fontWeight: 600,
                                     justifyContent: 'center',
                                     position: 'relative',
+                                    ...(isPreferredEmail ? {
+                                        borderColor: 'transparent',
+                                        backgroundColor: '#e3f2fd',
+                                        color: '#0d47a1',
+                                        outline: '4px double #1976d2',
+                                        outlineOffset: 2,
+                                    } : {}),
                                     '& .MuiButton-endIcon': {
                                         position: 'absolute',
                                         right: 16,
