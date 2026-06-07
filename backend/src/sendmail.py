@@ -83,6 +83,32 @@ RESET_EMAIL_TEMPLATE_HTML = (
     "</html>"
     )
 
+CONTACT_EMAIL_SUBJECT_TEMPLATE = "Portfolio Contact: {subject}"
+
+CONTACT_EMAIL_TEMPLATE_TEXT = (
+    "Portfolio contact form submission\r\n"
+    "Name: {name}\r\n"
+    "Email: {email}\r\n"
+    "Subject: {subject}\r\n"
+    "\r\n"
+    "Message:\r\n"
+    "{message}\r\n"
+)
+
+CONTACT_EMAIL_TEMPLATE_HTML = (
+    "<html>"
+    "   <head></head>"
+    "   <body>"
+    "       <h1>Portfolio Contact Form Submission</h1>"
+    "       <p><b>Name:</b> {name}</p>"
+    "       <p><b>Email:</b> {email}</p>"
+    "       <p><b>Subject:</b> {subject}</p>"
+    "       <p><b>Message:</b></p>"
+    "       <p>{message_html}</p>"
+    "   </body>"
+    "</html>"
+)
+
 
 class Sendmail:
     @staticmethod
@@ -124,7 +150,45 @@ class Sendmail:
         Sendmail.sendmail_smtp(email_address, RESET_EMAIL_SUBJECT, email_body_text, email_body_html)
 
     @staticmethod
-    def sendmail_smtp(email_address: str, email_subject: str, email_body_text: str, email_body_html: str) -> None:
+    def send_contact_email(name: str, email_address: str, subject: str, message: str) -> None:
+        """
+        Send a portfolio contact-form message to the configured recipient.
+        """
+        recipient_email_address = os.environ.get("CONTACT_RECIPIENT_EMAIL", EMAIL_SENDER_ADDRESS).strip()
+        if not recipient_email_address:
+            raise ValueError("CONTACT_RECIPIENT_EMAIL may not be empty")
+
+        email_subject = CONTACT_EMAIL_SUBJECT_TEMPLATE.format(subject=subject)
+        message_html = message.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace("\n", "<br>")
+        email_body_text = CONTACT_EMAIL_TEMPLATE_TEXT.format(
+            name=name,
+            email=email_address,
+            subject=subject,
+            message=message,
+        )
+        email_body_html = CONTACT_EMAIL_TEMPLATE_HTML.format(
+            name=name,
+            email=email_address,
+            subject=subject,
+            message_html=message_html,
+        )
+
+        Sendmail.sendmail_smtp(
+            recipient_email_address,
+            email_subject,
+            email_body_text,
+            email_body_html,
+            reply_to=email_address,
+        )
+
+    @staticmethod
+    def sendmail_smtp(
+        email_address: str,
+        email_subject: str,
+        email_body_text: str,
+        email_body_html: str,
+        reply_to: str | None = None,
+    ) -> None:
         """
         Send an email using the standard Python SMTP library.
         We use Amazon's SES service, using credentials obtained from the AWS website.
@@ -145,6 +209,8 @@ class Sendmail:
         email_msg['Subject'] = email_subject
         email_msg['From'] = formataddr((EMAIL_SENDER_NAME, EMAIL_SENDER_ADDRESS))
         email_msg['To'] = email_address
+        if reply_to:
+            email_msg['Reply-To'] = reply_to
         # Comment or delete the next line if you are not using a configuration set
         # msg.add_header('X-SES-CONFIGURATION-SET',CONFIGURATION_SET)
 

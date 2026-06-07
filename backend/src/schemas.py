@@ -120,6 +120,22 @@ class SocialIdentityClaims(BaseModel):
         return normalized or None
 
 
+class ContactRequest(BaseModel):
+    """Validate portfolio contact form requests."""
+    name: str
+    email: EmailStr
+    subject: str
+    message: str
+
+    @field_validator("name", "subject", "message")
+    @classmethod
+    def validate_required_text(cls, v: str) -> str:
+        normalized = v.strip()
+        if not normalized:
+            raise ValueError("value cannot be empty")
+        return normalized
+
+
 ##############################
 # NUTRITION
 ##############################

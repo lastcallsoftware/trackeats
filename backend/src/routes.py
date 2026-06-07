@@ -16,6 +16,7 @@ from sendmail import Sendmail
 from models import db, User, Preferences, UserStatus, Food, Recipe, Ingredient, DailyLogItem
 from schemas import (
     RegistrationRequest, ResendConfirmationRequest, LoginRequest, SocialLoginRequest, SocialIdentityClaims,
+    ContactRequest,
     FoodRequest, RecipeRequest,
     DailyLogItemRequest, DailyLogItemUpdateRequest, PreferencesRequest
 )
@@ -307,12 +308,33 @@ def verify_turnstile(token: str, ip: str) -> bool:
 
 @bp.route("/api/contact", methods=["POST"])
 @rate_limited("3/hour")
+@log_route
 def contact():
     """
     CONTACT - Send an email to admin
     """
-    #data = request.get_json()
-    return jsonify({"msg": "test"}), 200
+    try:
+        payload = _get_json_payload()
+        data = ContactRequest.model_validate(payload)
+
+        Sendmail.send_contact_email(
+            name=data.name,
+            email_address=data.email,
+            subject=data.subject,
+            message=data.message,
+        )
+    except ValidationError as e:
+        msg = _format_validation_error_message(e)
+        logging.warning(f"Contact form validation failed: {msg}")
+        return jsonify({"msg": msg}), 400
+    except Exception as e:
+        msg = f"Unable to send contact message: {str(e)}"
+        logging.error(msg)
+        return jsonify({"msg": msg}), 500
+    else:
+        msg = "Contact message sent successfully"
+        logging.info(f"{msg} from {data.email}")
+        return jsonify({"msg": msg}), 200
 
 
 ##############################

@@ -7,20 +7,18 @@
       ?.getAttribute('content')
       ?.trim();
 
-    if (configuredBaseUrl) {
-      return configuredBaseUrl.replace(/\/$/, '');
+    if (!configuredBaseUrl) {
+      throw new Error('Missing required backend-base-url meta tag content. Contact form cannot be submitted.');
     }
 
-    const { hostname } = window.location;
-    if (hostname === 'localhost' || hostname === '127.0.0.1') {
-      return 'http://localhost:5000';
+    let parsedUrl;
+    try {
+      parsedUrl = new URL(configuredBaseUrl);
+    } catch (_) {
+      throw new Error('Invalid backend-base-url meta tag content. Expected an absolute URL.');
     }
 
-    if (hostname === 'pwholmes.lastcallsw.com') {
-      return 'https://trackeats.lastcallsw.com:5443';
-    }
-
-    return window.location.origin;
+    return parsedUrl.href.replace(/\/$/, '');
   }
 
   /**
@@ -261,7 +259,18 @@
    */
   const contactForm = document.querySelector('#contact-form');
   if (contactForm) {
-    const contactApiUrl = `${getBackendBaseUrl()}/api/contact`;
+    let contactApiUrl = '';
+    try {
+      contactApiUrl = `${getBackendBaseUrl()}/api/contact`;
+    } catch (error) {
+      const errorEl = contactForm.querySelector('.error-message');
+      if (errorEl) {
+        errorEl.textContent = error instanceof Error ? error.message : 'Contact form configuration error.';
+        errorEl.style.display = 'block';
+      }
+      console.error(error);
+      return;
+    }
 
     contactForm.addEventListener('submit', async (event) => {
       event.preventDefault();
