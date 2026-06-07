@@ -89,7 +89,6 @@ export function FoodListScreen(): React.ReactElement {
         </View>
       ) : (
         <FlatList
-          style={styles.list}
           data={filteredFoods}
           renderItem={({ item }) => (
             <FoodListItem
@@ -125,13 +124,8 @@ const styles = StyleSheet.create({
   },
   emptyStateContainer: {
     flex: 1,
-    justifyContent: 'flex-start',
+    justifyContent: 'center',
     alignItems: 'center',
-    paddingTop: 24,
-  },
-  list: {
-    flex: 1,
-    alignSelf: 'stretch',
   },
   emptyText: {
     fontSize: 16,
