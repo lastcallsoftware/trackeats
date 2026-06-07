@@ -1,5 +1,4 @@
-import { useEffect, useState } from "react";
-import { useWatch } from "react-hook-form";
+import { useEffect } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { IFood } from "../contexts/DataProvider";
 import { foodGroups } from "./FoodGroups";
@@ -94,47 +93,6 @@ function FoodForm() {
     useEffect(() => {
         reset((food || new Food()) as FoodFormInput);
     }, [food, reset]);
-
-    // Auto-calculate size_g from size_oz and vice versa
-    // Track which field is focused: 'size_oz', 'size_g', 'serving_size_oz', 'serving_size_g', or null
-    const [focusedField, setFocusedField] = useState<null | 'size_oz' | 'size_g' | 'serving_size_oz' | 'serving_size_g'>(null);
-
-    // Use useWatch for size_oz and size_g
-    const size_oz = useWatch({ name: 'size_oz', control });
-    const size_g = useWatch({ name: 'size_g', control });
-    // Use useWatch for nutrition.serving_size_oz and nutrition.serving_size_g
-    const serving_size_oz = useWatch({ name: 'nutrition.serving_size_oz', control });
-    const serving_size_g = useWatch({ name: 'nutrition.serving_size_g', control });
-
-    // Synchronize size_oz <-> size_g
-    useEffect(() => {
-        if (focusedField === 'size_oz' && typeof size_oz === 'number' && !isNaN(size_oz)) {
-            const calcG = Math.round(size_oz * 28.3495);
-            if (size_g !== calcG) {
-                setValue('size_g', calcG, { shouldValidate: true });
-            }
-        } else if (focusedField === 'size_g' && typeof size_g === 'number' && !isNaN(size_g)) {
-            const calcOz = parseFloat((size_g / 28.3495).toFixed(2));
-            if (size_oz !== calcOz) {
-                setValue('size_oz', calcOz, { shouldValidate: true });
-            }
-        }
-    }, [size_oz, size_g, focusedField, setValue]);
-
-    // Synchronize serving_size_oz <-> serving_size_g
-    useEffect(() => {
-        if (focusedField === 'serving_size_oz' && typeof serving_size_oz === 'number' && !isNaN(serving_size_oz)) {
-            const calcG = Math.round(serving_size_oz * 28.3495);
-            if (serving_size_g !== calcG) {
-                setValue('nutrition.serving_size_g', calcG, { shouldValidate: true });
-            }
-        } else if (focusedField === 'serving_size_g' && typeof serving_size_g === 'number' && !isNaN(serving_size_g)) {
-            const calcOz = parseFloat((serving_size_g / 28.3495).toFixed(2));
-            if (serving_size_oz !== calcOz) {
-                setValue('nutrition.serving_size_oz', calcOz, { shouldValidate: true });
-            }
-        }
-    }, [serving_size_oz, serving_size_g, focusedField, setValue]);
 
     // Scroll to top on mount
     useEffect(() => {
@@ -295,13 +253,19 @@ function FoodForm() {
                             label="Size (oz)"
                             id="size_oz"
                             type="number"
-                            {...register("size_oz", { valueAsNumber: true })}
+                            {...register("size_oz", {
+                                valueAsNumber: true,
+                                onChange: (event) => {
+                                    const nextOz = Number(event.target.value);
+                                    if (!Number.isNaN(nextOz)) {
+                                        setValue('size_g', Math.round(nextOz * 28.3495), { shouldValidate: true });
+                                    }
+                                },
+                            })}
                             error={!!errors.size_oz}
                             helperText={errors.size_oz?.message}
                             inputProps={{ min: 0, step: 0.01 }}
                             fullWidth
-                            onFocus={() => setFocusedField('size_oz')}
-                            onBlur={() => setFocusedField(null)}
                         />
                     </Grid>
                     <Grid size={{ xs: 6, sm: 3 }}>
@@ -309,13 +273,19 @@ function FoodForm() {
                                 label="Size (g)"
                                 id="size_g"
                                 type="number"
-                                {...register("size_g", { valueAsNumber: true })}
+                                {...register("size_g", {
+                                    valueAsNumber: true,
+                                    onChange: (event) => {
+                                        const nextG = Number(event.target.value);
+                                        if (!Number.isNaN(nextG)) {
+                                            setValue('size_oz', parseFloat((nextG / 28.3495).toFixed(2)), { shouldValidate: true });
+                                        }
+                                    },
+                                })}
                                 error={!!errors.size_g}
                                 helperText={errors.size_g?.message}
                                 inputProps={{ min: 0, step: 1 }}
                                 fullWidth
-                                onFocus={() => setFocusedField('size_g')}
-                                onBlur={() => setFocusedField(null)}
                             />
                     </Grid>
                     <Grid size={{ xs: 6, sm: 3 }}>
@@ -446,7 +416,15 @@ function FoodForm() {
                             label="Serving Size (oz)"
                             id="serving_size_oz"
                             type="number"
-                            {...register("nutrition.serving_size_oz", { valueAsNumber: true })}
+                            {...register("nutrition.serving_size_oz", {
+                                valueAsNumber: true,
+                                onChange: (event) => {
+                                    const nextOz = Number(event.target.value);
+                                    if (!Number.isNaN(nextOz)) {
+                                        setValue('nutrition.serving_size_g', Math.round(nextOz * 28.3495), { shouldValidate: true });
+                                    }
+                                },
+                            })}
                             error={!!errors.nutrition?.serving_size_oz}
                             helperText={errors.nutrition?.serving_size_oz?.message}
                             inputProps={{ min: 0, step: 0.01 }}
@@ -457,14 +435,20 @@ function FoodForm() {
                                     py: 0.75,
                                 },
                             }}
-                            onFocus={() => setFocusedField('serving_size_oz')}
-                            onBlur={() => setFocusedField(null)}
                         />
                         <TextField
                             label="Serving Size (g)"
                             id="serving_size_g"
                             type="number"
-                            {...register("nutrition.serving_size_g", { valueAsNumber: true })}
+                            {...register("nutrition.serving_size_g", {
+                                valueAsNumber: true,
+                                onChange: (event) => {
+                                    const nextG = Number(event.target.value);
+                                    if (!Number.isNaN(nextG)) {
+                                        setValue('nutrition.serving_size_oz', parseFloat((nextG / 28.3495).toFixed(2)), { shouldValidate: true });
+                                    }
+                                },
+                            })}
                             error={!!errors.nutrition?.serving_size_g}
                             helperText={errors.nutrition?.serving_size_g?.message}
                             inputProps={{ min: 0, step: 1 }}
@@ -475,8 +459,6 @@ function FoodForm() {
                                     py: 0.75,
                                 },
                             }}
-                            onFocus={() => setFocusedField('serving_size_g')}
-                            onBlur={() => setFocusedField(null)}
                         />
                     </Box>
 
