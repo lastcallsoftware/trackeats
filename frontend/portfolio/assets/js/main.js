@@ -21,6 +21,19 @@
     return parsedUrl.href.replace(/\/$/, '');
   }
 
+  function getTurnstileSiteKey() {
+    const configuredSiteKey = document
+      .querySelector('meta[name="turnstile-site-key"]')
+      ?.getAttribute('content')
+      ?.trim();
+
+    if (!configuredSiteKey || configuredSiteKey === '__TURNSTILE_SITE_KEY__') {
+      throw new Error('Missing required turnstile-site-key meta tag content. Contact form cannot be submitted.');
+    }
+
+    return configuredSiteKey;
+  }
+
   /**
    * Header toggle
    */
@@ -262,6 +275,7 @@
     let contactApiUrl = '';
     try {
       contactApiUrl = `${getBackendBaseUrl()}/api/contact`;
+      getTurnstileSiteKey();
     } catch (error) {
       const errorEl = contactForm.querySelector('.error-message');
       if (errorEl) {
@@ -284,6 +298,7 @@
       const emailInput = form.querySelector('#email-field');
       const subjectInput = form.querySelector('#subject-field');
       const messageInput = form.querySelector('#message-field');
+      const turnstileResponseInput = form.querySelector('input[name="cf-turnstile-response"]');
       const loadingEl = form.querySelector('.loading');
       const errorEl = form.querySelector('.error-message');
       const sentEl = form.querySelector('.sent-message');
@@ -300,10 +315,24 @@
       const email = emailInput.value.trim();
       const subject = subjectInput.value.trim();
       const message = messageInput.value.trim();
+      const turnstileToken = turnstileResponseInput instanceof HTMLInputElement
+        ? turnstileResponseInput.value.trim()
+        : '';
 
       if (!name || !email || !subject || !message) {
         if (errorEl) {
           errorEl.textContent = 'Please provide your name, email, subject, and message.';
+          errorEl.style.display = 'block';
+        }
+        if (sentEl) {
+          sentEl.style.display = 'none';
+        }
+        return;
+      }
+
+      if (!turnstileToken) {
+        if (errorEl) {
+          errorEl.textContent = 'Please complete the Turnstile challenge.';
           errorEl.style.display = 'block';
         }
         if (sentEl) {
@@ -348,6 +377,7 @@
             email,
             subject,
             message,
+            turnstileToken,
           }),
         });
 

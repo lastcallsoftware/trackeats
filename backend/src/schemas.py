@@ -126,8 +126,9 @@ class ContactRequest(BaseModel):
     email: EmailStr
     subject: str
     message: str
+    turnstile_token: str = Field(alias="turnstileToken")
 
-    @field_validator("name", "subject", "message")
+    @field_validator("name", "subject", "message", "turnstile_token")
     @classmethod
     def validate_required_text(cls, v: str) -> str:
         normalized = v.strip()

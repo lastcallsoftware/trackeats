@@ -28,10 +28,11 @@
     <link href="assets/css/main.css" rel="stylesheet">
 
     <meta name="backend-base-url" content="__BACKEND_BASE_URL__">
+    <meta name="turnstile-site-key" content="__TURNSTILE_SITE_KEY__">
 
     <!-- Cluodflare Turnstile setup -->
     <link rel="preconnect" href="https://challenges.cloudflare.com" />
-    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" defer></script>
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" defer></script>
 </head>
 
 <body class="index-page">
@@ -499,7 +500,7 @@
                                 </div>
 
                                 <div class="col-md-12">
-                                    <small class="text-muted">Turnstile verification will be added here next.</small>
+                                    <div class="cf-turnstile" data-sitekey="__TURNSTILE_SITE_KEY__"></div>
                                 </div>
 
                                 <div class="col-md-12 text-center">

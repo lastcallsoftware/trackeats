@@ -295,15 +295,38 @@ def sendmail():
 
 
 def verify_turnstile(token: str, ip: str) -> bool:
+    secret_key = os.environ.get("TURNSTILE_SECRET_KEY", "").strip()
+    if not secret_key:
+        raise ValueError("TURNSTILE_SECRET_KEY is not configured")
+
+    normalized_token = token.strip()
+    if not normalized_token:
+        return False
+
     res = req.post(
-        "https://challenges.cloudflare.com/turnstile/v1/siteverify",
+        "https://challenges.cloudflare.com/turnstile/v0/siteverify",
         data={
-            "secret": os.environ.get("TURNSTILE_SECRET_KEY"),
-            "response": token,
+            "secret": secret_key,
+            "response": normalized_token,
             "remoteip": ip,
         },
+        timeout=10,
     )
-    return res.json().get("success", False)
+
+    try:
+        payload = res.json()
+    except ValueError as e:
+        response_text = res.text.strip().replace("\n", " ")
+        snippet = response_text[:200]
+        raise RuntimeError(
+            f"Turnstile verification returned a non-JSON response (status {res.status_code}): {snippet}"
+        ) from e
+
+    if not isinstance(payload, dict):
+        raise RuntimeError("Turnstile verification returned an unexpected response shape")
+
+    payload_dict = cast(dict[str, Any], payload)
+    return bool(payload_dict.get("success", False))
 
 
 @bp.route("/api/contact", methods=["POST"])
@@ -317,6 +340,10 @@ def contact():
         payload = _get_json_payload()
         data = ContactRequest.model_validate(payload)
 
+        if not verify_turnstile(data.turnstile_token, request.remote_addr or ""):
+            logging.warning("Contact form Turnstile verification failed")
+            return jsonify({"msg": "Turnstile verification failed"}), 400
+
         Sendmail.send_contact_email(
             name=data.name,
             email_address=data.email,
@@ -327,6 +354,10 @@ def contact():
         msg = _format_validation_error_message(e)
         logging.warning(f"Contact form validation failed: {msg}")
         return jsonify({"msg": msg}), 400
+    except RuntimeError as e:
+        msg = f"Unable to send contact message: {str(e)}"
+        logging.error(msg)
+        return jsonify({"msg": msg}), 502
     except Exception as e:
         msg = f"Unable to send contact message: {str(e)}"
         logging.error(msg)

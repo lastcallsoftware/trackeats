@@ -27,9 +27,14 @@ import path from "path";
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
   const backendBaseUrl = env.VITE_BACKEND_BASE_URL?.trim()
+  const turnstileSiteKey = env.VITE_TURNSTILE_SITE_KEY_PUBLIC?.trim()
 
   if (!backendBaseUrl) {
     throw new Error('VITE_BACKEND_BASE_URL must be set for the frontend build and dev server')
+  }
+
+  if (!turnstileSiteKey) {
+    throw new Error('VITE_TURNSTILE_SITE_KEY_PUBLIC must be set for the frontend build and dev server')
   }
 
   return {
@@ -44,7 +49,9 @@ export default defineConfig(({ mode }) => {
       {
         name: 'portfolio-backend-url',
         transformIndexHtml(html) {
-          return html.replaceAll('__BACKEND_BASE_URL__', backendBaseUrl)
+          return html
+            .replaceAll('__BACKEND_BASE_URL__', backendBaseUrl)
+            .replaceAll('__TURNSTILE_SITE_KEY__', turnstileSiteKey)
         },
       },
     ],
