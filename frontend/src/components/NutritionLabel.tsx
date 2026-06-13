@@ -92,6 +92,16 @@ type LabelRowProps = {
   dvDivisor?: number;
 };
 
+function formatNutrientValue(value: number): string {
+  if (Number.isInteger(value)) return String(value);
+
+  const asString = String(value);
+  if (!/[eE]/.test(asString)) return asString;
+
+  // Avoid scientific notation for tiny values while keeping precision readable.
+  return value.toFixed(12).replace(/\.?0+$/, "");
+}
+
 const LabelRow: React.FC<LabelRowProps> = ({ label, value, unit, dv, indent, dvDivisor }) => {
   // Compute %DV if dv is a positive number and not null/undefined/0
   let percent: string | null = null;
@@ -99,12 +109,12 @@ const LabelRow: React.FC<LabelRowProps> = ({ label, value, unit, dv, indent, dvD
   if (dv && dv > 0) {
     percent = Math.round((value / (dv * divisor)) * 100) + "%";
   }
-  const rounded = Math.round(value);
+  const displayValue = formatNutrientValue(value);
   return (
     <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", pl: indent ? 2 : 0, fontSize: 15, fontWeight: indent ? 400 : 700, mb: 0.2 }}>
       <span>
         <span style={{ fontWeight: "inherit" }}>{label} </span>
-        <span style={{ fontWeight: 400 }}>{rounded}{unit}</span>
+        <span style={{ fontWeight: 400 }}>{displayValue}{unit}</span>
       </span>
       <span style={{ fontWeight: 700, minWidth: 36, textAlign: "right" }}>{percent ?? ""}</span>
     </Box>
