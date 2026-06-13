@@ -5,25 +5,26 @@ import { IFood, IRecipe, INutrition } from "../contexts/DataProvider";
 // ---------------------------------------------------------------------------
 
 /**
- * Promotion ladder: tsp → tbsp → cup → qt → gal
- * fl oz and pt are intentionally excluded — cooks don't use them in recipes.
+ * Promotion ladder: tsp → tbsp → cup → gal
+ * fl oz, pt, and qt are intentionally excluded from output — cooks rarely
+ * use them in recipe ingredient lines.
  */
 const UNITS: { names: string[]; tbsp: number; display: string }[] = [
     { names: ["tsp", "teaspoon", "teaspoons", "t"],              tbsp: 1/3,  display: "tsp"  },
     { names: ["tbsp", "tablespoon", "tablespoons", "T", "tb"],   tbsp: 1,    display: "tbsp" },
     { names: ["cup", "cups", "c"],                               tbsp: 16,   display: "cup"  },
-    { names: ["qt", "quart", "quarts"],                          tbsp: 64,   display: "qt"   },
     { names: ["gal", "gallon", "gallons"],                       tbsp: 256,  display: "gal"  },
 ];
 
 /**
- * fl oz and pt are recognised when *parsing* a serving_size_description
+ * fl oz, pt, and qt are recognised when *parsing* a serving_size_description
  * but are converted into the promotion ladder (tbsp / cup) immediately,
  * so they never appear in output.
  */
 const PARSE_ONLY_UNITS: { names: string[]; tbsp: number; display: string }[] = [
     { names: ["fl oz", "fl. oz", "fl oz.", "fluid ounce", "fluid ounces"], tbsp: 2,  display: "fl oz" },
     { names: ["pt", "pint", "pints"],                                       tbsp: 32, display: "pt"   },
+    { names: ["qt", "quart", "quarts"],                                    tbsp: 64, display: "qt"   },
 ];
 
 /** All recognisable units (for parsing only). */
@@ -36,8 +37,7 @@ const ALL_UNITS = [...UNITS, ...PARSE_ONLY_UNITS];
 const PROMOTE_AT: Record<string, number> = {
     tsp:  3,  // 3 tsp  → 1 tbsp
     tbsp: 4,  // 4 tbsp → 1/4 cup  (only when result is a nice cup fraction)
-    cup:  4,  // keep cups as cups for small amounts; qt only at 4+
-    qt:   4,
+    cup: 16,  // cup → gal only when amount is substantial
 };
 
 // ---------------------------------------------------------------------------
@@ -164,6 +164,18 @@ function formatAmount(totalTbsp: number, inputEntry: typeof ALL_UNITS[number]): 
     let currentEntry = startEntry;
     let currentAmount = totalTbsp / startEntry.tbsp;
 
+    // Keep 1/4 cup as the smallest cup output. Anything below that is shown as tbsp.
+    if (currentEntry.display === "cup" && currentAmount > 0 && currentAmount < 0.25) {
+        currentEntry = UNITS.find(u => u.display === "tbsp")!;
+        currentAmount = totalTbsp / currentEntry.tbsp;
+    }
+
+    // Keep 1/2 tbsp as the smallest tbsp output. Anything below that is shown as tsp.
+    if (currentEntry.display === "tbsp" && currentAmount > 0 && currentAmount < 0.5) {
+        currentEntry = UNITS.find(u => u.display === "tsp")!;
+        currentAmount = totalTbsp / currentEntry.tbsp;
+    }
+
     // Promotion: original logic — walk up ladder when amount >= threshold and result is a nice fraction
     for (let i = UNITS.indexOf(startEntry); i < UNITS.length - 1; i++) {
         const nextEntry = UNITS[i + 1];
@@ -222,8 +234,8 @@ function formatAmount(totalTbsp: number, inputEntry: typeof ALL_UNITS[number]): 
  * amount, the output reads like a real recipe line:
  *   "1 1/2 cups flour"   rather than   "3 x (1/2 cup) flour"
  *
- * Promotion ladder (output units only): tsp → tbsp → cup → qt → gal
- * fl oz and pt are parsed but never appear in output.
+ * Promotion ladder (output units only): tsp → tbsp → cup → gal
+ * fl oz, pt, and qt are parsed but never appear in output.
  * Irregular amounts that don't simplify to a nice fraction stay in the
  * smaller unit (e.g. 9 tbsp stays as "9 tbsp").
  *
