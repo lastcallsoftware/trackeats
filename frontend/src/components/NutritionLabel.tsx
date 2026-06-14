@@ -93,13 +93,9 @@ type LabelRowProps = {
 };
 
 function formatNutrientValue(value: number): string {
+  if (value >= 10) return String(Math.round(value));
   if (Number.isInteger(value)) return String(value);
-
-  const asString = String(value);
-  if (!/[eE]/.test(asString)) return asString;
-
-  // Avoid scientific notation for tiny values while keeping precision readable.
-  return value.toFixed(12).replace(/\.?0+$/, "");
+  return value.toFixed(1);
 }
 
 const LabelRow: React.FC<LabelRowProps> = ({ label, value, unit, dv, indent, dvDivisor }) => {
