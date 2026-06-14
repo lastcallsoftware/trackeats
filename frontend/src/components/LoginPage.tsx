@@ -16,6 +16,7 @@ import PersonOutline from '@mui/icons-material/PersonOutline';
 import IconButton from '@mui/material/IconButton';
 import InputAdornment from '@mui/material/InputAdornment';
 import SocialLoginButtons from './SocialLoginButtons';
+import ErrorAlert from './ErrorAlert';
 
 type AuthMethod = 'email' | 'google' | 'facebook' | 'apple';
 
@@ -40,10 +41,11 @@ function LoginPage(props: any) {
     // If we were sent here from the Confirm page, the state will contain email and password
     const location = useLocation();
     const isConfirm = location.state && location.state.email
+    const initialLoginMessage = location.state?.message || ""
     const defaultFormData = {email: location.state?.email || "", emailTouched: false,
                              password: location.state?.password || "", passwordTouched: false}
     const [formData, setFormData] = useState(defaultFormData);
-    const [loginMessage, setLoginMessage] = useState("");
+    const [loginMessage, setLoginMessage] = useState(initialLoginMessage);
     const navigate = useNavigate();
     const [showPassword, setShowPassword] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -186,6 +188,7 @@ function LoginPage(props: any) {
                     flexDirection: 'column',
                 }}
             >
+                <ErrorAlert message={loginMessage} onClose={() => setLoginMessage("")} sx={{ mb: 2 }} />
                 <form onSubmit={handleSubmit}>
                     <Box display="flex" flexDirection="column" gap={hasAnySocialLogin ? 1.5 : 3}>
                         <Box display="flex" flexDirection="column" gap={1.5}>
@@ -307,9 +310,6 @@ function LoginPage(props: any) {
                                         Forgot your password? <RouterLink to="/reset_password_request">Reset it here</RouterLink>.
                                     </Typography>
                                     <Typography variant="body2">Not a TrackEats user yet? <RouterLink to="/register">Register here</RouterLink>.</Typography>
-                                    {loginMessage && (
-                                        <Typography className="errorText" color="error">{loginMessage}</Typography>
-                                    )}
                                 </Box>
                             </Collapse>
                         ) : (
@@ -360,9 +360,6 @@ function LoginPage(props: any) {
                                     Forgot your password? <RouterLink to="/reset_password_request">Reset it here</RouterLink>.
                                 </Typography>
                                 <Typography variant="body2">Not a TrackEats user yet? <RouterLink to="/register">Register here</RouterLink>.</Typography>
-                                {loginMessage && (
-                                    <Typography className="errorText" color="error">{loginMessage}</Typography>
-                                )}
                             </>
                         )}
                     </Box>

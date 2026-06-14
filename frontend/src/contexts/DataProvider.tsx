@@ -17,7 +17,6 @@ import {
     RECIPE_RECALC_TIMEOUT_MS,
 } from '@/utils/constants';
 import { generateIngredientSummary } from "../utils/generateIngredientSummary";
-import { useSnackbar } from '@/utils/useSnackbar';
 
 const SOCIAL_SEED_PROMPT_SEEN_KEY = 'social_seed_prompt_seen';
 
@@ -211,7 +210,9 @@ export type DataContextType = {
     dailyLogItems: IDailyLogItem[];
     isLoading: boolean;
     isRecalculatingRecipes: boolean;
+    errorMessage: string;
     setErrorMessage: (msg: string) => void;
+    clearErrorMessage: () => void;
     deleteAccount: () => Promise<boolean>;
     getPreferences: (context: string) => Promise<void>;
     updatePreferences: (context: string, prefs: Record<string, unknown>) => Promise<void>;
@@ -245,16 +246,19 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
     const [ingredients, setIngredients] = useState<IIngredient[]>([])
     const [dailyLogItems, setDailyLogItems] = useState<IDailyLogItem[]>([])
     const [accessToken, setAccessToken] = useState<string>(getStoredAccessToken)
-    const { showSnackbar } = useSnackbar();
+    const [errorMessage, setErrorMessageState] = useState<string>("")
     const setErrorMessage = useCallback((message: string) => {
-        showSnackbar(message, "error")
-    }, [showSnackbar]);
+        setErrorMessageState(message)
+    }, [])
+    const clearErrorMessage = useCallback(() => {
+        setErrorMessageState("")
+    }, [])
 
     // Store navigate in a ref so it never triggers re-renders or stale
     // dependency issues in useCallback/useEffect.
     const navigateRef = useRef(useNavigate())
 
-    const removeToken = () => {
+    const removeToken = useCallback(() => {
         sessionStorage.removeItem("access_token")
         sessionStorage.removeItem("username")
         sessionStorage.removeItem("auth_method")
@@ -267,7 +271,8 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
         setIngredients([])
         setDailyLogItems([])
         setPreferences({})
-    }
+        clearErrorMessage()
+    }, [clearErrorMessage])
 
     useEffect(() => {
         const syncAccessToken = () => {
@@ -319,6 +324,7 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
                 ].some((path) => url.includes(path));
 
                 if (status === 401 && hasToken && !isPublicAuthEndpoint) {
+                    error.trackeatsSessionExpired = true;
                     removeToken();
                     navigateRef.current("/login", { state: { message: "Your token has expired and you have been logged out." } });
                 }
@@ -330,7 +336,7 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
             axios.interceptors.request.eject(requestInterceptor);
             axios.interceptors.response.eject(responseInterceptor);
         };
-    }, []);
+    }, [removeToken]);
 
     // "Loading screen"
     const [isLoading, setLoading] = useState(false)
@@ -362,6 +368,9 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
     const handleError = useCallback((error: any) => {
         console.log(error)
         setLoading(false)
+        if (error?.trackeatsSessionExpired) {
+            return
+        }
         if (error.response)
             setErrorMessage(error.response.data.msg)
         else
@@ -725,7 +734,9 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
             dailyLogItems,
             isLoading,
             isRecalculatingRecipes,
+            errorMessage,
             setErrorMessage,
+            clearErrorMessage,
             deleteAccount,
             getPreferences,
             updatePreferences,
