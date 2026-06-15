@@ -403,7 +403,7 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
 
     const getFoods = useCallback(async (): Promise<void> => {
         try {
-            const response = await axios.get<IFood[]>("/api/food")
+            const response = await axios.get<IFood[]>("/api/food", { timeout: 10000 })
             setFoods(response.data);
         } catch(error) {
             handleError(error)
@@ -412,7 +412,7 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
 
     const getRecipes = useCallback(async (): Promise<void> => {
         try {
-            const response = await axios.get<IRecipe[]>("/api/recipe")
+            const response = await axios.get<IRecipe[]>("/api/recipe", { timeout: 10000 })
             setRecipes(response.data);
         } catch(error) {
             handleError(error)
