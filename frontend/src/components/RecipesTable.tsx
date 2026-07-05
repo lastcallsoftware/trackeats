@@ -41,6 +41,16 @@ import ClearIcon from '@mui/icons-material/Clear';
 // Define the table's columns
 const columnHelper = createColumnHelper<IRecipe>()
 const formatPrice = (value: number): string => Number.isFinite(value) ? value.toFixed(2) : "0.00"
+const formatSignificantDigit = (value: number | null | undefined): string => {
+    if (value === null || value === undefined || !Number.isFinite(value)) {
+        return ""
+    }
+
+    return new Intl.NumberFormat('en-US', {
+        maximumSignificantDigits: 2,
+        minimumSignificantDigits: 2,
+    }).format(value)
+}
 const columns = [
     columnHelper.group({
         id: "general_info",
@@ -66,6 +76,16 @@ const columns = [
                 cell: info => info.getValue(),
                 size: 120,
             }),
+            columnHelper.accessor("size_oz", {
+                header: () => <span>Size (oz)</span>,
+                cell: info => formatSignificantDigit(info.getValue() as number | null | undefined),
+                size: 90,
+            }),
+            columnHelper.accessor("size_g", {
+                header: () => <span>Size (g)</span>,
+                cell: info => info.getValue(),
+                size: 90,
+            }),
             columnHelper.accessor("servings", {
                 header: () => <span>Servings</span>,
                 cell: info => info.getValue(),
@@ -89,7 +109,7 @@ const columns = [
             }),
             columnHelper.accessor("nutrition.serving_size_oz", {
                 header: () => <span>Serving Size (oz)</span>,
-                cell: info => info.getValue(),
+                cell: info => formatSignificantDigit(info.getValue() as number | null | undefined),
                 size: 80
             }),
             columnHelper.accessor("nutrition.serving_size_g", {

@@ -37,7 +37,10 @@ const cloneRecipe = (source: IRecipe): IRecipe => ({
     nutrition: { ...source.nutrition },
 });
 
-const emptyNutritionTotals = (): Omit<INutrition, 'serving_size_description' | 'serving_size_oz' | 'serving_size_g'> => ({
+const emptyNutritionTotals = (): INutrition => ({
+    serving_size_description: "",
+    serving_size_oz: 0,
+    serving_size_g: 0,
     calories: 0,
     total_fat_g: 0,
     saturated_fat_g: 0,
@@ -82,6 +85,8 @@ const recipeSchema = z.object({
     name: z.string().trim().min(1, "Name is required").max(50, "Must be 50 characters or fewer"),
     total_yield: z.string().trim().min(1, "Total yield is required").max(50, "Must be 50 characters or fewer"),
     servings: z.coerce.number().gt(0, "Servings must be greater than 0"),
+    size_oz: z.coerce.number().min(0, "Must be 0 or greater"),
+    size_g: z.coerce.number().min(0, "Must be 0 or greater"),
     nutrition_id: z.number().optional(),
     nutrition: nutritionSchema,
     price: z.coerce.number().min(0, "Must be 0 or greater").optional().default(0),
@@ -280,6 +285,8 @@ function RecipeForm() {
             totals.calcium_mg += nutrition.calcium_mg * servings * modifier;
             totals.iron_mg += nutrition.iron_mg * servings * modifier;
             totals.potassium_mg += nutrition.potassium_mg * servings * modifier;
+            totals.serving_size_oz += (nutrition.serving_size_oz ?? 0) * servings * modifier;
+            totals.serving_size_g += (nutrition.serving_size_g ?? 0) * servings * modifier;
 
             priceTotal += ingredientServingPrice * servings;
         }
@@ -649,17 +656,59 @@ function RecipeForm() {
 
                             {/* Serving size on narrow viewports only */}
                             {isNarrow && (
-                                <TextField
-                                    label="Serving Size"
-                                    id="serving_size_description_narrow"
-                                    {...register("nutrition.serving_size_description")}
-                                    error={!!errors.nutrition?.serving_size_description}
-                                    helperText={errors.nutrition?.serving_size_description?.message}
-                                    inputProps={{ maxLength: 100 }}
-                                    size="small"
-                                    fullWidth
-                                    required
-                                />
+                                <Stack spacing={1.5}>
+                                    <TextField
+                                        label="Serving Size"
+                                        id="serving_size_description_narrow"
+                                        {...register("nutrition.serving_size_description")}
+                                        error={!!errors.nutrition?.serving_size_description}
+                                        helperText={errors.nutrition?.serving_size_description?.message}
+                                        inputProps={{ maxLength: 100 }}
+                                        size="small"
+                                        fullWidth
+                                        required
+                                    />
+                                    <Box sx={{ display: 'flex', gap: 1 }}>
+                                        <TextField
+                                            label="Total Weight (oz)"
+                                            id="size_oz_narrow"
+                                            type="number"
+                                            {...register("size_oz", {
+                                                valueAsNumber: true,
+                                                onChange: (event) => {
+                                                    const nextOz = Number(event.target.value);
+                                                    if (!Number.isNaN(nextOz)) {
+                                                        setValue('size_g', Math.round(nextOz * 28.3495), { shouldValidate: true });
+                                                    }
+                                                },
+                                            })}
+                                            error={!!errors.size_oz}
+                                            helperText={errors.size_oz?.message}
+                                            inputProps={{ min: 0, step: 'any' }}
+                                            size="small"
+                                            sx={{ flex: 1 }}
+                                        />
+                                        <TextField
+                                            label="Total Weight (g)"
+                                            id="size_g_narrow"
+                                            type="number"
+                                            {...register("size_g", {
+                                                valueAsNumber: true,
+                                                onChange: (event) => {
+                                                    const nextG = Number(event.target.value);
+                                                    if (!Number.isNaN(nextG)) {
+                                                        setValue('size_oz', parseFloat((nextG / 28.3495).toFixed(2)), { shouldValidate: true });
+                                                    }
+                                                },
+                                            })}
+                                            error={!!errors.size_g}
+                                            helperText={errors.size_g?.message}
+                                            inputProps={{ min: 0, step: 'any' }}
+                                            size="small"
+                                            sx={{ flex: 1 }}
+                                        />
+                                    </Box>
+                                </Stack>
                             )}
 
                             {/* Selected Ingredients */}
@@ -845,7 +894,7 @@ function RecipeForm() {
                         {!isNarrow && (
                             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, width: 280, flexShrink: 0 }}>
                                 <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
-                                    Nutrition <Typography component="span" variant="body2" color="text.secondary">(per serving)</Typography>
+                                    Nutrition
                                 </Typography>
                                 <TextField
                                     label="Serving Size"
@@ -858,6 +907,46 @@ function RecipeForm() {
                                     fullWidth
                                     required
                                 />
+                                <Box sx={{ display: 'flex', gap: 1 }}>
+                                    <TextField
+                                        label="Total Weight (oz)"
+                                        id="size_oz"
+                                        type="number"
+                                        {...register("size_oz", {
+                                            valueAsNumber: true,
+                                            onChange: (event) => {
+                                                const nextOz = Number(event.target.value);
+                                                if (!Number.isNaN(nextOz)) {
+                                                    setValue('size_g', Math.round(nextOz * 28.3495), { shouldValidate: true });
+                                                }
+                                            },
+                                        })}
+                                        error={!!errors.size_oz}
+                                        helperText={errors.size_oz?.message}
+                                        inputProps={{ min: 0, step: 'any' }}
+                                        size="small"
+                                        sx={{ flex: 1 }}
+                                    />
+                                    <TextField
+                                        label="Total Weight (g)"
+                                        id="size_g"
+                                        type="number"
+                                        {...register("size_g", {
+                                            valueAsNumber: true,
+                                            onChange: (event) => {
+                                                const nextG = Number(event.target.value);
+                                                if (!Number.isNaN(nextG)) {
+                                                    setValue('size_oz', parseFloat((nextG / 28.3495).toFixed(2)), { shouldValidate: true });
+                                                }
+                                            },
+                                        })}
+                                        error={!!errors.size_g}
+                                        helperText={errors.size_g?.message}
+                                        inputProps={{ min: 0, step: 'any' }}
+                                        size="small"
+                                        sx={{ flex: 1 }}
+                                    />
+                                </Box>
                                 <TextField
                                     label="Price ($/serving)"
                                     value={pricePerServing}

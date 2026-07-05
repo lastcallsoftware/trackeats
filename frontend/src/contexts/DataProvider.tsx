@@ -167,6 +167,8 @@ export type IRecipe = {
     name: string
     total_yield: string
     servings: number
+    size_oz: number
+    size_g: number
     nutrition_id?: number
     nutrition: INutrition
     price: number

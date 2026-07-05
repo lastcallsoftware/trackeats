@@ -59,6 +59,8 @@ export const DEFAULT_RECIPES_COLUMNS_PREFERENCES: TableColumnsPreferences = {
 		"name": MANDATORY_COLUMN_VISIBILITY,
 		"total_yield": true,
 		"servings": true,
+		"size_oz": false,
+		"size_g": false,
 		"nutrition_id": false,
 		"nutrition_serving_size_description": true,
 		"nutrition_serving_size_oz": false,

@@ -274,6 +274,8 @@ class RecipeRequest(BaseModel):
     name: str
     total_yield: str
     servings: float
+    size_oz: float | None = None
+    size_g: int | None = None
     nutrition: NutritionRequest
     price: float | None = None
     # Ingredients (passed through to model layer as typed objects)

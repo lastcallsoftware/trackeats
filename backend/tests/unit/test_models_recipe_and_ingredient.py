@@ -11,12 +11,18 @@ class _NutritionAccumulator:
     def __init__(self) -> None:
         self.reset_called = False
         self.sum_calls: list[tuple[object, float, float]] = []
+        self.serving_size_oz = 0.0
+        self.serving_size_g = 0
 
     def reset(self) -> None:
         self.reset_called = True
+        self.serving_size_oz = 0.0
+        self.serving_size_g = 0
 
     def sum(self, nutrition: object, servings: float, modifier: float = 1.0) -> None:
         self.sum_calls.append((nutrition, servings, modifier))
+        self.serving_size_oz += getattr(nutrition, "serving_size_oz", 0) * servings * modifier
+        self.serving_size_g += getattr(nutrition, "serving_size_g", 0) * servings * modifier
 
 
 class _RecipeNutritionStub:
@@ -111,6 +117,78 @@ def test_recipe_recalculate_sums_food_and_recipe_ingredients(
         (ingredient_food_nutrition, 1.5, 1.0),
         (ingredient_recipe_nutrition, 2.0, 0.25),
     ]
+
+
+def test_recipe_from_schema_populates_recipe_size_fields() -> None:
+    request = RecipeRequest(
+        id=7,
+        cuisine="Italian",
+        name="Soup",
+        total_yield="2 bowls",
+        servings=2.0,
+        size_oz=12.0,
+        size_g=340,
+        price=3.5,
+        nutrition=NutritionRequest(
+            serving_size_description="1 bowl",
+            serving_size_oz=4.0,
+            serving_size_g=113,
+        ),
+    )
+
+    recipe_dao = models.Recipe(user_id=1, data=request)
+
+    assert recipe_dao.size_oz == 12.0
+    assert recipe_dao.size_g == 340
+    assert recipe_dao.nutrition.serving_size_oz == 4.0
+    assert recipe_dao.nutrition.serving_size_g == 113
+
+
+def test_recipe_recalculate_sets_total_weight_from_ingredient_nutrition(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    ingredient_rows: list[object] = [
+        _IngredientRow(row_id=1, food_id=10, recipe_id=None, servings=1.5),
+        _IngredientRow(row_id=2, food_id=None, recipe_id=20, servings=2.0),
+    ]
+    food_dao = SimpleNamespace(nutrition_id=101, price=0)
+    recipe_ingredient_dao = SimpleNamespace(nutrition_id=202, price=0, servings=4.0)
+    ingredient_food_nutrition = SimpleNamespace(serving_size_oz=4.0, serving_size_g=113)
+    ingredient_recipe_nutrition = SimpleNamespace(serving_size_oz=2.0, serving_size_g=56)
+
+    def _get_all_for_recipe(user_id: int, recipe_id: int) -> list[object]:
+        return ingredient_rows
+
+    def _food_get(user_id: int, food_id: int) -> object:
+        return food_dao
+
+    def _recipe_get(user_id: int, recipe_id: int) -> object:
+        return recipe_ingredient_dao
+
+    def _nutrition_get(user_id: int, nutrition_id: int) -> object:
+        if nutrition_id == 101:
+            return ingredient_food_nutrition
+        if nutrition_id == 202:
+            return ingredient_recipe_nutrition
+        raise AssertionError(f"Unexpected nutrition id: {nutrition_id}")
+
+    monkeypatch.setattr(models.Ingredient, "get_all_for_recipe", staticmethod(_get_all_for_recipe))
+    monkeypatch.setattr(models.Food, "get", staticmethod(_food_get))
+    monkeypatch.setattr(models.Recipe, "get", staticmethod(_recipe_get))
+    monkeypatch.setattr(models.Nutrition, "get", staticmethod(_nutrition_get))
+
+    recipe_dao = cast(models.Recipe, SimpleNamespace(id=99, nutrition_id=500, servings=4.0))
+    recipe_nutrition_dao = _NutritionAccumulator()
+
+    models.Recipe.recalculate(
+        user_id=1,
+        recipe_id=99,
+        recipe_dao=recipe_dao,
+        recipe_nutrition_dao=cast(models.Nutrition, recipe_nutrition_dao),
+    )
+
+    assert recipe_nutrition_dao.serving_size_oz == (4.0 * 1.5 + 2.0 * 2.0 * 0.25) / 4.0
+    assert recipe_nutrition_dao.serving_size_g == (113 * 1.5 + 56 * 2.0 * 0.25) / 4.0
 
 
 def test_recipe_recalculate_raises_for_invalid_ingredient_link(

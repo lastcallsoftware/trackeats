@@ -58,6 +58,8 @@ export class Recipe implements IRecipe {
     name = "";
     total_yield = "";
     servings = 0;
+    size_oz = 0;
+    size_g = 0;
     nutrition = new Nutrition();
     price = 0;
     price_per_calorie = 0;

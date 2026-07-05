@@ -650,6 +650,8 @@ class Nutrition(db.Model):
         self.calcium_mg = (self.calcium_mg or 0) + round((nutrition2.calcium_mg or 0) * servings * modifier)
         self.iron_mg = (self.iron_mg or 0) + round((nutrition2.iron_mg or 0) * servings * modifier, 1)
         self.potassium_mg = (self.potassium_mg or 0) + round((nutrition2.potassium_mg or 0) * servings * modifier)
+        self.serving_size_oz = (self.serving_size_oz or 0) + round((nutrition2.serving_size_oz or 0) * servings * modifier, 2)
+        self.serving_size_g = (self.serving_size_g or 0) + round((nutrition2.serving_size_g or 0) * servings * modifier)
         return self
 
     
@@ -679,6 +681,8 @@ class Nutrition(db.Model):
         self.calcium_mg = 0
         self.iron_mg = 0
         self.potassium_mg = 0
+        self.serving_size_oz = 0
+        self.serving_size_g = 0
         return self
 
 
@@ -1151,6 +1155,8 @@ class Recipe(db.Model):
     cuisine: Mapped[str | None] = mapped_column(db.String(20), nullable=True)
     name: Mapped[str] = mapped_column(db.String(50), nullable=False)
     total_yield: Mapped[str] = mapped_column(db.String(50), nullable=False)
+    size_oz: Mapped[float | None] = mapped_column(db.Float, nullable=True)
+    size_g: Mapped[int | None] = mapped_column(db.Integer, nullable=True)
     servings: Mapped[float] = mapped_column(db.Float, nullable=False, default=0)
     nutrition_id: Mapped[int | None] = mapped_column(db.Integer, db.ForeignKey("nutrition.id"), nullable=True)
     nutrition: Mapped[Nutrition] = relationship("Nutrition")
@@ -1171,6 +1177,8 @@ class Recipe(db.Model):
         self.name = recipe_request.name
         self.total_yield = recipe_request.total_yield
         self.servings = recipe_request.servings
+        self.size_oz = recipe_request.size_oz
+        self.size_g = recipe_request.size_g
         self.price = recipe_request.price
 
         # Create nutrition record from nested schema
@@ -1189,6 +1197,8 @@ class Recipe(db.Model):
             "name": self.name,
             "total_yield": self.total_yield,
             "servings": self.servings,
+            "size_oz": self.size_oz,
+            "size_g": self.size_g,
             "nutrition_id": self.nutrition_id,
             "nutrition": self.nutrition.json(),
             "price": self.price
@@ -1438,6 +1448,9 @@ class Recipe(db.Model):
             # Reset the nutrition and price otals
             recipe_nutrition_dao.reset()
             recipe_dao.price = 0
+            recipe_size_oz = 0.0
+            recipe_size_g = 0
+            modifier = 1
 
             # Get the Recipe's Ingredients
             ingredient_daos: list[Ingredient] = Ingredient.get_all_for_recipe(user_id, recipe_id)
@@ -1472,7 +1485,11 @@ class Recipe(db.Model):
                     modifier = 1 / recipe_ingredient_dao.servings if recipe_ingredient_dao.servings else 0
                     recipe_nutrition_dao.sum(ingredient_nutrition_dao, ingredient_dao.servings, modifier)
                 else:
+                    modifier = 1
                     recipe_nutrition_dao.sum(ingredient_nutrition_dao, ingredient_dao.servings)
+
+                recipe_size_oz += (getattr(ingredient_nutrition_dao, "serving_size_oz", 0) or 0) * ingredient_dao.servings * modifier
+                recipe_size_g += (getattr(ingredient_nutrition_dao, "serving_size_g", 0) or 0) * ingredient_dao.servings * modifier
 
                 # Add its price total
                 if food_ingredient_dao and food_ingredient_dao.price:
@@ -1487,6 +1504,33 @@ class Recipe(db.Model):
                     )
 
             recipe_dao.price = round(recipe_dao.price, 2)
+
+            divisor = getattr(recipe_dao, "servings", None)
+            if divisor and divisor > 0:
+                for attr_name, value in [
+                    ("calories", round((getattr(recipe_nutrition_dao, "calories", 0) or 0) / divisor)),
+                    ("total_fat_g", round((getattr(recipe_nutrition_dao, "total_fat_g", 0) or 0) / divisor, 1)),
+                    ("saturated_fat_g", round((getattr(recipe_nutrition_dao, "saturated_fat_g", 0) or 0) / divisor, 1)),
+                    ("trans_fat_g", round((getattr(recipe_nutrition_dao, "trans_fat_g", 0) or 0) / divisor, 1)),
+                    ("cholesterol_mg", round((getattr(recipe_nutrition_dao, "cholesterol_mg", 0) or 0) / divisor)),
+                    ("sodium_mg", round((getattr(recipe_nutrition_dao, "sodium_mg", 0) or 0) / divisor)),
+                    ("total_carbs_g", round((getattr(recipe_nutrition_dao, "total_carbs_g", 0) or 0) / divisor)),
+                    ("fiber_g", round((getattr(recipe_nutrition_dao, "fiber_g", 0) or 0) / divisor)),
+                    ("total_sugar_g", round((getattr(recipe_nutrition_dao, "total_sugar_g", 0) or 0) / divisor)),
+                    ("added_sugar_g", round((getattr(recipe_nutrition_dao, "added_sugar_g", 0) or 0) / divisor)),
+                    ("protein_g", round((getattr(recipe_nutrition_dao, "protein_g", 0) or 0) / divisor)),
+                    ("vitamin_d_mcg", round((getattr(recipe_nutrition_dao, "vitamin_d_mcg", 0) or 0) / divisor)),
+                    ("calcium_mg", round((getattr(recipe_nutrition_dao, "calcium_mg", 0) or 0) / divisor)),
+                    ("iron_mg", round((getattr(recipe_nutrition_dao, "iron_mg", 0) or 0) / divisor, 1)),
+                    ("potassium_mg", round((getattr(recipe_nutrition_dao, "potassium_mg", 0) or 0) / divisor)),
+                    ("serving_size_oz", (getattr(recipe_nutrition_dao, "serving_size_oz", 0) or 0) / divisor),
+                    ("serving_size_g", (getattr(recipe_nutrition_dao, "serving_size_g", 0) or 0) / divisor),
+                ]:
+                    if hasattr(recipe_nutrition_dao, attr_name):
+                        setattr(recipe_nutrition_dao, attr_name, value)
+
+            recipe_dao.size_oz = round(recipe_size_oz, 2)
+            recipe_dao.size_g = round(recipe_size_g)
 
             return recipe_dao
         
