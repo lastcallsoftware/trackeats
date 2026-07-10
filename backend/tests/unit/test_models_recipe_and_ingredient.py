@@ -144,6 +144,69 @@ def test_recipe_from_schema_populates_recipe_size_fields() -> None:
     assert recipe_dao.nutrition.serving_size_g == 113
 
 
+def test_recipe_from_schema_populates_parent_recipe_id() -> None:
+    # A "variation" of a recipe points back at the recipe it was copied from.
+    request = RecipeRequest(
+        id=7,
+        cuisine="Italian",
+        name="Meatless Stew",
+        total_yield="4 bowls",
+        servings=4.0,
+        parent_recipe_id=42,
+        nutrition=NutritionRequest(serving_size_description="1 bowl"),
+    )
+
+    recipe_dao = models.Recipe(user_id=1, data=request)
+
+    assert recipe_dao.parent_recipe_id == 42
+
+
+def test_recipe_json_includes_parent_recipe_id() -> None:
+    request = RecipeRequest(
+        id=7,
+        cuisine="Italian",
+        name="Meatless Stew",
+        total_yield="4 bowls",
+        servings=4.0,
+        parent_recipe_id=42,
+        nutrition=NutritionRequest(serving_size_description="1 bowl"),
+    )
+
+    recipe_dao = models.Recipe(user_id=1, data=request)
+
+    assert recipe_dao.json()["parent_recipe_id"] == 42
+
+
+def test_recipe_from_schema_defaults_parent_recipe_id_to_none() -> None:
+    request = RecipeRequest(
+        cuisine="Italian",
+        name="Stew",
+        total_yield="4 bowls",
+        servings=4.0,
+        nutrition=NutritionRequest(serving_size_description="1 bowl"),
+    )
+
+    recipe_dao = models.Recipe(user_id=1, data=request)
+
+    assert recipe_dao.parent_recipe_id is None
+
+
+def test_clear_parent_for_children_issues_update(monkeypatch: pytest.MonkeyPatch) -> None:
+    # Severing a base recipe's variations should null out their parent_recipe_id so the
+    # self-referential FK isn't left dangling when the base is deleted.
+    executed: list[object] = []
+    session = _SessionStub()
+    session.execute = lambda statement: executed.append(statement)  # type: ignore[attr-defined]
+    monkeypatch.setattr(models.db, "session", session, raising=False)
+
+    models.Recipe.clear_parent_for_children(user_id=1, recipe_id=42)
+
+    assert len(executed) == 1
+    rendered = str(executed[0]).lower()
+    assert "update recipe" in rendered
+    assert "parent_recipe_id" in rendered
+
+
 def test_recipe_recalculate_sets_total_weight_from_ingredient_nutrition(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

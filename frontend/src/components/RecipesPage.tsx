@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { MdAddCircleOutline, MdEdit, MdRemoveCircleOutline } from "react-icons/md";
+import { MdAddCircleOutline, MdEdit, MdRemoveCircleOutline, MdCallSplit } from "react-icons/md";
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Stack from '@mui/material/Stack';
@@ -51,6 +51,14 @@ function RecipesPage() {
             const currentPath = window.location.pathname + window.location.search;
             const editUrl = `/recipe/edit/${selectedRowId}?returnTo=${encodeURIComponent(currentPath)}`;
             navigate(editUrl);
+        }
+    }
+
+    const createVariation = () => {
+        if (selectedRowId) {
+            const currentPath = window.location.pathname + window.location.search;
+            const url = `/recipe/add?copyFrom=${selectedRowId}&returnTo=${encodeURIComponent(currentPath)}`;
+            navigate(url);
         }
     }
 
@@ -118,6 +126,16 @@ function RecipesPage() {
                         disabled={!canWrite || !selectedRowId}
                     >
                         Edit
+                    </Button>
+                    <Button
+                        variant="contained"
+                        color="info"
+                        startIcon={<MdCallSplit />}
+                        onClick={createVariation}
+                        title="Create a variation of the selected recipe"
+                        disabled={!canWrite || !selectedRowId}
+                    >
+                        Variation
                     </Button>
                     <Button
                         variant="contained"

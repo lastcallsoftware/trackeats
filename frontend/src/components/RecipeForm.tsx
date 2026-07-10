@@ -12,6 +12,7 @@ import IngredientsTable from "./IngredientsTable";
 import { NutritionLabel } from "./NutritionLabel";
 import FoodPickerTable from "./FoodPickerTable";
 import RecipePickerTable from "./RecipePickerTable";
+import TitleCard from "./TitleCard";
 import { generateIngredientSummary } from "../utils/generateIngredientSummary";
 import {
     Grid,
@@ -28,9 +29,16 @@ import {
     IconButton,
     InputAdornment,
     Alert,
+    Chip,
+    Dialog,
+    DialogTitle,
+    DialogContent,
+    DialogContentText,
+    DialogActions,
 } from '@mui/material';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
+import { MdCallSplit } from "react-icons/md";
 
 const cloneRecipe = (source: IRecipe): IRecipe => ({
     ...source,
@@ -92,6 +100,7 @@ const recipeSchema = z.object({
     price: z.coerce.number().min(0, "Must be 0 or greater").optional().default(0),
     price_per_serving: z.coerce.number().optional(),
     price_per_calorie: z.coerce.number().min(0, "Must be 0 or greater").optional().default(0),
+    parent_recipe_id: z.number().nullish(),  // set when this recipe is a variation of another
 });
 
 type RecipeFormInput = z.input<typeof recipeSchema>;
@@ -123,9 +132,21 @@ function RecipeForm() {
     const { id } = useParams();
     const isEditMode = Boolean(id)
     const recipe = isEditMode ? recipes.find(f => f.id === Number(id)) : null;
+    // "Create Variation" navigates to /recipe/add?copyFrom=<baseId>.  We seed a brand-new
+    // recipe from the base (a full, independent copy) and link it back via parent_recipe_id.
+    const copyFromId = searchParams.get("copyFrom");
+    const baseRecipe = !isEditMode && copyFromId ? recipes.find(r => r.id === Number(copyFromId)) : null;
     const initialRecipe = useMemo<IRecipe>(() => {
-        return recipe ? cloneRecipe(recipe) : new Recipe();
-    }, [recipe]);
+        if (recipe) return cloneRecipe(recipe);
+        if (baseRecipe) {
+            const seeded = cloneRecipe(baseRecipe);
+            delete seeded.id;          // it's a new recipe; let the backend assign a PK
+            delete seeded.nutrition_id;
+            seeded.parent_recipe_id = baseRecipe.id;
+            return seeded;
+        }
+        return new Recipe();
+    }, [recipe, baseRecipe]);
     const {
         register,
         handleSubmit,
@@ -133,7 +154,7 @@ function RecipeForm() {
         setValue,
         getValues,
         control,
-        formState: { errors },
+        formState: { errors, isDirty },
     } = useForm<RecipeFormInput, unknown, RecipeFormValues>({
         mode: "onBlur",
         reValidateMode: "onChange",
@@ -156,6 +177,11 @@ function RecipeForm() {
     const saveIsDisabled = !canWrite;
 
     const [ingredients, setIngredients] = useState<IIngredient[]>([])
+    // Ingredients live outside react-hook-form, so reorder-only changes don't flip its
+    // isDirty flag; track that separately to warn before switching recipes.
+    const [ingredientsDirty, setIngredientsDirty] = useState(false)
+    // Destination of a pending navigation held back by the unsaved-changes guard.
+    const [pendingNav, setPendingNav] = useState<string | null>(null)
 
     useEffect(() => {
         reset(initialRecipe as RecipeFormInput);
@@ -293,11 +319,28 @@ function RecipeForm() {
 
         const currentNutrition = getValues("nutrition") as RecipeFormValues["nutrition"];
         setValue("price", priceTotal, { shouldDirty: true });
+        // Update only the calculated numeric fields, preserving serving_size_description from user input
         setValue(
             "nutrition",
             {
-                ...currentNutrition,
-                ...totals,
+                serving_size_description: currentNutrition.serving_size_description,
+                serving_size_oz: totals.serving_size_oz,
+                serving_size_g: totals.serving_size_g,
+                calories: totals.calories,
+                total_fat_g: totals.total_fat_g,
+                saturated_fat_g: totals.saturated_fat_g,
+                trans_fat_g: totals.trans_fat_g,
+                cholesterol_mg: totals.cholesterol_mg,
+                sodium_mg: totals.sodium_mg,
+                total_carbs_g: totals.total_carbs_g,
+                fiber_g: totals.fiber_g,
+                total_sugar_g: totals.total_sugar_g,
+                added_sugar_g: totals.added_sugar_g,
+                protein_g: totals.protein_g,
+                vitamin_d_mcg: totals.vitamin_d_mcg,
+                calcium_mg: totals.calcium_mg,
+                iron_mg: totals.iron_mg,
+                potassium_mg: totals.potassium_mg,
             },
             { shouldDirty: true }
         );
@@ -330,6 +373,7 @@ function RecipeForm() {
         }
 
         setSelectedFoodOrRecipeRowId(null);
+        setIngredientsDirty(true);
     }
 
     const updateIngredient = (e: { preventDefault: () => void; }) => {
@@ -368,6 +412,7 @@ function RecipeForm() {
         )
         setIngredients(nextIngredients)
         recalculateRecipeTotals(nextIngredients)
+        setIngredientsDirty(true)
     }
 
     const removeIngredient = (e: { preventDefault: () => void; }) => {
@@ -382,6 +427,7 @@ function RecipeForm() {
         setIngredients(nextIngredients)
         recalculateRecipeTotals(nextIngredients)
         setSelectedIngredientRowId(null)
+        setIngredientsDirty(true)
     }
 
     const moveIngredientUp = (e: { preventDefault: () => void; }) => {
@@ -400,6 +446,7 @@ function RecipeForm() {
         [sorted[index - 1], sorted[index]] = [sorted[index], sorted[index - 1]];
         const reindexed = sorted.map((item, idx) => ({ ...item, ordinal: idx }));
         setIngredients(reindexed);
+        setIngredientsDirty(true);
     }
 
     const moveIngredientDown = (e: { preventDefault: () => void; }) => {
@@ -418,13 +465,29 @@ function RecipeForm() {
         [sorted[index + 1], sorted[index]] = [sorted[index], sorted[index + 1]];
         const reindexed = sorted.map((item, idx) => ({ ...item, ordinal: idx }));
         setIngredients(reindexed);
+        setIngredientsDirty(true);
     }
 
     useEffect(() => {
         if (recipeId) {
-            fetchIngredients(recipeId).then(setIngredients);
+            fetchIngredients(recipeId).then(loaded => {
+                setIngredients(loaded);
+                setIngredientsDirty(false);
+            });
+        } else if (!isEditMode && copyFromId) {
+            // Copy the base recipe's ingredients into this new recipe.  Omit id/recipe_id
+            // so they're persisted as fresh rows owned by the new recipe rather than the base.
+            fetchIngredients(Number(copyFromId)).then(loaded =>
+                setIngredients(loaded.map(ing => ({
+                    food_ingredient_id: ing.food_ingredient_id,
+                    recipe_ingredient_id: ing.recipe_ingredient_id,
+                    ordinal: ing.ordinal,
+                    servings: ing.servings,
+                    summary: ing.summary,
+                })))
+            );
         }
-    }, [recipeId, fetchIngredients]);
+    }, [recipeId, copyFromId, isEditMode, fetchIngredients]);
 
     
     const noIngredientSelected = selectedIngredientRowId == null;
@@ -495,6 +558,50 @@ function RecipeForm() {
         potassium_mg: recipeNutrition.potassium_mg / (recipeServings > 0 ? recipeServings : 1),
     };
 
+    const returnTo = searchParams.get("returnTo");
+
+    // The "family" of the recipe being edited: its base recipe plus every variation of
+    // that base, base first.  Used to switch between related recipes from the form.
+    const family = useMemo<IRecipe[]>(() => {
+        if (!isEditMode || !recipe) return [];
+        const baseId = recipe.parent_recipe_id ?? recipe.id;
+        const base = recipes.find(r => r.id === baseId);
+        const rootId = base ? baseId : recipe.id;   // orphaned variation falls back to itself
+        const variations = recipes
+            .filter(r => r.parent_recipe_id === rootId)
+            .sort((a, b) => (a.name ?? "").localeCompare(b.name ?? ""));
+        return [base ?? recipe, ...variations];
+    }, [isEditMode, recipe, recipes]);
+
+    const isFormDirty = isDirty || ingredientsDirty;
+
+    // Switching recipes navigates away, discarding unsaved edits -- guard behind a confirm.
+    const guardedNavigate = (to: string) => {
+        if (isFormDirty) {
+            setPendingNav(to);
+        } else {
+            navigate(to);
+        }
+    };
+
+    const handleSwitchRecipe = (targetId: number) => {
+        if (targetId === recipe?.id) return;
+        const suffix = returnTo ? `?returnTo=${encodeURIComponent(returnTo)}` : "";
+        guardedNavigate(`/recipe/edit/${targetId}${suffix}`);
+    };
+
+    const handleCreateVariation = () => {
+        if (recipe?.id == null) return;
+        const suffix = returnTo ? `&returnTo=${encodeURIComponent(returnTo)}` : "";
+        guardedNavigate(`/recipe/add?copyFrom=${recipe.id}${suffix}`);
+    };
+
+    const confirmPendingNav = () => {
+        const to = pendingNav;
+        setPendingNav(null);
+        if (to) navigate(to);
+    };
+
     return (
         <Box
             sx={{
@@ -506,31 +613,10 @@ function RecipeForm() {
                 alignItems: 'center',
             }}
         >
-            <Paper
-                elevation={3}
-                sx={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    gap: 1,
-                    mb: 3,
-                    background: 'rgba(255,255,255,0.85)',
-                    borderRadius: 3,
-                    boxShadow: 3,
-                    px: { xs: 2, md: 6 },
-                    py: { xs: 2, md: 3 },
-                    width: { xs: '98%', md: '90%' },
-                    maxWidth: 900,
-                    textAlign: 'left',
-                }}
-            >
-                <Typography variant="h4" sx={{ fontWeight: 700, color: 'primary.main', letterSpacing: 1, mb: 0.5 }}>
-                    {isEditMode ? "Edit Recipe" : "New Recipe"}
-                </Typography>
-                <Typography variant="subtitle1" color="text.secondary">
-                    {isEditMode ? "Update your recipe details and ingredients" : "Create a new recipe and add ingredients"}
-                </Typography>
-            </Paper>
+            <TitleCard
+                title={isEditMode ? "Edit Recipe" : "New Recipe"}
+                subtitle={isEditMode ? "Update your recipe details and ingredients" : "Create a new recipe and add ingredients"}
+            />
             <Paper
                 elevation={4}
                 sx={{
@@ -551,6 +637,42 @@ function RecipeForm() {
                     </Alert>
                 ) : null}
                 <Box component="form" onSubmit={handleSubmit(onSubmit)} noValidate sx={{ width: '100%' }}>
+                    {/* ── Recipe / variation switcher ── */}
+                    {isEditMode && recipe && (
+                        <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 1, mb: 3 }}>
+                            {family.length > 1 && (
+                                <>
+                                    <Typography variant="body2" color="text.secondary" sx={{ mr: 0.5 }}>
+                                        Variations:
+                                    </Typography>
+                                    {family.map(member => {
+                                        const isCurrent = member.id === recipe.id;
+                                        return (
+                                            <Chip
+                                                key={member.id}
+                                                label={member.parent_recipe_id == null ? `${member.name} (base)` : member.name}
+                                                color={isCurrent ? "primary" : "default"}
+                                                variant={isCurrent ? "filled" : "outlined"}
+                                                onClick={isCurrent ? undefined : () => handleSwitchRecipe(member.id as number)}
+                                                sx={{ cursor: isCurrent ? 'default' : 'pointer' }}
+                                            />
+                                        );
+                                    })}
+                                </>
+                            )}
+                            {canWrite && (
+                                <Button
+                                    size="small"
+                                    variant="outlined"
+                                    startIcon={<MdCallSplit />}
+                                    onClick={handleCreateVariation}
+                                    sx={{ ml: family.length > 1 ? 0.5 : 0 }}
+                                >
+                                    New variation
+                                </Button>
+                            )}
+                        </Box>
+                    )}
                     {/* ── Basic Info ── */}
                     <Grid container spacing={2} sx={{ mb: 3 }}>
                         <Grid size={{ xs: 12, sm: 3 }}>
@@ -964,6 +1086,21 @@ function RecipeForm() {
                     </Box>
                 </Box>
             </Paper>
+
+            <Dialog open={pendingNav !== null} onClose={() => setPendingNav(null)}>
+                <DialogTitle>Discard unsaved changes?</DialogTitle>
+                <DialogContent>
+                    <DialogContentText>
+                        You have unsaved changes to this recipe. Switching will discard them.
+                    </DialogContentText>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => setPendingNav(null)}>Cancel</Button>
+                    <Button onClick={confirmPendingNav} color="error" variant="contained">
+                        Discard &amp; switch
+                    </Button>
+                </DialogActions>
+            </Dialog>
         </Box>
     );
 }

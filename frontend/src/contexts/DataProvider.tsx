@@ -174,6 +174,7 @@ export type IRecipe = {
     price: number
     price_per_serving?: number
     price_per_calorie: number
+    parent_recipe_id?: number | null  // set when this recipe is a variation of another
 }
 
 export type IDailyLogItem = {

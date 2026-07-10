@@ -63,6 +63,7 @@ export class Recipe implements IRecipe {
     nutrition = new Nutrition();
     price = 0;
     price_per_calorie = 0;
+    parent_recipe_id: number | null = null;
 }
 
 

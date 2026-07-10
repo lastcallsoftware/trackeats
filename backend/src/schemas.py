@@ -278,6 +278,7 @@ class RecipeRequest(BaseModel):
     size_g: int | None = None
     nutrition: NutritionRequest
     price: float | None = None
+    parent_recipe_id: int | None = None  # set when this recipe is a variation of another
     # Ingredients (passed through to model layer as typed objects)
     ingredients: list[IngredientRequest] = Field(default_factory=_empty_ingredient_requests)
 

@@ -1161,6 +1161,10 @@ class Recipe(db.Model):
     nutrition_id: Mapped[int | None] = mapped_column(db.Integer, db.ForeignKey("nutrition.id"), nullable=True)
     nutrition: Mapped[Nutrition] = relationship("Nutrition")
     price: Mapped[float | None] = mapped_column(db.Float, default=0, nullable=True)
+    # A "variation" of a recipe (e.g. a meatless version of a stew) is just another
+    # full Recipe record that points back at the recipe it was copied from.  This is a
+    # self-referential FK: nullable because most recipes aren't variations of anything.
+    parent_recipe_id: Mapped[int | None] = mapped_column(db.Integer, db.ForeignKey("recipe.id"), nullable=True)
 
     def __init__(self, user_id: int, data: RecipeRequest | None):
         if data:
@@ -1180,6 +1184,7 @@ class Recipe(db.Model):
         self.size_oz = recipe_request.size_oz
         self.size_g = recipe_request.size_g
         self.price = recipe_request.price
+        self.parent_recipe_id = recipe_request.parent_recipe_id
 
         # Create nutrition record from nested schema
         if not self.nutrition:
@@ -1201,7 +1206,8 @@ class Recipe(db.Model):
             "size_g": self.size_g,
             "nutrition_id": self.nutrition_id,
             "nutrition": self.nutrition.json(),
-            "price": self.price
+            "price": self.price,
+            "parent_recipe_id": self.parent_recipe_id
             }
     
 
@@ -1356,6 +1362,22 @@ class Recipe(db.Model):
 
 
     @staticmethod
+    def clear_parent_for_children(user_id: int, recipe_id: int) -> None:
+        """
+        Any recipe that is a "variation" of the given recipe points back at it via
+        parent_recipe_id.  Before we delete a recipe we need to sever that link so its
+        self-referential FK isn't left dangling -- the variations themselves are full,
+        independent recipes and should survive as standalone recipes.
+        """
+        db.session.execute(
+            db.update(Recipe)
+            .where(Recipe.user_id == user_id)
+            .where(Recipe.parent_recipe_id == recipe_id)
+            .values(parent_recipe_id=None)
+        )
+
+
+    @staticmethod
     def delete(user_id: int, recipe_id: int) -> None:
         """
         Delete a particular Recipe record
@@ -1363,6 +1385,10 @@ class Recipe(db.Model):
         try:
             # Get the Recipe record
             recipe_dao = Recipe.get(user_id, recipe_id)
+
+            # Sever any variations that point back at this recipe so its self-referential
+            # FK isn't left dangling; the variations survive as standalone recipes.
+            Recipe.clear_parent_for_children(user_id, recipe_id)
 
             # Get its child Ingredient records
             ingredient_daos: list[Ingredient] = Ingredient.get_all_for_recipe(user_id, recipe_id)
@@ -1505,29 +1531,26 @@ class Recipe(db.Model):
 
             recipe_dao.price = round(recipe_dao.price, 2)
 
-            divisor = getattr(recipe_dao, "servings", None)
-            if divisor and divisor > 0:
-                for attr_name, value in [
-                    ("calories", round((getattr(recipe_nutrition_dao, "calories", 0) or 0) / divisor)),
-                    ("total_fat_g", round((getattr(recipe_nutrition_dao, "total_fat_g", 0) or 0) / divisor, 1)),
-                    ("saturated_fat_g", round((getattr(recipe_nutrition_dao, "saturated_fat_g", 0) or 0) / divisor, 1)),
-                    ("trans_fat_g", round((getattr(recipe_nutrition_dao, "trans_fat_g", 0) or 0) / divisor, 1)),
-                    ("cholesterol_mg", round((getattr(recipe_nutrition_dao, "cholesterol_mg", 0) or 0) / divisor)),
-                    ("sodium_mg", round((getattr(recipe_nutrition_dao, "sodium_mg", 0) or 0) / divisor)),
-                    ("total_carbs_g", round((getattr(recipe_nutrition_dao, "total_carbs_g", 0) or 0) / divisor)),
-                    ("fiber_g", round((getattr(recipe_nutrition_dao, "fiber_g", 0) or 0) / divisor)),
-                    ("total_sugar_g", round((getattr(recipe_nutrition_dao, "total_sugar_g", 0) or 0) / divisor)),
-                    ("added_sugar_g", round((getattr(recipe_nutrition_dao, "added_sugar_g", 0) or 0) / divisor)),
-                    ("protein_g", round((getattr(recipe_nutrition_dao, "protein_g", 0) or 0) / divisor)),
-                    ("vitamin_d_mcg", round((getattr(recipe_nutrition_dao, "vitamin_d_mcg", 0) or 0) / divisor)),
-                    ("calcium_mg", round((getattr(recipe_nutrition_dao, "calcium_mg", 0) or 0) / divisor)),
-                    ("iron_mg", round((getattr(recipe_nutrition_dao, "iron_mg", 0) or 0) / divisor, 1)),
-                    ("potassium_mg", round((getattr(recipe_nutrition_dao, "potassium_mg", 0) or 0) / divisor)),
-                    ("serving_size_oz", (getattr(recipe_nutrition_dao, "serving_size_oz", 0) or 0) / divisor),
-                    ("serving_size_g", (getattr(recipe_nutrition_dao, "serving_size_g", 0) or 0) / divisor),
-                ]:
-                    if hasattr(recipe_nutrition_dao, attr_name):
-                        setattr(recipe_nutrition_dao, attr_name, value)
+            # Store the calculated totals as-is (not per-serving). The frontend calculates
+            # and sends totals when manually editing recipes, and RecipesTable displays
+            # per-serving values by dividing by servings. So the database should store totals.
+            recipe_nutrition_dao.calories = round(getattr(recipe_nutrition_dao, "calories", 0) or 0)
+            recipe_nutrition_dao.total_fat_g = round(getattr(recipe_nutrition_dao, "total_fat_g", 0) or 0, 1)
+            recipe_nutrition_dao.saturated_fat_g = round(getattr(recipe_nutrition_dao, "saturated_fat_g", 0) or 0, 1)
+            recipe_nutrition_dao.trans_fat_g = round(getattr(recipe_nutrition_dao, "trans_fat_g", 0) or 0, 1)
+            recipe_nutrition_dao.cholesterol_mg = round(getattr(recipe_nutrition_dao, "cholesterol_mg", 0) or 0)
+            recipe_nutrition_dao.sodium_mg = round(getattr(recipe_nutrition_dao, "sodium_mg", 0) or 0)
+            recipe_nutrition_dao.total_carbs_g = round(getattr(recipe_nutrition_dao, "total_carbs_g", 0) or 0)
+            recipe_nutrition_dao.fiber_g = round(getattr(recipe_nutrition_dao, "fiber_g", 0) or 0)
+            recipe_nutrition_dao.total_sugar_g = round(getattr(recipe_nutrition_dao, "total_sugar_g", 0) or 0)
+            recipe_nutrition_dao.added_sugar_g = round(getattr(recipe_nutrition_dao, "added_sugar_g", 0) or 0)
+            recipe_nutrition_dao.protein_g = round(getattr(recipe_nutrition_dao, "protein_g", 0) or 0)
+            recipe_nutrition_dao.vitamin_d_mcg = round(getattr(recipe_nutrition_dao, "vitamin_d_mcg", 0) or 0)
+            recipe_nutrition_dao.calcium_mg = round(getattr(recipe_nutrition_dao, "calcium_mg", 0) or 0)
+            recipe_nutrition_dao.iron_mg = round(getattr(recipe_nutrition_dao, "iron_mg", 0) or 0, 1)
+            recipe_nutrition_dao.potassium_mg = round(getattr(recipe_nutrition_dao, "potassium_mg", 0) or 0)
+            recipe_nutrition_dao.serving_size_oz = round(getattr(recipe_nutrition_dao, "serving_size_oz", 0) or 0, 2)
+            recipe_nutrition_dao.serving_size_g = round(getattr(recipe_nutrition_dao, "serving_size_g", 0) or 0)
 
             recipe_dao.size_oz = round(recipe_size_oz, 2)
             recipe_dao.size_g = round(recipe_size_g)

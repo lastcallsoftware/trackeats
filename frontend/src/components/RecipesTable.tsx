@@ -68,7 +68,13 @@ const columns = [
             }),
             columnHelper.accessor("name", {
                 header: () => <span>Name</span>,
-                cell: info => info.getValue(),
+                cell: info => info.row.original.parent_recipe_id != null
+                    ? (
+                        <Box component="span" sx={{ pl: 2, fontStyle: 'italic', color: 'text.secondary' }}>
+                            ↳ {info.getValue()}
+                        </Box>
+                    )
+                    : info.getValue(),
                 size: 150,
             }),
             columnHelper.accessor("total_yield", {
@@ -327,6 +333,30 @@ const RecipesTable: React.FC<IRecipesTableProps> = ({setSelectedRowId, paginatio
     const { recipes, preferences, updatePreferences } = useData();
     const columnsPreferencesKey = RECIPES_COLUMNS_PREFERENCES_KEY
 
+    // Group variations directly beneath the recipe they were copied from, preserving the
+    // backend's cuisine/name ordering for base recipes.  (This grouping only holds in the
+    // default, unsorted view; sorting by a column re-sorts the rows flat.)
+    const orderedRecipes = React.useMemo(() => {
+        const ids = new Set(recipes.map(r => r.id))
+        const childrenByParent = new Map<number, IRecipe[]>()
+        for (const r of recipes) {
+            if (r.parent_recipe_id != null && ids.has(r.parent_recipe_id)) {
+                const list = childrenByParent.get(r.parent_recipe_id) ?? []
+                list.push(r)
+                childrenByParent.set(r.parent_recipe_id, list)
+            }
+        }
+        const ordered: IRecipe[] = []
+        for (const r of recipes) {
+            // A variation whose base is present is emitted right after that base, below.
+            if (r.parent_recipe_id != null && ids.has(r.parent_recipe_id)) continue
+            ordered.push(r)
+            const children = r.id != null ? childrenByParent.get(r.id) : undefined
+            if (children) ordered.push(...children)
+        }
+        return ordered
+    }, [recipes])
+
     const saveColumnVisibility = useCallback((next: VisibilityState) => {
         const withMandatory = enforceMandatoryColumns(columnsPreferencesKey, next as Record<string, boolean>)
         void updatePreferences(columnsPreferencesKey, {
@@ -386,7 +416,7 @@ const RecipesTable: React.FC<IRecipesTableProps> = ({setSelectedRowId, paginatio
     // Define the table's properties.
     // eslint-disable-next-line react-hooks/incompatible-library
     const table = useReactTable({
-        data: recipes,
+        data: orderedRecipes,
         columns: columns,
         getCoreRowModel: getCoreRowModel(),
         getSortedRowModel: getSortedRowModel(),

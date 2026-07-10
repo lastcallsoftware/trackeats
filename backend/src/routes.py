@@ -1649,6 +1649,10 @@ def delete_recipe(recipe_id: int):
             # Get the specified Recipe record
             recipe = Recipe.get(user_id, recipe_id)
 
+            # Sever any variations that point back at this recipe (they survive as
+            # standalone recipes) so the self-referential FK isn't left dangling.
+            Recipe.clear_parent_for_children(user_id, recipe_id)
+
             # Delete any Ingredient records for this Recipe
             ingredient_daos = Ingredient.get_all_for_recipe(user_id, recipe_id)
             for ingredient_dao in ingredient_daos:
