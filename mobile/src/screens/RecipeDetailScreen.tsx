@@ -7,13 +7,14 @@
 import React from 'react'
 import { ScrollView, Text, View, ActivityIndicator, TouchableOpacity, StyleSheet } from 'react-native'
 import { useRoute } from '@react-navigation/native'
+import { useRouter } from 'expo-router'
 import { useRecipes } from '@/hooks/useRecipes'
 import { useIngredients } from '@/hooks/useIngredients'
 import { useFoods } from '@/hooks/useFoods'
 import { NutritionLabel } from '@/components/NutritionLabel'
 import { RecipeCompositionView } from '@/components/RecipeCompositionView'
 import { INutrition } from '@/types/food'
-import { formatRecipeMetaLine } from '@/utils/recipeFormatting'
+import { formatRecipeMetaLine, formatRecipeSizeLine } from '@/utils/recipeFormatting'
 
 type NumericNutritionField = Exclude<keyof INutrition, 'serving_size_description'>
 
@@ -89,6 +90,7 @@ export const RecipeDetailScreen: React.FC<RecipeDetailScreenProps> = ({
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const routeRecipeId = (route.params as any)?.recipeId
   const recipeId = propRecipeId ?? routeRecipeId
+  const router = useRouter()
 
   const { data: recipes, isLoading: recipesLoading, error: recipesError } = useRecipes()
   const { data: ingredients, isLoading: ingredientsLoading, error: ingredientsError, refetch: refetchIngredients } = useIngredients(recipeId || 0)
@@ -159,6 +161,18 @@ export const RecipeDetailScreen: React.FC<RecipeDetailScreenProps> = ({
       ? (pricePerServing * 100) / caloriesPerServing
       : null
 
+  const sizeLine = formatRecipeSizeLine(recipe.size_g, recipe.size_oz)
+
+  // Related recipes: the base this is a variation of (if any), and this recipe's own
+  // variations.  Read-only navigation between related recipes.
+  const baseRecipe =
+    recipe.parent_recipe_id != null
+      ? recipesArray.find((r) => r.id === recipe.parent_recipe_id)
+      : undefined
+  const variations = recipesArray
+    .filter((r) => r.parent_recipe_id === recipe.id)
+    .sort((a, b) => a.name.localeCompare(b.name))
+
   return (
     <ScrollView style={styles.container} stickyHeaderIndices={[0]}>
       <View style={styles.stickyHeader}>
@@ -179,6 +193,41 @@ export const RecipeDetailScreen: React.FC<RecipeDetailScreenProps> = ({
             recipe.price,
           )}
         </Text>
+        {sizeLine && (
+          <Text style={styles.metaSummary}>Total weight: {sizeLine}</Text>
+        )}
+
+        {recipe.parent_recipe_id != null && (
+          <View style={styles.relationRow}>
+            <Text style={styles.relationLabel}>Variation of </Text>
+            {baseRecipe ? (
+              <TouchableOpacity
+                onPress={() => router.push(`/(recipes)/${baseRecipe.id}`)}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.relationLink}>{baseRecipe.name}</Text>
+              </TouchableOpacity>
+            ) : (
+              <Text style={styles.relationLabel}>another recipe</Text>
+            )}
+          </View>
+        )}
+
+        {variations.length > 0 && (
+          <View style={styles.relationBlock}>
+            <Text style={styles.relationLabel}>Variations</Text>
+            {variations.map((v) => (
+              <TouchableOpacity
+                key={v.id}
+                onPress={() => router.push(`/(recipes)/${v.id}`)}
+                activeOpacity={0.7}
+                style={styles.variationLinkRow}
+              >
+                <Text style={styles.relationLink}>↳ {v.name}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        )}
       </View>
 
       {/* Nutrition label */}
@@ -252,6 +301,27 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: '#999',
     marginBottom: 4,
+  },
+  relationRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+    marginTop: 8,
+  },
+  relationBlock: {
+    marginTop: 8,
+  },
+  relationLabel: {
+    fontSize: 13,
+    color: '#666',
+  },
+  relationLink: {
+    fontSize: 13,
+    color: '#007AFF',
+    fontWeight: '500',
+  },
+  variationLinkRow: {
+    marginTop: 4,
   },
   metaRow: {
     flexDirection: 'row',

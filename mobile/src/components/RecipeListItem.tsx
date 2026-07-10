@@ -11,6 +11,7 @@ interface RecipeListItemProps {
   totalCalories: number
   perServingCalories: number
   price: number
+  isVariation?: boolean
 }
 
 export const RecipeListItem = memo(function RecipeListItem({
@@ -21,6 +22,7 @@ export const RecipeListItem = memo(function RecipeListItem({
   totalCalories,
   perServingCalories,
   price,
+  isVariation = false,
 }: RecipeListItemProps) {
   const router = useRouter()
   const handlePress = useCallback(() => {
@@ -28,11 +30,15 @@ export const RecipeListItem = memo(function RecipeListItem({
   }, [id, router])
 
   return (
-    <TouchableOpacity style={styles.container} onPress={handlePress} activeOpacity={0.7}>
+    <TouchableOpacity
+      style={[styles.container, isVariation && styles.variationContainer]}
+      onPress={handlePress}
+      activeOpacity={0.7}
+    >
       <View style={styles.content}>
         <View style={styles.textContainer}>
-          <Text style={styles.name}>
-            {name}
+          <Text style={[styles.name, isVariation && styles.variationName]}>
+            {isVariation ? `↳ ${name}` : name}
           </Text>
           <Text style={styles.cuisine} numberOfLines={1}>
             {cuisine ? cuisine.charAt(0).toUpperCase() + cuisine.slice(1) : 'No cuisine'}
@@ -54,6 +60,10 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#e0e0e0',
   },
+  variationContainer: {
+    paddingLeft: 32,
+    backgroundColor: '#fafafa',
+  },
   content: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -67,6 +77,11 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     color: '#000',
+  },
+  variationName: {
+    fontWeight: '600',
+    color: '#444',
+    fontStyle: 'italic',
   },
   cuisine: {
     fontSize: 13,

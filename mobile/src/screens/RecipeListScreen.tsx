@@ -49,6 +49,28 @@ export function RecipeListScreen(): React.ReactElement {
     [recipesArray, debouncedSearchText, selectedCuisine]
   )
 
+  // Group each variation directly beneath its base recipe (when the base is also in the
+  // filtered list); orphaned variations keep their natural position.
+  const orderedRecipes = useMemo(() => {
+    const ids = new Set(filteredRecipes.map((r) => r.id))
+    const childrenByParent = new Map<number, IRecipe[]>()
+    for (const r of filteredRecipes) {
+      if (r.parent_recipe_id != null && ids.has(r.parent_recipe_id)) {
+        const list = childrenByParent.get(r.parent_recipe_id) ?? []
+        list.push(r)
+        childrenByParent.set(r.parent_recipe_id, list)
+      }
+    }
+    const ordered: IRecipe[] = []
+    for (const r of filteredRecipes) {
+      if (r.parent_recipe_id != null && ids.has(r.parent_recipe_id)) continue
+      ordered.push(r)
+      const children = childrenByParent.get(r.id)
+      if (children) ordered.push(...children)
+    }
+    return ordered
+  }, [filteredRecipes])
+
   // Loading state
   if (isLoading && recipesArray.length === 0) {
     return (
@@ -108,7 +130,7 @@ export function RecipeListScreen(): React.ReactElement {
               <Text style={styles.emptyText}>No recipes found</Text>
             </View>
           }
-          data={filteredRecipes}
+          data={orderedRecipes}
           renderItem={({ item }: Parameters<ListRenderItem<IRecipe>>[0]) => (
             <RecipeListItem
               id={item.id!}
@@ -116,6 +138,7 @@ export function RecipeListScreen(): React.ReactElement {
               cuisine={item.cuisine ?? null}
               totalYield={item.total_yield}
               price={item.price}
+              isVariation={item.parent_recipe_id != null}
               totalCalories={Math.round(item.nutrition.calories)}
               perServingCalories={
                 item.servings > 0

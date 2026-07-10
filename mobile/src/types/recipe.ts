@@ -22,10 +22,14 @@ export type IRecipe = {
   cuisine: string | null
   name: string
   total_yield: number
+  size_oz: number | null
+  size_g: number | null
   servings: number
   nutrition_id: number
   nutrition: INutrition
   price: number
   price_per_serving?: number
   price_per_calorie?: number
+  // Set when this recipe is a variation copied from another recipe.
+  parent_recipe_id: number | null
 }
