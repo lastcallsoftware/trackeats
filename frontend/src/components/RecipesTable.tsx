@@ -115,12 +115,20 @@ const columns = [
             }),
             columnHelper.accessor("nutrition.serving_size_oz", {
                 header: () => <span>Serving Size (oz)</span>,
-                cell: info => formatSignificantDigit(info.getValue() as number | null | undefined),
+                cell: info => {
+                    const servings = info.row.original.servings || 1;
+                    const val = info.getValue();
+                    return formatSignificantDigit((val / servings) as number | null | undefined);
+                },
                 size: 80
             }),
             columnHelper.accessor("nutrition.serving_size_g", {
                 header: () => <span>Serving Size (g)</span>,
-                cell: info => info.getValue(),
+                cell: info => {
+                    const servings = info.row.original.servings || 1;
+                    const val = info.getValue();
+                    return (val / servings).toFixed(0);
+                },
                 size: 80
             }),
             columnHelper.accessor("nutrition.calories", {
