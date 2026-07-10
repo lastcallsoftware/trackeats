@@ -781,7 +781,7 @@ function DailyLogPage() {
                             {panelLabel}
                         </Typography>
                     )}
-                    <NutritionLabel nutrition={panelNutrition} dvDivisor={weekDvDivisor} />
+                    <NutritionLabel nutrition={panelNutrition} dvDivisor={weekDvDivisor} pricePerServing={selectedItem?.price && selectedItem.servings ? selectedItem.price / selectedItem.servings : null} />
                 </>
             }
         />

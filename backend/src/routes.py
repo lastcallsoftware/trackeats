@@ -23,6 +23,8 @@ from schemas import (
 from crypto import Crypto
 from data import Data
 from sqlalchemy.sql import text
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.exc import IntegrityError
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from google.oauth2 import id_token as google_id_token
@@ -1485,6 +1487,10 @@ def delete_food(food_id:int):
 
             # Delete the Food record
             db.session.delete(food)
+    except IntegrityError as e:
+        msg = "This item is referenced in a Daily Log entry or Recipe and cannot be removed"
+        logging.error(f"Food deletion failed due to foreign key constraint: {str(e)}")
+        return jsonify({"msg": msg}), 400
     except Exception as e:
         msg = f"Food record could not be deleted: {str(e)}"
         logging.error(msg)
@@ -1660,6 +1666,10 @@ def delete_recipe(recipe_id: int):
 
             # Delete the Recipe
             db.session.delete(recipe)
+    except IntegrityError as e:
+        msg = "This item is referenced in a Daily Log entry or Recipe and cannot be removed"
+        logging.error(f"Recipe deletion failed due to foreign key constraint: {str(e)}")
+        return jsonify({"msg": msg}), 400
     except Exception as e:
         msg = f"Recipe could not be deleted: {str(e)}"
         logging.error(msg)

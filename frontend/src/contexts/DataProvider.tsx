@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { DataContext } from '@/utils/useData';
+import { useToast } from './ToastContext';
 import {
     FOODS_COLUMNS_PREFERENCES_KEY,
     DEFAULT_FOODS_COLUMNS_PREFERENCES,
@@ -213,9 +214,6 @@ export type DataContextType = {
     dailyLogItems: IDailyLogItem[];
     isLoading: boolean;
     isRecalculatingRecipes: boolean;
-    errorMessage: string;
-    setErrorMessage: (msg: string) => void;
-    clearErrorMessage: () => void;
     deleteAccount: () => Promise<boolean>;
     getPreferences: (context: string) => Promise<void>;
     updatePreferences: (context: string, prefs: Record<string, unknown>) => Promise<void>;
@@ -237,6 +235,7 @@ export type DataContextType = {
 }
 
 export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) => {
+    const { showToast } = useToast()
     const [username, setUsername] = useState<string>(getStoredUsername)
     const [roles, setRoles] = useState<string[]>(() => getRolesFromToken(getStoredAccessToken()))
     const isAdmin = roles.includes('admin')
@@ -249,13 +248,6 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
     const [ingredients, setIngredients] = useState<IIngredient[]>([])
     const [dailyLogItems, setDailyLogItems] = useState<IDailyLogItem[]>([])
     const [accessToken, setAccessToken] = useState<string>(getStoredAccessToken)
-    const [errorMessage, setErrorMessageState] = useState<string>("")
-    const setErrorMessage = useCallback((message: string) => {
-        setErrorMessageState(message)
-    }, [])
-    const clearErrorMessage = useCallback(() => {
-        setErrorMessageState("")
-    }, [])
 
     // Store navigate in a ref so it never triggers re-renders or stale
     // dependency issues in useCallback/useEffect.
@@ -274,8 +266,7 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
         setIngredients([])
         setDailyLogItems([])
         setPreferences({})
-        clearErrorMessage()
-    }, [clearErrorMessage])
+    }, [])
 
     useEffect(() => {
         const syncAccessToken = () => {
@@ -375,18 +366,18 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
             return
         }
         if (error.response)
-            setErrorMessage(error.response.data.msg)
+            showToast(error.response.data.msg, 'error')
         else
-            setErrorMessage(error.message)
-    }, [setErrorMessage]); // navigateRef is a ref, so it's stable and doesn't need to be a dependency
+            showToast(error.message, 'error')
+    }, [showToast]);
 
     const ensureCanWrite = useCallback((): boolean => {
         if (!canWrite) {
-            setErrorMessage("Your account is read-only.")
+            showToast("Your account is read-only.", 'error')
             return false
         }
         return true
-    }, [canWrite, setErrorMessage])
+    }, [canWrite, showToast])
 
     const getPreferences = useCallback(async (context: string): Promise<void> => {
         try {
@@ -737,9 +728,6 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
             dailyLogItems,
             isLoading,
             isRecalculatingRecipes,
-            errorMessage,
-            setErrorMessage,
-            clearErrorMessage,
             deleteAccount,
             getPreferences,
             updatePreferences,

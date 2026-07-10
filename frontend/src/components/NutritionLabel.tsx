@@ -5,8 +5,19 @@ import Divider from "@mui/material/Divider";
 import { INutrition } from "@/contexts/DataProvider";
 import { DAILY_VALUES } from "../utils/dailyValues";
 
+// Format a value to two significant digits
+const formatSignificantDigit = (value: number | null | undefined): string => {
+  if (value === null || value === undefined || !Number.isFinite(value)) {
+    return "";
+  }
+  return new Intl.NumberFormat("en-US", {
+    maximumSignificantDigits: 2,
+    minimumSignificantDigits: 2,
+  }).format(value);
+};
+
 // A simple FDA-style Nutrition Facts label for use in FoodsTable/RecipesTable detail panel
-export const NutritionLabel: React.FC<{ nutrition: INutrition | null, dvDivisor?: number }> = ({ nutrition, dvDivisor }) => {
+export const NutritionLabel: React.FC<{ nutrition: INutrition | null, dvDivisor?: number, pricePerServing?: number | null }> = ({ nutrition, dvDivisor, pricePerServing }) => {
   // If no nutrition, show empty/placeholder label
   const n = nutrition || {
     serving_size_description: "-",
@@ -50,6 +61,15 @@ export const NutritionLabel: React.FC<{ nutrition: INutrition | null, dvDivisor?
       <Divider sx={{ borderBottomWidth: 4, mb: 1 }} />
       <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 0.5 }}>
         Serving Size: {n.serving_size_description}
+      </Typography>
+      <Typography variant="caption" sx={{ color: "#555", display: "block", mb: 1 }}>
+        {[
+          n.serving_size_oz > 0 ? `${formatSignificantDigit(n.serving_size_oz)} oz` : null,
+          n.serving_size_g > 0 ? `${Math.round(n.serving_size_g)} g` : null,
+          pricePerServing != null && Number.isFinite(pricePerServing) ? `$${pricePerServing.toFixed(2)}` : null,
+        ]
+          .filter(Boolean)
+          .join(", ")}
       </Typography>
       <Divider sx={{ borderBottomWidth: 2, my: 1 }} />
       <Typography variant="h4" sx={{ fontWeight: 900, mb: 0.5 }}>

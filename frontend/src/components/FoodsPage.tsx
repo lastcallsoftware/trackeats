@@ -67,8 +67,8 @@ const FoodsPage = () => {
     const confirmDelete = () => {
         if (selectedRowId) {
             deleteFood(selectedRowId)
+            setConfirmDeleteOpen(false)
         }
-        setConfirmDeleteOpen(false)
     }
 
     if (isLoading) {
@@ -177,7 +177,11 @@ const FoodsPage = () => {
                     </Dialog>
                 </>
             }
-            sidebar={<NutritionLabel nutrition={foods.find(f => f.id === selectedRowId)?.nutrition || null} />}
+            sidebar={(() => {
+                const food = foods.find(f => f.id === selectedRowId);
+                const pricePerServing = food ? (food.price ?? 0) / (food.servings || 1) : null;
+                return <NutritionLabel nutrition={food?.nutrition || null} pricePerServing={pricePerServing} />;
+            })()}
         />
     )
 }

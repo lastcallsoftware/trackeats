@@ -4,6 +4,7 @@ import { IFood } from "../contexts/DataProvider";
 import { foodGroups } from "./FoodGroups";
 import TitleCard from "./TitleCard";
 import { useData, Food } from "@/utils/useData";
+import { useToast } from "@/contexts/ToastContext";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -71,7 +72,8 @@ type FoodFormValues = z.output<typeof foodSchema>;
 function FoodForm() {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
-    const { foods, addFood, updateFood, canWrite, setErrorMessage } = useData();
+    const { foods, addFood, updateFood, canWrite } = useData();
+    const { showToast } = useToast();
 
     const { id } = useParams();
     const isEditMode = Boolean(id)
@@ -101,7 +103,7 @@ function FoodForm() {
 
     const onSubmit = async (data: FoodFormValues) => {
         if (!canWrite) {
-            setErrorMessage("Your account is read-only.")
+            showToast("Your account is read-only.", 'error')
             return
         }
 
