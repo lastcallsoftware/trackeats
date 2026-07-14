@@ -50,6 +50,10 @@ export class Food implements IFood {
     price_per_calorie = 0;
     price_date = "";
     shelf_life = "";
+    source: string | null = null;
+    fdc_id: number | null = null;
+    fdc_data_type: string | null = null;
+    starter_food = false;
 }
 
 

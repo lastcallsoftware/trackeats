@@ -4,6 +4,7 @@ import { BrowserRouter } from 'react-router-dom'
 import { CssBaseline, ThemeProvider } from '@mui/material'
 import { GoogleOAuthProvider } from '@react-oauth/google'
 import { DataProvider } from "./contexts/DataProvider"
+import { ToastProvider } from "./contexts/ToastContext"
 import App from './components/App'
 import theme from './theme'
 import './index.css'
@@ -17,15 +18,17 @@ createRoot(document.getElementById('root')!).render(
 		<ThemeProvider theme={theme}>
 			<CssBaseline />
 			<BrowserRouter>
-				<DataProvider>
-					{googleClientId ? (
-						<GoogleOAuthProvider clientId={googleClientId}>
+				<ToastProvider>
+					<DataProvider>
+						{googleClientId ? (
+							<GoogleOAuthProvider clientId={googleClientId}>
+								<App />
+							</GoogleOAuthProvider>
+						) : (
 							<App />
-						</GoogleOAuthProvider>
-					) : (
-						<App />
-					)}
-				</DataProvider>
+						)}
+					</DataProvider>
+				</ToastProvider>
 			</BrowserRouter>
 		</ThemeProvider>
 	</StrictMode>,

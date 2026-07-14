@@ -39,7 +39,7 @@ import DialogActions from '@mui/material/DialogActions';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import SettingsIcon from '@mui/icons-material/Settings';
 import { AUTH_CHANGED_EVENT } from '@/utils/constants';
-import ErrorAlert from './ErrorAlert';
+import { Toast } from './Toast';
 
 //console.log("process.env.NODE_ENV:", process.env.NODE_ENV)
 console.log("import.meta.env.MODE:", import.meta.env.MODE)
@@ -70,8 +70,8 @@ const PREFERRED_AUTH_METHOD_KEY = 'preferred_auth_method'
 
 function App() {
     const theme = useTheme();
-    const isNarrow = useMediaQuery(theme.breakpoints.down('md'));
-    const { deleteAccount, recalculateRecipeNutrition, isLoading, isRecalculatingRecipes, username, isAdmin, canWrite, isReadonly, errorMessage, clearErrorMessage } = useData();
+    const isNarrow = useMediaQuery(theme.breakpoints.down('lg'));
+    const { deleteAccount, recalculateRecipeNutrition, isLoading, isRecalculatingRecipes, username, isAdmin, canWrite, isReadonly } = useData();
     const [isAuthenticated, setAuthenticated] = useState(sessionStorage.getItem("access_token") != null);
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
     const [optionsAnchorEl, setOptionsAnchorEl] = useState<null | HTMLElement>(null);
@@ -230,7 +230,7 @@ function App() {
                             component={RouterLink}
                             to="/"
                             color="primary"
-                            sx={{ ...buttonSx, fontWeight: 700, mr: 2, gap: 1 }}
+                            sx={{ ...buttonSx, fontWeight: 700, mr: 2, gap: 1, flexShrink: 0 }}
                             disableRipple
                         >
                             <Box
@@ -335,7 +335,6 @@ function App() {
             </AppBar>
 
             <Box sx={{ px: { xs: 1, sm: 2 } }}>
-                <ErrorAlert message={errorMessage} onClose={clearErrorMessage} sx={{ maxWidth: 900, mx: 'auto', mb: 2 }} />
                 <Suspense fallback={<div>Loading...</div>}>
                     <Routes>
                         <Route path="/" element={<HomePage />} />
@@ -379,6 +378,7 @@ function App() {
                 <Typography variant="body1">{overlayMessage}</Typography>
             </Backdrop>
             <Footer />
+            <Toast />
         </>
     );
 }

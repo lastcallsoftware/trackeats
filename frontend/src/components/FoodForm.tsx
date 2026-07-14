@@ -4,6 +4,7 @@ import { IFood } from "../contexts/DataProvider";
 import { foodGroups } from "./FoodGroups";
 import TitleCard from "./TitleCard";
 import { useData, Food } from "@/utils/useData";
+import { useToast } from "@/contexts/ToastContext";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -17,6 +18,8 @@ import {
     Divider,
     Box,
     Alert,
+    FormControlLabel,
+    Checkbox,
 } from '@mui/material';
 
 const nutritionSchema = z.object({
@@ -58,6 +61,7 @@ const foodSchema = z.object({
     price_per_serving: z.coerce.number().optional().default(0),
     price_per_oz: z.coerce.number().optional().default(0),
     price_per_calorie: z.coerce.number().optional().default(0),
+    starter_food: z.boolean().optional().default(false),
     price_date: z
         .string()
         .refine((value) => value === "" || /^\d{4}-\d{2}-\d{2}$/.test(value), "Invalid date format"),
@@ -71,7 +75,8 @@ type FoodFormValues = z.output<typeof foodSchema>;
 function FoodForm() {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
-    const { foods, addFood, updateFood, canWrite, setErrorMessage } = useData();
+    const { foods, addFood, updateFood, canWrite, isAdmin } = useData();
+    const { showToast } = useToast();
 
     const { id } = useParams();
     const isEditMode = Boolean(id)
@@ -101,7 +106,7 @@ function FoodForm() {
 
     const onSubmit = async (data: FoodFormValues) => {
         if (!canWrite) {
-            setErrorMessage("Your account is read-only.")
+            showToast("Your account is read-only.", 'error')
             return
         }
 
@@ -110,6 +115,7 @@ function FoodForm() {
             size_description_2: data.size_description_2 && data.size_description_2.trim().length > 0
                 ? data.size_description_2
                 : null,
+            starter_food: isAdmin ? Boolean(data.starter_food) : false,
         };
 
         // Save the new Food
@@ -339,6 +345,26 @@ function FoodForm() {
                         />
                     </Grid>
                     <Grid size={{ xs: 12, sm: 3 }} />
+
+                    {isAdmin ? (
+                        <Grid size={{ xs: 12 }}>
+                            <Controller
+                                name="starter_food"
+                                control={control}
+                                render={({ field }) => (
+                                    <FormControlLabel
+                                        control={
+                                            <Checkbox
+                                                checked={Boolean(field.value)}
+                                                onChange={(event) => field.onChange(event.target.checked)}
+                                            />
+                                        }
+                                        label="Starter food (included in new-user seed set)"
+                                    />
+                                )}
+                            />
+                        </Grid>
+                    ) : null}
 
                     <Grid size={{ xs: 12 }}>
                         <Divider sx={{ my: 1.5 }} />

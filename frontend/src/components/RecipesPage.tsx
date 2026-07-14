@@ -75,8 +75,8 @@ function RecipesPage() {
     const confirmDelete = () => {
         if (selectedRowId) {
             deleteRecipe(selectedRowId)
+            setConfirmDeleteOpen(false)
         }
-        setConfirmDeleteOpen(false)
     }
 
     return (
@@ -215,7 +215,8 @@ function RecipesPage() {
                     iron_mg: n.iron_mg / servings,
                     potassium_mg: n.potassium_mg / servings,
                 } : null;
-                return <NutritionLabel nutrition={perServing} />;
+                const pricePerServing = recipe.price_per_serving !== undefined ? recipe.price_per_serving : (recipe.price ?? 0) / servings;
+                return <NutritionLabel nutrition={perServing} pricePerServing={pricePerServing} />;
             })()}
         />
     )

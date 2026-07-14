@@ -4,6 +4,7 @@ import { useTheme } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { IFood, IRecipe, IIngredient, INutrition } from "../contexts/DataProvider";
 import { useData, Recipe } from "@/utils/useData";
+import { useToast } from "@/contexts/ToastContext";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -127,7 +128,8 @@ function RecipeForm() {
     const theme = useTheme();
     const isNarrow = useMediaQuery(theme.breakpoints.down('sm'));
     const [searchParams] = useSearchParams();
-    const { foods, recipes, fetchIngredients, addRecipe, updateRecipe, setErrorMessage, canWrite } = useData();
+    const { foods, recipes, fetchIngredients, addRecipe, updateRecipe, canWrite } = useData();
+    const { showToast } = useToast();
 
     const { id } = useParams();
     const isEditMode = Boolean(id)
@@ -189,7 +191,7 @@ function RecipeForm() {
 
     const onSubmit = async (data: RecipeFormValues) => {
         if (!canWrite) {
-            setErrorMessage("Your account is read-only.")
+            showToast("Your account is read-only.", 'error')
             return
         }
 
@@ -256,7 +258,7 @@ function RecipeForm() {
         if (ingredient.food_ingredient_id) {
             const food = foods.find((item: IFood) => item.id === ingredient.food_ingredient_id);
             if (!food) {
-                setErrorMessage("Food " + ingredient.food_ingredient_id + " for Ingredient not found");
+                showToast("Food " + ingredient.food_ingredient_id + " for Ingredient not found", 'error');
                 return null;
             }
             return {
@@ -270,7 +272,7 @@ function RecipeForm() {
         if (ingredient.recipe_ingredient_id) {
             const recipeForIngredient = recipes.find((item: IRecipe) => item.id === ingredient.recipe_ingredient_id);
             if (!recipeForIngredient) {
-                setErrorMessage("Recipe " + ingredient.recipe_ingredient_id + " for Ingredient not found");
+                showToast("Recipe " + ingredient.recipe_ingredient_id + " for Ingredient not found", 'error');
                 return null;
             }
             return {
@@ -281,7 +283,7 @@ function RecipeForm() {
             };
         }
 
-        setErrorMessage("Ingredient has neither a food_ingredient_id nor a recipe_ingredient_id");
+        showToast("Ingredient has neither a food_ingredient_id nor a recipe_ingredient_id", 'error');
         return null;
     };
 
@@ -352,7 +354,7 @@ function RecipeForm() {
 
         if (selectedIngredientList === IngredientTypes.FOOD_INGREDIENTS) {
             const food: IFood|undefined = foods.find((item: IFood) => item.id == selectedFoodOrRecipeRowId);
-            if (!food) { setErrorMessage("Food " + selectedFoodOrRecipeRowId + " not found"); return }
+            if (!food) { showToast("Food " + selectedFoodOrRecipeRowId + " not found", 'error'); return }
             const summary = generateSummary(food.nutrition, food, undefined)
             const nextIngredients = [
                 ...ingredients,
@@ -362,7 +364,7 @@ function RecipeForm() {
             recalculateRecipeTotals(nextIngredients);
         } else {
             const recipe: IRecipe|undefined = recipes.find((item: IRecipe) => item.id == selectedFoodOrRecipeRowId);
-            if (!recipe) { setErrorMessage("Recipe " + selectedFoodOrRecipeRowId + " for Ingredient not found"); return }
+            if (!recipe) { showToast("Recipe " + selectedFoodOrRecipeRowId + " for Ingredient not found", 'error'); return }
             const summary = generateSummary(recipe.nutrition, undefined, recipe)
             const nextIngredients = [
                 ...ingredients,
@@ -387,22 +389,22 @@ function RecipeForm() {
         // eslint-disable-next-line no-useless-assignment
         let nutrition: INutrition|undefined = undefined;
         const ingredient: IIngredient|undefined = findIngredient(selectedIngredientRowId)
-        if (!ingredient) { setErrorMessage("Ingredient not found"); return }
+        if (!ingredient) { showToast("Ingredient not found", 'error'); return }
 
         if (ingredient.food_ingredient_id) {
             food = foods.find((item: IFood) => item.id == ingredient.food_ingredient_id);
-            if (!food) { setErrorMessage("Food " + ingredient.food_ingredient_id + " for Ingredient not found"); return }
+            if (!food) { showToast("Food " + ingredient.food_ingredient_id + " for Ingredient not found", 'error'); return }
             nutrition = food.nutrition
         } else if (ingredient.recipe_ingredient_id) {
             recipe = recipes.find((item: IRecipe) => item.id === ingredient.recipe_ingredient_id);
-            if (!recipe) { setErrorMessage("Recipe " + ingredient.recipe_ingredient_id + " for Ingredient not found"); return }
+            if (!recipe) { showToast("Recipe " + ingredient.recipe_ingredient_id + " for Ingredient not found", 'error'); return }
             nutrition = recipe.nutrition
         } else {
-            setErrorMessage("Invalid ingredient");
+            showToast("Invalid ingredient", 'error');
             return;
         }
 
-        if (!nutrition) { setErrorMessage("Nutrition record for Ingredient not found"); return }
+        if (!nutrition) { showToast("Nutrition record for Ingredient not found", 'error'); return }
 
         summary = generateSummary(nutrition, food, recipe)
         const nextIngredients = ingredients.map((item) =>
@@ -420,7 +422,7 @@ function RecipeForm() {
         if (!selectedIngredientRowId) return
 
         const ingredient: IIngredient|undefined = findIngredient(selectedIngredientRowId)
-        if (!ingredient) { setErrorMessage("Unable to find Ingredient " + selectedIngredientRowId[0] + "/" + selectedIngredientRowId[1]); return }
+        if (!ingredient) { showToast("Unable to find Ingredient " + selectedIngredientRowId[0] + "/" + selectedIngredientRowId[1], 'error'); return }
 
         const filtered = ingredients.filter(item => !isSameIngredientRow(item, selectedIngredientRowId))
         const nextIngredients = filtered.map((item, index) => ({ ...item, ordinal: index }))
@@ -438,7 +440,7 @@ function RecipeForm() {
         const index = sorted.findIndex(item => isSameIngredientRow(item, selectedIngredientRowId));
 
         if (index < 0) {
-            setErrorMessage("Unable to find Ingredient " + selectedIngredientRowId[0] + "/" + selectedIngredientRowId[1]);
+            showToast("Unable to find Ingredient " + selectedIngredientRowId[0] + "/" + selectedIngredientRowId[1], 'error');
             return;
         }
         if (index === 0) return;
@@ -457,7 +459,7 @@ function RecipeForm() {
         const index = sorted.findIndex(item => isSameIngredientRow(item, selectedIngredientRowId));
 
         if (index < 0) {
-            setErrorMessage("Unable to find Ingredient " + selectedIngredientRowId[0] + "/" + selectedIngredientRowId[1]);
+            showToast("Unable to find Ingredient " + selectedIngredientRowId[0] + "/" + selectedIngredientRowId[1], 'error');
             return;
         }
         if (index >= sorted.length - 1) return;
@@ -1070,8 +1072,8 @@ function RecipeForm() {
                                     />
                                 </Box>
                                 <TextField
-                                    label="Price ($/serving)"
-                                    value={pricePerServing}
+                                    label="Price ($)"
+                                    value={totalRecipePrice.toFixed(2)}
                                     size="small"
                                     fullWidth
                                     slotProps={{ input: { readOnly: true } }}
@@ -1080,7 +1082,7 @@ function RecipeForm() {
                                         '& .MuiInputBase-root': { backgroundColor: 'grey.100' },
                                     }}
                                 />
-                                <NutritionLabel nutrition={perServingNutrition} />
+                                <NutritionLabel nutrition={perServingNutrition} pricePerServing={parseFloat(pricePerServing)} />
                             </Box>
                         )}
                     </Box>

@@ -1,3 +1,4 @@
+import logging
 import os
 import re
 from typing import Any, cast
@@ -100,27 +101,17 @@ class USDAFdcImporter:
         chunk_size = 20
         for i in range(0, len(deduped_ids), chunk_size):
             chunk = deduped_ids[i : i + chunk_size]
-            payload = self._post(
-                "/v1/foods",
-                {"fdcIds": chunk, "format": "full"},
-                {"api_key": self._api_key},
-            )
-            if isinstance(payload, list):
-                for item_any in cast(list[Any], payload):
-                    if not isinstance(item_any, dict):
-                        continue
-                    item = cast(dict[str, Any], item_any)
-                    if str(item.get("dataType", "")) not in _ALLOWED_DATA_TYPES:
-                        continue
-                    item_fdc_id = item.get("fdcId")
-                    if item_fdc_id is None:
-                        continue
-                    try:
-                        parsed_fdc_id = int(item_fdc_id)
-                    except Exception:
-                        continue
-                    foods.append(item)
-                    seen_ids.add(parsed_fdc_id)
+            payloads = self._fetch_food_batch_with_fallback(chunk)
+            for item in payloads:
+                item_fdc_id = item.get("fdcId")
+                if item_fdc_id is None:
+                    continue
+                try:
+                    parsed_fdc_id = int(item_fdc_id)
+                except Exception:
+                    continue
+                foods.append(item)
+                seen_ids.add(parsed_fdc_id)
 
         # USDA batch endpoint can intermittently omit requested IDs.
         missing_ids = [fdc_id for fdc_id in deduped_ids if fdc_id not in seen_ids]
@@ -160,6 +151,48 @@ class USDAFdcImporter:
                     break
 
         return foods
+
+    def _fetch_food_batch_with_fallback(self, fdc_ids: list[int]) -> list[dict[str, Any]]:
+        if not fdc_ids:
+            return []
+
+        try:
+            payload = self._post(
+                "/v1/foods",
+                {"fdcIds": fdc_ids, "format": "full"},
+                {"api_key": self._api_key},
+            )
+            return self._coerce_food_list(payload)
+        except USDAFdcImporterError as e:
+            if len(fdc_ids) == 1:
+                logging.warning("USDA batch fetch failed for fdcId %s: %s", fdc_ids[0], str(e))
+                return []
+
+            midpoint = max(1, len(fdc_ids) // 2)
+            left_ids = fdc_ids[:midpoint]
+            right_ids = fdc_ids[midpoint:]
+            logging.warning(
+                "USDA batch fetch failed for %s ids; retrying in smaller chunks (%s + %s): %s",
+                len(fdc_ids),
+                len(left_ids),
+                len(right_ids),
+                str(e),
+            )
+            return self._fetch_food_batch_with_fallback(left_ids) + self._fetch_food_batch_with_fallback(right_ids)
+
+    def _coerce_food_list(self, payload: Any) -> list[dict[str, Any]]:
+        if not isinstance(payload, list):
+            return []
+
+        filtered: list[dict[str, Any]] = []
+        for item_any in cast(list[Any], payload):
+            if not isinstance(item_any, dict):
+                continue
+            item = cast(dict[str, Any], item_any)
+            if str(item.get("dataType", "")) not in _ALLOWED_DATA_TYPES:
+                continue
+            filtered.append(item)
+        return filtered
 
     def map_to_food_request(self, usda_food: dict[str, Any]) -> FoodRequest:
         fdc_id = int(usda_food.get("fdcId") or 0)
