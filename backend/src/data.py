@@ -28,6 +28,9 @@ class Data:
     IMPORTER_USER_ID = 4
     IMPORTER_USER_NAME = "usda-importer"
     IMPORTER_USER_EMAIL = "usda-importer@lastcallsoftware.com"
+    CATALOG_USER_ID = 5
+    CATALOG_USER_NAME = "catalog"
+    CATALOG_USER_EMAIL = "catalog@lastcallsoftware.com"
 
     ###################
     # INITIALIZATION
@@ -105,16 +108,54 @@ class Data:
     def seed_database(user: User) -> None:
         try:
             logging.info(f"Seeding database for user {user.username}...")
-            keylists: dict[str, dict[int,int]] = {}
-            Data.import_foods(user.id, keylists)
-            Data.import_recipes(user.id, keylists)
-            Data.import_ingredients(user.id, keylists)
+            Data.seed_starter_foods_from_catalog(user.id)
             user.seeded_at = datetime.datetime.now()
-            user.seed_version = 1
+            user.seed_version = 2
             user.seed_requested = False
             logging.info(f"Database seeded for user '{user.username}'")
         except Exception as e:
             raise DatabaseError("Seeding failed: " + str(e))
+
+
+    @staticmethod
+    def seed_starter_foods_from_catalog(user_id: int) -> None:
+        """
+        Copy starter-marked foods from the central catalog account into the
+        specified user's personal food collection.
+        """
+        catalog_user_id = User.get_id(Data.CATALOG_USER_NAME)
+        if not catalog_user_id:
+            raise DatabaseError("Catalog user not found")
+
+        starter_foods = Food.get_starter_for_user(catalog_user_id)
+        if len(starter_foods) == 0:
+            raise DatabaseError("No starter foods are flagged in the catalog")
+
+        for starter_food in starter_foods:
+            payload = FoodRequest.model_validate(
+                {
+                    "id": None,
+                    "group": starter_food.group.name,
+                    "name": starter_food.name,
+                    "vendor": starter_food.vendor,
+                    "servings": starter_food.servings,
+                    "subtype": starter_food.subtype,
+                    "description": starter_food.description,
+                    "size_description": starter_food.size_description,
+                    "size_description_2": starter_food.size_description_2,
+                    "size_oz": starter_food.size_oz,
+                    "size_g": starter_food.size_g,
+                    "source": starter_food.source,
+                    "fdc_id": starter_food.fdc_id,
+                    "fdc_data_type": starter_food.fdc_data_type,
+                    "starter_food": False,
+                    "price": starter_food.price,
+                    "price_date": starter_food.price_date.strftime("%Y-%m-%d") if starter_food.price_date else None,
+                    "shelf_life": starter_food.shelf_life,
+                    "nutrition": starter_food.nutrition.json(),
+                }
+            )
+            Food.add(user_id, payload)
 
 
     @staticmethod
@@ -133,6 +174,7 @@ class Data:
             raise ValueError("APP_TEST_PASSWORD not set")
 
         importer_password = os.environ.get("APP_IMPORTER_PASSWORD", admin_password)
+        catalog_password = os.environ.get("APP_CATALOG_PASSWORD", admin_password)
 
         admin_user_dao = User.get("admin")
         if admin_user_dao:
@@ -187,6 +229,20 @@ class Data:
                 "username": Data.IMPORTER_USER_NAME,
                 "password": importer_password,
                 "email": Data.IMPORTER_USER_EMAIL,
+                "status": UserStatus.confirmed
+            })
+
+        catalog_user_dao = User.get(Data.CATALOG_USER_NAME)
+        if catalog_user_dao:
+            catalog_user_dao.set_password(catalog_password)
+            catalog_user_dao.set_email_addr(Data.CATALOG_USER_EMAIL)
+            catalog_user_dao.status = UserStatus.confirmed
+        else:
+            User.add({
+                "id": Data.CATALOG_USER_ID,
+                "username": Data.CATALOG_USER_NAME,
+                "password": catalog_password,
+                "email": Data.CATALOG_USER_EMAIL,
                 "status": UserStatus.confirmed
             })
 

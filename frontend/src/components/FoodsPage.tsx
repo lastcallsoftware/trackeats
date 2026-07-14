@@ -4,6 +4,13 @@ import { MdAddCircleOutline, MdEdit, MdRemoveCircleOutline } from "react-icons/m
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Stack from '@mui/material/Stack';
+import TextField from '@mui/material/TextField';
+import Checkbox from '@mui/material/Checkbox';
+import List from '@mui/material/List';
+import ListItem from '@mui/material/ListItem';
+import ListItemText from '@mui/material/ListItemText';
+import ListItemButton from '@mui/material/ListItemButton';
+import Typography from '@mui/material/Typography';
 import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
@@ -22,7 +29,25 @@ const FoodsPage = () => {
     const [selectedRowId, setSelectedRowId] = useState<number|null>(null)
     const [filteredCount, setFilteredCount] = useState<number>(0)
     const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false)
-    const { foods, deleteFood, isLoading, canWrite } = useData();
+    const [catalogOpen, setCatalogOpen] = useState(false)
+    const [catalogQuery, setCatalogQuery] = useState("")
+    const [catalogPage, setCatalogPage] = useState(1)
+    const [catalogTotal, setCatalogTotal] = useState(0)
+    const [catalogPageSize] = useState(10)
+    const [catalogFoods, setCatalogFoods] = useState<Array<ReturnType<typeof createCatalogItem>>>([])
+    const [catalogSelection, setCatalogSelection] = useState<Set<number>>(new Set())
+    const [catalogStatus, setCatalogStatus] = useState<string | null>(null)
+    const { foods, deleteFood, isLoading, canWrite, isAdmin, getCatalogFoods, copyCatalogFoods } = useData();
+
+    function createCatalogItem(food: { id?: number; name: string; subtype: string; vendor: string; nutrition: { calories: number } }) {
+        return {
+            id: food.id ?? 0,
+            name: food.name,
+            subtype: food.subtype,
+            vendor: food.vendor,
+            calories: food.nutrition.calories,
+        }
+    }
 
     // -- Pagination management --
     // Read page from URL as 1-based, convert to 0-based for state
@@ -58,6 +83,69 @@ const FoodsPage = () => {
         if (selectedRowId) {
             setConfirmDeleteOpen(true)
         }
+    }
+
+    const loadCatalogFoods = async (query: string, pageNumber: number) => {
+        const response = await getCatalogFoods(query, pageNumber, catalogPageSize)
+        if (!response) {
+            return
+        }
+        setCatalogFoods(response.items.map(createCatalogItem))
+        setCatalogTotal(response.total)
+    }
+
+    const openCatalogDialog = async () => {
+        setCatalogOpen(true)
+        setCatalogStatus(null)
+        setCatalogQuery("")
+        setCatalogPage(1)
+        setCatalogSelection(new Set())
+        await loadCatalogFoods("", 1)
+    }
+
+    const closeCatalogDialog = () => {
+        setCatalogOpen(false)
+    }
+
+    const runCatalogSearch = async () => {
+        setCatalogPage(1)
+        setCatalogSelection(new Set())
+        await loadCatalogFoods(catalogQuery, 1)
+    }
+
+    const handleCatalogPageChange = async (_event: React.ChangeEvent<unknown>, nextPage: number) => {
+        setCatalogPage(nextPage)
+        setCatalogSelection(new Set())
+        await loadCatalogFoods(catalogQuery, nextPage)
+    }
+
+    const toggleCatalogSelection = (foodId: number) => {
+        setCatalogSelection(prev => {
+            const next = new Set(prev)
+            if (next.has(foodId)) {
+                next.delete(foodId)
+            } else {
+                next.add(foodId)
+            }
+            return next
+        })
+    }
+
+    const addSelectedCatalogFoods = async () => {
+        const selectedIds = Array.from(catalogSelection)
+        if (selectedIds.length === 0) {
+            setCatalogStatus("Select at least one catalog food to add.")
+            return
+        }
+
+        const result = await copyCatalogFoods(selectedIds)
+        if (!result) {
+            return
+        }
+
+        setCatalogStatus(`Added ${result.created_count}, skipped ${result.skipped_count}, failed ${result.failure_count}.`)
+        setCatalogSelection(new Set())
+        await loadCatalogFoods(catalogQuery, catalogPage)
     }
 
     const cancelDelete = () => {
@@ -111,6 +199,15 @@ const FoodsPage = () => {
                         disabled={!canWrite}
                     >
                         Add
+                    </Button>
+                    <Button
+                        variant="contained"
+                        color="primary"
+                        onClick={openCatalogDialog}
+                        title="Add from Catalog"
+                        disabled={!canWrite || isAdmin}
+                    >
+                        Add from Catalog
                     </Button>
                     <Button
                         variant="contained"
@@ -172,6 +269,61 @@ const FoodsPage = () => {
                             <Button onClick={cancelDelete}>Cancel</Button>
                             <Button onClick={confirmDelete} color="error" variant="contained">
                                 Delete
+                            </Button>
+                        </DialogActions>
+                    </Dialog>
+
+                    <Dialog open={catalogOpen} onClose={closeCatalogDialog} maxWidth="md" fullWidth>
+                        <DialogTitle>Add Foods from Catalog</DialogTitle>
+                        <DialogContent>
+                            <Stack direction="row" spacing={2} sx={{ mb: 2, mt: 1 }}>
+                                <TextField
+                                    label="Search catalog"
+                                    value={catalogQuery}
+                                    onChange={(e) => setCatalogQuery(e.target.value)}
+                                    fullWidth
+                                />
+                                <Button variant="outlined" onClick={runCatalogSearch}>Search</Button>
+                            </Stack>
+                            {catalogStatus ? <Alert severity="info" sx={{ mb: 2 }}>{catalogStatus}</Alert> : null}
+                            <List sx={{ maxHeight: 360, overflow: 'auto', border: '1px solid', borderColor: 'divider', borderRadius: 1 }}>
+                                {catalogFoods.map((food) => (
+                                    <ListItem key={food.id} disablePadding secondaryAction={
+                                        <Checkbox
+                                            edge="end"
+                                            checked={catalogSelection.has(food.id)}
+                                            onChange={() => toggleCatalogSelection(food.id)}
+                                        />
+                                    }>
+                                        <ListItemButton onClick={() => toggleCatalogSelection(food.id)}>
+                                            <ListItemText
+                                                primary={`${food.name}${food.subtype ? `, ${food.subtype}` : ''}`}
+                                                secondary={`${food.vendor} • ${food.calories} cal`}
+                                            />
+                                        </ListItemButton>
+                                    </ListItem>
+                                ))}
+                            </List>
+                            {catalogFoods.length === 0 ? (
+                                <Typography variant="body2" sx={{ mt: 2, color: 'text.secondary' }}>
+                                    No catalog foods found for this search.
+                                </Typography>
+                            ) : null}
+                            {catalogTotal > catalogPageSize ? (
+                                <Stack direction="row" justifyContent="center" sx={{ mt: 2 }}>
+                                    <MuiPagination
+                                        count={Math.ceil(catalogTotal / catalogPageSize)}
+                                        page={catalogPage}
+                                        onChange={handleCatalogPageChange}
+                                        size="small"
+                                    />
+                                </Stack>
+                            ) : null}
+                        </DialogContent>
+                        <DialogActions>
+                            <Button onClick={closeCatalogDialog}>Close</Button>
+                            <Button variant="contained" onClick={addSelectedCatalogFoods} disabled={!canWrite || catalogSelection.size === 0}>
+                                Add Selected
                             </Button>
                         </DialogActions>
                     </Dialog>

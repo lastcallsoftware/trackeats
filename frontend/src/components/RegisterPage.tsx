@@ -104,6 +104,8 @@ function RegisterPage() {
                 password: formData.password,
                 email: formData.email,
                 seed_requested: formData.seed_requested,
+            }, {
+                timeout: 20000,
             });
 
             const message = response.data?.msg;

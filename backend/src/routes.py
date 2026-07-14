@@ -23,6 +23,7 @@ from schemas import (
 from crypto import Crypto
 from data import Data
 from sqlalchemy.sql import text
+from sqlalchemy import or_, func
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.exc import IntegrityError
 from flask_limiter import Limiter
@@ -180,14 +181,33 @@ def _get_importer() -> USDAFdcImporter:
     return USDAFdcImporter(api_key=api_key, timeout=timeout_seconds)
 
 
-def _get_importer_user_id() -> int:
-    importer_user_id = User.get_id(Data.IMPORTER_USER_NAME)
-    if not importer_user_id:
-        Data.add_users()
-        importer_user_id = User.get_id(Data.IMPORTER_USER_NAME)
-    if not importer_user_id:
-        raise ValueError("Could not retrieve importer user")
-    return importer_user_id
+def _get_catalog_user_id() -> int:
+    catalog_user_id = User.get_id(Data.CATALOG_USER_NAME)
+    if not catalog_user_id:
+        raise ValueError("Could not retrieve catalog user. Run database migrations.")
+    return catalog_user_id
+
+
+def _get_request_user_id() -> int:
+    email = get_jwt_identity()
+    user_id = User.get_id_by_email(email)
+    if not user_id:
+        raise ValueError(f"Could not retrieve user record for email '{email}'")
+    return user_id
+
+
+def _get_effective_food_owner_id() -> int:
+    claims = cast(dict[str, Any], get_jwt())
+    roles = _roles_from_claims(claims)
+    if Data.ROLE_ADMIN in roles:
+        return _get_catalog_user_id()
+    return _get_request_user_id()
+
+
+def _is_admin_request() -> bool:
+    claims = cast(dict[str, Any], get_jwt())
+    roles = _roles_from_claims(claims)
+    return Data.ROLE_ADMIN in roles
 
 
 def _get_json_payload() -> dict[str, Any]:
@@ -1347,14 +1367,10 @@ def get_foods():
     foods: list[Any] = []
     try:
         with db.session.begin():
-            # Get the user_id for the user identified by the token
-            email = get_jwt_identity()
-            user_id = User.get_id_by_email(email)
-            if not user_id:
-                raise ValueError(f"Could not retrieve user record for email '{email}'")
+            owner_id = _get_effective_food_owner_id()
 
-            # Get all the Foods associated with that user_id
-            food_daos = Food.get_all_for_user(user_id)
+            # Get all the Foods associated with that owner_id
+            food_daos = Food.get_all_for_user(owner_id)
             for food_dao in food_daos:
                 foods.append(food_dao.json())
     except Exception as e:
@@ -1376,13 +1392,9 @@ def get_food(food_id:int):
     """
     try:
         with db.session.begin():
-            # Get the user_id for the user identified by the token
-            email = get_jwt_identity()
-            user_id = User.get_id_by_email(email)
-            if not user_id:
-                raise ValueError(f"Could not retrieve user record for email '{email}'")
+            owner_id = _get_effective_food_owner_id()
 
-            food_dao = Food.get(user_id, food_id)
+            food_dao = Food.get(owner_id, food_id)
             food = food_dao.json()
     except Exception as e:
         msg = f"Food record could not be retrieved: {str(e)}"
@@ -1403,17 +1415,18 @@ def add_food():
     """
     try:
         with db.session.begin():
-            # Get the user_id for the user identified by the token
-            email = get_jwt_identity()
-            user_id = User.get_id_by_email(email)
-            if not user_id:
-                raise ValueError(f"Could not retrieve user record for email '{email}'")
+            owner_id = _get_effective_food_owner_id()
 
             # Validate food request
             food_data = FoodRequest.model_validate(request.json)
 
+            # Only admins can set starter flag values. Non-admin user-created foods
+            # are always non-starter records.
+            if not _is_admin_request():
+                food_data = food_data.model_copy(update={"starter_food": False})
+
             # Add the food to the database
-            new_food_dao = Food.add(user_id, food_data)
+            new_food_dao = Food.add(owner_id, food_data)
             food_id = new_food_dao.id
             new_food = new_food_dao.json()
     except ValidationError as e:
@@ -1441,17 +1454,21 @@ def update_food():
     """
     try:
         with db.session.begin():
-            # Get the user_id for the user identified by the token
-            email = get_jwt_identity()
-            user_id = User.get_id_by_email(email)
-            if not user_id:
-                raise ValueError(f"Could not retrieve user record for email '{email}'")
+            owner_id = _get_effective_food_owner_id()
 
             # Validate food request
             food_data = FoodRequest.model_validate(request.json)
 
+            # Only admins can mutate starter flag values. For non-admin requests,
+            # preserve whatever value is currently stored on the record.
+            if not _is_admin_request():
+                if food_data.id is None:
+                    raise ValueError("Food ID is required for update")
+                current_food = Food.get(owner_id, food_data.id)
+                food_data = food_data.model_copy(update={"starter_food": current_food.starter_food})
+
             # Replace the database's record with the data in the request
-            updated_food_dao = Food.update(user_id, food_data)
+            updated_food_dao = Food.update(owner_id, food_data)
             updated_food = updated_food_dao.json()
     except ValidationError as e:
         msg = _format_validation_error_message(e)
@@ -1476,14 +1493,10 @@ def delete_food(food_id:int):
     """
     try:
         with db.session.begin():
-            # Get the user_id for the user identified by the token
-            email = get_jwt_identity()
-            user_id = User.get_id_by_email(email)
-            if not user_id:
-                raise ValueError(f"Could not retrieve user record for email '{email}'")
+            owner_id = _get_effective_food_owner_id()
 
             # Get the specified Food record
-            food = Food.get(user_id, food_id)
+            food = Food.get(owner_id, food_id)
 
             # Delete the Food record
             db.session.delete(food)
@@ -1499,6 +1512,188 @@ def delete_food(food_id:int):
         msg = f"Food record deleted"
         logging.info(msg)
         return jsonify({"msg": msg}), 200
+
+
+@bp.route("/api/catalog/food", methods=["GET"])
+@jwt_required()
+@log_route
+def get_catalog_foods():
+    """
+    Browse foods owned by the system catalog user.
+    """
+    try:
+        query = str(request.args.get("query", "")).strip()
+        page_number = int(request.args.get("pageNumber", 1))
+        page_size = int(request.args.get("pageSize", 25))
+        if page_number < 1:
+            raise ValueError("pageNumber must be >= 1")
+        if page_size < 1 or page_size > 200:
+            raise ValueError("pageSize must be between 1 and 200")
+
+        with db.session.begin():
+            catalog_user_id = _get_catalog_user_id()
+
+            base_query = db.select(Food).where(Food.user_id == catalog_user_id)
+            if query:
+                like_value = f"%{query}%"
+                base_query = base_query.where(
+                    or_(
+                        Food.name.ilike(like_value),
+                        Food.vendor.ilike(like_value),
+                        Food.subtype.ilike(like_value),
+                    )
+                )
+
+            total = db.session.scalar(
+                db.select(func.count()).select_from(base_query.subquery())
+            ) or 0
+
+            paged_query = (
+                base_query
+                .order_by(Food.group, Food.name, Food.subtype)
+                .offset((page_number - 1) * page_size)
+                .limit(page_size)
+            )
+
+            items = [food.json() for food in db.session.scalars(paged_query).all()]
+    except ValueError as e:
+        return jsonify({"msg": str(e)}), 400
+    except Exception as e:
+        msg = f"Catalog foods could not be retrieved: {str(e)}"
+        logging.error(msg)
+        return jsonify({"msg": msg}), 400
+
+    return jsonify({
+        "items": items,
+        "total": total,
+        "pageNumber": page_number,
+        "pageSize": page_size,
+        "query": query,
+    }), 200
+
+
+@bp.route("/api/catalog/food/copy", methods=["POST"])
+@write_required
+@log_route
+def copy_catalog_foods():
+    """
+    Copy one or more catalog foods into the authenticated user's personal food list.
+    """
+    created = 0
+    skipped = 0
+    failures: list[dict[str, Any]] = []
+    items: list[dict[str, Any]] = []
+
+    try:
+        payload = _get_json_payload()
+        raw_food_ids = payload.get("food_ids")
+        if not isinstance(raw_food_ids, list):
+            raise ValueError("'food_ids' must be a non-empty array")
+
+        parsed_ids: list[int] = []
+        for value in raw_food_ids:
+            food_id = int(value)
+            if food_id > 0:
+                parsed_ids.append(food_id)
+        food_ids = list(dict.fromkeys(parsed_ids))
+        if len(food_ids) == 0:
+            raise ValueError("'food_ids' must include at least one positive integer")
+
+        with db.session.begin():
+            email = get_jwt_identity()
+            user_id = User.get_id_by_email(email)
+            if not user_id:
+                raise ValueError(f"Could not retrieve user record for email '{email}'")
+
+            catalog_user_id = _get_catalog_user_id()
+
+            for food_id in food_ids:
+                try:
+                    with db.session.begin_nested():
+                        catalog_food = Food.get(catalog_user_id, food_id)
+
+                        # If this came from a source system, avoid duplicating the same source record
+                        # for a user when they retry the same batch copy request.
+                        if catalog_food.source and catalog_food.fdc_id is not None:
+                            existing = Food.get_by_user_source_fdc_id(
+                                user_id,
+                                catalog_food.source,
+                                catalog_food.fdc_id,
+                            )
+                            if existing:
+                                skipped += 1
+                                items.append(
+                                    {
+                                        "catalog_food_id": food_id,
+                                        "food_id": existing.id,
+                                        "action": "skipped_existing",
+                                    }
+                                )
+                                continue
+
+                        cloned_payload = FoodRequest.model_validate(
+                            {
+                                **catalog_food.json(),
+                                "id": None,
+                                "starter_food": False,
+                            }
+                        )
+                        new_food = Food.add(user_id, cloned_payload)
+                        created += 1
+                        items.append(
+                            {
+                                "catalog_food_id": food_id,
+                                "food_id": new_food.id,
+                                "action": "created",
+                            }
+                        )
+                except Exception as e:
+                    failures.append({"catalog_food_id": food_id, "error": str(e)})
+    except ValueError as e:
+        return jsonify({"msg": str(e)}), 400
+    except Exception as e:
+        msg = f"Catalog foods could not be copied: {str(e)}"
+        logging.error(msg)
+        return jsonify({"msg": msg}), 400
+
+    return jsonify(
+        {
+            "requested_count": len(items) + len(failures),
+            "created_count": created,
+            "skipped_count": skipped,
+            "failure_count": len(failures),
+            "items": items,
+            "failures": failures,
+        }
+    ), 200
+
+
+@bp.route("/api/catalog/food/<int:food_id>/starter", methods=["PATCH"])
+@admin_required
+@log_route
+def set_catalog_food_starter_flag(food_id: int):
+    """
+    Admin-only toggle for a catalog food's starter flag.
+    """
+    try:
+        payload = _get_json_payload()
+        starter_food = payload.get("starter_food")
+        if not isinstance(starter_food, bool):
+            raise ValueError("'starter_food' must be a boolean")
+
+        with db.session.begin():
+            catalog_user_id = _get_catalog_user_id()
+            food_dao = Food.get(catalog_user_id, food_id)
+            food_dao.starter_food = starter_food
+            response = food_dao.json()
+    except ValueError as e:
+        return jsonify({"msg": str(e)}), 400
+    except Exception as e:
+        msg = f"Starter flag could not be updated: {str(e)}"
+        logging.error(msg)
+        return jsonify({"msg": msg}), 400
+
+    return jsonify(response), 200
 
 
 ##############################
@@ -2068,7 +2263,7 @@ def fdc_import_foods():
         }
 
         with db.session.begin():
-            importer_user_id = _get_importer_user_id()
+            catalog_user_id = _get_catalog_user_id()
 
             for fdc_id in fdc_ids:
                 usda_food = by_fdc_id.get(fdc_id)
@@ -2079,14 +2274,19 @@ def fdc_import_foods():
                 try:
                     with db.session.begin_nested():
                         mapped = importer.map_to_food_request(usda_food)
-                        existing = Food.get_by_source_fdc_id(USDA_SOURCE, fdc_id)
+                        existing = Food.get_by_user_source_fdc_id(catalog_user_id, USDA_SOURCE, fdc_id)
                         if existing:
-                            updated_request = mapped.model_copy(update={"id": existing.id})
-                            food_dao = Food.update(importer_user_id, updated_request)
+                            updated_request = mapped.model_copy(
+                                update={
+                                    "id": existing.id,
+                                    "starter_food": existing.starter_food,
+                                }
+                            )
+                            food_dao = Food.update(catalog_user_id, updated_request)
                             updated_count += 1
                             action = "updated"
                         else:
-                            food_dao = Food.add(importer_user_id, mapped)
+                            food_dao = Food.add(catalog_user_id, mapped)
                             created_count += 1
                             action = "created"
 

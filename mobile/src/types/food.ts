@@ -39,6 +39,10 @@ export type IFood = {
   price_per_calorie: number
   price_date: string
   shelf_life: string
+  source?: string | null
+  fdc_id?: number | null
+  fdc_data_type?: string | null
+  starter_food?: boolean
 }
 
 export type FoodGroup =

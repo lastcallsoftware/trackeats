@@ -98,6 +98,8 @@ type FdcPreviewResponse = {
 
 type FdcPreviewItem = FdcPreviewResponse['items'][number];
 
+const USDA_REQUEST_TIMEOUT_MS = 30_000;
+
 function calorieSourceLabel(source: string | null): string {
     switch (source) {
         case 'label':
@@ -201,6 +203,8 @@ function AdminPage() {
         try {
             const res = await axios.post<FdcPreviewResponse>('/api/import/fdc/preview', {
                 fdc_ids: fdcIds,
+            }, {
+                timeout: USDA_REQUEST_TIMEOUT_MS,
             });
             if (requestSeq !== fdcPreviewRequestSeq.current) {
                 return;
@@ -238,6 +242,7 @@ function AdminPage() {
                     pageSize: fdcPageSize,
                     dataType: fdcDataType,
                 },
+                timeout: USDA_REQUEST_TIMEOUT_MS,
             });
             const foods = res.data.foods ?? [];
             setFdcResults(foods);
@@ -256,7 +261,7 @@ function AdminPage() {
         } finally {
             setFdcLoading(false);
         }
-    }, [fdcDataType, fdcPageSize, fdcQuery]);
+    }, [fdcDataType, fdcPageSize, fdcQuery, fetchFdcPreviews]);
 
     const toggleFdcSelected = (fdcId: number) => {
         setFdcSelectedIds((prev) => {
@@ -282,6 +287,8 @@ function AdminPage() {
         try {
             const res = await axios.post<FdcImportResponse>('/api/import/fdc/import', {
                 fdc_ids: selected,
+            }, {
+                timeout: USDA_REQUEST_TIMEOUT_MS,
             });
             setFdcImportResult(res.data);
             if ((res.data.failures?.length ?? 0) === 0) {

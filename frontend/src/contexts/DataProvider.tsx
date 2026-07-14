@@ -150,6 +150,25 @@ export type IFood = {
     price_per_calorie: number,
     price_date: string
     shelf_life: string
+    source?: string | null
+    fdc_id?: number | null
+    fdc_data_type?: string | null
+    starter_food?: boolean
+}
+
+type CatalogFoodsResponse = {
+    items: IFood[]
+    total: number
+    pageNumber: number
+    pageSize: number
+    query: string
+}
+
+type CatalogCopyResponse = {
+    requested_count: number
+    created_count: number
+    skipped_count: number
+    failure_count: number
 }
 
 export type IIngredient = {
@@ -220,6 +239,8 @@ export type DataContextType = {
     addFood: (food: IFood) => Promise<void>;
     updateFood: (food: IFood) => Promise<void>;
     deleteFood: (food_id: number) => Promise<void>;
+    getCatalogFoods: (query: string, pageNumber: number, pageSize: number) => Promise<CatalogFoodsResponse | null>;
+    copyCatalogFoods: (foodIds: number[]) => Promise<CatalogCopyResponse | null>;
     addRecipe: (recipe: IRecipe, ingredients: IIngredient[]) => Promise<number|undefined>;
     updateRecipe: (recipe: IRecipe, ingredients: IIngredient[]) => Promise<void>;
     deleteRecipe: (recipe_id: number) => Promise<void>;
@@ -514,6 +535,39 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
         }
     }
 
+    const getCatalogFoods = useCallback(async (query: string, pageNumber: number, pageSize: number): Promise<CatalogFoodsResponse | null> => {
+        try {
+            const response = await axios.get<CatalogFoodsResponse>("/api/catalog/food", {
+                params: {
+                    query,
+                    pageNumber,
+                    pageSize,
+                },
+            })
+            return response.data
+        } catch (error) {
+            handleError(error)
+            return null
+        }
+    }, [handleError])
+
+    const copyCatalogFoods = useCallback(async (foodIds: number[]): Promise<CatalogCopyResponse | null> => {
+        if (!ensureCanWrite()) {
+            return null
+        }
+
+        try {
+            const response = await axios.post<CatalogCopyResponse>("/api/catalog/food/copy", {
+                food_ids: foodIds,
+            })
+            await getFoods()
+            return response.data
+        } catch (error) {
+            handleError(error)
+            return null
+        }
+    }, [ensureCanWrite, getFoods, handleError])
+
     // Add Recipe
     const addRecipe = async (recipe: IRecipe, ingredients: IIngredient[]): Promise<number|undefined> => {
         if (!ensureCanWrite()) {
@@ -734,6 +788,8 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
             addFood, 
             updateFood, 
             deleteFood,
+            getCatalogFoods,
+            copyCatalogFoods,
             addRecipe, 
             updateRecipe, 
             deleteRecipe,

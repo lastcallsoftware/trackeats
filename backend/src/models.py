@@ -929,6 +929,7 @@ class Food(db.Model):
     source: Mapped[str | None] = mapped_column(db.String(20), nullable=True)
     fdc_id: Mapped[int | None] = mapped_column(db.Integer, nullable=True)
     fdc_data_type: Mapped[str | None] = mapped_column(db.String(30), nullable=True)
+    starter_food: Mapped[bool] = mapped_column(db.Boolean, nullable=False, default=False)
     last_synced_at: Mapped[datetime.datetime | None] = mapped_column(db.DateTime, nullable=True)
 
     def __init__(self, user_id: int, data: FoodRequest | None = None):
@@ -959,6 +960,7 @@ class Food(db.Model):
         self.source = food_request.source
         self.fdc_id = food_request.fdc_id
         self.fdc_data_type = food_request.fdc_data_type
+        self.starter_food = food_request.starter_food
         # Create nutrition record from nested schema
         if not self.nutrition:
             self.nutrition = Nutrition(user_id)
@@ -989,6 +991,7 @@ class Food(db.Model):
             "source": self.source,
             "fdc_id": self.fdc_id,
             "fdc_data_type": self.fdc_data_type,
+            "starter_food": self.starter_food,
             "last_synced_at": self.last_synced_at.isoformat() if self.last_synced_at else None,
             }
 
@@ -1011,6 +1014,17 @@ class Food(db.Model):
 
 
     @staticmethod
+    def get_starter_for_user(user_id: int) -> list[Food]:
+        food_daos = db.session.scalars(
+            db.select(Food)
+            .where(Food.user_id == user_id)
+            .where(Food.starter_food == True)
+            .order_by(Food.group, Food.name, Food.subtype)
+        ).all()
+        return list(food_daos)
+
+
+    @staticmethod
     def get(user_id: int, food_id: int) -> Food:
         food_dao = db.session.scalar(db.select(Food).where(Food.user_id == user_id).where(Food.id == food_id).order_by("group", "name", "subtype"))
         if not food_dao:
@@ -1022,6 +1036,16 @@ class Food(db.Model):
     def get_by_source_fdc_id(source: str, fdc_id: int) -> Food | None:
         return db.session.scalar(
             db.select(Food)
+            .where(Food.source == source)
+            .where(Food.fdc_id == fdc_id)
+        )
+
+
+    @staticmethod
+    def get_by_user_source_fdc_id(user_id: int, source: str, fdc_id: int) -> Food | None:
+        return db.session.scalar(
+            db.select(Food)
+            .where(Food.user_id == user_id)
             .where(Food.source == source)
             .where(Food.fdc_id == fdc_id)
         )
@@ -1073,6 +1097,8 @@ class Food(db.Model):
             food_dao = db.session.get(Food, food_id)
             if not food_dao:
                 raise ValueError(f"Food record {food_id} not found.")
+            if food_dao.user_id != user_id:
+                raise ValueError(f"Food record {food_id} does not belong to this user")
 
             if not food_dao.nutrition:
                 raise ValueError(f"Nutrition record for Food {food_id} not found")

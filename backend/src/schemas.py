@@ -181,6 +181,7 @@ class FoodRequest(BaseModel):
     source: str | None = None
     fdc_id: int | None = None
     fdc_data_type: str | None = None
+    starter_food: bool = False
     price: float | None = None
     price_date: str | None = None
     shelf_life: str | None = None
