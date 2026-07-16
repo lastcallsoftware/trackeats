@@ -12,6 +12,7 @@ import FormControlLabel from '@mui/material/FormControlLabel';
 import TextField from '@mui/material/TextField';
 import InputAdornment from '@mui/material/InputAdornment';
 import IconButton from '@mui/material/IconButton';
+import Tooltip from '@mui/material/Tooltip';
 import ClearIcon from '@mui/icons-material/Clear';
 import TruncatedCell from './TruncatedCell';
 import { getFoodGroupLabel } from './FoodGroups';
@@ -29,6 +30,7 @@ export type USDAFoodRow = {
 type USDAFoodsTableProps = {
     foods: USDAFoodRow[];
     selectedIds: Set<number>;
+    nonImportableIds: Set<number>;
     onToggleSelected: (fdcId: number) => void;
     selectedRowId: number | null;
     onSelectRow: (fdcId: number) => void;
@@ -39,6 +41,7 @@ type USDAFoodsTableProps = {
 function USDAFoodsTable({
     foods,
     selectedIds,
+    nonImportableIds,
     onToggleSelected,
     selectedRowId,
     onSelectRow,
@@ -140,17 +143,22 @@ function USDAFoodsTable({
                                 })}
                             >
                                 <TableCell>
-                                    <FormControlLabel
-                                        control={
-                                            <Checkbox
-                                                size="small"
-                                                checked={selectedIds.has(food.fdcId)}
-                                                onChange={() => onToggleSelected(food.fdcId)}
-                                                onClick={(e) => e.stopPropagation()}
+                                    <Tooltip title={nonImportableIds.has(food.fdcId) ? 'Missing required core nutrition data' : ''}>
+                                        <span>
+                                            <FormControlLabel
+                                                control={
+                                                    <Checkbox
+                                                        size="small"
+                                                        checked={selectedIds.has(food.fdcId)}
+                                                        disabled={nonImportableIds.has(food.fdcId)}
+                                                        onChange={() => onToggleSelected(food.fdcId)}
+                                                        onClick={(e) => e.stopPropagation()}
+                                                    />
+                                                }
+                                                label=""
                                             />
-                                        }
-                                        label=""
-                                    />
+                                        </span>
+                                    </Tooltip>
                                 </TableCell>
                                 <TableCell>{food.fdcId}</TableCell>
                                 <TableCell><TruncatedCell>{food.description || '—'}</TruncatedCell></TableCell>

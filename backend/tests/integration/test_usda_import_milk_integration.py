@@ -44,7 +44,7 @@ def _admin_headers(client: FlaskClient) -> dict[str, str]:
     return {"Authorization": f"Bearer {token}"}
 
 
-def _choose_target_milk_row(foods: list[dict[str, Any]]) -> dict[str, Any]:
+def _choose_target_milk_row(foods: list[dict[str, Any]], non_importable_ids: set[int]) -> dict[str, Any]:
     configured = os.environ.get("USDA_TEST_MILK_FDC_ID")
     if configured:
         try:
@@ -54,6 +54,11 @@ def _choose_target_milk_row(foods: list[dict[str, Any]]) -> dict[str, Any]:
 
         for row in foods:
             if int(row.get("fdcId") or 0) == target_id:
+                if target_id in non_importable_ids:
+                    pytest.fail(
+                        f"USDA_TEST_MILK_FDC_ID={target_id} is currently non-importable "
+                        "(missing required core nutrition data)"
+                    )
                 return row
 
         pytest.fail(
@@ -61,8 +66,13 @@ def _choose_target_milk_row(foods: list[dict[str, Any]]) -> dict[str, Any]:
             "adjust page size/query or update USDA_TEST_MILK_FDC_ID"
         )
 
-    # Fallback: use first available milk Foundation row from current live results.
-    return foods[0]
+    # Fallback: use first currently importable milk Foundation row.
+    for row in foods:
+        row_id = int(row.get("fdcId") or 0)
+        if row_id > 0 and row_id not in non_importable_ids:
+            return row
+
+    pytest.fail("No importable milk Foundation rows found in current USDA results")
 
 
 @pytest.mark.integration
@@ -87,13 +97,14 @@ def test_milk_search_then_import_selected_record() -> None:
 
     foods = search_data.get("foods") or []
     preview_items = search_data.get("previewItems") or []
+    non_importable_ids = {int(v) for v in (search_data.get("nonImportableFdcIds") or [])}
 
     assert isinstance(foods, list)
     assert isinstance(preview_items, list)
     assert len(foods) > 0, "Expected at least one milk Foundation result"
     assert len(preview_items) > 0, "Expected preview data in search response"
 
-    target_row = _choose_target_milk_row(foods)
+    target_row = _choose_target_milk_row(foods, non_importable_ids)
     target_fdc_id = int(target_row["fdcId"])
 
     import_resp = client.post(

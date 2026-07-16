@@ -37,6 +37,7 @@ from usda_fdc_importer import USDAFdcImporter, USDAFdcImporterError, USDA_SOURCE
 
 
 RESET_TOKEN_EXPIRATION_SECONDS = 900  # 15 minutes
+FDC_DETAIL_FALLBACK_TIMEOUT_SECONDS = 5
 
 bp = Blueprint("auth", __name__)
 
@@ -367,6 +368,15 @@ def _build_fdc_previews(
         )
 
     return previews
+
+
+def _fdc_id_from_food(food: dict[str, Any]) -> int | None:
+    raw_fdc_id = food.get("fdcId")
+    try:
+        fdc_id = int(raw_fdc_id) if raw_fdc_id is not None else None
+    except (TypeError, ValueError):
+        fdc_id = None
+    return fdc_id if fdc_id and fdc_id > 0 else None
 
 
 ##############################
@@ -2318,29 +2328,32 @@ def fdc_search_foods():
         search_foods = [food for food in cast(list[Any], search_foods_any) if isinstance(food, dict)]
         search_food_dicts = cast(list[dict[str, Any]], search_foods)
 
-        previews = _build_fdc_previews(importer, search_food_dicts)
-        preview_ids = {int(preview["fdcId"]) for preview in previews}
-
-        filtered_foods: list[dict[str, Any]] = []
+        resolved_foods: list[dict[str, Any]] = []
+        non_importable_fdc_ids: list[int] = []
         for search_food in search_food_dicts:
-            raw_fdc_id = search_food.get("fdcId")
-            try:
-                parsed_fdc_id = int(raw_fdc_id) if raw_fdc_id is not None else None
-            except (TypeError, ValueError):
-                parsed_fdc_id = None
-
-            if parsed_fdc_id is None:
+            fdc_id = _fdc_id_from_food(search_food)
+            if fdc_id is None:
                 continue
 
-            if parsed_fdc_id in preview_ids:
-                filtered_foods.append(search_food)
+            resolved_food = search_food
+            if importer.nutrition_status(resolved_food) != "available":
+                try:
+                    detail_food = importer.get_food_by_id(fdc_id, timeout_seconds=FDC_DETAIL_FALLBACK_TIMEOUT_SECONDS)
+                    if detail_food is not None:
+                        resolved_food = detail_food
+                except USDAFdcImporterError as e:
+                    logging.warning("USDA detail fallback failed for fdcId %s: %s", fdc_id, str(e))
 
-        discarded_count = max(0, len(search_food_dicts) - len(filtered_foods))
-        if discarded_count > 0:
-            logging.info("USDA search discarded %s rows without valid preview data", discarded_count)
+            if importer.nutrition_status(resolved_food) != "available":
+                non_importable_fdc_ids.append(fdc_id)
 
-        data["foods"] = filtered_foods
+            resolved_foods.append(resolved_food)
+
+        previews = _build_fdc_previews(importer, resolved_foods)
+
+        data["foods"] = resolved_foods
         data["previewItems"] = previews
+        data["nonImportableFdcIds"] = list(dict.fromkeys(non_importable_fdc_ids))
     except USDAFdcImporterError as e:
         msg = f"USDA search failed: {str(e)}"
         logging.error(msg)
@@ -2409,6 +2422,10 @@ def fdc_import_foods():
                 usda_food = by_fdc_id.get(fdc_id)
                 if usda_food is None:
                     failures.append({"fdc_id": fdc_id, "error": "Food not found in USDA response"})
+                    continue
+
+                if importer.nutrition_status(usda_food) != "available":
+                    failures.append({"fdc_id": fdc_id, "error": "Missing required core nutrition data"})
                     continue
 
                 try:

@@ -66,6 +66,7 @@ type FdcSearchResponse = {
     totalPages: number;
     foods: FdcSearchFood[];
     previewItems?: FdcPreviewItem[];
+    nonImportableFdcIds?: number[];
 };
 
 type FdcDataTypeFilter = 'both' | 'Branded' | 'Foundation';
@@ -168,6 +169,7 @@ function AdminPage() {
     const [fdcTotalPages, setFdcTotalPages] = useState(0);
     const [fdcResults, setFdcResults] = useState<FdcSearchFood[]>([]);
     const [fdcSelectedIds, setFdcSelectedIds] = useState<Set<number>>(new Set());
+    const [fdcNonImportableIds, setFdcNonImportableIds] = useState<Set<number>>(new Set());
     const [fdcPreviewRowId, setFdcPreviewRowId] = useState<number | null>(null);
     const [fdcPreviewItems, setFdcPreviewItems] = useState<Record<number, FdcPreviewItem>>({});
     const [fdcGroupOverrides, setFdcGroupOverrides] = useState<Record<number, string>>({});
@@ -220,6 +222,20 @@ function AdminPage() {
             setFdcPreviewRowId(null);
             setFdcGroupOverrides({});
 
+            const nonImportableIds = new Set<number>(res.data.nonImportableFdcIds ?? []);
+            setFdcNonImportableIds(nonImportableIds);
+
+            const currentIds = new Set(foods.map((row) => row.fdcId));
+            setFdcSelectedIds((prev) => {
+                const next = new Set<number>();
+                for (const fdcId of Array.from(prev)) {
+                    if (currentIds.has(fdcId) && !nonImportableIds.has(fdcId)) {
+                        next.add(fdcId);
+                    }
+                }
+                return next;
+            });
+
             const nextItems: Record<number, FdcPreviewItem> = {};
             for (const item of res.data.previewItems ?? []) {
                 nextItems[item.fdcId] = item;
@@ -230,6 +246,7 @@ function AdminPage() {
                 ? (err.response?.data?.msg ?? err.message)
                 : String(err);
             setFdcError(msg);
+            setFdcNonImportableIds(new Set());
             setFdcPreviewItems({});
         } finally {
             setFdcLoading(false);
@@ -237,6 +254,10 @@ function AdminPage() {
     }, [fdcDataType, fdcPageSize, fdcQuery]);
 
     const toggleFdcSelected = (fdcId: number) => {
+        if (fdcNonImportableIds.has(fdcId)) {
+            return;
+        }
+
         setFdcSelectedIds((prev) => {
             const next = new Set(prev);
             if (next.has(fdcId)) {
@@ -292,6 +313,27 @@ function AdminPage() {
                 timeout: USDA_REQUEST_TIMEOUT_MS,
             });
             setFdcImportResult(res.data);
+            const failedIds = new Set<number>((res.data.failures ?? []).map((f) => f.fdc_id));
+
+            if (failedIds.size > 0) {
+                setFdcSelectedIds((prev) => {
+                    const next = new Set<number>();
+                    for (const fdcId of Array.from(prev)) {
+                        if (!failedIds.has(fdcId)) {
+                            next.add(fdcId);
+                        }
+                    }
+                    return next;
+                });
+                setFdcGroupOverrides((prev) => {
+                    const next = { ...prev };
+                    for (const fdcId of Array.from(failedIds)) {
+                        delete next[fdcId];
+                    }
+                    return next;
+                });
+            }
+
             if ((res.data.failures?.length ?? 0) === 0) {
                 setFdcSelectedIds(new Set());
                 setFdcGroupOverrides({});
@@ -647,6 +689,7 @@ function AdminPage() {
                         <USDAFoodsTable
                             foods={fdcResults}
                             selectedIds={fdcSelectedIds}
+                            nonImportableIds={fdcNonImportableIds}
                             onToggleSelected={toggleFdcSelected}
                             selectedRowId={fdcPreviewRowId}
                             onSelectRow={selectFdcPreviewRow}

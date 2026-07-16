@@ -176,10 +176,30 @@ class USDAFdcImporter:
     def nutrition_status(self, usda_food: dict[str, Any]) -> str:
         return "available" if _has_core_nutrition_data(usda_food) else "missing_core"
 
-    def _get(self, path: str, params: dict[str, Any]) -> Any:
+    def get_food_by_id(self, fdc_id: int, timeout_seconds: int | None = None) -> dict[str, Any] | None:
+        if fdc_id <= 0:
+            return None
+
+        payload = self._get(
+            f"/v1/food/{fdc_id}",
+            {"api_key": self._api_key},
+            timeout_seconds=timeout_seconds,
+        )
+
+        if not isinstance(payload, dict):
+            return None
+
+        food = cast(dict[str, Any], payload)
+        if str(food.get("dataType", "")) not in _ALLOWED_DATA_TYPES:
+            return None
+
+        return food
+
+    def _get(self, path: str, params: dict[str, Any], timeout_seconds: int | None = None) -> Any:
         url = f"{self._base_url}{path}"
         try:
-            response = req.get(url, params=params, timeout=self._timeout)
+            timeout = timeout_seconds if timeout_seconds is not None else self._timeout
+            response = req.get(url, params=params, timeout=timeout)
             response.raise_for_status()
             return response.json()
         except Exception as e:
