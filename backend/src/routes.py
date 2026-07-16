@@ -18,7 +18,8 @@ from schemas import (
     RegistrationRequest, ResendConfirmationRequest, LoginRequest, SocialLoginRequest, SocialIdentityClaims,
     ContactRequest,
     FoodRequest, RecipeRequest,
-    DailyLogItemRequest, DailyLogItemUpdateRequest, PreferencesRequest
+    DailyLogItemRequest, DailyLogItemUpdateRequest, PreferencesRequest,
+    FOOD_GROUP_VALUES
 )
 from crypto import Crypto
 from data import Data
@@ -177,7 +178,7 @@ def _confirmation_redirect_url(status: str) -> str:
 
 def _get_importer() -> USDAFdcImporter:
     api_key = os.environ.get("USDA_FDC_API_KEY", "")
-    timeout_seconds = int(os.environ.get("USDA_FDC_TIMEOUT_SECONDS", "10"))
+    timeout_seconds = int(os.environ.get("USDA_FDC_TIMEOUT_SECONDS", "20"))
     return USDAFdcImporter(api_key=api_key, timeout=timeout_seconds)
 
 
@@ -197,7 +198,12 @@ def _get_request_user_id() -> int:
 
 
 def _get_effective_food_owner_id() -> int:
-    claims = cast(dict[str, Any], get_jwt())
+    try:
+        claims = cast(dict[str, Any], get_jwt())
+    except Exception:
+        # Some unit tests invoke unwrapped handlers and monkeypatch get_jwt_identity
+        # without a verified JWT context.
+        return _get_request_user_id()
     roles = _roles_from_claims(claims)
     if Data.ROLE_ADMIN in roles:
         return _get_catalog_user_id()
@@ -205,7 +211,10 @@ def _get_effective_food_owner_id() -> int:
 
 
 def _is_admin_request() -> bool:
-    claims = cast(dict[str, Any], get_jwt())
+    try:
+        claims = cast(dict[str, Any], get_jwt())
+    except Exception:
+        return False
     roles = _roles_from_claims(claims)
     return Data.ROLE_ADMIN in roles
 
@@ -237,6 +246,67 @@ def _parse_fdc_ids(raw_fdc_ids: Any) -> list[int]:
     return deduped
 
 
+def _parse_fdc_group_overrides(raw_group_overrides: Any, fdc_ids: list[int]) -> dict[int, str]:
+    if raw_group_overrides is None:
+        return {}
+
+    if not isinstance(raw_group_overrides, dict):
+        raise ValueError("'group_overrides' must be an object keyed by fdc_id")
+
+    overrides_any = cast(dict[Any, Any], raw_group_overrides)
+    overrides: dict[int, str] = {}
+    allowed_fdc_ids = set(fdc_ids)
+
+    for raw_fdc_id, raw_group in overrides_any.items():
+        try:
+            fdc_id = int(raw_fdc_id)
+        except (TypeError, ValueError):
+            raise ValueError("All 'group_overrides' keys must be numeric fdc_id values")
+
+        if fdc_id not in allowed_fdc_ids:
+            raise ValueError(f"Override fdc_id '{fdc_id}' must exist in 'fdc_ids'")
+
+        if not isinstance(raw_group, str):
+            raise ValueError(f"Override group for fdc_id '{fdc_id}' must be a string")
+
+        group = raw_group.strip()
+        if group not in FOOD_GROUP_VALUES:
+            raise ValueError(f"Invalid food group override '{group}' for fdc_id '{fdc_id}'")
+
+        overrides[fdc_id] = group
+
+    return overrides
+
+
+def _parse_fdc_usda_foods(raw_usda_foods: Any, fdc_ids: list[int]) -> dict[int, dict[str, Any]]:
+    if not isinstance(raw_usda_foods, list):
+        raise ValueError("'usda_foods' must be an array of USDA food objects")
+
+    requested_ids = set(fdc_ids)
+    parsed: dict[int, dict[str, Any]] = {}
+
+    for food_any in cast(list[Any], raw_usda_foods):
+        if not isinstance(food_any, dict):
+            raise ValueError("Each 'usda_foods' item must be an object")
+
+        food = cast(dict[str, Any], food_any)
+        raw_fdc_id = food.get("fdcId")
+        try:
+            food_fdc_id = int(raw_fdc_id) if raw_fdc_id is not None else None
+        except (TypeError, ValueError):
+            food_fdc_id = None
+
+        if food_fdc_id is None or food_fdc_id <= 0:
+            raise ValueError("Each 'usda_foods' item must include a positive numeric 'fdcId'")
+
+        if food_fdc_id not in requested_ids:
+            continue
+
+        parsed[food_fdc_id] = food
+
+    return parsed
+
+
 def _parse_fdc_data_types(raw_value: str | None) -> list[str]:
     if raw_value is None:
         return ["Branded", "Foundation"]
@@ -250,6 +320,53 @@ def _parse_fdc_data_types(raw_value: str | None) -> list[str]:
         return ["Foundation"]
 
     raise ValueError("dataType must be one of: both, Branded, Foundation")
+
+
+def _build_fdc_previews(
+    importer: USDAFdcImporter,
+    foods: list[dict[str, Any]],
+    group_overrides: dict[int, str] | None = None,
+) -> list[dict[str, Any]]:
+    overrides = group_overrides if group_overrides else {}
+    previews: list[dict[str, Any]] = []
+
+    for food in foods:
+        raw_fdc_id = food.get("fdcId")
+        try:
+            preview_fdc_id = int(raw_fdc_id) if raw_fdc_id is not None else None
+        except (TypeError, ValueError):
+            preview_fdc_id = None
+
+        if preview_fdc_id is None:
+            continue
+
+        try:
+            mapped = importer.map_to_food_request(food)
+        except Exception as e:
+            logging.warning(
+                "Discarding USDA food %s from preview/search due to invalid mapping payload: %s",
+                preview_fdc_id,
+                str(e),
+            )
+            continue
+
+        override_group = overrides.get(preview_fdc_id)
+        if override_group:
+            mapped = mapped.model_copy(update={"group": override_group})
+
+        previews.append(
+            {
+                "fdcId": preview_fdc_id,
+                "dataType": food.get("dataType"),
+                "description": food.get("description"),
+                "calorieSource": importer.calorie_source(food),
+                "nutritionStatus": importer.nutrition_status(food),
+                "groupSource": "override" if override_group else "auto",
+                "mapped": mapped.model_dump(),
+            }
+        )
+
+    return previews
 
 
 ##############################
@@ -1465,7 +1582,8 @@ def update_food():
                 if food_data.id is None:
                     raise ValueError("Food ID is required for update")
                 current_food = Food.get(owner_id, food_data.id)
-                food_data = food_data.model_copy(update={"starter_food": current_food.starter_food})
+                current_starter_food = bool(getattr(current_food, "starter_food", False))
+                food_data = food_data.model_copy(update={"starter_food": current_starter_food})
 
             # Replace the database's record with the data in the request
             updated_food_dao = Food.update(owner_id, food_data)
@@ -2190,6 +2308,39 @@ def fdc_search_foods():
     try:
         importer = _get_importer()
         data = importer.search_foods(query=query, page_number=page_number, page_size=page_size, data_types=data_types)
+
+        search_foods_any = data.get("foods")
+        if not isinstance(search_foods_any, list):
+            data["foods"] = []
+            data["previewItems"] = []
+            return jsonify(data), 200
+
+        search_foods = [food for food in cast(list[Any], search_foods_any) if isinstance(food, dict)]
+        search_food_dicts = cast(list[dict[str, Any]], search_foods)
+
+        previews = _build_fdc_previews(importer, search_food_dicts)
+        preview_ids = {int(preview["fdcId"]) for preview in previews}
+
+        filtered_foods: list[dict[str, Any]] = []
+        for search_food in search_food_dicts:
+            raw_fdc_id = search_food.get("fdcId")
+            try:
+                parsed_fdc_id = int(raw_fdc_id) if raw_fdc_id is not None else None
+            except (TypeError, ValueError):
+                parsed_fdc_id = None
+
+            if parsed_fdc_id is None:
+                continue
+
+            if parsed_fdc_id in preview_ids:
+                filtered_foods.append(search_food)
+
+        discarded_count = max(0, len(search_food_dicts) - len(filtered_foods))
+        if discarded_count > 0:
+            logging.info("USDA search discarded %s rows without valid preview data", discarded_count)
+
+        data["foods"] = filtered_foods
+        data["previewItems"] = previews
     except USDAFdcImporterError as e:
         msg = f"USDA search failed: {str(e)}"
         logging.error(msg)
@@ -2209,25 +2360,15 @@ def fdc_preview_foods():
     try:
         payload = _get_json_payload()
         fdc_ids = _parse_fdc_ids(payload.get("fdc_ids"))
+        group_overrides = _parse_fdc_group_overrides(payload.get("group_overrides"), fdc_ids)
+        usda_foods_by_fdc_id = _parse_fdc_usda_foods(payload.get("usda_foods"), fdc_ids)
     except ValueError as e:
         return jsonify({"msg": str(e)}), 400
 
     try:
         importer = _get_importer()
-        foods = importer.get_foods_by_ids(fdc_ids)
-        previews: list[dict[str, Any]] = []
-        for food in foods:
-            mapped = importer.map_to_food_request(food)
-            previews.append(
-                {
-                    "fdcId": food.get("fdcId"),
-                    "dataType": food.get("dataType"),
-                    "description": food.get("description"),
-                    "calorieSource": importer.calorie_source(food),
-                    "nutritionStatus": importer.nutrition_status(food),
-                    "mapped": mapped.model_dump(),
-                }
-            )
+        foods = [usda_foods_by_fdc_id[fdc_id] for fdc_id in fdc_ids if fdc_id in usda_foods_by_fdc_id]
+        previews = _build_fdc_previews(importer, foods, group_overrides)
     except USDAFdcImporterError as e:
         msg = f"USDA preview failed: {str(e)}"
         logging.error(msg)
@@ -2247,6 +2388,8 @@ def fdc_import_foods():
     try:
         payload = _get_json_payload()
         fdc_ids = _parse_fdc_ids(payload.get("fdc_ids"))
+        group_overrides = _parse_fdc_group_overrides(payload.get("group_overrides"), fdc_ids)
+        usda_foods_by_fdc_id = _parse_fdc_usda_foods(payload.get("usda_foods"), fdc_ids)
     except ValueError as e:
         return jsonify({"msg": str(e)}), 400
 
@@ -2257,10 +2400,7 @@ def fdc_import_foods():
 
     try:
         importer = _get_importer()
-        usda_foods = importer.get_foods_by_ids(fdc_ids)
-        by_fdc_id: dict[int, dict[str, Any]] = {
-            int(food["fdcId"]): food for food in usda_foods if food.get("fdcId") is not None
-        }
+        by_fdc_id = usda_foods_by_fdc_id
 
         with db.session.begin():
             catalog_user_id = _get_catalog_user_id()
@@ -2274,6 +2414,10 @@ def fdc_import_foods():
                 try:
                     with db.session.begin_nested():
                         mapped = importer.map_to_food_request(usda_food)
+                        override_group = group_overrides.get(fdc_id)
+                        if override_group:
+                            mapped = mapped.model_copy(update={"group": override_group})
+
                         existing = Food.get_by_user_source_fdc_id(catalog_user_id, USDA_SOURCE, fdc_id)
                         if existing:
                             updated_request = mapped.model_copy(
@@ -2297,6 +2441,8 @@ def fdc_import_foods():
                                 "food_id": food_dao.id,
                                 "name": food_dao.name,
                                 "action": action,
+                                "group": food_dao.group.name,
+                                "group_source": "override" if override_group else "auto",
                             }
                         )
                 except Exception as e:

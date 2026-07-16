@@ -14,6 +14,7 @@ import InputAdornment from '@mui/material/InputAdornment';
 import IconButton from '@mui/material/IconButton';
 import ClearIcon from '@mui/icons-material/Clear';
 import TruncatedCell from './TruncatedCell';
+import { getFoodGroupLabel } from './FoodGroups';
 
 export type USDAFoodRow = {
     fdcId: number;
@@ -32,9 +33,18 @@ type USDAFoodsTableProps = {
     selectedRowId: number | null;
     onSelectRow: (fdcId: number) => void;
     loading: boolean;
+    mappedGroupsById: Record<number, string>;
 };
 
-function USDAFoodsTable({ foods, selectedIds, onToggleSelected, selectedRowId, onSelectRow, loading }: USDAFoodsTableProps) {
+function USDAFoodsTable({
+    foods,
+    selectedIds,
+    onToggleSelected,
+    selectedRowId,
+    onSelectRow,
+    loading,
+    mappedGroupsById,
+}: USDAFoodsTableProps) {
     const [globalFilter, setGlobalFilter] = React.useState('');
 
     const filteredFoods = React.useMemo(() => {
@@ -104,12 +114,13 @@ function USDAFoodsTable({ foods, selectedIds, onToggleSelected, selectedRowId, o
                     mb: 2,
                 }}
             >
-                <Table size="small" stickyHeader sx={{ minWidth: 950, tableLayout: 'fixed' }}>
+                <Table size="small" stickyHeader sx={{ minWidth: 1070, tableLayout: 'fixed' }}>
                     <TableHead>
                         <TableRow sx={{ '& th': { backgroundColor: 'grey.50' } }}>
                             <TableCell sx={{ fontWeight: 700, width: 90 }}>Select</TableCell>
                             <TableCell sx={{ fontWeight: 700, width: 120 }}>FDC ID</TableCell>
                             <TableCell sx={{ fontWeight: 700, width: 300 }}>Description</TableCell>
+                            <TableCell sx={{ fontWeight: 700, width: 130 }}>Group</TableCell>
                             <TableCell sx={{ fontWeight: 700, width: 120 }}>Type</TableCell>
                             <TableCell sx={{ fontWeight: 700, width: 180 }}>Brand</TableCell>
                             <TableCell sx={{ fontWeight: 700, width: 180 }}>Brand Name</TableCell>
@@ -143,6 +154,9 @@ function USDAFoodsTable({ foods, selectedIds, onToggleSelected, selectedRowId, o
                                 </TableCell>
                                 <TableCell>{food.fdcId}</TableCell>
                                 <TableCell><TruncatedCell>{food.description || '—'}</TruncatedCell></TableCell>
+                                <TableCell>
+                                    <TruncatedCell>{getFoodGroupLabel(mappedGroupsById[food.fdcId] ?? '') || '—'}</TruncatedCell>
+                                </TableCell>
                                 <TableCell><TruncatedCell>{food.dataType || '—'}</TruncatedCell></TableCell>
                                 <TableCell><TruncatedCell>{food.brandOwner || '—'}</TruncatedCell></TableCell>
                                 <TableCell><TruncatedCell>{food.brandName || '—'}</TruncatedCell></TableCell>
@@ -152,7 +166,7 @@ function USDAFoodsTable({ foods, selectedIds, onToggleSelected, selectedRowId, o
                         ))}
                         {!loading && filteredFoods.length === 0 && (
                             <TableRow>
-                                <TableCell colSpan={8} align="center" sx={{ py: 3, color: 'text.secondary' }}>
+                                <TableCell colSpan={9} align="center" sx={{ py: 3, color: 'text.secondary' }}>
                                     {foods.length === 0 ? 'No USDA results yet. Run a search to get started.' : 'No rows match your filter.'}
                                 </TableCell>
                             </TableRow>

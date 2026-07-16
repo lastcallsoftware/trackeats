@@ -1,4 +1,3 @@
-import logging
 import os
 import re
 from typing import Any, cast
@@ -87,109 +86,6 @@ class USDAFdcImporter:
             item = cast(dict[str, Any], item_any)
             data_type = str(item.get("dataType", ""))
             if data_type not in allowed_set:
-                continue
-            filtered.append(item)
-        return filtered
-
-    def get_foods_by_ids(self, fdc_ids: list[int]) -> list[dict[str, Any]]:
-        deduped_ids = list(dict.fromkeys([food_id for food_id in fdc_ids if food_id > 0]))
-        if not deduped_ids:
-            return []
-
-        foods: list[dict[str, Any]] = []
-        seen_ids: set[int] = set()
-        chunk_size = 20
-        for i in range(0, len(deduped_ids), chunk_size):
-            chunk = deduped_ids[i : i + chunk_size]
-            payloads = self._fetch_food_batch_with_fallback(chunk)
-            for item in payloads:
-                item_fdc_id = item.get("fdcId")
-                if item_fdc_id is None:
-                    continue
-                try:
-                    parsed_fdc_id = int(item_fdc_id)
-                except Exception:
-                    continue
-                foods.append(item)
-                seen_ids.add(parsed_fdc_id)
-
-        # USDA batch endpoint can intermittently omit requested IDs.
-        missing_ids = [fdc_id for fdc_id in deduped_ids if fdc_id not in seen_ids]
-        for missing_id in missing_ids:
-            retry_attempts = 3
-            for _ in range(retry_attempts):
-                retry_payload = self._post(
-                    "/v1/foods",
-                    {"fdcIds": [missing_id], "format": "full"},
-                    {"api_key": self._api_key},
-                )
-                if not isinstance(retry_payload, list):
-                    continue
-
-                found_missing_id = False
-                for retry_item_any in cast(list[Any], retry_payload):
-                    if not isinstance(retry_item_any, dict):
-                        continue
-                    retry_item = cast(dict[str, Any], retry_item_any)
-                    if str(retry_item.get("dataType", "")) not in _ALLOWED_DATA_TYPES:
-                        continue
-                    retry_fdc_id = retry_item.get("fdcId")
-                    if retry_fdc_id is None:
-                        continue
-                    try:
-                        parsed_retry_fdc_id = int(retry_fdc_id)
-                    except Exception:
-                        continue
-                    if parsed_retry_fdc_id in seen_ids:
-                        continue
-                    foods.append(retry_item)
-                    seen_ids.add(parsed_retry_fdc_id)
-                    if parsed_retry_fdc_id == missing_id:
-                        found_missing_id = True
-
-                if found_missing_id:
-                    break
-
-        return foods
-
-    def _fetch_food_batch_with_fallback(self, fdc_ids: list[int]) -> list[dict[str, Any]]:
-        if not fdc_ids:
-            return []
-
-        try:
-            payload = self._post(
-                "/v1/foods",
-                {"fdcIds": fdc_ids, "format": "full"},
-                {"api_key": self._api_key},
-            )
-            return self._coerce_food_list(payload)
-        except USDAFdcImporterError as e:
-            if len(fdc_ids) == 1:
-                logging.warning("USDA batch fetch failed for fdcId %s: %s", fdc_ids[0], str(e))
-                return []
-
-            midpoint = max(1, len(fdc_ids) // 2)
-            left_ids = fdc_ids[:midpoint]
-            right_ids = fdc_ids[midpoint:]
-            logging.warning(
-                "USDA batch fetch failed for %s ids; retrying in smaller chunks (%s + %s): %s",
-                len(fdc_ids),
-                len(left_ids),
-                len(right_ids),
-                str(e),
-            )
-            return self._fetch_food_batch_with_fallback(left_ids) + self._fetch_food_batch_with_fallback(right_ids)
-
-    def _coerce_food_list(self, payload: Any) -> list[dict[str, Any]]:
-        if not isinstance(payload, list):
-            return []
-
-        filtered: list[dict[str, Any]] = []
-        for item_any in cast(list[Any], payload):
-            if not isinstance(item_any, dict):
-                continue
-            item = cast(dict[str, Any], item_any)
-            if str(item.get("dataType", "")) not in _ALLOWED_DATA_TYPES:
                 continue
             filtered.append(item)
         return filtered
@@ -284,15 +180,6 @@ class USDAFdcImporter:
         url = f"{self._base_url}{path}"
         try:
             response = req.get(url, params=params, timeout=self._timeout)
-            response.raise_for_status()
-            return response.json()
-        except Exception as e:
-            raise USDAFdcImporterError(f"USDA request failed ({path}): {str(e)}")
-
-    def _post(self, path: str, json_payload: dict[str, Any], params: dict[str, Any]) -> Any:
-        url = f"{self._base_url}{path}"
-        try:
-            response = req.post(url, params=params, json=json_payload, timeout=self._timeout)
             response.raise_for_status()
             return response.json()
         except Exception as e:

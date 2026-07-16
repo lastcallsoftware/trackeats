@@ -306,29 +306,3 @@ def test_nutrition_status_available_when_core_nutrients_present() -> None:
     assert importer.nutrition_status(usda_food) == "available"
 
 
-def test_get_foods_by_ids_falls_back_for_ids_omitted_by_batch(monkeypatch) -> None:
-    importer = USDAFdcImporter(api_key="test-key")
-
-    post_calls: list[tuple[str, list[int]]] = []
-
-    def fake_post(path: str, json_payload: dict[str, object], params: dict[str, object]) -> list[dict[str, object]]:
-        assert path == "/v1/foods"
-        fdc_ids = [int(v) for v in json_payload["fdcIds"]]  # type: ignore[index]
-        post_calls.append((path, fdc_ids))
-        if fdc_ids == [100, 200]:
-            # Simulate USDA intermittently omitting one requested ID in batch response.
-            return [{"fdcId": 100, "dataType": "Foundation", "description": "Food 100"}]
-        if fdc_ids == [200]:
-            # Per-ID retry should recover the omitted item.
-            return [{"fdcId": 200, "dataType": "Foundation", "description": "Food 200"}]
-        return []
-
-    monkeypatch.setattr(importer, "_post", fake_post)
-
-    foods = importer.get_foods_by_ids([100, 200])
-
-    assert [int(food["fdcId"]) for food in foods] == [100, 200]
-    assert post_calls[:2] == [
-        ("/v1/foods", [100, 200]),
-        ("/v1/foods", [200]),
-    ]

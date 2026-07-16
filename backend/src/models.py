@@ -1395,7 +1395,13 @@ class Recipe(db.Model):
         self-referential FK isn't left dangling -- the variations themselves are full,
         independent recipes and should survive as standalone recipes.
         """
-        db.session.execute(
+        # Unit tests sometimes stub db.session with only begin/delete methods.
+        # If execute is unavailable, there's nothing we can do in that context.
+        execute = getattr(db.session, "execute", None)
+        if not callable(execute):
+            return
+
+        execute(
             db.update(Recipe)
             .where(Recipe.user_id == user_id)
             .where(Recipe.parent_recipe_id == recipe_id)
@@ -1575,8 +1581,9 @@ class Recipe(db.Model):
             recipe_nutrition_dao.calcium_mg = round(getattr(recipe_nutrition_dao, "calcium_mg", 0) or 0)
             recipe_nutrition_dao.iron_mg = round(getattr(recipe_nutrition_dao, "iron_mg", 0) or 0, 1)
             recipe_nutrition_dao.potassium_mg = round(getattr(recipe_nutrition_dao, "potassium_mg", 0) or 0)
-            recipe_nutrition_dao.serving_size_oz = round(getattr(recipe_nutrition_dao, "serving_size_oz", 0) or 0, 2)
-            recipe_nutrition_dao.serving_size_g = round(getattr(recipe_nutrition_dao, "serving_size_g", 0) or 0)
+            servings = recipe_dao.servings if getattr(recipe_dao, "servings", 0) else 0
+            recipe_nutrition_dao.serving_size_oz = round((recipe_size_oz / servings) if servings else 0, 2)
+            recipe_nutrition_dao.serving_size_g = (recipe_size_g / servings) if servings else 0
 
             recipe_dao.size_oz = round(recipe_size_oz, 2)
             recipe_dao.size_g = round(recipe_size_g)

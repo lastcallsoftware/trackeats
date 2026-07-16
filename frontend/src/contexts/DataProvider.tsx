@@ -273,6 +273,7 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
     // Store navigate in a ref so it never triggers re-renders or stale
     // dependency issues in useCallback/useEffect.
     const navigateRef = useRef(useNavigate())
+    const sessionExpiryHandledRef = useRef(false)
 
     const removeToken = useCallback(() => {
         sessionStorage.removeItem("access_token")
@@ -296,6 +297,9 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
             setAccessToken(nextAccessToken)
             setUsername(nextUsername)
             setRoles(getRolesFromToken(nextAccessToken))
+            if (nextAccessToken) {
+                sessionExpiryHandledRef.current = false
+            }
             if (!nextAccessToken) {
                 setFoods([])
                 setRecipes([])
@@ -329,6 +333,7 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
                 const status = error.response?.status;
                 const url = error.config?.url ?? "";
                 const hasToken = !!sessionStorage.getItem("access_token");
+                const isSessionExpiryFollowUp = sessionExpiryHandledRef.current;
                 const isPublicAuthEndpoint = [
                     "/api/register",
                     "/api/resend_confirmation",
@@ -338,10 +343,13 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
                     "/api/reset_password",
                 ].some((path) => url.includes(path));
 
-                if (status === 401 && hasToken && !isPublicAuthEndpoint) {
+                if (status === 401 && !isPublicAuthEndpoint && (hasToken || isSessionExpiryFollowUp)) {
                     error.trackeatsSessionExpired = true;
-                    removeToken();
-                    navigateRef.current("/login", { state: { message: "Your token has expired and you have been logged out." } });
+                    if (!isSessionExpiryFollowUp && hasToken) {
+                        sessionExpiryHandledRef.current = true;
+                        removeToken();
+                        navigateRef.current("/login", { state: { message: "Your token has expired and you have been logged out." } });
+                    }
                 }
                 return Promise.reject(error);
             }

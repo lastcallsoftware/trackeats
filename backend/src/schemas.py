@@ -165,6 +165,19 @@ class NutritionRequest(BaseModel):
 ##############################
 # FOOD
 ##############################
+FOOD_GROUP_VALUES = {
+    "beverages", "condiments", "dairy", "fatsAndSugars",
+    "fruits", "grains", "herbsAndSpices", "nutsAndSeeds",
+    "preparedFoods", "proteins", "vegetables", "other"
+}
+
+
+def validate_food_group_value(value: str) -> str:
+    if value not in FOOD_GROUP_VALUES:
+        raise ValueError(f"Invalid food group: {value}. Must be one of {FOOD_GROUP_VALUES}")
+    return value
+
+
 class FoodRequest(BaseModel):
     """Validate a food creation or update request."""
     id: int | None = None  # None for POST, set for PUT
@@ -190,14 +203,7 @@ class FoodRequest(BaseModel):
     @field_validator("group")
     @classmethod
     def validate_group(cls, v: str) -> str:
-        valid_groups = {
-            "beverages", "condiments", "dairy", "fatsAndSugars",
-            "fruits", "grains", "herbsAndSpices", "nutsAndSeeds",
-            "preparedFoods", "proteins", "vegetables", "other"
-        }
-        if v not in valid_groups:
-            raise ValueError(f"Invalid food group: {v}. Must be one of {valid_groups}")
-        return v
+        return validate_food_group_value(v)
 
     @field_validator("name")
     @classmethod

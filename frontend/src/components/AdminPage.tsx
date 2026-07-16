@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useRef } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import axios from 'axios';
 import Box from '@mui/material/Box';
 import Paper from '@mui/material/Paper';
@@ -30,6 +30,7 @@ import { MdDeleteForever, MdRefresh } from 'react-icons/md';
 import DataPageLayout from './DataPageLayout';
 import USDAFoodsTable from './USDAFoodsTable';
 import { NutritionLabel } from './NutritionLabel';
+import { foodGroups, getFoodGroupLabel } from './FoodGroups';
 import { INutrition } from '@/contexts/DataProvider';
 
 // ── Types ────────────────────────────────────────────────────────────────────
@@ -56,6 +57,7 @@ type FdcSearchFood = {
     brandName?: string;
     packageWeight?: string;
     modifiedDate?: string;
+    [key: string]: unknown;
 };
 
 type FdcSearchResponse = {
@@ -63,6 +65,7 @@ type FdcSearchResponse = {
     currentPage: number;
     totalPages: number;
     foods: FdcSearchFood[];
+    previewItems?: FdcPreviewItem[];
 };
 
 type FdcDataTypeFilter = 'both' | 'Branded' | 'Foundation';
@@ -72,6 +75,8 @@ type FdcImportItem = {
     food_id: number;
     name: string;
     action: 'created' | 'updated';
+    group?: string;
+    group_source?: 'auto' | 'override';
 };
 
 type FdcImportResponse = {
@@ -90,7 +95,9 @@ type FdcPreviewResponse = {
         description?: string;
         calorieSource?: string;
         nutritionStatus?: string;
+        groupSource?: 'auto' | 'override';
         mapped?: {
+            group?: string;
             nutrition?: INutrition;
         };
     }>;
@@ -163,12 +170,11 @@ function AdminPage() {
     const [fdcSelectedIds, setFdcSelectedIds] = useState<Set<number>>(new Set());
     const [fdcPreviewRowId, setFdcPreviewRowId] = useState<number | null>(null);
     const [fdcPreviewItems, setFdcPreviewItems] = useState<Record<number, FdcPreviewItem>>({});
-    const [fdcPreviewLoading, setFdcPreviewLoading] = useState(false);
+    const [fdcGroupOverrides, setFdcGroupOverrides] = useState<Record<number, string>>({});
     const [fdcLoading, setFdcLoading] = useState(false);
     const [fdcImporting, setFdcImporting] = useState(false);
     const [fdcError, setFdcError] = useState<string | null>(null);
     const [fdcImportResult, setFdcImportResult] = useState<FdcImportResponse | null>(null);
-    const fdcPreviewRequestSeq = useRef(0);
 
     const fetchUsers = useCallback(async () => {
         setLoading(true);
@@ -187,44 +193,6 @@ function AdminPage() {
     }, []);
 
     useEffect(() => { fetchUsers(); }, [fetchUsers]);
-
-    const fetchFdcPreviews = useCallback(async (foods: FdcSearchFood[]) => {
-        const fdcIds = foods.map((food) => food.fdcId);
-        if (fdcIds.length === 0) {
-            setFdcPreviewItems({});
-            setFdcPreviewLoading(false);
-            return;
-        }
-
-        const requestSeq = ++fdcPreviewRequestSeq.current;
-        setFdcPreviewLoading(true);
-        setFdcPreviewItems({});
-
-        try {
-            const res = await axios.post<FdcPreviewResponse>('/api/import/fdc/preview', {
-                fdc_ids: fdcIds,
-            }, {
-                timeout: USDA_REQUEST_TIMEOUT_MS,
-            });
-            if (requestSeq !== fdcPreviewRequestSeq.current) {
-                return;
-            }
-
-            const nextItems: Record<number, FdcPreviewItem> = {};
-            for (const item of res.data.items ?? []) {
-                nextItems[item.fdcId] = item;
-            }
-            setFdcPreviewItems(nextItems);
-        } catch {
-            if (requestSeq === fdcPreviewRequestSeq.current) {
-                setFdcPreviewItems({});
-            }
-        } finally {
-            if (requestSeq === fdcPreviewRequestSeq.current) {
-                setFdcPreviewLoading(false);
-            }
-        }
-    }, []);
 
     const runFdcSearch = useCallback(async (pageNumber: number) => {
         const query = fdcQuery.trim();
@@ -250,18 +218,23 @@ function AdminPage() {
             setFdcTotalPages(res.data.totalPages ?? 0);
             setFdcPageNumber(res.data.currentPage ?? pageNumber);
             setFdcPreviewRowId(null);
-            setFdcPreviewLoading(false);
-            void fetchFdcPreviews(foods);
+            setFdcGroupOverrides({});
+
+            const nextItems: Record<number, FdcPreviewItem> = {};
+            for (const item of res.data.previewItems ?? []) {
+                nextItems[item.fdcId] = item;
+            }
+            setFdcPreviewItems(nextItems);
         } catch (err: unknown) {
             const msg = axios.isAxiosError(err)
                 ? (err.response?.data?.msg ?? err.message)
                 : String(err);
             setFdcError(msg);
-            setFdcPreviewLoading(false);
+            setFdcPreviewItems({});
         } finally {
             setFdcLoading(false);
         }
-    }, [fdcDataType, fdcPageSize, fdcQuery, fetchFdcPreviews]);
+    }, [fdcDataType, fdcPageSize, fdcQuery]);
 
     const toggleFdcSelected = (fdcId: number) => {
         setFdcSelectedIds((prev) => {
@@ -282,17 +255,46 @@ function AdminPage() {
             return;
         }
 
+        const selectedRowsById = new Map<number, FdcSearchFood>(fdcResults.map((row) => [row.fdcId, row]));
+        const selectedUsdaFoods: Record<string, unknown>[] = [];
+        for (const fdcId of selected) {
+            const row = selectedRowsById.get(fdcId);
+            if (!row) {
+                setFdcError(`Selected USDA food ${fdcId} is no longer available in current search results.`);
+                return;
+            }
+            selectedUsdaFoods.push(row as Record<string, unknown>);
+        }
+
         setFdcImporting(true);
         setFdcError(null);
         try {
+            const selectedGroupOverrides = selected.reduce<Record<number, string>>((acc, fdcId) => {
+                const overrideGroup = fdcGroupOverrides[fdcId];
+                if (!overrideGroup) {
+                    return acc;
+                }
+
+                const mappedGroup = fdcPreviewItems[fdcId]?.mapped?.group;
+                if (mappedGroup && mappedGroup === overrideGroup) {
+                    return acc;
+                }
+
+                acc[fdcId] = overrideGroup;
+                return acc;
+            }, {});
+
             const res = await axios.post<FdcImportResponse>('/api/import/fdc/import', {
                 fdc_ids: selected,
+                group_overrides: selectedGroupOverrides,
+                usda_foods: selectedUsdaFoods,
             }, {
                 timeout: USDA_REQUEST_TIMEOUT_MS,
             });
             setFdcImportResult(res.data);
             if ((res.data.failures?.length ?? 0) === 0) {
                 setFdcSelectedIds(new Set());
+                setFdcGroupOverrides({});
             }
         } catch (err: unknown) {
             const msg = axios.isAxiosError(err)
@@ -307,6 +309,46 @@ function AdminPage() {
     const selectFdcPreviewRow = useCallback((fdcId: number) => {
         setFdcPreviewRowId(fdcId);
     }, []);
+
+    const setSelectedFdcGroup = useCallback((group: string) => {
+        if (!fdcPreviewRowId) {
+            return;
+        }
+
+        setFdcGroupOverrides((prev) => {
+            const next = { ...prev };
+            const mappedGroup = fdcPreviewItems[fdcPreviewRowId]?.mapped?.group;
+            if (!group || (mappedGroup && group === mappedGroup)) {
+                delete next[fdcPreviewRowId];
+                return next;
+            }
+            next[fdcPreviewRowId] = group;
+            return next;
+        });
+    }, [fdcPreviewItems, fdcPreviewRowId]);
+
+    const applySelectedGroupToSelectedRows = useCallback(() => {
+        if (!fdcPreviewRowId) {
+            return;
+        }
+        const effectiveGroup = fdcGroupOverrides[fdcPreviewRowId] || fdcPreviewItems[fdcPreviewRowId]?.mapped?.group;
+        if (!effectiveGroup) {
+            return;
+        }
+
+        setFdcGroupOverrides((prev) => {
+            const next = { ...prev };
+            for (const fdcId of Array.from(fdcSelectedIds)) {
+                const mappedGroup = fdcPreviewItems[fdcId]?.mapped?.group;
+                if (mappedGroup && mappedGroup === effectiveGroup) {
+                    delete next[fdcId];
+                } else {
+                    next[fdcId] = effectiveGroup;
+                }
+            }
+            return next;
+        });
+    }, [fdcGroupOverrides, fdcPreviewItems, fdcPreviewRowId, fdcSelectedIds]);
 
     // ── Sorting ──────────────────────────────────────────────────────────────
 
@@ -387,16 +429,31 @@ function AdminPage() {
     );
 
     const selectedFdcPreview = fdcPreviewRowId ? fdcPreviewItems[fdcPreviewRowId] ?? null : null;
+    const selectedFdcMappedGroup = selectedFdcPreview?.mapped?.group ?? '';
+    const selectedFdcEffectiveGroup = (fdcPreviewRowId && fdcGroupOverrides[fdcPreviewRowId])
+        ? fdcGroupOverrides[fdcPreviewRowId]
+        : selectedFdcMappedGroup;
     const selectedFdcNutrition = selectedFdcPreview?.mapped?.nutrition ?? null;
     const selectedFdcCalorieSource = selectedFdcPreview?.calorieSource ?? null;
     const selectedFdcNutritionStatus = selectedFdcPreview?.nutritionStatus ?? null;
-    const selectedFdcPreviewPending = Boolean(fdcPreviewRowId) && fdcPreviewLoading && !selectedFdcPreview;
+    const selectedFdcPreviewPending = Boolean(fdcPreviewRowId) && fdcLoading && !selectedFdcPreview;
     const selectedFdcPreviewUnavailable = Boolean(fdcPreviewRowId)
         && !selectedFdcPreviewPending
         && !selectedFdcPreview;
     const selectedFdcPreviewMissingCore = Boolean(fdcPreviewRowId)
         && !selectedFdcPreviewPending
         && selectedFdcNutritionStatus === 'missing_core';
+    const mappedGroupsById = fdcResults.reduce<Record<number, string>>((acc, row) => {
+        const fdcId = row.fdcId;
+        const overrideGroup = fdcGroupOverrides[fdcId];
+        const mappedGroup = fdcPreviewItems[fdcId]?.mapped?.group;
+        if (overrideGroup) {
+            acc[fdcId] = overrideGroup;
+        } else if (mappedGroup) {
+            acc[fdcId] = mappedGroup;
+        }
+        return acc;
+    }, {});
 
     const mainContent = (
         <>
@@ -594,6 +651,7 @@ function AdminPage() {
                             selectedRowId={fdcPreviewRowId}
                             onSelectRow={selectFdcPreviewRow}
                             loading={fdcLoading}
+                            mappedGroupsById={mappedGroupsById}
                         />
                     </Box>
                     <Box
@@ -684,6 +742,42 @@ function AdminPage() {
                                             ? 'Calories source: N/A (missing in USDA record)'
                                             : calorieSourceLabel(selectedFdcCalorieSource)))}
                             </Typography>
+                            {selectedFdcPreview && !selectedFdcPreviewPending && !selectedFdcPreviewUnavailable && (
+                                <Stack spacing={0.75} sx={{ width: 280 }}>
+                                    <TextField
+                                        label="Food group"
+                                        size="small"
+                                        select
+                                        value={selectedFdcEffectiveGroup}
+                                        onChange={(e) => setSelectedFdcGroup(e.target.value)}
+                                    >
+                                        {foodGroups.filter((group) => group.value).map((group) => (
+                                            <MenuItem key={group.value} value={group.value}>{group.label}</MenuItem>
+                                        ))}
+                                    </TextField>
+                                    <Typography variant="caption" color="text.secondary">
+                                        Auto-mapped group: {getFoodGroupLabel(selectedFdcMappedGroup) || 'Unknown'}
+                                    </Typography>
+                                    <Stack direction="row" spacing={1}>
+                                        <Button
+                                            variant="text"
+                                            size="small"
+                                            disabled={!selectedFdcMappedGroup || selectedFdcEffectiveGroup === selectedFdcMappedGroup}
+                                            onClick={() => setSelectedFdcGroup(selectedFdcMappedGroup)}
+                                        >
+                                            Reset to Auto
+                                        </Button>
+                                        <Button
+                                            variant="text"
+                                            size="small"
+                                            disabled={!selectedFdcEffectiveGroup || fdcSelectedIds.size < 2}
+                                            onClick={applySelectedGroupToSelectedRows}
+                                        >
+                                            Apply to Selected
+                                        </Button>
+                                    </Stack>
+                                </Stack>
+                            )}
                         </Box>
                     </Box>
                 </Box>
