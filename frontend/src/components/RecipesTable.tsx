@@ -117,8 +117,8 @@ const columns = [
                 header: () => <span>Serving Size (oz)</span>,
                 cell: info => {
                     const servings = info.row.original.servings || 1;
-                    const val = info.getValue();
-                    return formatSignificantDigit((val / servings) as number | null | undefined);
+                    const totalSizeOz = info.row.original.size_oz;
+                    return formatSignificantDigit((totalSizeOz / servings) as number | null | undefined);
                 },
                 size: 80
             }),
@@ -126,8 +126,8 @@ const columns = [
                 header: () => <span>Serving Size (g)</span>,
                 cell: info => {
                     const servings = info.row.original.servings || 1;
-                    const val = info.getValue();
-                    return (val / servings).toFixed(0);
+                    const totalSizeG = info.row.original.size_g;
+                    return (totalSizeG / servings).toFixed(0);
                 },
                 size: 80
             }),

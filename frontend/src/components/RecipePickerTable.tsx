@@ -89,12 +89,18 @@ const recipePickerColumns = [
             }),
             columnHelper.accessor("nutrition.serving_size_oz", {
                 header: () => <span>Serving Size (oz)</span>,
-                cell: info => info.getValue(),
+                cell: info => {
+                    const servings = info.row.original.servings || 1;
+                    return (info.row.original.size_oz / servings).toFixed(2);
+                },
                 size: 80,
             }),
             columnHelper.accessor("nutrition.serving_size_g", {
                 header: () => <span>Serving Size (g)</span>,
-                cell: info => info.getValue(),
+                cell: info => {
+                    const servings = info.row.original.servings || 1;
+                    return (info.row.original.size_g / servings).toFixed(0);
+                },
                 size: 80,
             }),
             columnHelper.accessor("nutrition.calories", {

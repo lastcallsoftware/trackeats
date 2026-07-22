@@ -165,6 +165,8 @@ function RecipeForm() {
     });
     const recipeId = useWatch({ control, name: "id" }) as number | undefined;
     const recipeServings = Number((useWatch({ control, name: "servings" }) as number | undefined) ?? 0);
+    const recipeSizeOz = Number((useWatch({ control, name: "size_oz" }) as number | undefined) ?? 0);
+    const recipeSizeG = Number((useWatch({ control, name: "size_g" }) as number | undefined) ?? 0);
     const recipeNutrition =
         (useWatch({ control, name: "nutrition" }) as RecipeFormValues["nutrition"] | undefined) ?? initialRecipe.nutrition;
 
@@ -541,8 +543,9 @@ function RecipeForm() {
 
     const perServingNutrition: INutrition = {
         serving_size_description: recipeNutrition.serving_size_description,
-        serving_size_oz: recipeNutrition.serving_size_oz / (recipeServings > 0 ? recipeServings : 1),
-        serving_size_g: recipeNutrition.serving_size_g / (recipeServings > 0 ? recipeServings : 1),
+        // Use total recipe weight fields so serving size is always divided by servings exactly once.
+        serving_size_oz: recipeSizeOz / (recipeServings > 0 ? recipeServings : 1),
+        serving_size_g: recipeSizeG / (recipeServings > 0 ? recipeServings : 1),
         calories: recipeNutrition.calories / (recipeServings > 0 ? recipeServings : 1),
         total_fat_g: recipeNutrition.total_fat_g / (recipeServings > 0 ? recipeServings : 1),
         saturated_fat_g: recipeNutrition.saturated_fat_g / (recipeServings > 0 ? recipeServings : 1),
