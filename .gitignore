@@ -100,3 +100,6 @@ skills-lock.json
 .agents/
 .claude/
 .pi/
+
+# plan files used by agents
+plans/
