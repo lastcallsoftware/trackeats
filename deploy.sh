@@ -19,15 +19,15 @@ fi
 # On a fresh server, nginx can't start without certs, and certbot can't run without nginx.
 # We break this deadlock by starting nginx with a temporary self-signed cert, running certbot,
 # then reloading nginx with the real cert.
-if ! echo "$APP_SERVER_PASSWORD" | sudo -S test -d "/etc/letsencrypt/live/lastcallsw.com"; then
+if ! echo "$APP_SERVER_PASSWORD" | sudo -S test -d "/etc/letsencrypt/live/lastcallsoftware.com"; then
     echo "No certificates found, bootstrapping..."
 
     # Generate a self-signed cert
-    echo "$APP_SERVER_PASSWORD" | sudo -S mkdir -p /etc/letsencrypt/live/lastcallsw.com
+    echo "$APP_SERVER_PASSWORD" | sudo -S mkdir -p /etc/letsencrypt/live/lastcallsoftware.com
     echo "$APP_SERVER_PASSWORD" | sudo -S openssl req -x509 -nodes -newkey rsa:2048 -days 1 \
-        -keyout /etc/letsencrypt/live/lastcallsw.com/privkey.pem \
-        -out /etc/letsencrypt/live/lastcallsw.com/fullchain.pem \
-        -subj "/CN=lastcallsw.com"
+        -keyout /etc/letsencrypt/live/lastcallsoftware.com/privkey.pem \
+        -out /etc/letsencrypt/live/lastcallsoftware.com/fullchain.pem \
+        -subj "/CN=lastcallsoftware.com"
     echo "✓ Temporary self-signed cert created"
 
     # Start nginx with the self-signed cert
@@ -39,9 +39,9 @@ if ! echo "$APP_SERVER_PASSWORD" | sudo -S test -d "/etc/letsencrypt/live/lastca
     echo "✓ Nginx is healthy"
 
     # Remove self-signed cert so certbot uses the correct directory name
-    echo "$APP_SERVER_PASSWORD" | sudo -S rm -rf /etc/letsencrypt/live/lastcallsw.com
-    echo "$APP_SERVER_PASSWORD" | sudo -S rm -rf /etc/letsencrypt/archive/lastcallsw.com
-    echo "$APP_SERVER_PASSWORD" | sudo -S rm -rf /etc/letsencrypt/renewal/lastcallsw.com.conf
+    echo "$APP_SERVER_PASSWORD" | sudo -S rm -rf /etc/letsencrypt/live/lastcallsoftware.com
+    echo "$APP_SERVER_PASSWORD" | sudo -S rm -rf /etc/letsencrypt/archive/lastcallsoftware.com
+    echo "$APP_SERVER_PASSWORD" | sudo -S rm -rf /etc/letsencrypt/renewal/lastcallsoftware.com.conf
 
     # Run certbot to get the real cert
     docker run --rm \
@@ -49,9 +49,9 @@ if ! echo "$APP_SERVER_PASSWORD" | sudo -S test -d "/etc/letsencrypt/live/lastca
         -v /var/www/certbot:/var/www/certbot \
         certbot/certbot certonly --webroot \
         -w /var/www/certbot \
-        -d lastcallsw.com -d www.lastcallsw.com \
-        -d pwholmes.lastcallsw.com \
-        -d trackeats.lastcallsw.com \
+        -d lastcallsoftware.com -d www.lastcallsoftware.com \
+        -d pwholmes.lastcallsoftware.com \
+        -d trackeats.lastcallsoftware.com \
         --email pwholmes151@gmail.com \
         --agree-tos \
         --non-interactive
