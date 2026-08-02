@@ -22,7 +22,7 @@ Local DB: run `docker-compose up db` and the MySQL container is enough; no need 
 
 ## Production deployment
 
-GitHub Actions builds Docker images on push to `main`, pushes to Docker Hub (`lastcallsoftware/trackeats-frontend`, `lastcallsoftware/trackeats-backend`), then SSHes to the app server (`lastcallsw.com`) and runs [deploy.sh](deploy.sh), which `docker compose pull && up`s. Nginx fronts the frontend container and terminates TLS (Let's Encrypt via certbot). See [.github/workflows/deploy.yml](.github/workflows/deploy.yml).
+GitHub Actions builds Docker images on push to `main`, pushes to Docker Hub (`lastcallsoftware/trackeats-frontend`, `lastcallsoftware/trackeats-backend`), then SSHes to the app server (`lastcallsoftware.com`) and runs [deploy.sh](deploy.sh), which `docker compose pull && up`s. Nginx fronts the frontend container and terminates TLS (Let's Encrypt via certbot). See [.github/workflows/deploy.yml](.github/workflows/deploy.yml).
 
 Secrets come from GitHub Secrets in prod and `.env` locally. The `${VAR:?}` syntax in [docker-compose.yml](docker-compose.yml) is the canonical list of what the backend container needs.
 
@@ -48,7 +48,7 @@ Secrets come from GitHub Secrets in prod and `.env` locally. The `${VAR:?}` synt
 - Backend code uses verbose, conversational comments by design (this is a portfolio/learning project). Match that style in backend Python; don't strip them. Frontend/mobile TS code is terser — match what's already there.
 - Frontend uses **MUI v7** + Emotion. Forms use **react-hook-form + zod**. State for cross-page data lives in [frontend/src/contexts/DataProvider.tsx](frontend/src/contexts/DataProvider.tsx).
 - Mobile uses **expo-router**, **zustand** for state, **@tanstack/react-query** for server state, **yup** (not zod) for validation, **expo-secure-store** for token storage.
-- `frontend/lastcallsw/` and `frontend/portfolio/` are sibling static sites bundled into the same Nginx container — not part of the React app itself.
+- `frontend/lastcallsoftware/` and `frontend/portfolio/` are sibling static sites bundled into the same Nginx container — not part of the React app itself.
 - Tests: backend has [backend/tests/](backend/tests/) split into `unit/` and `integration/` (pytest, `@pytest.mark.integration` for the latter). Mobile uses Jest (`npm test` in [mobile/](mobile/)). Frontend has no test suite yet.
 
 ## Useful entry points when starting a task

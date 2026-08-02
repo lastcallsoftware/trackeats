@@ -33,7 +33,7 @@ ENV NODE_ENV=production
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 COPY --from=build /app/dist /usr/share/nginx/html
 COPY portfolio/ /usr/share/nginx/portfolio/
-COPY lastcallsw/ /usr/share/nginx/lastcallsw/
+COPY lastcallsoftware/ /usr/share/nginx/lastcallsoftware/
 #COPY certs/ /etc/ssl/certs/
 
 RUN sed -i "s|__BACKEND_BASE_URL__|${VITE_BACKEND_BASE_URL}|g" /usr/share/nginx/portfolio/index.html

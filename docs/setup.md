@@ -30,7 +30,7 @@ Your home directory is also the best place to store projects.  I highly recommen
 5. Log on to the trackeats server and change your password
 This assumes you already have an account on the app server.  How that happens is beyond the scope of this document.
 From an Ubuntu command prompt, enter:
-    ssh username@lastcallsw.com
+    ssh username@lastcallsoftware.com
 You will be prompted for your password on the app server, which you should already have been given separately.
 Once you are successfully logged on to the server, change your password:
     passwd
@@ -47,11 +47,11 @@ Technically you can use this keypair for any purpose that requires SSH authentic
 7. Upload your public key to the trackeats server
 There are several ways to do this.  I'll give you the "standard" way.
 From an Ubuntu command prompt, enter:
-    ssh-copy-id username@lastcallsw.com
+    ssh-copy-id username@lastcallsoftware.com
 This command prompts you for your userID and password on the server, then logs on, appends the contents of your publc key file to the server's ~/.ssh/authorized_keys file, and logs out.  This assumes your public key file is stored in your local ~/.ssh directory and has one of the standard recognized names, which should be the case if you followed previous instructions.  If not, you must specify the private key file's name with the -i parameter.
 You can now log on to the server without typing a password any more.  The ssh command will use your key file to authenticate you.  Test it out!
 From an Ubuntu command prompt, enter:
-    ssh username@lastcallsw.com
+    ssh username@lastcallsoftware.com
 After verifying that it works, log out of the server:
     exit
 

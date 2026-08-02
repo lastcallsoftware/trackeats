@@ -289,7 +289,7 @@ class Sendmail:
     # from botocore.exceptions import ClientError, WaiterError
     # ------------------------------------------
     # def sendmail_boto3(email_address: str):
-    #     sender_email_address = "admin@lastcallsw.com"
+    #     sender_email_address = "admin@lastcallsoftware.com"
     #     message_subject = "TrackEats User Verification"
     #     message_text = "Hello from TrackEats!"
     #     message_html = "<p>Hello from <b>TrackEats!</b></p>"

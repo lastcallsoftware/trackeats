@@ -1012,7 +1012,7 @@ body.trackeats-mobile-lightbox-open .glightbox-container .gslide-desc {
   transform: scale(1.1);
 }
 
-.portfolio .portfolio-content a[href="https://trackeats.lastcallsw.com/about"] {
+.portfolio .portfolio-content a[href="https://trackeats.lastcallsoftware.com/about"] {
   display: block;
   text-align: center;
   margin-top: 15px;
@@ -1022,7 +1022,7 @@ body.trackeats-mobile-lightbox-open .glightbox-container .gslide-desc {
   transition: color 0.3s ease;
 }
 
-.portfolio .portfolio-content a[href="https://trackeats.lastcallsw.com/about"]:hover {
+.portfolio .portfolio-content a[href="https://trackeats.lastcallsoftware.com/about"]:hover {
   color: var(--heading-color);
 }
 
