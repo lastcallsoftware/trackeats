@@ -100,13 +100,20 @@ def minimal_app_config() -> Flask:
         from sqlalchemy import inspect
         inspector = inspect(db.engine)
         if 'user' not in inspector.get_table_names():
+            # Crypto library needs to be initialized before we can initialize the database, because
+            # the database initialization code needs to encrypt some values.
+            symmetric_key_b64 = os.environ.get("BACKEND_ENCRYPTION_KEY_B64")
+            if not symmetric_key_b64:
+                logging.error("BACKEND_ENCRYPTION_KEY_B64 is missing -- exiting.")
+                sys.exit(1)
+            Crypto.initialize(symmetric_key_b64)
+
             Data.init_db()
             from flask_migrate import stamp
             stamp()
             logging.info("Fresh schema created and stamped at head.")
         else:
             logging.info("Schema already exists; skipping init-db.")
-
 
     return app
 
