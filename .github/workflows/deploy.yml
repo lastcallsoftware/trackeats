@@ -75,10 +75,10 @@ jobs:
           script: |
             set -euo pipefail
             TARGET_DIR="/srv/trackeats"
-            # Create directory and set ownership to the deploy user; requires sudo
-            sudo mkdir -p "$TARGET_DIR"
-            sudo chown $USER:$USER "$TARGET_DIR" || true
-            echo "Ensured $TARGET_DIR exists and is owned by $USER"
+            if [ -d "$TARGET_DIR" ]; then echo "✓ $TARGET_DIR exists" && exit 0; fi
+            echo "${APP_SERVER_PASSWORD:-}" | sudo -S mkdir -p "$TARGET_DIR"
+            echo "${APP_SERVER_PASSWORD:-}" | sudo -S chown "$USER:$USER" "$TARGET_DIR" || true
+            echo "✓ Created $TARGET_DIR" && exit 0
 
       - name: Copy deployment files to app server
         uses: appleboy/scp-action@master
