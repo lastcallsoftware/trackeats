@@ -1,4 +1,6 @@
-from sqlalchemy import delete, inspect
+from flask_migrate import stamp
+from sqlalchemy import delete, inspect, text
+from crypto import Crypto
 from models import db, User, UserStatus, Food, Recipe, Ingredient, Nutrition, DailyLogItem
 from schemas import FoodRequest, RecipeRequest, IngredientRequest
 #from sqlalchemy import select
@@ -52,10 +54,12 @@ class Data:
             do_init = True
         else:
             inspector = inspect(db.engine)
-            if 'user' in inspector.get_table_names():
-                logging.info("User table found and overrride not engaged; NOT initiating schema refresh")
+            has_stamp = inspector.has_table("alembic_version") and \
+                db.session.execute(text("SELECT 1 FROM alembic_version")).first() is not None
+            if has_stamp:
+                logging.info("Database already stamped; NOT initiating schema refresh")
             else:
-                logging.info("User table not found; initiating schema refresh")
+                logging.info("Database not stamped; initiating schema refresh")
                 do_init = True
 
         if do_init:
@@ -63,6 +67,7 @@ class Data:
             db.drop_all()
             logging.warning("RECREATING DATABASE SCHEMA")
             db.create_all()
+            stamp()
 
         # Always make sure the key user logins have been created
         Data.add_users()
@@ -165,6 +170,13 @@ class Data:
         """
         logging.info("Adding/updating critical User records...")
         
+        # Crypto library needs to be initialized before we can initialize the database, because
+        # the database initialization code needs to encrypt some values.
+        symmetric_key_b64 = os.environ.get("BACKEND_ENCRYPTION_KEY_B64")
+        if not symmetric_key_b64:
+            raise ValueError("BACKEND_ENCRYPTION_KEY_B64 is missing.")
+        Crypto.initialize(symmetric_key_b64)
+
         admin_password = os.environ.get("APP_ADMIN_PASSWORD")
         if not admin_password:
             raise ValueError("APP_ADMIN_PASSWORD not set")
