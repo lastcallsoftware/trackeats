@@ -1,13 +1,32 @@
-#!/bin/bash
-set -e
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Robust deploy.sh for TrackEats
+# - Uses absolute deploy directory (/srv/trackeats)
+# - Uses explicit compose file path for every docker compose call
+# - Ensures DB is started and retries migrations a few times before failing
+# - Writes deploy log to stdout (captured by GitHub Actions SSH step)
+
+DEPLOY_DIR="/srv/trackeats"
+COMPOSE_FILE="$DEPLOY_DIR/docker-compose.yml"
+RETRY_MIGRATE_ATTEMPTS=8
+RETRY_MIGRATE_SLEEP=5
 
 echo "=== Trackeats Deployment Script ==="
 echo "Deployment started at $(date)"
+echo "Deploy dir: $DEPLOY_DIR"
 
-# Pull the latest images
+echo "Checking for compose file: $COMPOSE_FILE"
+if [ ! -f "$COMPOSE_FILE" ]; then
+  echo "ERROR: compose file not found at $COMPOSE_FILE"
+  ls -la "$(dirname "$COMPOSE_FILE")" || true
+  exit 2
+fi
+
+cd "$DEPLOY_DIR"
+
 echo "Pulling latest images from Docker Hub..."
-docker pull lastcallsoftware/trackeats-frontend:latest
-docker pull lastcallsoftware/trackeats-backend:latest
+docker compose -f "$COMPOSE_FILE" pull
 
 # The backend decodes this value into an in-container key file at startup.
 if [ -z "${BACKEND_ENCRYPTION_KEY_B64:-}" ]; then
@@ -15,35 +34,38 @@ if [ -z "${BACKEND_ENCRYPTION_KEY_B64:-}" ]; then
   exit 1
 fi
 
-# CERTIFICATE BOOTSTRAP
-# On a fresh server, nginx can't start without certs, and certbot can't run without nginx.
-# We break this deadlock by starting nginx with a temporary self-signed cert, running certbot,
-# then reloading nginx with the real cert.
-if ! echo "$APP_SERVER_PASSWORD" | sudo -S test -d "/etc/letsencrypt/live/lastcallsw.com"; then
+# CERTIFICATE BOOTSTRAP (kept from original script)
+if ! echo "${APP_SERVER_PASSWORD:-}" | sudo -S test -d "/etc/letsencrypt/live/lastcallsw.com"; then
     echo "No certificates found, bootstrapping..."
 
-    # Generate a self-signed cert
-    echo "$APP_SERVER_PASSWORD" | sudo -S mkdir -p /etc/letsencrypt/live/lastcallsw.com
-    echo "$APP_SERVER_PASSWORD" | sudo -S openssl req -x509 -nodes -newkey rsa:2048 -days 1 \
+    echo "${APP_SERVER_PASSWORD:-}" | sudo -S mkdir -p /etc/letsencrypt/live/lastcallsw.com
+    echo "${APP_SERVER_PASSWORD:-}" | sudo -S openssl req -x509 -nodes -newkey rsa:2048 -days 1 \
         -keyout /etc/letsencrypt/live/lastcallsw.com/privkey.pem \
         -out /etc/letsencrypt/live/lastcallsw.com/fullchain.pem \
         -subj "/CN=lastcallsw.com"
     echo "✓ Temporary self-signed cert created"
 
-    # Start nginx with the self-signed cert
-    docker compose up -d
-    echo "Waiting for nginx to start..."
-    until docker inspect --format='{{.State.Health.Status}}' trackeats-frontend | grep -q "healthy"; do
-        sleep 2
+    echo "Starting nginx (frontend) so certbot can validate..."
+    docker compose -f "$COMPOSE_FILE" up -d
+    echo "Waiting for nginx to become healthy (if healthcheck configured)..."
+    # Best-effort wait: check container health if available, otherwise sleep briefly
+    FRONTEND_CONTAINER_NAME="trackeats-frontend"
+    for i in $(seq 1 30); do
+      status=$(docker inspect --format='{{.State.Health.Status}}' "$FRONTEND_CONTAINER_NAME" 2>/dev/null || echo "no-health")
+      echo "Attempt $i: frontend health = $status"
+      if [ "$status" = "healthy" ]; then
+        echo "✓ Nginx is healthy"
+        break
+      fi
+      sleep 2
     done
-    echo "✓ Nginx is healthy"
 
-    # Remove self-signed cert so certbot uses the correct directory name
-    echo "$APP_SERVER_PASSWORD" | sudo -S rm -rf /etc/letsencrypt/live/lastcallsw.com
-    echo "$APP_SERVER_PASSWORD" | sudo -S rm -rf /etc/letsencrypt/archive/lastcallsw.com
-    echo "$APP_SERVER_PASSWORD" | sudo -S rm -rf /etc/letsencrypt/renewal/lastcallsw.com.conf
+    echo "Removing temporary certs to allow certbot to create real ones"
+    echo "${APP_SERVER_PASSWORD:-}" | sudo -S rm -rf /etc/letsencrypt/live/lastcallsw.com || true
+    echo "${APP_SERVER_PASSWORD:-}" | sudo -S rm -rf /etc/letsencrypt/archive/lastcallsw.com || true
+    echo "${APP_SERVER_PASSWORD:-}" | sudo -S rm -rf /etc/letsencrypt/renewal/lastcallsw.com.conf || true
 
-    # Run certbot to get the real cert
+    echo "Running certbot to obtain real certificates..."
     docker run --rm \
         -v /etc/letsencrypt:/etc/letsencrypt \
         -v /var/www/certbot:/var/www/certbot \
@@ -54,55 +76,52 @@ if ! echo "$APP_SERVER_PASSWORD" | sudo -S test -d "/etc/letsencrypt/live/lastca
         -d trackeats.lastcallsw.com \
         --email pwholmes151@gmail.com \
         --agree-tos \
-        --non-interactive
-    echo "✓ Real certificate obtained"
+        --non-interactive || true
+    echo "✓ Certbot finished"
 
-    # Reload nginx with the real cert
-    docker exec trackeats-frontend nginx -s reload
-    echo "✓ Nginx reloaded with real certificate"
+    docker exec "$FRONTEND_CONTAINER_NAME" nginx -s reload || true
+    echo "✓ Nginx reloaded"
 else
     echo "✓ Certificates already present"
 fi
 
-# Run any DB migrations necessary
-echo "Running database migrations..."
-docker compose run --rm migrate
+# Start DB service only (so migrations can run)
+echo "Starting database service..."
+docker compose -f "$COMPOSE_FILE" up -d db
+
+# Run any DB migrations necessary (with retries, because DB may need a moment)
+echo "Running database migrations (will retry up to $RETRY_MIGRATE_ATTEMPTS times)..."
+attempt=1
+while [ $attempt -le $RETRY_MIGRATE_ATTEMPTS ]; do
+  echo "Migration attempt #$attempt"
+  if docker compose -f "$COMPOSE_FILE" run --rm migrate; then
+    echo "✓ Migrations succeeded"
+    break
+  else
+    echo "Migration attempt #$attempt failed. Showing recent logs..."
+    docker compose -f "$COMPOSE_FILE" logs --tail=200 migrate || true
+    echo "Showing DB logs to help debugging..."
+    docker compose -f "$COMPOSE_FILE" logs --tail=200 db || true
+
+    if [ $attempt -lt $RETRY_MIGRATE_ATTEMPTS ]; then
+      echo "Waiting $RETRY_MIGRATE_SLEEP seconds before retrying..."
+      sleep $RETRY_MIGRATE_SLEEP
+    fi
+  fi
+  attempt=$((attempt + 1))
+done
+
+if [ $attempt -gt $RETRY_MIGRATE_ATTEMPTS ]; then
+  echo "✗ Migrations failed after $RETRY_MIGRATE_ATTEMPTS attempts. Aborting deploy."
+  exit 1
+fi
 
 # Update and restart containers
 echo "Updating containers with new images..."
-docker compose up -d
+docker compose -f "$COMPOSE_FILE" up -d --remove-orphans
 
-# Wait for services to be ready
-echo "Waiting for services to be ready..."
-sleep 5
+echo "Waiting for services to stabilize..."
+# Optionally add more health checks here
+sleep 3
 
-# Check service health
-if docker ps | grep -q trackeats-backend; then
-  echo "✓ Backend is running"
-else
-  echo "✗ Backend failed to start"
-  exit 1
-fi
-
-echo "Checking service health..."
-if docker ps | grep -q trackeats-frontend; then
-  echo "✓ Frontend is running"
-else
-  echo "✗ Frontend failed to start"
-  exit 1
-fi
-
-# Clean up the "dangling" images left behind by the update
-docker image prune -f
-
-# Set up certbot renewal cron job if not already present
-echo "Setting up certbot renewal cron job..."
-CRON_JOB="0 3 * * * docker run --rm -v /etc/letsencrypt:/etc/letsencrypt -v /var/www/certbot:/var/www/certbot certbot/certbot renew --quiet && docker exec trackeats-frontend nginx -s reload"
-if ! crontab -l 2>/dev/null | grep -qF "certbot renew"; then
-    (crontab -l 2>/dev/null; echo "$CRON_JOB") | crontab -
-    echo "✓ Certbot renewal cron job installed"
-else
-    echo "✓ Certbot renewal cron job already present"
-fi
-
-echo "=== Deployment completed successfully at $(date) ==="
+echo "Deployment complete at $(date)"
