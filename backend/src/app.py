@@ -94,6 +94,20 @@ def minimal_app_config() -> Flask:
     # Register the app's "blueprints" -- the REST endpoints defined in routes.py.
     app.register_blueprint(bp)
 
+    # Create a CLI command to initialize the database schema if it doesn't already exist.
+    @app.cli.command("init-db")
+    def init_db_command():
+        from sqlalchemy import inspect
+        inspector = inspect(db.engine)
+        if 'user' not in inspector.get_table_names():
+            Data.init_db()
+            from flask_migrate import stamp
+            stamp()
+            logging.info("Fresh schema created and stamped at head.")
+        else:
+            logging.info("Schema already exists; skipping init-db.")
+
+
     return app
 
 

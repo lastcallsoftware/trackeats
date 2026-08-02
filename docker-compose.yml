@@ -90,7 +90,7 @@ services:
 
   migrate:
     image: lastcallsoftware/trackeats-backend:latest
-    command: flask db upgrade
+    command: sh -c "flask init-db && flask db upgrade"
     depends_on:
       db:
         condition: service_healthy
