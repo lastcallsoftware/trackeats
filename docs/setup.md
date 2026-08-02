@@ -114,3 +114,81 @@ In VS Code, click Ctrl+Shift+P to open the Command Palette, find and execute "Gi
 
 17. Build and run the app
 At this point your environment is set up and you should be able to build and run the app.  Follow the instructions in the README.md.
+
+
+###############################################################################
+# Configure deployuser on a new Ubuntu application server
+###############################################################################
+
+# 1. Create the deployment user (you will be prompted for a password)
+sudo adduser deployuser
+
+# 2. Grant sudo privileges
+sudo usermod -aG sudo deployuser
+
+# 3. Grant access to Docker
+sudo usermod -aG docker deployuser
+
+# 4. Create the SSH directory
+sudo mkdir -p /home/deployuser/.ssh
+sudo chmod 700 /home/deployuser/.ssh
+
+# 5. Create the authorized_keys file
+sudo nano /home/deployuser/.ssh/authorized_keys
+
+# Paste the contents of deployuser's public key (.pub file) as a single line,
+# then save and exit.
+
+# 6. Set ownership and permissions
+sudo chmod 600 /home/deployuser/.ssh/authorized_keys
+sudo chown -R deployuser:deployuser /home/deployuser/.ssh
+
+# 7. Verify group membership
+groups deployuser
+
+# Expected output should include:
+# deployuser : deployuser sudo docker
+
+# Disable password logins (if necessary; it's often the default on cloud servers):
+# Edit /etc/ssh/sshd_config
+# Set the following value:
+# PasswordAuthentication no
+# The restart SSH:
+# sudo systemctl restart ssh
+
+###############################################################################
+# Test from your LOCAL development machine
+###############################################################################
+
+# Log in using the new deployment key
+ssh -i ~/.ssh/<deploy_private_key> deployuser@<server>
+
+# Verify the account
+whoami
+# Expected:
+# deployuser
+
+# Verify sudo
+sudo whoami
+# Expected:
+# root
+
+# Verify Docker access
+docker ps
+# Expected:
+# Docker responds without a permission error.
+
+###############################################################################
+# GitHub configuration
+###############################################################################
+
+# Update (or verify) the following GitHub Secrets:
+#
+#   SSH_PRIVATE_KEY     -> deployuser's private key (including BEGIN/END lines)
+#   APP_SERVER_PASSWORD -> deployuser's password
+#
+# Update the workflow (if not already done):
+#
+#   username: deployuser
+#
+# Run a manual deployment from GitHub Actions to verify everything works.
