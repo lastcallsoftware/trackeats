@@ -128,6 +128,21 @@ export type INutrition = {
     calcium_mg: number
     iron_mg: number
     potassium_mg: number
+    // Structured serving fields (Slice H — read from API responses)
+    serving_value: number | null
+    serving_unit: string | null
+    serving_unit_kind: string | null
+}
+
+export type INutritionAlternative = {
+    id: number
+    food_id: number
+    nutrition_id: number
+    nutrition: INutrition
+    serving_value: number
+    serving_unit: string
+    serving_unit_kind: string
+    ordinal: number
 }
 
 export type IFood = {
@@ -154,6 +169,11 @@ export type IFood = {
     fdc_id?: number | null
     fdc_data_type?: string | null
     starter_food?: boolean
+    // Structured size fields (Slice H — read from API responses)
+    size_value: number | null
+    size_unit: string | null
+    size_unit_kind: string | null
+    nutrition_alternatives: INutritionAlternative[]
 }
 
 type CatalogFoodsResponse = {
@@ -195,6 +215,10 @@ export type IRecipe = {
     price_per_serving?: number
     price_per_calorie: number
     parent_recipe_id?: number | null  // set when this recipe is a variation of another
+    // Structured size fields (Slice H — read from API responses)
+    size_value: number | null
+    size_unit: string | null
+    size_unit_kind: string | null
 }
 
 export type IDailyLogItem = {

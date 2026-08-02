@@ -21,7 +21,14 @@ export function formatRecipeMetaLine(
 export function formatRecipeSizeLine(
   sizeG: number | null,
   sizeOz: number | null,
+  sizeValue?: number | null,
+  sizeUnit?: string | null,
 ): string | null {
+  // Prefer structured size when available
+  if (sizeValue != null && sizeUnit) {
+    return `${sizeValue} ${sizeUnit}`
+  }
+
   const parts = [
     sizeG != null ? `${sizeG} g` : null,
     sizeOz != null ? `${sizeOz} oz` : null,

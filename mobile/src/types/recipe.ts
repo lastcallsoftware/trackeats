@@ -32,4 +32,8 @@ export type IRecipe = {
   price_per_calorie?: number
   // Set when this recipe is a variation copied from another recipe.
   parent_recipe_id: number | null
+  // Structured size fields (Slice J — read from API responses)
+  size_value: number | null
+  size_unit: string | null
+  size_unit_kind: string | null
 }

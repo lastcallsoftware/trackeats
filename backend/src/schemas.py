@@ -160,11 +160,52 @@ class NutritionRequest(BaseModel):
     calcium_mg: int | None = 0
     iron_mg: float | None = 0
     potassium_mg: int | None = 0
+    # Structured serving fields (Slice D — accepted in write requests)
+    serving_value: float | None = None
+    serving_unit: str | None = None
+    serving_unit_kind: str | None = None
+
+    @field_validator("serving_value")
+    @classmethod
+    def validate_serving_value(cls, v: float | None) -> float | None:
+        if v is not None and v <= 0:
+            raise ValueError("serving_value must be positive")
+        return v
+
+    @field_validator("serving_unit_kind")
+    @classmethod
+    def validate_serving_unit_kind(cls, v: str | None) -> str | None:
+        if v is not None and v not in ("mass", "volume", "household", "unknown"):
+            raise ValueError("serving_unit_kind must be one of: mass, volume, household, unknown")
+        return v
 
 
 ##############################
 # FOOD
 ##############################
+class NutritionAlternativeRequest(BaseModel):
+    """Validated payload for a single nutrition alternative (serving view)."""
+    serving_value: float
+    serving_unit: str
+    serving_unit_kind: str
+    ordinal: int = 0
+    nutrition: NutritionRequest
+
+    @field_validator("serving_value")
+    @classmethod
+    def validate_serving_value(cls, v: float) -> float:
+        if v <= 0:
+            raise ValueError("serving_value must be positive")
+        return v
+
+    @field_validator("serving_unit_kind")
+    @classmethod
+    def validate_serving_unit_kind(cls, v: str) -> str:
+        if v not in ("mass", "volume", "household", "unknown"):
+            raise ValueError("serving_unit_kind must be one of: mass, volume, household, unknown")
+        return v
+
+
 class FoodRequest(BaseModel):
     """Validate a food creation or update request."""
     id: int | None = None  # None for POST, set for PUT
@@ -185,7 +226,26 @@ class FoodRequest(BaseModel):
     price: float | None = None
     price_date: str | None = None
     shelf_life: str | None = None
+    # Structured size fields (Slice D — accepted in write requests)
+    size_value: float | None = None
+    size_unit: str | None = None
+    size_unit_kind: str | None = None
     nutrition: NutritionRequest
+    nutrition_alternatives: list[NutritionAlternativeRequest] = []
+
+    @field_validator("size_value")
+    @classmethod
+    def validate_size_value(cls, v: float | None) -> float | None:
+        if v is not None and v <= 0:
+            raise ValueError("size_value must be positive")
+        return v
+
+    @field_validator("size_unit_kind")
+    @classmethod
+    def validate_size_unit_kind(cls, v: str | None) -> str | None:
+        if v is not None and v not in ("mass", "volume", "household", "unknown"):
+            raise ValueError("size_unit_kind must be one of: mass, volume, household, unknown")
+        return v
 
     @field_validator("group")
     @classmethod
@@ -280,8 +340,26 @@ class RecipeRequest(BaseModel):
     nutrition: NutritionRequest
     price: float | None = None
     parent_recipe_id: int | None = None  # set when this recipe is a variation of another
+    # Structured size fields (Slice D — accepted in write requests)
+    size_value: float | None = None
+    size_unit: str | None = None
+    size_unit_kind: str | None = None
     # Ingredients (passed through to model layer as typed objects)
     ingredients: list[IngredientRequest] = Field(default_factory=_empty_ingredient_requests)
+
+    @field_validator("size_value")
+    @classmethod
+    def validate_size_value(cls, v: float | None) -> float | None:
+        if v is not None and v <= 0:
+            raise ValueError("size_value must be positive")
+        return v
+
+    @field_validator("size_unit_kind")
+    @classmethod
+    def validate_size_unit_kind(cls, v: str | None) -> str | None:
+        if v is not None and v not in ("mass", "volume", "household", "unknown"):
+            raise ValueError("size_unit_kind must be one of: mass, volume, household, unknown")
+        return v
 
     @field_validator("name")
     @classmethod

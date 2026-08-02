@@ -16,11 +16,12 @@ import { RecipeCompositionView } from '@/components/RecipeCompositionView'
 import { INutrition } from '@/types/food'
 import { formatRecipeMetaLine, formatRecipeSizeLine } from '@/utils/recipeFormatting'
 
-type NumericNutritionField = Exclude<keyof INutrition, 'serving_size_description'>
+type NumericNutritionField = Exclude<keyof INutrition, 'serving_size_description' | 'serving_unit' | 'serving_unit_kind'>
 
 const NUMERIC_NUTRITION_FIELDS: NumericNutritionField[] = [
   'serving_size_oz',
   'serving_size_g',
+  'serving_value',
   'calories',
   'total_fat_g',
   'saturated_fat_g',
@@ -161,7 +162,7 @@ export const RecipeDetailScreen: React.FC<RecipeDetailScreenProps> = ({
       ? (pricePerServing * 100) / caloriesPerServing
       : null
 
-  const sizeLine = formatRecipeSizeLine(recipe.size_g, recipe.size_oz)
+  const sizeLine = formatRecipeSizeLine(recipe.size_g, recipe.size_oz, recipe.size_value, recipe.size_unit)
 
   // Related recipes: the base this is a variation of (if any), and this recipe's own
   // variations.  Read-only navigation between related recipes.

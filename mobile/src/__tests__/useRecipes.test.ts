@@ -35,6 +35,9 @@ const sampleNutrition: INutrition = {
   calcium_mg: 200,
   iron_mg: 3,
   potassium_mg: 400,
+serving_value: null,
+serving_unit: null,
+serving_unit_kind: null,
 }
 
 // Sample recipe data for tests
@@ -53,6 +56,9 @@ const sampleRecipes: IRecipe[] = [
     price: 12.5,
     price_per_serving: 3.13,
     price_per_calorie: 0.025,
+  size_value: null,
+  size_unit: null,
+  size_unit_kind: null,
   },
   {
     id: 2,
@@ -68,6 +74,9 @@ const sampleRecipes: IRecipe[] = [
     price: 15.0,
     price_per_serving: 2.5,
     price_per_calorie: 0.03,
+  size_value: null,
+  size_unit: null,
+  size_unit_kind: null,
   },
   {
     id: 3,
@@ -83,6 +92,9 @@ const sampleRecipes: IRecipe[] = [
     price: 10.0,
     price_per_serving: 2.5,
     price_per_calorie: 0.02,
+  size_value: null,
+  size_unit: null,
+  size_unit_kind: null,
   },
   {
     id: 4,
@@ -98,6 +110,9 @@ const sampleRecipes: IRecipe[] = [
     price: 5.0,
     price_per_serving: 2.5,
     price_per_calorie: 0.01,
+  size_value: null,
+  size_unit: null,
+  size_unit_kind: null,
   },
 ]
 

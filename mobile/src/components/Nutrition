@@ -3,7 +3,7 @@
  * Maps all 18 nutrition fields to USDA label order
  *
  * When nutritionAlternatives are provided, a horizontal row of toggle
- * pills appears above the label allowing the user to switch between
+ * buttons appears above the label allowing the user to switch between
  * the primary serving and each alternative.
  */
 
@@ -90,9 +90,8 @@ export const NutritionLabel: React.FC<NutritionLabelProps> = ({
   // -1 = primary, 0+ = alternative index
   const [selectedIndex, setSelectedIndex] = useState(-1);
 
-  const hasAlternatives = Boolean(
-    nutritionAlternatives && nutritionAlternatives.length > 0
-  );
+  const hasAlternatives =
+    nutritionAlternatives && nutritionAlternatives.length > 0;
 
   const activeNutrition: INutrition =
     selectedIndex >= 0 && hasAlternatives
@@ -146,7 +145,7 @@ export const NutritionLabel: React.FC<NutritionLabelProps> = ({
 
   return (
     <ScrollView style={{ paddingHorizontal: 16, paddingVertical: 12 }}>
-      {/* ── Serving view switcher (horizontal pill row) ── */}
+      {/* Serving view switcher */}
       {hasAlternatives && (
         <ScrollView
           horizontal
@@ -254,7 +253,8 @@ export const NutritionLabel: React.FC<NutritionLabelProps> = ({
               fontSize: emphasizeCalories && field === 'calories' ? 16 : 14,
               color: '#333',
               flex: 1,
-              fontWeight: emphasizeCalories && field === 'calories' ? '700' : '400',
+              fontWeight:
+                emphasizeCalories && field === 'calories' ? '700' : '400',
             }}
           >
             {NUTRITION_FIELD_LABELS[field]}
@@ -263,7 +263,8 @@ export const NutritionLabel: React.FC<NutritionLabelProps> = ({
             style={{
               fontSize: emphasizeCalories && field === 'calories' ? 16 : 14,
               color: '#333',
-              fontWeight: emphasizeCalories && field === 'calories' ? '800' : '600',
+              fontWeight:
+                emphasizeCalories && field === 'calories' ? '800' : '600',
             }}
           >
             {formatValue(activeNutrition[field])}

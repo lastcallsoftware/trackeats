@@ -282,12 +282,25 @@ export function generateIngredientSummary(
         }
     }
 
-    // Weight annotation — only when non-zero
+    // Weight annotation — prefer structured serving fields when available;
+    // fall back to legacy oz/g for older data.
+    const structuredWeight = (() => {
+        const sv = nutrition.serving_value;
+        const su = nutrition.serving_unit;
+        const sk = nutrition.serving_unit_kind;
+        if (sv != null && su && sk != null && (sk === "mass" || sk === "volume")) {
+            return ` (${(sv * servings).toFixed(1)} ${su})`;
+        }
+        return null;
+    })();
+
     const oz = (nutrition.serving_size_oz ?? 0) * servings;
     const g  = (nutrition.serving_size_g  ?? 0) * servings;
-    const weightStr = oz > 0 || g > 0
+    const legacyWeight = oz > 0 || g > 0
         ? ` (${oz.toFixed(1)} oz/${g.toFixed(1)} g)`
         : "";
+
+    const weightStr = structuredWeight ?? legacyWeight;
 
     return `${unitLine} ${name}${weightStr}`.trim();
 }

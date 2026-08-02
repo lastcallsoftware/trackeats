@@ -131,6 +131,16 @@ const columns = [
                 },
                 size: 80
             }),
+            columnHelper.accessor("nutrition.serving_value", {
+                header: () => <span>Serving Value</span>,
+                cell: info => info.getValue(),
+                size: 100
+            }),
+            columnHelper.accessor("nutrition.serving_unit", {
+                header: () => <span>Serving Unit</span>,
+                cell: info => info.getValue(),
+                size: 100
+            }),
             columnHelper.accessor("nutrition.calories", {
                 header: () => <span>Calories</span>,
                 cell: info => {

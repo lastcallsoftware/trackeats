@@ -65,6 +65,9 @@ const emptyNutritionTotals = (): INutrition => ({
     calcium_mg: 0,
     iron_mg: 0,
     potassium_mg: 0,
+    serving_value: null,
+    serving_unit: null,
+    serving_unit_kind: null,
 });
 
 const nutritionSchema = z.object({
@@ -86,6 +89,9 @@ const nutritionSchema = z.object({
     calcium_mg: z.coerce.number().min(0, "Must be 0 or greater"),
     iron_mg: z.coerce.number().min(0, "Must be 0 or greater"),
     potassium_mg: z.coerce.number().min(0, "Must be 0 or greater"),
+    serving_value: z.coerce.number().positive("Must be greater than 0").nullable().optional(),
+    serving_unit: z.string().max(50, "Must be 50 characters or fewer").nullable().optional(),
+    serving_unit_kind: z.enum(["mass", "volume", "household", "unknown"]).nullable().optional(),
 });
 
 const recipeSchema = z.object({
@@ -102,6 +108,9 @@ const recipeSchema = z.object({
     price_per_serving: z.coerce.number().optional(),
     price_per_calorie: z.coerce.number().min(0, "Must be 0 or greater").optional().default(0),
     parent_recipe_id: z.number().nullish(),  // set when this recipe is a variation of another
+    size_value: z.coerce.number().positive("Must be greater than 0").nullable().optional(),
+    size_unit: z.string().max(50, "Must be 50 characters or fewer").nullable().optional(),
+    size_unit_kind: z.enum(["mass", "volume", "household", "unknown"]).nullable().optional(),
 });
 
 type RecipeFormInput = z.input<typeof recipeSchema>;
@@ -195,10 +204,18 @@ function RecipeForm() {
             return
         }
 
-        const recipeToSave = {
+        const recipeToSave: IRecipe = {
             ...data,
-            nutrition: normalizeNutritionForApi(data.nutrition),
+            nutrition: {
+                ...normalizeNutritionForApi(data.nutrition),
+                serving_value: data.nutrition.serving_value ?? null,
+                serving_unit: data.nutrition.serving_unit ?? null,
+                serving_unit_kind: data.nutrition.serving_unit_kind ?? null,
+            },
             price: totalRecipePrice,
+            size_value: data.size_value ?? null,
+            size_unit: data.size_unit ?? null,
+            size_unit_kind: data.size_unit_kind ?? null,
         };
 
         if (isEditMode) {
@@ -558,6 +575,9 @@ function RecipeForm() {
         calcium_mg: recipeNutrition.calcium_mg / (recipeServings > 0 ? recipeServings : 1),
         iron_mg: recipeNutrition.iron_mg / (recipeServings > 0 ? recipeServings : 1),
         potassium_mg: recipeNutrition.potassium_mg / (recipeServings > 0 ? recipeServings : 1),
+        serving_value: recipeNutrition.serving_value ?? null,
+        serving_unit: recipeNutrition.serving_unit ?? null,
+        serving_unit_kind: recipeNutrition.serving_unit_kind ?? null,
     };
 
     const returnTo = searchParams.get("returnTo");

@@ -29,6 +29,9 @@ export function aggregateNutrition(items: IDailyLogItem[]): INutrition {
     calcium_mg: 0,
     iron_mg: 0,
     potassium_mg: 0,
+    serving_value: null,
+    serving_unit: null,
+    serving_unit_kind: null,
   }
 
   // Sum numeric fields across all items with non-null nutrition

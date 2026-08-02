@@ -30,6 +30,11 @@ export const FoodDetailScreen: React.FC<FoodDetailScreenProps> = ({ foodId: prop
       return '—';
     }
 
+    // Prefer structured size when available
+    if (food.size_value != null && food.size_unit) {
+      return `${food.size_value} ${food.size_unit}`;
+    }
+
     const weightParts = [
       food.size_g != null ? `${food.size_g} g` : null,
       food.size_oz != null ? `${food.size_oz} oz` : null,
@@ -122,6 +127,7 @@ export const FoodDetailScreen: React.FC<FoodDetailScreenProps> = ({ foodId: prop
           nutrition={food.nutrition}
           servings={food.servings}
           servingSizeDescription={food.nutrition.serving_size_description}
+          nutritionAlternatives={food.nutrition_alternatives}
           trailingRows={[
             { label: 'Price / serving', value: formatCurrency(pricePerServing) },
             { label: 'Price / 100 calories', value: formatCurrency(pricePer100Calories) },

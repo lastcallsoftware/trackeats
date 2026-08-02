@@ -24,6 +24,9 @@ const mockNutrition: INutrition = {
   calcium_mg: 300,
   iron_mg: 1.5,
   potassium_mg: 400,
+serving_value: null,
+serving_unit: null,
+serving_unit_kind: null,
 };
 
 describe('NutritionLabel', () => {

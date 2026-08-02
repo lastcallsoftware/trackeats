@@ -35,6 +35,9 @@ const sampleNutrition: INutrition = {
   calcium_mg: 200,
   iron_mg: 2,
   potassium_mg: 300,
+serving_value: null,
+serving_unit: null,
+serving_unit_kind: null,
 }
 
 // Sample daily log items for tests

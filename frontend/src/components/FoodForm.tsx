@@ -5,7 +5,7 @@ import { foodGroups } from "./FoodGroups";
 import TitleCard from "./TitleCard";
 import { useData, Food } from "@/utils/useData";
 import { useToast } from "@/contexts/ToastContext";
-import { Controller, useForm } from "react-hook-form";
+import { Controller, useForm, useWatch, useFieldArray } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -20,7 +20,23 @@ import {
     Alert,
     FormControlLabel,
     Checkbox,
+    Accordion,
+    AccordionSummary,
+    AccordionDetails,
+    IconButton,
 } from '@mui/material';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
+import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutline';
+
+const CANONICAL_MASS_UNITS: string[] = ["g", "oz", "lb", "kg"];
+const CANONICAL_VOLUME_UNITS: string[] = ["ml", "cup", "tbsp", "tsp", "fl oz", "L"];
+
+const getCanonicalUnitsForKind = (kind: string | null | undefined): string[] => {
+    if (kind === "mass") return CANONICAL_MASS_UNITS;
+    if (kind === "volume") return CANONICAL_VOLUME_UNITS;
+    return [];
+};
 
 const nutritionSchema = z.object({
     serving_size_description: z.string().max(50, "Must be 50 characters or fewer"),
@@ -41,6 +57,18 @@ const nutritionSchema = z.object({
     calcium_mg: z.coerce.number().int("Must be an integer").min(0, "Must be 0 or greater"),
     iron_mg: z.coerce.number().min(0, "Must be 0 or greater"),
     potassium_mg: z.coerce.number().min(0, "Must be 0 or greater"),
+    // Structured serving fields (Slice I — accepted in form submits)
+    serving_value: z.coerce.number().positive("Must be greater than 0").nullable().optional(),
+    serving_unit: z.string().max(50, "Must be 50 characters or fewer").nullable().optional(),
+    serving_unit_kind: z.enum(["mass", "volume", "household", "unknown"]).nullable().optional(),
+});
+
+const nutritionAlternativeSchema = z.object({
+    serving_value: z.coerce.number().positive("Must be greater than 0"),
+    serving_unit: z.string().min(1, "Unit is required").max(50),
+    serving_unit_kind: z.enum(["mass", "volume", "household", "unknown"]),
+    ordinal: z.coerce.number().int().min(0).default(0),
+    nutrition: nutritionSchema,
 });
 
 const foodSchema = z.object({
@@ -66,10 +94,65 @@ const foodSchema = z.object({
         .string()
         .refine((value) => value === "" || /^\d{4}-\d{2}-\d{2}$/.test(value), "Invalid date format"),
     shelf_life: z.string().max(150, "Must be 150 characters or fewer"),
+    nutrition_alternatives: z.array(nutritionAlternativeSchema).optional().default([]),
 });
 
 type FoodFormInput = z.input<typeof foodSchema>;
 type FoodFormValues = z.output<typeof foodSchema>;
+
+// ── Serving unit field: canonical dropdown for mass/volume, free text for household/unknown ──
+const ServingUnitField: React.FC<{
+    control: ReturnType<typeof useForm<FoodFormInput>>["control"];
+    errors: ReturnType<typeof useForm<FoodFormInput>>["formState"]["errors"];
+}> = ({ control, errors }) => {
+    const unitKind = useWatch({ control, name: "nutrition.serving_unit_kind" });
+    const canonicalUnits = getCanonicalUnitsForKind(unitKind);
+
+    if (unitKind === "mass" || unitKind === "volume") {
+        // Clear serving_unit when switching away from these kinds
+        return (
+            <Controller
+                name="nutrition.serving_unit"
+                control={control}
+                render={({ field }) => (
+                    <TextField
+                        select
+                        label="Serving Unit"
+                        id="serving_unit"
+                        value={canonicalUnits.includes(field.value ?? "") ? (field.value ?? "") : ""}
+                        onChange={(e) => field.onChange(e.target.value || null)}
+                        onBlur={field.onBlur}
+                        inputRef={field.ref}
+                        error={!!errors.nutrition?.serving_unit}
+                        helperText={errors.nutrition?.serving_unit?.message}
+                        size="small"
+                        sx={{ flex: 1, '& .MuiInputBase-input': { py: 0.75 } }}
+                    >
+                        <MenuItem value=""><em>Select unit</em></MenuItem>
+                        {canonicalUnits.map(u => (
+                            <MenuItem key={u} value={u}>{u}</MenuItem>
+                        ))}
+                    </TextField>
+                )}
+            />
+        );
+    }
+
+    // Free-text for household / unknown / legacy
+    return (
+        <TextField
+            label="Serving Unit"
+            id="serving_unit"
+            {...control.register("nutrition.serving_unit")}
+            error={!!errors.nutrition?.serving_unit}
+            helperText={errors.nutrition?.serving_unit?.message}
+            inputProps={{ maxLength: 50 }}
+            placeholder={unitKind === "household" ? "e.g. slice, medium banana" : ""}
+            size="small"
+            sx={{ flex: 1, '& .MuiInputBase-input': { py: 0.75 } }}
+        />
+    );
+};
 
 
 function FoodForm() {
@@ -103,6 +186,47 @@ function FoodForm() {
     useEffect(() => {
         window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
     }, []);
+
+    // Alternatives field array
+    const { fields: altFields, append, remove } = useFieldArray({
+        control,
+        name: "nutrition_alternatives",
+    });
+
+    // Build a default empty nutrition object for alternative pre-population
+    const emptyNutrition = {
+        serving_size_description: "",
+        serving_size_oz: 0,
+        serving_size_g: 0,
+        calories: 0,
+        total_fat_g: 0,
+        saturated_fat_g: 0,
+        trans_fat_g: 0,
+        cholesterol_mg: 0,
+        sodium_mg: 0,
+        total_carbs_g: 0,
+        fiber_g: 0,
+        total_sugar_g: 0,
+        added_sugar_g: 0,
+        protein_g: 0,
+        vitamin_d_mcg: 0,
+        calcium_mg: 0,
+        iron_mg: 0,
+        potassium_mg: 0,
+        serving_value: null as number | null,
+        serving_unit: null as string | null,
+        serving_unit_kind: null as "mass" | "volume" | "household" | "unknown" | null,
+    };
+
+    const handleAddAlternative = () => {
+        append({
+            serving_value: 0,
+            serving_unit: "g",
+            serving_unit_kind: "mass" as const,
+            ordinal: altFields.length,
+            nutrition: { ...emptyNutrition },
+        });
+    };
 
     const onSubmit = async (data: FoodFormValues) => {
         if (!canWrite) {
@@ -488,6 +612,46 @@ function FoodForm() {
                         />
                     </Box>
 
+                    <Box sx={{ display: 'flex', gap: 1, mb: 1 }}>
+                        <Controller
+                            name="nutrition.serving_unit_kind"
+                            control={control}
+                            render={({ field }) => (
+                                <TextField
+                                    select
+                                    label="Unit Kind"
+                                    id="serving_unit_kind"
+                                    value={field.value ?? ""}
+                                    onChange={field.onChange}
+                                    onBlur={field.onBlur}
+                                    inputRef={field.ref}
+                                    error={!!errors.nutrition?.serving_unit_kind}
+                                    helperText={errors.nutrition?.serving_unit_kind?.message}
+                                    size="small"
+                                    sx={{ flex: 1, '& .MuiInputBase-input': { py: 0.75 } }}
+                                >
+                                    <MenuItem value=""><em>None (legacy)</em></MenuItem>
+                                    <MenuItem value="mass">Mass</MenuItem>
+                                    <MenuItem value="volume">Volume</MenuItem>
+                                    <MenuItem value="household">Household</MenuItem>
+                                    <MenuItem value="unknown">Unknown</MenuItem>
+                                </TextField>
+                            )}
+                        />
+                        <TextField
+                            label="Serving Value"
+                            id="serving_value"
+                            type="number"
+                            {...register("nutrition.serving_value", { valueAsNumber: true })}
+                            error={!!errors.nutrition?.serving_value}
+                            helperText={errors.nutrition?.serving_value?.message}
+                            inputProps={{ min: 0, step: 0.01 }}
+                            size="small"
+                            sx={{ flex: 1, '& .MuiInputBase-input': { py: 0.75 } }}
+                        />
+                        <ServingUnitField control={control} errors={errors} />
+                    </Box>
+
                     <Divider sx={{ borderBottomWidth: 2, my: 1 }} />
 
                     <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 0.5 }}>
@@ -573,6 +737,153 @@ function FoodForm() {
                         </Box>
                     </Box>
                 </Box>
+                </Box>
+
+                {/* Serving Alternatives Accordion — full width below the form + nutrition columns */}
+                <Box sx={{ mt: 3 }}>
+                    <Accordion>
+                        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                            <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
+                                Serving Alternatives {altFields.length > 0 ? `(${altFields.length})` : ""}
+                            </Typography>
+                        </AccordionSummary>
+                        <AccordionDetails>
+                            {altFields.length === 0 ? (
+                                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                                    No alternatives yet. Add different serving sizes (e.g., per slice, per tbsp) with their own nutrition values.
+                                </Typography>
+                            ) : (
+                                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                                    {altFields.map((field, idx) => (
+                                        <Box
+                                            key={field.id}
+                                            sx={{
+                                                border: '1px solid',
+                                                borderColor: 'divider',
+                                                borderRadius: 1,
+                                                p: 1.5,
+                                                position: 'relative',
+                                            }}
+                                        >
+                                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                                                <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
+                                                    Alternative {idx + 1}
+                                                </Typography>
+                                                <IconButton
+                                                    size="small"
+                                                    color="error"
+                                                    onClick={() => remove(idx)}
+                                                    title="Remove alternative"
+                                                >
+                                                    <RemoveCircleOutlineIcon fontSize="small" />
+                                                </IconButton>
+                                            </Box>
+
+                                            <Box sx={{ display: 'flex', gap: 1, mb: 1 }}>
+                                                <TextField
+                                                    label="Serving Value"
+                                                    type="number"
+                                                    {...register(`nutrition_alternatives.${idx}.serving_value`, { valueAsNumber: true })}
+                                                    error={!!errors.nutrition_alternatives?.[idx]?.serving_value}
+                                                    helperText={errors.nutrition_alternatives?.[idx]?.serving_value?.message}
+                                                    inputProps={{ min: 0, step: 0.01 }}
+                                                    size="small"
+                                                    sx={{ flex: 1 }}
+                                                />
+                                                <Controller
+                                                    name={`nutrition_alternatives.${idx}.serving_unit_kind`}
+                                                    control={control}
+                                                    render={({ field: kindField }) => (
+                                                        <TextField
+                                                            select
+                                                            label="Unit Kind"
+                                                            value={kindField.value ?? "mass"}
+                                                            onChange={kindField.onChange}
+                                                            onBlur={kindField.onBlur}
+                                                            inputRef={kindField.ref}
+                                                            size="small"
+                                                            sx={{ flex: 1 }}
+                                                        >
+                                                            <MenuItem value="mass">Mass</MenuItem>
+                                                            <MenuItem value="volume">Volume</MenuItem>
+                                                            <MenuItem value="household">Household</MenuItem>
+                                                            <MenuItem value="unknown">Unknown</MenuItem>
+                                                        </TextField>
+                                                    )}
+                                                />
+                                                <TextField
+                                                    label="Unit"
+                                                    {...register(`nutrition_alternatives.${idx}.serving_unit`)}
+                                                    error={!!errors.nutrition_alternatives?.[idx]?.serving_unit}
+                                                    helperText={errors.nutrition_alternatives?.[idx]?.serving_unit?.message}
+                                                    inputProps={{ maxLength: 50 }}
+                                                    size="small"
+                                                    sx={{ flex: 1 }}
+                                                />
+                                            </Box>
+
+                                            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
+                                                Nutrition per serving (all 18 fields available — edit key values below)
+                                            </Typography>
+
+                                            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 0.5 }}>
+                                                <TextField
+                                                    label="Calories"
+                                                    type="number"
+                                                    {...register(`nutrition_alternatives.${idx}.nutrition.calories`, { valueAsNumber: true })}
+                                                    size="small"
+                                                    sx={{ width: 90 }}
+                                                    inputProps={{ min: 0, step: 1 }}
+                                                />
+                                                <TextField
+                                                    label="Fat (g)"
+                                                    type="number"
+                                                    {...register(`nutrition_alternatives.${idx}.nutrition.total_fat_g`, { valueAsNumber: true })}
+                                                    size="small"
+                                                    sx={{ width: 90 }}
+                                                    inputProps={{ min: 0, step: 0.1 }}
+                                                />
+                                                <TextField
+                                                    label="Carbs (g)"
+                                                    type="number"
+                                                    {...register(`nutrition_alternatives.${idx}.nutrition.total_carbs_g`, { valueAsNumber: true })}
+                                                    size="small"
+                                                    sx={{ width: 90 }}
+                                                    inputProps={{ min: 0, step: 1 }}
+                                                />
+                                                <TextField
+                                                    label="Protein (g)"
+                                                    type="number"
+                                                    {...register(`nutrition_alternatives.${idx}.nutrition.protein_g`, { valueAsNumber: true })}
+                                                    size="small"
+                                                    sx={{ width: 90 }}
+                                                    inputProps={{ min: 0, step: 1 }}
+                                                />
+                                                <TextField
+                                                    label="Sodium (mg)"
+                                                    type="number"
+                                                    {...register(`nutrition_alternatives.${idx}.nutrition.sodium_mg`, { valueAsNumber: true })}
+                                                    size="small"
+                                                    sx={{ width: 90 }}
+                                                    inputProps={{ min: 0, step: 1 }}
+                                                />
+                                            </Box>
+                                        </Box>
+                                    ))}
+                                </Box>
+                            )}
+
+                            <Button
+                                variant="outlined"
+                                startIcon={<AddCircleOutlineIcon />}
+                                onClick={handleAddAlternative}
+                                sx={{ mt: 2 }}
+                                disabled={!canWrite}
+                            >
+                                Add Serving Alternative
+                            </Button>
+                        </AccordionDetails>
+                    </Accordion>
                 </Box>
             </form>
             </Paper>

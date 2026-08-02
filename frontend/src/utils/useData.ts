@@ -30,6 +30,9 @@ export class Nutrition implements INutrition {
     calcium_mg = 0;
     iron_mg = 0;
     potassium_mg = 0;
+    serving_value: number | null = null;
+    serving_unit: string | null = null;
+    serving_unit_kind: string | null = null;
 }
 
 export class Food implements IFood {
@@ -54,6 +57,9 @@ export class Food implements IFood {
     fdc_id: number | null = null;
     fdc_data_type: string | null = null;
     starter_food = false;
+    size_value: number | null = null;
+    size_unit: string | null = null;
+    size_unit_kind: string | null = null;
 }
 
 
@@ -68,6 +74,9 @@ export class Recipe implements IRecipe {
     price = 0;
     price_per_calorie = 0;
     parent_recipe_id: number | null = null;
+    size_value: number | null = null;
+    size_unit: string | null = null;
+    size_unit_kind: string | null = null;
 }
 
 

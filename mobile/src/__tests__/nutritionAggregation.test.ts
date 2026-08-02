@@ -22,6 +22,9 @@ const sampleNutrition1: INutrition = {
   calcium_mg: 200,
   iron_mg: 2,
   potassium_mg: 300,
+serving_value: null,
+serving_unit: null,
+serving_unit_kind: null,
 }
 
 const sampleNutrition2: INutrition = {
@@ -43,6 +46,9 @@ const sampleNutrition2: INutrition = {
   calcium_mg: 150,
   iron_mg: 1.5,
   potassium_mg: 400,
+serving_value: null,
+serving_unit: null,
+serving_unit_kind: null,
 }
 
 describe('aggregateNutrition function', () => {
@@ -173,6 +179,9 @@ describe('aggregateNutrition function', () => {
       calcium_mg: 200,
       iron_mg: 2,
       potassium_mg: 300,
+    serving_value: null,
+    serving_unit: null,
+    serving_unit_kind: null,
     }
 
     const items: IDailyLogItem[] = [

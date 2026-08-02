@@ -512,6 +512,16 @@ class Preferences(db.Model):
 
 
 ##############################
+# SERVING UNIT KIND
+##############################
+class ServingUnitKind(enum.Enum):
+    mass = 1
+    volume = 2
+    household = 3
+    unknown = 4
+
+
+##############################
 # NURITION
 ##############################
 class Nutrition(db.Model):
@@ -571,6 +581,10 @@ class Nutrition(db.Model):
     calcium_mg: Mapped[int | None] = mapped_column(db.Integer, nullable=True)
     iron_mg: Mapped[float | None] = mapped_column(db.Float, nullable=True)
     potassium_mg: Mapped[int | None] = mapped_column(db.Integer, nullable=True)
+    # Structured serving fields (Slice A — additive, nullable, no behavior change yet)
+    serving_value: Mapped[float | None] = mapped_column(db.Float, nullable=True)
+    serving_unit: Mapped[str | None] = mapped_column(db.String(50), nullable=True)
+    serving_unit_kind: Mapped[ServingUnitKind | None] = mapped_column(db.Enum(ServingUnitKind), nullable=True)
 
     def __init__(self, user_id: int, data: NutritionRequest | None = None):
         if data is not None:
@@ -596,6 +610,13 @@ class Nutrition(db.Model):
         self.calcium_mg = data.calcium_mg
         self.iron_mg = data.iron_mg
         self.potassium_mg = data.potassium_mg
+        # Persist structured serving fields (Slice D)
+        self.serving_value = data.serving_value
+        self.serving_unit = data.serving_unit
+        if data.serving_unit_kind is not None:
+            self.serving_unit_kind = ServingUnitKind[data.serving_unit_kind]
+        else:
+            self.serving_unit_kind = None
 
     def __str__(self):
         return str(vars(self))
@@ -621,7 +642,10 @@ class Nutrition(db.Model):
             "vitamin_d_mcg": self.vitamin_d_mcg,
             "calcium_mg": self.calcium_mg,
             "iron_mg": self.iron_mg,
-            "potassium_mg": self.potassium_mg
+            "potassium_mg": self.potassium_mg,
+            "serving_value": self.serving_value,
+            "serving_unit": self.serving_unit,
+            "serving_unit_kind": self.serving_unit_kind.name if self.serving_unit_kind else None,
         }
     
 
@@ -634,7 +658,26 @@ class Nutrition(db.Model):
     def sum(self, nutrition2: Nutrition, servings: float, modifier: float = 1) -> Nutrition:
         """
         Add one Nutrition record to another.
+
+        Warns if the two records have incompatible serving_unit_kind values
+        (e.g. mass + household), since the resulting totals may be misleading
+        without a common unit basis.
         """
+        # Safety check: incompatible serving unit types make totals misleading
+        if (
+            self.serving_unit_kind is not None
+            and nutrition2.serving_unit_kind is not None
+            and self.serving_unit_kind != nutrition2.serving_unit_kind
+        ):
+            logging.warning(
+                "Nutrition.sum: mixing incompatible serving unit kinds — "
+                "self=%s (id=%s) other=%s (id=%s). Totals may be misleading.",
+                self.serving_unit_kind.name,
+                self.id,
+                nutrition2.serving_unit_kind.name,
+                nutrition2.id,
+            )
+
         self.calories = (self.calories or 0) + round((nutrition2.calories or 0) * servings * modifier)
         self.total_fat_g = (self.total_fat_g or 0) + round((nutrition2.total_fat_g or 0) * servings * modifier, 1)
         self.saturated_fat_g = (self.saturated_fat_g or 0) + round((nutrition2.saturated_fat_g or 0) * servings * modifier, 1)
@@ -684,6 +727,92 @@ class Nutrition(db.Model):
         self.serving_size_oz = 0
         self.serving_size_g = 0
         return self
+
+
+##############################
+# NUTRITION ALTERNATIVE
+##############################
+# The Food record's existing nutrition relationship remains the primary/default
+# serving view. Alternatives are additive — each points to its own full Nutrition
+# record with nutrient values scaled to that specific serving size.
+#
+# Recipe / DailyLogItem aggregation continues using the primary Nutrition record
+# only.  Alternatives are purely for display / selection purposes.
+##############################
+class NutritionAlternative(db.Model):
+    """
+    Junction record pairing a Food with an alternate Nutrition view.
+    Each alternative has its own serving metadata and complete Nutrition profile.
+    """
+    __tablename__ = "nutrition_alternative"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    food_id: Mapped[int] = mapped_column(db.Integer, db.ForeignKey("food.id", ondelete="CASCADE"), nullable=False)
+    nutrition_id: Mapped[int] = mapped_column(db.Integer, db.ForeignKey("nutrition.id", ondelete="CASCADE"), nullable=False)
+    nutrition: Mapped[Nutrition] = relationship("Nutrition")
+    serving_value: Mapped[float] = mapped_column(db.Float, nullable=False)
+    serving_unit: Mapped[str] = mapped_column(db.String(50), nullable=False)
+    serving_unit_kind: Mapped[ServingUnitKind] = mapped_column(db.Enum(ServingUnitKind), nullable=False)
+    ordinal: Mapped[int] = mapped_column(db.Integer, nullable=False, default=0)
+
+    def json(self) -> dict[str, Any]:
+        return {
+            "id": self.id,
+            "food_id": self.food_id,
+            "nutrition_id": self.nutrition_id,
+            "nutrition": self.nutrition.json(),
+            "serving_value": self.serving_value,
+            "serving_unit": self.serving_unit,
+            "serving_unit_kind": self.serving_unit_kind.name,
+            "ordinal": self.ordinal,
+        }
+
+    @staticmethod
+    def get_for_food(food_id: int) -> list["NutritionAlternative"]:
+        """Get all alternative serving views for a Food, ordered by ordinal."""
+        alternatives = db.session.scalars(
+            db.select(NutritionAlternative)
+            .where(NutritionAlternative.food_id == food_id)
+            .order_by(NutritionAlternative.ordinal)
+        ).all()
+        return list(alternatives)
+
+    @staticmethod
+    def add(
+        food_id: int,
+        serving_value: float,
+        serving_unit: str,
+        serving_unit_kind: str,
+        nutrition_data: NutritionRequest,
+        ordinal: int = 0,
+    ) -> "NutritionAlternative":
+        """Create a new NutritionAlternative with a dedicated Nutrition record."""
+        nutrition_dao = Nutrition(0)  # user_id is on Food, not on alternatives
+        nutrition_dao.from_schema(0, nutrition_data)
+
+        alt = NutritionAlternative()
+        alt.food_id = food_id
+        alt.serving_value = serving_value
+        alt.serving_unit = serving_unit
+        alt.serving_unit_kind = ServingUnitKind[serving_unit_kind]
+        alt.ordinal = ordinal
+        alt.nutrition = nutrition_dao
+
+        db.session.add(alt)
+        return alt
+
+    @staticmethod
+    def delete(alternative_id: int) -> None:
+        """Delete a NutritionAlternative and its associated Nutrition record."""
+        alt = db.session.get(NutritionAlternative, alternative_id)
+        if alt is None:
+            return
+        nutrition_id = alt.nutrition_id
+        db.session.delete(alt)
+        if nutrition_id:
+            nutrition_dao = db.session.get(Nutrition, nutrition_id)
+            if nutrition_dao:
+                db.session.delete(nutrition_dao)
 
 
 ##############################
@@ -931,6 +1060,10 @@ class Food(db.Model):
     fdc_data_type: Mapped[str | None] = mapped_column(db.String(30), nullable=True)
     starter_food: Mapped[bool] = mapped_column(db.Boolean, nullable=False, default=False)
     last_synced_at: Mapped[datetime.datetime | None] = mapped_column(db.DateTime, nullable=True)
+    # Structured size fields (Slice A — additive, nullable, no behavior change yet)
+    size_value: Mapped[float | None] = mapped_column(db.Float, nullable=True)
+    size_unit: Mapped[str | None] = mapped_column(db.String(50), nullable=True)
+    size_unit_kind: Mapped[ServingUnitKind | None] = mapped_column(db.Enum(ServingUnitKind), nullable=True)
 
     def __init__(self, user_id: int, data: FoodRequest | None = None):
         if data is not None:
@@ -961,6 +1094,13 @@ class Food(db.Model):
         self.fdc_id = food_request.fdc_id
         self.fdc_data_type = food_request.fdc_data_type
         self.starter_food = food_request.starter_food
+        # Persist structured size fields (Slice D)
+        self.size_value = food_request.size_value
+        self.size_unit = food_request.size_unit
+        if food_request.size_unit_kind is not None:
+            self.size_unit_kind = ServingUnitKind[food_request.size_unit_kind]
+        else:
+            self.size_unit_kind = None
         # Create nutrition record from nested schema
         if not self.nutrition:
             self.nutrition = Nutrition(user_id)
@@ -985,6 +1125,9 @@ class Food(db.Model):
             "servings": self.servings,
             "nutrition_id": self.nutrition_id,
             "nutrition": self.nutrition.json(),
+            "nutrition_alternatives": [
+                alt.json() for alt in NutritionAlternative.get_for_food(self.id)
+            ],
             "price": self.price,
             "price_date": self.price_date.strftime("%Y-%m-%d") if self.price_date else None,
             "shelf_life": self.shelf_life,
@@ -993,6 +1136,9 @@ class Food(db.Model):
             "fdc_data_type": self.fdc_data_type,
             "starter_food": self.starter_food,
             "last_synced_at": self.last_synced_at.isoformat() if self.last_synced_at else None,
+            "size_value": self.size_value,
+            "size_unit": self.size_unit,
+            "size_unit_kind": self.size_unit_kind.name if self.size_unit_kind else None,
             }
 
     
@@ -1071,6 +1217,17 @@ class Food(db.Model):
             # Flush without committing to get the new IDs
             db.session.flush()
 
+            # Persist nutrition alternatives
+            for alt_request in food_payload.nutrition_alternatives:
+                NutritionAlternative.add(
+                    food_id=new_food_dao.id,
+                    serving_value=alt_request.serving_value,
+                    serving_unit=alt_request.serving_unit,
+                    serving_unit_kind=alt_request.serving_unit_kind,
+                    nutrition_data=alt_request.nutrition,
+                    ordinal=alt_request.ordinal,
+                )
+
             # Save the old ID to new ID mapping (only if old_food_id is not None)
             if keylists is not None and old_food_id is not None:
                 if not keylists.get("foods"):
@@ -1106,6 +1263,22 @@ class Food(db.Model):
             # Update the data fields from schema
             food_dao.from_schema(user_id, food)
 
+            # Delete old alternatives, recreate from request payload
+            old_alternatives = NutritionAlternative.get_for_food(food_id)
+            for alt in old_alternatives:
+                NutritionAlternative.delete(alt.id)
+
+            # Persist nutrition alternatives from request
+            for alt_request in food.nutrition_alternatives:
+                NutritionAlternative.add(
+                    food_id=food_id,
+                    serving_value=alt_request.serving_value,
+                    serving_unit=alt_request.serving_unit,
+                    serving_unit_kind=alt_request.serving_unit_kind,
+                    nutrition_data=alt_request.nutrition,
+                    ordinal=alt_request.ordinal,
+                )
+
             return food_dao
 
         except Exception as e:
@@ -1122,6 +1295,17 @@ class Food(db.Model):
             food_dao = db.session.get(Food, food_id)
             if not food_dao:
                 raise ValueError(f"Food record {food_id} not found")
+
+            # Delete alternative Nutrition records first (CASCADE on FK deletes
+            # the nutrition_alternative junction rows, but the Nutrition rows
+            # they point to must be cleaned up explicitly)
+            alternatives = NutritionAlternative.get_for_food(food_id)
+            for alt in alternatives:
+                if alt.nutrition_id:
+                    alt_nutrition = db.session.get(Nutrition, alt.nutrition_id)
+                    if alt_nutrition:
+                        db.session.delete(alt_nutrition)
+                db.session.delete(alt)
 
             # Food has a foreign key on Nutrition so it must be deleted first
             nutrition_id = food_dao.nutrition_id
@@ -1146,6 +1330,15 @@ class Food(db.Model):
         try:
             food_daos = db.session.scalars(db.select(Food).where(Food.user_id == user_id)).all()
             for food_dao in food_daos:
+                # Delete alternative Nutrition records first
+                alternatives = NutritionAlternative.get_for_food(food_dao.id)
+                for alt in alternatives:
+                    if alt.nutrition_id:
+                        alt_nutrition = db.session.get(Nutrition, alt.nutrition_id)
+                        if alt_nutrition:
+                            db.session.delete(alt_nutrition)
+                    db.session.delete(alt)
+
                 # Food has a foreign key on Nutrition so it must be deleted first
                 nutrition_id = food_dao.nutrition_id
                 db.session.delete(food_dao)
@@ -1191,6 +1384,10 @@ class Recipe(db.Model):
     # full Recipe record that points back at the recipe it was copied from.  This is a
     # self-referential FK: nullable because most recipes aren't variations of anything.
     parent_recipe_id: Mapped[int | None] = mapped_column(db.Integer, db.ForeignKey("recipe.id"), nullable=True)
+    # Structured size fields (Slice A — additive, nullable, no behavior change yet)
+    size_value: Mapped[float | None] = mapped_column(db.Float, nullable=True)
+    size_unit: Mapped[str | None] = mapped_column(db.String(50), nullable=True)
+    size_unit_kind: Mapped[ServingUnitKind | None] = mapped_column(db.Enum(ServingUnitKind), nullable=True)
 
     def __init__(self, user_id: int, data: RecipeRequest | None):
         if data:
@@ -1211,6 +1408,13 @@ class Recipe(db.Model):
         self.size_g = recipe_request.size_g
         self.price = recipe_request.price
         self.parent_recipe_id = recipe_request.parent_recipe_id
+        # Persist structured size fields (Slice D)
+        self.size_value = recipe_request.size_value
+        self.size_unit = recipe_request.size_unit
+        if recipe_request.size_unit_kind is not None:
+            self.size_unit_kind = ServingUnitKind[recipe_request.size_unit_kind]
+        else:
+            self.size_unit_kind = None
 
         # Create nutrition record from nested schema
         if not self.nutrition:
@@ -1233,7 +1437,10 @@ class Recipe(db.Model):
             "nutrition_id": self.nutrition_id,
             "nutrition": self.nutrition.json(),
             "price": self.price,
-            "parent_recipe_id": self.parent_recipe_id
+            "parent_recipe_id": self.parent_recipe_id,
+            "size_value": self.size_value,
+            "size_unit": self.size_unit,
+            "size_unit_kind": self.size_unit_kind.name if self.size_unit_kind else None,
             }
     
 
