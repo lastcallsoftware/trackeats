@@ -173,12 +173,12 @@ describe('api', () => {
       expect(testInstance.defaults.baseURL).toBe('http://localhost:5000');
     });
 
-    it('should set timeout to 10 seconds', () => {
+    it('should set timeout to 30 seconds', () => {
       const testInstance = axios.create({
-        timeout: 10000,
+        timeout: 30000,
       });
 
-      expect(testInstance.defaults.timeout).toBe(10000);
+      expect(testInstance.defaults.timeout).toBe(30000);
     });
   });
 });

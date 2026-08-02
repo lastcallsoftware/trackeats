@@ -76,6 +76,8 @@ function LoginPage(props: any) {
     return () => channel.close(); // clean up on unmount
     }, []);
 
+    const LOGIN_REQUEST_TIMEOUT_MS = 30_000;
+
     const handleSubmit = async (e: { preventDefault: () => void; }) => {
         e.preventDefault();
         setLoginMessage("");
@@ -85,7 +87,7 @@ function LoginPage(props: any) {
             const response = await axios.post(
                 "/api/login",
                 { email: formData.email, password: formData.password },
-                { timeout: 10000 }
+                { timeout: LOGIN_REQUEST_TIMEOUT_MS }
             );
             props.storeTokenFunction(response.data.access_token, response.data.username);
             navigate("/foods")
@@ -109,7 +111,7 @@ function LoginPage(props: any) {
             const response = await axios.post(
                 "/api/login",
                 { email: GUEST_EMAIL, password: "" },
-                { timeout: 10000 }
+                { timeout: LOGIN_REQUEST_TIMEOUT_MS }
             );
             props.storeTokenFunction(response.data.access_token, response.data.username);
             navigate("/foods")

@@ -41,6 +41,8 @@ interface Props {
 }
 
 // ─── Backend exchange ─────────────────────────────────────────────────────────
+const LOGIN_REQUEST_TIMEOUT_MS = 30_000;
+
 async function exchangeWithBackend(
     provider: 'google' | 'facebook' | 'apple',
     token: string,
@@ -50,7 +52,7 @@ async function exchangeWithBackend(
         provider,
         token,
         ...(extra ?? {}),
-    }, { timeout: 10000 });
+    }, { timeout: LOGIN_REQUEST_TIMEOUT_MS });
     const appToken = resp.data?.access_token;
     const username = resp.data?.username;
     if (!appToken) throw new Error('No token returned from server');

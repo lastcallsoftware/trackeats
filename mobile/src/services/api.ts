@@ -8,10 +8,12 @@ import axios, { AxiosInstance, InternalAxiosRequestConfig } from 'axios';
 // Module-level token storage - updated via setApiToken()
 let currentToken: string | null = null;
 
+const API_REQUEST_TIMEOUT_MS = 30_000;
+
 // Create axios instance with base configuration
 const api: AxiosInstance = axios.create({
   baseURL: process.env.EXPO_PUBLIC_BACKEND_BASE_URL || 'http://localhost:5000',
-  timeout: 10000,
+  timeout: API_REQUEST_TIMEOUT_MS,
 });
 
 /**
