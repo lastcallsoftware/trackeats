@@ -68,10 +68,13 @@ jobs:
 
       - name: Ensure target directory exists on server
         uses: appleboy/ssh-action@master
+        env:
+          APP_SERVER_PASSWORD: ${{ secrets.APP_SERVER_PASSWORD }}
         with:
           host: ${{ secrets.APP_SERVER_HOST }}
           username: ${{ secrets.APP_SERVER_USERNAME }}
           key: ${{ secrets.APP_SERVER_SSH_KEY }}
+          envs: APP_SERVER_PASSWORD
           script: |
             set -euo pipefail
             TARGET_DIR="/srv/trackeats"
