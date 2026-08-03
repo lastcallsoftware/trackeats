@@ -16,6 +16,21 @@ branch_labels = None
 depends_on = None
 
 
+def build_truncation_statement(table_name: str, column_name: str, max_length: int = 20):
+    return sa.text(
+        f"""
+        UPDATE {table_name}
+        SET {column_name} = CASE
+            WHEN CHAR_LENGTH({column_name}) > {max_length}
+                THEN LEFT({column_name}, {max_length})
+            ELSE {column_name}
+        END
+        WHERE {column_name} IS NOT NULL
+          AND CHAR_LENGTH({column_name}) > {max_length}
+        """
+    )
+
+
 def upgrade():
     with op.batch_alter_table("nutrition", schema=None) as batch_op:
         batch_op.alter_column(
@@ -43,6 +58,13 @@ def upgrade():
 
 
 def downgrade():
+    for table_name, column_name in [
+        ("nutrition", "serving_unit"),
+        ("food", "size_unit"),
+        ("recipe", "size_unit"),
+    ]:
+        op.execute(build_truncation_statement(table_name, column_name))
+
     with op.batch_alter_table("nutrition", schema=None) as batch_op:
         batch_op.alter_column(
             "serving_unit",
