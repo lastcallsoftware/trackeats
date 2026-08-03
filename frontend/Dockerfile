@@ -39,7 +39,7 @@ COPY lastcallsoftware/ /usr/share/nginx/lastcallsoftware/
 RUN sed -i "s|__BACKEND_BASE_URL__|${VITE_BACKEND_BASE_URL}|g" /usr/share/nginx/portfolio/index.html
 RUN sed -i "s|__TURNSTILE_SITE_KEY__|${VITE_TURNSTILE_SITE_KEY_PUBLIC}|g" /usr/share/nginx/portfolio/index.html
 
-EXPOSE 8080 8443 5443
+EXPOSE 8080 8443
 
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
   CMD curl -f http://localhost:8080 || exit 1
