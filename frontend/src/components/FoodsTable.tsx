@@ -87,6 +87,11 @@ const foodColumns = [
                 cell: info => info.getValue(),
                 size: 120
             }),
+            columnHelper.accessor("unit_type", {
+                header: () => <span>Unit</span>,
+                cell: info => info.getValue() === "volume" ? "Vol" : "Wt",
+                size: 50
+            }),
             columnHelper.accessor("size_oz", {
                 header: () => <span>Size (oz)</span>,
                 cell: info => info.getValue(),
@@ -96,6 +101,14 @@ const foodColumns = [
                 header: () => <span>Size (g)</span>,
                 cell: info => info.getValue(),
                 size: 80
+            }),
+            columnHelper.accessor("nutrition_alternatives", {
+                header: () => <span>Alt</span>,
+                cell: info => {
+                    const alts = info.getValue();
+                    return alts && alts.length > 0 ? alts.length : "";
+                },
+                size: 45
             }),
             columnHelper.accessor("servings", {
                 header: () => <span>Servings</span>,

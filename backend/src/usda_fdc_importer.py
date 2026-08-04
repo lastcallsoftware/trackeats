@@ -1,11 +1,11 @@
 import logging
 import os
 import re
-from typing import Any, cast
+from typing import Any, Literal, cast
 
 import requests as req
 
-from schemas import FoodRequest, NutritionRequest
+from schemas import FoodRequest, NutritionRequest, NutritionAlternativeRequest
 
 
 USDA_SOURCE = "usda_fdc"
@@ -253,6 +253,9 @@ class USDAFdcImporter:
             potassium_mg=_to_int(_nutrient_value_any(usda_food, ["1092", "306"], "postassium")),
         )
 
+        # Build nutrition alternatives from foodPortions
+        alternatives = _build_alternatives_from_portions(usda_food, nutrition)
+
         return FoodRequest(
             group=_map_group(category_blob),
             name=description,
@@ -262,8 +265,10 @@ class USDAFdcImporter:
             description=long_description,
             size_description=_truncate(serving_size_description, 50),
             size_description_2=None,
-            size_oz=serving_size_oz,
-            size_g=serving_size_g,
+            size_imperial=serving_size_oz,
+            size_metric=serving_size_g,
+            unit_type="weight",
+            density=1.0,
             source=USDA_SOURCE,
             fdc_id=fdc_id,
             fdc_data_type=_truncate(data_type, 30) if data_type else None,
@@ -271,6 +276,7 @@ class USDAFdcImporter:
             price_date=None,
             shelf_life=None,
             nutrition=nutrition,
+            nutrition_alternatives=alternatives,
         )
 
     def calorie_source(self, usda_food: dict[str, Any]) -> str:
@@ -570,3 +576,122 @@ def _map_group(group_text: str) -> str:
             return group_name
 
     return "other"
+
+
+def _build_alternatives_from_portions(
+    usda_food: dict[str, Any],
+    primary_nutrition: NutritionRequest,
+) -> list[NutritionAlternativeRequest]:
+    """
+    Build NutritionAlternativeRequest entries from USDA foodPortions array.
+
+    The primary serving size (from servingSize/servingSizeUnit) is already used
+    for the main nutrition record. Each additional foodPortions entry becomes
+    an alternative serving view with its own scaled nutrition.
+    """
+    food_portions_raw = usda_food.get("foodPortions")
+    if not isinstance(food_portions_raw, list):
+        return []
+    food_portions = cast(list[Any], food_portions_raw)
+    if len(food_portions) == 0:
+        return []
+
+    alternatives: list[NutritionAlternativeRequest] = []
+
+    # Get the gram weight of the primary serving for scaling
+    primary_g = primary_nutrition.serving_size_g or 100
+
+    for portion_any in food_portions:
+        if not isinstance(portion_any, dict):
+            continue
+        portion = cast(dict[str, Any], portion_any)
+
+        gram_weight = portion.get("gramWeight")
+        if gram_weight is None:
+            continue
+        try:
+            gram_weight = float(gram_weight)
+        except (ValueError, TypeError):
+            continue
+        if gram_weight <= 0:
+            continue
+
+        amount = portion.get("amount")
+        try:
+            amount = float(amount) if amount is not None else 1.0
+        except (ValueError, TypeError):
+            amount = 1.0
+
+        modifier = str(portion.get("modifier") or "").strip()
+        measure_unit = portion.get("measureUnit")
+        unit_name = ""
+        if isinstance(measure_unit, dict):
+            measure_unit_dict = cast(dict[str, Any], measure_unit)
+            unit_name = str(measure_unit_dict.get("name", "")).strip().lower()
+        elif measure_unit is not None:
+            unit_name = str(measure_unit).strip().lower()
+
+        # Build a serving description
+        portion_description = str(portion.get("portionDescription") or "").strip()
+        if not portion_description:
+            amount_display = int(amount) if amount == int(amount) else round(amount, 2)
+            if modifier:
+                portion_description = f"{modifier} {amount_display} {unit_name}".strip()
+            else:
+                portion_description = f"{amount_display} {unit_name}".strip()
+
+        # Determine unit kind
+        serving_unit_kind = _determine_unit_kind(unit_name)
+
+        # Scale nutrition to this portion's gram weight
+        scale_factor = gram_weight / primary_g if primary_g > 0 else 1.0
+        scaled_nutrition = NutritionRequest(
+            serving_size_description=_truncate(portion_description, 50),
+            serving_size_g=int(round(gram_weight)),
+            serving_size_oz=round(gram_weight / 28.3495, 3),
+            calories=int(round((primary_nutrition.calories or 0) * scale_factor)),
+            total_fat_g=round((primary_nutrition.total_fat_g or 0) * scale_factor, 1),
+            saturated_fat_g=round((primary_nutrition.saturated_fat_g or 0) * scale_factor, 1),
+            trans_fat_g=round((primary_nutrition.trans_fat_g or 0) * scale_factor, 1),
+            cholesterol_mg=int(round((primary_nutrition.cholesterol_mg or 0) * scale_factor)),
+            sodium_mg=int(round((primary_nutrition.sodium_mg or 0) * scale_factor)),
+            total_carbs_g=int(round((primary_nutrition.total_carbs_g or 0) * scale_factor)),
+            fiber_g=int(round((primary_nutrition.fiber_g or 0) * scale_factor)),
+            total_sugar_g=int(round((primary_nutrition.total_sugar_g or 0) * scale_factor)),
+            added_sugar_g=int(round((primary_nutrition.added_sugar_g or 0) * scale_factor)),
+            protein_g=int(round((primary_nutrition.protein_g or 0) * scale_factor)),
+            vitamin_d_mcg=int(round((primary_nutrition.vitamin_d_mcg or 0) * scale_factor)),
+            calcium_mg=int(round((primary_nutrition.calcium_mg or 0) * scale_factor)),
+            iron_mg=round((primary_nutrition.iron_mg or 0) * scale_factor, 1),
+            potassium_mg=int(round((primary_nutrition.potassium_mg or 0) * scale_factor)),
+        )
+
+        household_weight = gram_weight if serving_unit_kind == "household" else None
+
+        alternatives.append(
+            NutritionAlternativeRequest(
+                serving_value=amount,
+                serving_unit=portion_description if serving_unit_kind == "household" else unit_name,
+                serving_unit_kind=serving_unit_kind,
+                household_weight_g=household_weight,
+                nutrition=scaled_nutrition,
+            )
+        )
+
+    return alternatives
+
+
+def _determine_unit_kind(unit_name: str) -> Literal["mass", "volume", "household"]:
+    """Determine serving_unit_kind from a USDA unit name."""
+    unit_lower = unit_name.strip().lower()
+
+    # Mass units
+    if unit_lower in {"g", "gram", "grams", "oz", "ounce", "ounces", "kg", "kilogram", "kilograms", "lb", "lbs", "pound", "pounds", "mg", "milligram", "milligrams"}:
+        return "mass"
+
+    # Volume units
+    if unit_lower in {"ml", "milliliter", "milliliters", "millilitre", "millilitres", "l", "liter", "liters", "litre", "litres", "fl oz", "fluid ounce", "fluid ounces", "cup", "cups", "tbsp", "tablespoon", "tablespoons", "tsp", "teaspoon", "teaspoons", "pint", "pints", "quart", "quarts", "gallon", "gallons"}:
+        return "volume"
+
+    # Everything else is household
+    return "household"

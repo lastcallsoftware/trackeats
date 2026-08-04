@@ -165,6 +165,44 @@ class NutritionRequest(BaseModel):
 ##############################
 # FOOD
 ##############################
+class NutritionAlternativeRequest(BaseModel):
+    """Validate a nutrition alternative (additional serving size view)."""
+    id: int | None = None
+    serving_value: float
+    serving_unit: str
+    serving_unit_kind: Literal["mass", "volume", "household"]
+    household_weight_g: float | None = None
+    nutrition: NutritionRequest
+
+    @field_validator("serving_value")
+    @classmethod
+    def validate_serving_value(cls, v: float) -> float:
+        if v <= 0:
+            raise ValueError("serving_value must be greater than 0")
+        return v
+
+    @field_validator("serving_unit")
+    @classmethod
+    def validate_serving_unit(cls, v: str) -> str:
+        if not v or len(v.strip()) == 0:
+            raise ValueError("serving_unit cannot be empty")
+        if len(v) > 30:
+            raise ValueError("serving_unit must be 30 characters or fewer")
+        return v
+
+    @model_validator(mode="after")
+    def validate_household_weight(self) -> "NutritionAlternativeRequest":
+        if self.serving_unit_kind == "household" and self.household_weight_g is None:
+            raise ValueError("household_weight_g is required when serving_unit_kind is 'household'")
+        if self.serving_unit_kind == "household" and self.household_weight_g is not None and self.household_weight_g <= 0:
+            raise ValueError("household_weight_g must be greater than 0")
+        return self
+
+
+def _empty_nutrition_alternatives() -> list[NutritionAlternativeRequest]:
+    return []
+
+
 class FoodRequest(BaseModel):
     """Validate a food creation or update request."""
     id: int | None = None  # None for POST, set for PUT
@@ -176,8 +214,10 @@ class FoodRequest(BaseModel):
     description: str | None = None
     size_description: str | None = None
     size_description_2: str | None = None
-    size_oz: float | None = None
-    size_g: int | None = None
+    size_imperial: float | None = None
+    size_metric: int | None = None
+    unit_type: Literal["weight", "volume"] = "weight"
+    density: float | None = 1.0
     source: str | None = None
     fdc_id: int | None = None
     fdc_data_type: str | None = None
@@ -186,6 +226,7 @@ class FoodRequest(BaseModel):
     price_date: str | None = None
     shelf_life: str | None = None
     nutrition: NutritionRequest
+    nutrition_alternatives: list[NutritionAlternativeRequest] = Field(default_factory=_empty_nutrition_alternatives)
 
     @field_validator("group")
     @classmethod

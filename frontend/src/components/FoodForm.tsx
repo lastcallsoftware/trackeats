@@ -52,8 +52,10 @@ const foodSchema = z.object({
     description: z.string().max(100, "Must be 100 characters or fewer"),
     size_description: z.string().max(50, "Must be 50 characters or fewer"),
     size_description_2: z.string().max(50, "Must be 50 characters or fewer").nullable().optional(),
-    size_oz: z.coerce.number().min(0, "Must be 0 or greater"),
-    size_g: z.coerce.number().min(0, "Must be 0 or greater"),
+    size_imperial: z.coerce.number().min(0, "Must be 0 or greater"),
+    size_metric: z.coerce.number().min(0, "Must be 0 or greater"),
+    unit_type: z.enum(["weight", "volume"]).default("weight"),
+    density: z.coerce.number().min(0, "Must be 0 or greater").default(1.0),
     servings: z.coerce.number().gt(0, "Servings must be greater than 0"),
     nutrition_id: z.number().optional(),
     nutrition: nutritionSchema,
@@ -255,41 +257,64 @@ function FoodForm() {
                         />
                     </Grid>
                     <Grid size={{ xs: 6, sm: 3 }}>
+                        <Controller
+                            name="unit_type"
+                            control={control}
+                            render={({ field }) => (
+                                <TextField
+                                    select
+                                    label="Unit Type"
+                                    id="unit_type"
+                                    value={field.value ?? "weight"}
+                                    onChange={field.onChange}
+                                    onBlur={field.onBlur}
+                                    inputRef={field.ref}
+                                    error={!!errors.unit_type}
+                                    helperText={errors.unit_type?.message}
+                                    fullWidth
+                                >
+                                    <MenuItem value="weight">Weight</MenuItem>
+                                    <MenuItem value="volume">Volume</MenuItem>
+                                </TextField>
+                            )}
+                        />
+                    </Grid>
+                    <Grid size={{ xs: 6, sm: 3 }}>
                         <TextField
-                            label="Size (oz)"
-                            id="size_oz"
+                            label="Size (oz / fl oz)"
+                            id="size_imperial"
                             type="number"
-                            {...register("size_oz", {
+                            {...register("size_imperial", {
                                 valueAsNumber: true,
                                 onChange: (event) => {
-                                    const nextOz = Number(event.target.value);
-                                    if (!Number.isNaN(nextOz)) {
-                                        setValue('size_g', Math.round(nextOz * 28.3495), { shouldValidate: true });
+                                    const nextImperial = Number(event.target.value);
+                                    if (!Number.isNaN(nextImperial)) {
+                                        setValue('size_metric', Math.round(nextImperial * 28.3495), { shouldValidate: true });
                                     }
                                 },
                             })}
-                            error={!!errors.size_oz}
-                            helperText={errors.size_oz?.message}
+                            error={!!errors.size_imperial}
+                            helperText={errors.size_imperial?.message}
                             inputProps={{ min: 0, step: 0.01 }}
                             fullWidth
                         />
                     </Grid>
                     <Grid size={{ xs: 6, sm: 3 }}>
                             <TextField
-                                label="Size (g)"
-                                id="size_g"
+                                label="Size (g / ml)"
+                                id="size_metric"
                                 type="number"
-                                {...register("size_g", {
+                                {...register("size_metric", {
                                     valueAsNumber: true,
                                     onChange: (event) => {
-                                        const nextG = Number(event.target.value);
-                                        if (!Number.isNaN(nextG)) {
-                                            setValue('size_oz', parseFloat((nextG / 28.3495).toFixed(2)), { shouldValidate: true });
+                                        const nextMetric = Number(event.target.value);
+                                        if (!Number.isNaN(nextMetric)) {
+                                            setValue('size_imperial', parseFloat((nextMetric / 28.3495).toFixed(2)), { shouldValidate: true });
                                         }
                                     },
                                 })}
-                                error={!!errors.size_g}
-                                helperText={errors.size_g?.message}
+                                error={!!errors.size_metric}
+                                helperText={errors.size_metric?.message}
                                 inputProps={{ min: 0, step: 1 }}
                                 fullWidth
                             />

@@ -19,6 +19,18 @@ export type INutrition = {
   potassium_mg: number
 }
 
+export type INutritionAlternative = {
+  id?: number
+  food_id?: number
+  nutrition_id?: number
+  serving_value: number
+  serving_unit: string
+  serving_unit_kind: "mass" | "volume" | "household"
+  household_weight_g: number | null
+  ordinal: number
+  nutrition: INutrition
+}
+
 export type IFood = {
   id?: number
   group: string
@@ -28,11 +40,16 @@ export type IFood = {
   description: string
   size_description: string
   size_description_2: string | null
+  size_imperial: number | null
+  size_metric: number | null
+  unit_type: "weight" | "volume"
+  density: number | null
   size_oz: number
   size_g: number
   servings: number
   nutrition_id?: number
   nutrition: INutrition
+  nutrition_alternatives: INutritionAlternative[]
   price: number
   price_per_serving: number
   price_per_oz: number
