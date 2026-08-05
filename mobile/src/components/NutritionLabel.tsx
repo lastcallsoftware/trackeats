@@ -3,9 +3,9 @@
  * Maps all 18 nutrition fields to USDA label order
  */
 
-import React from 'react';
-import { ScrollView, Text, View } from 'react-native';
-import { INutrition } from '@/types/food';
+import React, { useState } from 'react';
+import { ScrollView, Text, View, Pressable } from 'react-native';
+import { INutrition, INutritionAlternative } from '@/types/food';
 
 // Map INutrition field names to display labels in USDA order
 const NUTRITION_FIELD_LABELS: Record<keyof INutrition, string> = {
@@ -31,6 +31,7 @@ const NUTRITION_FIELD_LABELS: Record<keyof INutrition, string> = {
 
 interface NutritionLabelProps {
   nutrition: INutrition;
+  nutritionAlternatives?: INutritionAlternative[];
   servings?: number;
   servingSizeG?: number;
   servingSizeOz?: number;
@@ -46,8 +47,15 @@ interface NutritionLabelProps {
   trailingRows?: Array<{ label: string; value: string }>;
 }
 
+type ServingView = {
+  key: string;
+  label: string;
+  nutrition: INutrition;
+};
+
 export const NutritionLabel: React.FC<NutritionLabelProps> = ({
   nutrition,
+  nutritionAlternatives,
   servings,
   servingSizeG,
   servingSizeOz,
@@ -57,6 +65,30 @@ export const NutritionLabel: React.FC<NutritionLabelProps> = ({
   emphasizeCalories = false,
   trailingRows,
 }) => {
+  const buildServingViews = (): ServingView[] => {
+    const views: ServingView[] = [
+      {
+        key: 'primary',
+        label: nutrition.serving_size_description || 'Primary',
+        nutrition,
+      },
+    ];
+    if (nutritionAlternatives) {
+      nutritionAlternatives.forEach((alt, i) => {
+        views.push({
+          key: `alt-${i}`,
+          label: alt.nutrition?.serving_size_description || `${alt.serving_value} ${alt.serving_unit}`,
+          nutrition: alt.nutrition || nutrition,
+        });
+      });
+    }
+    return views;
+  };
+
+  const servingViews = buildServingViews();
+  const [selectedKey, setSelectedKey] = useState('primary');
+  const activeView = servingViews.find((v) => v.key === selectedKey) || servingViews[0];
+  const activeNutrition = activeView.nutrition;
   const allFields: Array<keyof INutrition> = [
     'serving_size_oz',
     'serving_size_g',
@@ -95,7 +127,7 @@ export const NutritionLabel: React.FC<NutritionLabelProps> = ({
   };
 
   const servingSizeValue = [
-    servingSizeDescription || nutrition.serving_size_description,
+    servingSizeDescription || activeNutrition.serving_size_description,
     servingSizeG != null ? `${formatValue(servingSizeG)} g` : null,
     servingSizeOz != null ? `${formatValue(servingSizeOz)} oz` : null,
   ]
@@ -104,6 +136,45 @@ export const NutritionLabel: React.FC<NutritionLabelProps> = ({
 
   return (
     <ScrollView style={{ paddingHorizontal: 16, paddingVertical: 12 }}>
+      {servingViews.length > 1 && (
+        <View
+          style={{
+            flexDirection: 'row',
+            flexWrap: 'wrap',
+            gap: 6,
+            paddingVertical: 8,
+            borderBottomWidth: 1,
+            borderBottomColor: '#e0e0e0',
+          }}
+        >
+          {servingViews.map((view) => {
+            const isActive = view.key === selectedKey;
+            return (
+              <Pressable
+                key={view.key}
+                onPress={() => setSelectedKey(view.key)}
+                style={{
+                  paddingHorizontal: 10,
+                  paddingVertical: 5,
+                  borderRadius: 16,
+                  backgroundColor: isActive ? '#007AFF' : '#f0f0f0',
+                }}
+              >
+                <Text
+                  style={{
+                    fontSize: 12,
+                    color: isActive ? '#fff' : '#333',
+                    fontWeight: '600',
+                  }}
+                >
+                  {view.label}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </View>
+      )}
+
       {servings != null && (
         <View
           style={{
@@ -170,7 +241,7 @@ export const NutritionLabel: React.FC<NutritionLabelProps> = ({
               fontWeight: emphasizeCalories && field === 'calories' ? '800' : '600',
             }}
           >
-            {formatValue(nutrition[field])}
+            {formatValue(activeNutrition[field])}
           </Text>
         </View>
       ))}

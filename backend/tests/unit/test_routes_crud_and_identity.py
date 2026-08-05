@@ -34,7 +34,11 @@ def _mock_session(monkeypatch: pytest.MonkeyPatch, deleted: list[object] | None 
         if deleted is not None:
             deleted.append(obj)
 
-    session = SimpleNamespace(begin=lambda: _DummyTxn(), delete=_delete)
+    def _execute(statement: object) -> object:
+        _ = statement
+        return None
+
+    session = SimpleNamespace(begin=lambda: _DummyTxn(), delete=_delete, execute=_execute)
     monkeypatch.setattr(routes.db, "session", session, raising=False)
 
 
@@ -88,6 +92,7 @@ def test_food_crud_endpoints(bare_flask_app: Flask, monkeypatch: pytest.MonkeyPa
     _mock_session(monkeypatch, deleted=deleted)
 
     monkeypatch.setattr(routes, "get_jwt_identity", lambda: "testuser")
+    monkeypatch.setattr(routes, "get_jwt", lambda: cast(dict[str, Any], {}))
 
     def _get_id(username: str) -> int:
         return 1
@@ -95,8 +100,12 @@ def test_food_crud_endpoints(bare_flask_app: Flask, monkeypatch: pytest.MonkeyPa
     def _get_all_for_user(user_id: int) -> list[_JsonDao]:
         return [_JsonDao({"id": 10, "name": "A"}), _JsonDao({"id": 11, "name": "B"})]
 
-    def _get_food(user_id: int, food_id: int) -> _JsonDao:
-        return _JsonDao({"id": food_id})
+    def _get_food(user_id: int, food_id: int) -> object:
+        # The update route reads current_food.starter_food as an attribute,
+        # while the get route calls .json(). Provide both.
+        food_dao = _JsonDao({"id": food_id})
+        setattr(food_dao, "starter_food", False)
+        return food_dao
 
     def _add_food(user_id: int, payload: Any) -> _JsonDao:
         return _JsonDao({"id": 77}, dao_id=77)

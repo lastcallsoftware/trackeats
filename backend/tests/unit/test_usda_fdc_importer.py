@@ -1,18 +1,46 @@
 import sys
 from pathlib import Path
+from typing import Any
+
+import pytest
 
 from schemas import FoodRequest
-
 
 BACKEND_IMPORT = Path(__file__).resolve().parents[2] / "import"
 if str(BACKEND_IMPORT) not in sys.path:
     sys.path.insert(0, str(BACKEND_IMPORT))
 
-from usda_fdc_importer import USDAFdcImporter, _map_group
+from usda_fdc_importer import USDAFdcImporter, _map_group, _determine_unit_kind  # type: ignore[attr-defined]
 
 
 def test_map_group_fallback_other() -> None:
     assert _map_group("completely unknown category") == "other"
+
+
+def test_determine_unit_kind_solid_liquid_arbitrary() -> None:
+    """Unit kind classification should map to solid/liquid/arbitrary."""
+    # Solid (weight) units
+    assert _determine_unit_kind("g") == "solid"
+    assert _determine_unit_kind("oz") == "solid"
+    assert _determine_unit_kind("kg") == "solid"
+    assert _determine_unit_kind("lb") == "solid"
+    assert _determine_unit_kind("mg") == "solid"
+
+    # Liquid (volume) units
+    assert _determine_unit_kind("ml") == "liquid"
+    assert _determine_unit_kind("fl oz") == "liquid"
+    assert _determine_unit_kind("cup") == "liquid"
+    assert _determine_unit_kind("tbsp") == "liquid"
+    assert _determine_unit_kind("tsp") == "liquid"
+    assert _determine_unit_kind("l") == "liquid"
+    assert _determine_unit_kind("pint") == "liquid"
+    assert _determine_unit_kind("quart") == "liquid"
+    assert _determine_unit_kind("gallon") == "liquid"
+
+    # Arbitrary (household) units
+    assert _determine_unit_kind("slice") == "arbitrary"
+    assert _determine_unit_kind("breast") == "arbitrary"
+    assert _determine_unit_kind("medium banana") == "arbitrary"
 
 
 def test_map_group_detects_common_categories() -> None:
@@ -23,7 +51,7 @@ def test_map_group_detects_common_categories() -> None:
 
 def test_map_to_food_request_branded_payload() -> None:
     importer = USDAFdcImporter(api_key="test-key")
-    usda_food = {
+    usda_food: dict[str, Any] = {
         "fdcId": 12345,
         "dataType": "Branded",
         "description": "CHEDDAR CHEESE",
@@ -65,7 +93,7 @@ def test_map_to_food_request_branded_payload() -> None:
 
 def test_map_to_food_request_foundation_defaults_vendor_and_serving() -> None:
     importer = USDAFdcImporter(api_key="test-key")
-    usda_food = {
+    usda_food: dict[str, Any] = {
         "fdcId": 67890,
         "dataType": "Foundation",
         "description": "Spinach, raw",
@@ -92,7 +120,7 @@ def test_map_to_food_request_foundation_defaults_vendor_and_serving() -> None:
     assert request.nutrition.calcium_mg == 99
 
 
-def test_search_foods_uses_required_term_query_operators(monkeypatch) -> None:
+def test_search_foods_uses_required_term_query_operators(monkeypatch: pytest.MonkeyPatch) -> None:
     importer = USDAFdcImporter(api_key="test-key")
 
     calls: list[dict[str, object]] = []
@@ -123,7 +151,7 @@ def test_search_foods_uses_required_term_query_operators(monkeypatch) -> None:
     assert calls[0]["query"] == "+apple +juice"
 
 
-def test_search_foods_filters_to_visible_fields_only(monkeypatch) -> None:
+def test_search_foods_filters_to_visible_fields_only(monkeypatch: pytest.MonkeyPatch) -> None:
     importer = USDAFdcImporter(api_key="test-key")
 
     def fake_get(path: str, params: dict[str, object]) -> dict[str, object]:
@@ -157,7 +185,7 @@ def test_search_foods_filters_to_visible_fields_only(monkeypatch) -> None:
     assert [food["fdcId"] for food in result["foods"]] == [111]
 
 
-def test_search_foods_respects_selected_data_type(monkeypatch) -> None:
+def test_search_foods_respects_selected_data_type(monkeypatch: pytest.MonkeyPatch) -> None:
     importer = USDAFdcImporter(api_key="test-key")
     calls: list[dict[str, object]] = []
 
@@ -189,7 +217,7 @@ def test_search_foods_respects_selected_data_type(monkeypatch) -> None:
 
 def test_map_to_food_request_uses_atwater_energy_for_foundation() -> None:
     importer = USDAFdcImporter(api_key="test-key")
-    usda_food = {
+    usda_food: dict[str, Any] = {
         "fdcId": 90001,
         "dataType": "Foundation",
         "description": "Spinach, baby",
@@ -208,7 +236,7 @@ def test_map_to_food_request_uses_atwater_energy_for_foundation() -> None:
 
 def test_map_to_food_request_estimates_calories_from_macros_when_missing() -> None:
     importer = USDAFdcImporter(api_key="test-key")
-    usda_food = {
+    usda_food: dict[str, Any] = {
         "fdcId": 90002,
         "dataType": "Foundation",
         "description": "Macro only test",
@@ -227,7 +255,7 @@ def test_map_to_food_request_estimates_calories_from_macros_when_missing() -> No
 
 def test_calorie_source_atwater_energy() -> None:
     importer = USDAFdcImporter(api_key="test-key")
-    usda_food = {
+    usda_food: dict[str, Any] = {
         "fdcId": 90003,
         "dataType": "Foundation",
         "description": "Atwater source test",
@@ -241,7 +269,7 @@ def test_calorie_source_atwater_energy() -> None:
 
 def test_calorie_source_estimated_from_macros() -> None:
     importer = USDAFdcImporter(api_key="test-key")
-    usda_food = {
+    usda_food: dict[str, Any] = {
         "fdcId": 90004,
         "dataType": "Foundation",
         "description": "Estimated source test",
@@ -257,7 +285,7 @@ def test_calorie_source_estimated_from_macros() -> None:
 
 def test_map_to_food_request_uses_median_when_amount_missing() -> None:
     importer = USDAFdcImporter(api_key="test-key")
-    usda_food = {
+    usda_food: dict[str, Any] = {
         "fdcId": 90005,
         "dataType": "Foundation",
         "description": "Median-only nutrient test",
@@ -277,7 +305,7 @@ def test_map_to_food_request_uses_median_when_amount_missing() -> None:
 
 def test_nutrition_status_missing_core_when_only_non_core_nutrients_present() -> None:
     importer = USDAFdcImporter(api_key="test-key")
-    usda_food = {
+    usda_food: dict[str, Any] = {
         "fdcId": 90006,
         "dataType": "Foundation",
         "description": "Sparse nutrient test",
@@ -293,7 +321,7 @@ def test_nutrition_status_missing_core_when_only_non_core_nutrients_present() ->
 
 def test_nutrition_status_available_when_core_nutrients_present() -> None:
     importer = USDAFdcImporter(api_key="test-key")
-    usda_food = {
+    usda_food: dict[str, Any] = {
         "fdcId": 90007,
         "dataType": "Foundation",
         "description": "Core nutrient test",
@@ -306,7 +334,7 @@ def test_nutrition_status_available_when_core_nutrients_present() -> None:
     assert importer.nutrition_status(usda_food) == "available"
 
 
-def test_get_foods_by_ids_falls_back_for_ids_omitted_by_batch(monkeypatch) -> None:
+def test_get_foods_by_ids_falls_back_for_ids_omitted_by_batch(monkeypatch: pytest.MonkeyPatch) -> None:
     importer = USDAFdcImporter(api_key="test-key")
 
     post_calls: list[tuple[str, list[int]]] = []

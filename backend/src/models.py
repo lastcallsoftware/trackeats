@@ -1089,13 +1089,20 @@ class Food(db.Model):
             # Flush without committing to get the new IDs
             db.session.flush()
 
-            # Persist nutrition alternatives
+            # Persist nutrition alternatives (serving sizes).
+            # The primary serving size (is_primary=True) reuses the Food's primary
+            # Nutrition record (food.nutrition_id) so there is a single source of
+            # truth for the default serving view.
             if food.nutrition_alternatives:
                 for alt_request in food.nutrition_alternatives:
-                    alt_nutrition = Nutrition(user_id)
-                    alt_nutrition.from_schema(user_id, alt_request.nutrition)
-                    db.session.add(alt_nutrition)
-                    db.session.flush()
+                    if alt_request.is_primary:
+                        # Primary serving size uses the Food's primary Nutrition record
+                        alt_nutrition = new_food_dao.nutrition
+                    else:
+                        alt_nutrition = Nutrition(user_id)
+                        alt_nutrition.from_schema(user_id, alt_request.nutrition)
+                        db.session.add(alt_nutrition)
+                        db.session.flush()
 
                     alt_dao = NutritionAlternative()
                     alt_dao.food_id = new_food_dao.id
@@ -1104,7 +1111,8 @@ class Food(db.Model):
                     alt_dao.serving_unit = alt_request.serving_unit
                     alt_dao.serving_unit_kind = alt_request.serving_unit_kind
                     alt_dao.household_weight_g = alt_request.household_weight_g
-                    alt_dao.ordinal = alt_request.id if alt_request.id is not None else 0
+                    alt_dao.ordinal = alt_request.ordinal
+                    alt_dao.is_primary = alt_request.is_primary
                     db.session.add(alt_dao)
 
             # Save the old ID to new ID mapping (only if old_food_id is not None)
@@ -1142,11 +1150,14 @@ class Food(db.Model):
             # Update the data fields from schema
             food_dao.from_schema(user_id, food)
 
-            # Replace nutrition alternatives: delete old ones, recreate from request
+            # Replace nutrition alternatives (serving sizes).
+            # Delete old alternatives, but preserve the Food's primary Nutrition
+            # record (food.nutrition_id) since it's referenced by the Food.
             for old_alt in list(food_dao.nutrition_alternatives or []):
                 old_nutrition_id = old_alt.nutrition_id
                 db.session.delete(old_alt)
-                if old_nutrition_id:
+                # Don't delete the primary Nutrition record -- it's owned by the Food
+                if old_nutrition_id and old_nutrition_id != food_dao.nutrition_id:
                     old_nutrition = db.session.get(Nutrition, old_nutrition_id)
                     if old_nutrition:
                         db.session.delete(old_nutrition)
@@ -1155,10 +1166,14 @@ class Food(db.Model):
 
             if food.nutrition_alternatives:
                 for alt_request in food.nutrition_alternatives:
-                    alt_nutrition = Nutrition(user_id)
-                    alt_nutrition.from_schema(user_id, alt_request.nutrition)
-                    db.session.add(alt_nutrition)
-                    db.session.flush()
+                    if alt_request.is_primary:
+                        # Primary serving size reuses the Food's primary Nutrition record
+                        alt_nutrition = food_dao.nutrition
+                    else:
+                        alt_nutrition = Nutrition(user_id)
+                        alt_nutrition.from_schema(user_id, alt_request.nutrition)
+                        db.session.add(alt_nutrition)
+                        db.session.flush()
 
                     alt_dao = NutritionAlternative()
                     alt_dao.food_id = food_id
@@ -1167,7 +1182,8 @@ class Food(db.Model):
                     alt_dao.serving_unit = alt_request.serving_unit
                     alt_dao.serving_unit_kind = alt_request.serving_unit_kind
                     alt_dao.household_weight_g = alt_request.household_weight_g
-                    alt_dao.ordinal = alt_request.id if alt_request.id is not None else 0
+                    alt_dao.ordinal = alt_request.ordinal
+                    alt_dao.is_primary = alt_request.is_primary
                     db.session.add(alt_dao)
 
             return food_dao
@@ -2020,10 +2036,14 @@ class NutritionAlternative(db.Model):
     default serving view; additional views are stored here.
 
     Three unit kinds:
-      - mass:      oz, g (weight-based)
-      - volume:    fl oz, ml, cup, tbsp, tsp
-      - household: arbitrary names like "1 breast", "1 medium banana"
+      - solid:     oz, g, kg, lb (weight-based; weight IS the size)
+      - liquid:    fl oz, ml, cup, tbsp, tsp (volume-based; weight = volume × density)
+      - arbitrary: user-defined names like "1 breast", "1 medium banana"
                    (requires household_weight_g for weight calculation)
+
+    The `is_primary` flag marks the default serving size.  Exactly one serving
+    size per Food should be primary.  The primary serving size's Nutrition
+    record is also referenced by Food.nutrition_id for backward compatibility.
     """
     __tablename__ = "nutrition_alternative"
 
@@ -2032,12 +2052,99 @@ class NutritionAlternative(db.Model):
     nutrition_id: Mapped[int] = mapped_column(db.Integer, db.ForeignKey("nutrition.id"), nullable=False)
     serving_value: Mapped[float] = mapped_column(db.Float, nullable=False)
     serving_unit: Mapped[str] = mapped_column(db.String(30), nullable=False)
-    serving_unit_kind: Mapped[str] = mapped_column(db.Enum("mass", "volume", "household", name="serving_unit_kind_enum"), nullable=False)
+    serving_unit_kind: Mapped[str] = mapped_column(db.Enum("solid", "liquid", "arbitrary", name="serving_unit_kind_enum"), nullable=False)
     household_weight_g: Mapped[float | None] = mapped_column(db.Float, nullable=True)
     ordinal: Mapped[int] = mapped_column(db.Integer, nullable=False, default=0)
+    is_primary: Mapped[bool] = mapped_column(db.Boolean, nullable=False, default=False)
 
     food: Mapped[Food] = relationship("Food", back_populates="nutrition_alternatives")
     nutrition: Mapped[Nutrition] = relationship("Nutrition")
+
+    # Conversion factors to grams (for solid units) or milliliters (for liquid units)
+    _SOLID_TO_G = {
+        "g": 1.0,
+        "gram": 1.0,
+        "grams": 1.0,
+        "oz": 28.3495,
+        "ounce": 28.3495,
+        "ounces": 28.3495,
+        "kg": 1000.0,
+        "kilogram": 1000.0,
+        "kilograms": 1000.0,
+        "lb": 453.592,
+        "pound": 453.592,
+        "pounds": 453.592,
+        "mg": 0.001,
+        "milligram": 0.001,
+        "milligrams": 0.001,
+    }
+
+    _LIQUID_TO_ML = {
+        "ml": 1.0,
+        "milliliter": 1.0,
+        "milliliters": 1.0,
+        "l": 1000.0,
+        "liter": 1000.0,
+        "liters": 1000.0,
+        "fl oz": 29.5735,
+        "fluid ounce": 29.5735,
+        "fluid ounces": 29.5735,
+        "cup": 236.588,
+        "cups": 236.588,
+        "tbsp": 14.7868,
+        "tablespoon": 14.7868,
+        "tablespoons": 14.7868,
+        "tsp": 4.92892,
+        "teaspoon": 4.92892,
+        "teaspoons": 4.92892,
+        "pint": 473.176,
+        "pints": 473.176,
+        "quart": 946.353,
+        "quarts": 946.353,
+        "gallon": 3785.41,
+        "gallons": 3785.41,
+    }
+
+    def compute_serving_weight_g(self, density: float | None = None) -> float | None:
+        """
+        Compute the weight of one serving in grams based on the serving unit kind.
+
+        - solid:     serving_value × unit_to_g
+        - liquid:    serving_value × unit_to_ml × density
+        - arbitrary: household_weight_g (the user-provided weight)
+
+        Returns None if the weight cannot be computed (e.g. unknown unit or
+        missing density for liquids).
+        """
+        if self.serving_unit_kind == "solid":
+            factor = self._SOLID_TO_G.get(self.serving_unit.lower())
+            if factor is None:
+                return None
+            return round(self.serving_value * factor, 2)
+
+        if self.serving_unit_kind == "liquid":
+            factor = self._LIQUID_TO_ML.get(self.serving_unit.lower())
+            if factor is None:
+                return None
+            if density is None:
+                return None
+            return round(self.serving_value * factor * density, 2)
+
+        if self.serving_unit_kind == "arbitrary":
+            if self.household_weight_g is None:
+                return None
+            return round(self.household_weight_g, 2)
+
+        return None
+
+    def compute_serving_weight_oz(self, density: float | None = None) -> float | None:
+        """
+        Compute the weight of one serving in ounces.
+        """
+        weight_g = self.compute_serving_weight_g(density)
+        if weight_g is None:
+            return None
+        return round(weight_g / 28.3495, 2)
 
     def json(self) -> dict[str, Any]:
         return {
@@ -2049,5 +2156,6 @@ class NutritionAlternative(db.Model):
             "serving_unit_kind": self.serving_unit_kind,
             "household_weight_g": self.household_weight_g,
             "ordinal": self.ordinal,
+            "is_primary": self.is_primary,
             "nutrition": self.nutrition.json() if self.nutrition else None,
         }

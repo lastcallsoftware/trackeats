@@ -25,9 +25,10 @@ export type INutritionAlternative = {
   nutrition_id?: number
   serving_value: number
   serving_unit: string
-  serving_unit_kind: "mass" | "volume" | "household"
+  serving_unit_kind: "solid" | "liquid" | "arbitrary"
   household_weight_g: number | null
   ordinal: number
+  is_primary: boolean
   nutrition: INutrition
 }
 

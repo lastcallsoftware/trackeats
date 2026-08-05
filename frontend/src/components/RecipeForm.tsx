@@ -4,7 +4,7 @@ import { useTheme } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { IFood, IRecipe, IIngredient, INutrition } from "../contexts/DataProvider";
 import { useData, Recipe } from "@/utils/useData";
-import { useToast } from "@/contexts/ToastContext";
+import { useToast } from "@/contexts/useToast";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";

@@ -250,8 +250,10 @@ def test_recipe_recalculate_sets_total_weight_from_ingredient_nutrition(
         recipe_nutrition_dao=cast(models.Nutrition, recipe_nutrition_dao),
     )
 
-    assert recipe_nutrition_dao.serving_size_oz == (4.0 * 1.5 + 2.0 * 2.0 * 0.25) / 4.0
-    assert recipe_nutrition_dao.serving_size_g == (113 * 1.5 + 56 * 2.0 * 0.25) / 4.0
+    # recalculate stores totals (not per-serving); the frontend divides by servings.
+    # serving_size_oz is rounded to 2 decimals, serving_size_g to a whole number.
+    assert recipe_nutrition_dao.serving_size_oz == round(4.0 * 1.5 + 2.0 * 2.0 * 0.25, 2)
+    assert recipe_nutrition_dao.serving_size_g == round(113 * 1.5 + 56 * 2.0 * 0.25)
 
 
 def test_recipe_recalculate_raises_for_invalid_ingredient_link(

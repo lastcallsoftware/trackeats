@@ -168,10 +168,13 @@ class NutritionRequest(BaseModel):
 class NutritionAlternativeRequest(BaseModel):
     """Validate a nutrition alternative (additional serving size view)."""
     id: int | None = None
+    nutrition_id: int | None = None
     serving_value: float
     serving_unit: str
-    serving_unit_kind: Literal["mass", "volume", "household"]
+    serving_unit_kind: Literal["solid", "liquid", "arbitrary"]
     household_weight_g: float | None = None
+    ordinal: int = 0
+    is_primary: bool = False
     nutrition: NutritionRequest
 
     @field_validator("serving_value")
@@ -190,11 +193,18 @@ class NutritionAlternativeRequest(BaseModel):
             raise ValueError("serving_unit must be 30 characters or fewer")
         return v
 
+    @field_validator("ordinal")
+    @classmethod
+    def validate_ordinal(cls, v: int) -> int:
+        if v < 0:
+            raise ValueError("ordinal must be non-negative")
+        return v
+
     @model_validator(mode="after")
     def validate_household_weight(self) -> "NutritionAlternativeRequest":
-        if self.serving_unit_kind == "household" and self.household_weight_g is None:
-            raise ValueError("household_weight_g is required when serving_unit_kind is 'household'")
-        if self.serving_unit_kind == "household" and self.household_weight_g is not None and self.household_weight_g <= 0:
+        if self.serving_unit_kind == "arbitrary" and self.household_weight_g is None:
+            raise ValueError("household_weight_g is required when serving_unit_kind is 'arbitrary'")
+        if self.serving_unit_kind == "arbitrary" and self.household_weight_g is not None and self.household_weight_g <= 0:
             raise ValueError("household_weight_g must be greater than 0")
         return self
 
@@ -275,6 +285,19 @@ class FoodRequest(BaseModel):
             except ValueError:
                 raise ValueError("price_date must be in YYYY-MM-DD format")
         return v
+
+    @model_validator(mode="after")
+    def validate_primary_serving_size(self) -> "FoodRequest":
+        """
+        Ensure the food has exactly one primary serving size.
+        If no alternative is marked is_primary, the top-level `nutrition`
+        field is treated as the primary serving size.
+        """
+        alternatives = self.nutrition_alternatives or []
+        primary_count = sum(1 for alt in alternatives if alt.is_primary)
+        if primary_count > 1:
+            raise ValueError("Only one serving size may be marked as primary")
+        return self
 
 
 class IngredientRequest(BaseModel):

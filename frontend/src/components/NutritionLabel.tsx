@@ -1,8 +1,12 @@
-import React from "react";
+import React, { useState } from "react";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import Divider from "@mui/material/Divider";
-import { INutrition } from "@/contexts/DataProvider";
+import FormControl from "@mui/material/FormControl";
+import Select from "@mui/material/Select";
+import MenuItem from "@mui/material/MenuItem";
+import InputLabel from "@mui/material/InputLabel";
+import { INutrition, INutritionAlternative } from "@/contexts/DataProvider";
 import { DAILY_VALUES } from "../utils/dailyValues";
 
 // Format a value to two significant digits
@@ -16,10 +20,20 @@ const formatSignificantDigit = (value: number | null | undefined): string => {
   }).format(value);
 };
 
+type ServingView = {
+  key: string;
+  label: string;
+  nutrition: INutrition;
+};
+
 // A simple FDA-style Nutrition Facts label for use in FoodsTable/RecipesTable detail panel
-export const NutritionLabel: React.FC<{ nutrition: INutrition | null, dvDivisor?: number, pricePerServing?: number | null }> = ({ nutrition, dvDivisor, pricePerServing }) => {
-  // If no nutrition, show empty/placeholder label
-  const n = nutrition || {
+export const NutritionLabel: React.FC<{
+  nutrition: INutrition | null;
+  nutritionAlternatives?: INutritionAlternative[];
+  dvDivisor?: number;
+  pricePerServing?: number | null;
+}> = ({ nutrition, nutritionAlternatives, dvDivisor, pricePerServing }) => {
+  const defaultNutrition: INutrition = {
     serving_size_description: "-",
     serving_size_oz: 0,
     serving_size_g: 0,
@@ -40,6 +54,30 @@ export const NutritionLabel: React.FC<{ nutrition: INutrition | null, dvDivisor?
     potassium_mg: 0,
   };
 
+  const buildServingViews = (): ServingView[] => {
+    const views: ServingView[] = [
+      {
+        key: "primary",
+        label: nutrition?.serving_size_description || "Primary",
+        nutrition: nutrition || defaultNutrition,
+      },
+    ];
+    if (nutritionAlternatives) {
+      nutritionAlternatives.forEach((alt, i) => {
+        views.push({
+          key: `alt-${i}`,
+          label: alt.nutrition?.serving_size_description || `${alt.serving_value} ${alt.serving_unit}`,
+          nutrition: alt.nutrition || defaultNutrition,
+        });
+      });
+    }
+    return views;
+  };
+
+  const servingViews = buildServingViews();
+  const [selectedKey, setSelectedKey] = useState("primary");
+  const n = servingViews.find(v => v.key === selectedKey)?.nutrition || defaultNutrition;
+
   return (
     <Box
       sx={{
@@ -59,6 +97,24 @@ export const NutritionLabel: React.FC<{ nutrition: INutrition | null, dvDivisor?
         Nutrition Facts
       </Typography>
       <Divider sx={{ borderBottomWidth: 4, mb: 1 }} />
+
+      {/* ── Serving View Switcher ── */}
+      {servingViews.length > 1 && (
+        <FormControl size="small" fullWidth sx={{ mb: 1 }}>
+          <InputLabel id="nl-serving-select-label">Serving Size</InputLabel>
+          <Select
+            labelId="nl-serving-select-label"
+            label="Serving Size"
+            value={selectedKey}
+            onChange={(e) => setSelectedKey(e.target.value)}
+          >
+            {servingViews.map(v => (
+              <MenuItem key={v.key} value={v.key}>{v.label}</MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+      )}
+
       <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 0.5 }}>
         Serving Size: {n.serving_size_description}
       </Typography>

@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { DataContext } from '@/utils/useData';
-import { useToast } from './ToastContext';
+import { useToast } from './useToast';
 import {
     FOODS_COLUMNS_PREFERENCES_KEY,
     DEFAULT_FOODS_COLUMNS_PREFERENCES,
@@ -136,9 +136,10 @@ export type INutritionAlternative = {
     nutrition_id?: number
     serving_value: number
     serving_unit: string
-    serving_unit_kind: "mass" | "volume" | "household"
+    serving_unit_kind: "solid" | "liquid" | "arbitrary"
     household_weight_g: number | null
     ordinal: number
+    is_primary: boolean
     nutrition: INutrition
 }
 

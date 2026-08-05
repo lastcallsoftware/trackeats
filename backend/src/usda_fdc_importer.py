@@ -642,6 +642,7 @@ def _build_alternatives_from_portions(
 
         # Determine unit kind
         serving_unit_kind = _determine_unit_kind(unit_name)
+        is_primary = False  # USDA portions are all alternatives; primary is the main serving
 
         # Scale nutrition to this portion's gram weight
         scale_factor = gram_weight / primary_g if primary_g > 0 else 1.0
@@ -666,14 +667,15 @@ def _build_alternatives_from_portions(
             potassium_mg=int(round((primary_nutrition.potassium_mg or 0) * scale_factor)),
         )
 
-        household_weight = gram_weight if serving_unit_kind == "household" else None
+        household_weight = gram_weight if serving_unit_kind == "arbitrary" else None
 
         alternatives.append(
             NutritionAlternativeRequest(
                 serving_value=amount,
-                serving_unit=portion_description if serving_unit_kind == "household" else unit_name,
+                serving_unit=portion_description if serving_unit_kind == "arbitrary" else unit_name,
                 serving_unit_kind=serving_unit_kind,
                 household_weight_g=household_weight,
+                is_primary=is_primary,
                 nutrition=scaled_nutrition,
             )
         )
@@ -681,17 +683,22 @@ def _build_alternatives_from_portions(
     return alternatives
 
 
-def _determine_unit_kind(unit_name: str) -> Literal["mass", "volume", "household"]:
-    """Determine serving_unit_kind from a USDA unit name."""
+def _determine_unit_kind(unit_name: str) -> Literal["solid", "liquid", "arbitrary"]:
+    """Determine serving_unit_kind from a USDA unit name.
+
+    - solid:     weight-based units (g, oz, kg, lb, mg)
+    - liquid:    volume-based units (ml, fl oz, cup, tbsp, tsp, l, pint, quart, gallon)
+    - arbitrary: everything else (user-defined household measures)
+    """
     unit_lower = unit_name.strip().lower()
 
-    # Mass units
+    # Solid (weight) units
     if unit_lower in {"g", "gram", "grams", "oz", "ounce", "ounces", "kg", "kilogram", "kilograms", "lb", "lbs", "pound", "pounds", "mg", "milligram", "milligrams"}:
-        return "mass"
+        return "solid"
 
-    # Volume units
+    # Liquid (volume) units
     if unit_lower in {"ml", "milliliter", "milliliters", "millilitre", "millilitres", "l", "liter", "liters", "litre", "litres", "fl oz", "fluid ounce", "fluid ounces", "cup", "cups", "tbsp", "tablespoon", "tablespoons", "tsp", "teaspoon", "teaspoons", "pint", "pints", "quart", "quarts", "gallon", "gallons"}:
-        return "volume"
+        return "liquid"
 
-    # Everything else is household
-    return "household"
+    # Everything else is arbitrary
+    return "arbitrary"
