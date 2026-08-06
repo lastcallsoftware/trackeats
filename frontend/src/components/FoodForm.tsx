@@ -89,6 +89,29 @@ const SOLID_TO_G: Record<string, number> = {
     mg: 0.001, milligram: 0.001, milligrams: 0.001,
 };
 
+type NewServingUnitKind = "solid" | "liquid" | "arbitrary";
+
+type NewServingUnitOption = {
+    value: string;
+    label: string;
+    kind: NewServingUnitKind;
+    defaultAmount: number;
+};
+
+const NEW_SERVING_UNITS: NewServingUnitOption[] = [
+    { value: "g", label: "g", kind: "solid", defaultAmount: 100 },
+    { value: "oz", label: "oz", kind: "solid", defaultAmount: 1 },
+    { value: "kg", label: "kg", kind: "solid", defaultAmount: 1 },
+    { value: "lb", label: "lb", kind: "solid", defaultAmount: 1 },
+    { value: "mg", label: "mg", kind: "solid", defaultAmount: 100 },
+    { value: "ml", label: "ml", kind: "liquid", defaultAmount: 100 },
+    { value: "fl oz", label: "fl oz", kind: "liquid", defaultAmount: 1 },
+    { value: "cup", label: "cup", kind: "solid", defaultAmount: 1 },
+    { value: "tbsp", label: "tbsp", kind: "solid", defaultAmount: 1 },
+    { value: "tsp", label: "tsp", kind: "solid", defaultAmount: 1 },
+    { value: "arbitrary", label: "Arbitrary", kind: "arbitrary", defaultAmount: 1 },
+];
+
 const LIQUID_TO_ML: Record<string, number> = {
     ml: 1.0, milliliter: 1.0, milliliters: 1.0,
     l: 1000.0, liter: 1000.0, liters: 1000.0,
@@ -193,7 +216,7 @@ function FoodForm() {
     // from it regardless of which serving view is currently selected.
     // Stored in state (not a ref) so it can be read safely during render.
     const [primaryNutrition, setPrimaryNutrition] = useState<INutritionAlternative["nutrition"]>(
-        (food?.nutrition || getValues("nutrition")) as INutritionAlternative["nutrition"]
+        { ...((food?.nutrition || getValues("nutrition")) as INutritionAlternative["nutrition"]) }
     );
 
     const buildServingViews = () => {
@@ -217,51 +240,80 @@ function FoodForm() {
 
     const servingViews = buildServingViews();
 
+    // Write a nutrition record's values into the live form fields.
+    const applyServingToForm = (nutrition: INutritionAlternative["nutrition"]) => {
+        setValue("nutrition.serving_size_description", nutrition.serving_size_description);
+        setValue("nutrition.serving_size_oz", nutrition.serving_size_oz);
+        setValue("nutrition.serving_size_g", nutrition.serving_size_g);
+        setValue("nutrition.calories", nutrition.calories);
+        setValue("nutrition.total_fat_g", nutrition.total_fat_g);
+        setValue("nutrition.saturated_fat_g", nutrition.saturated_fat_g);
+        setValue("nutrition.trans_fat_g", nutrition.trans_fat_g);
+        setValue("nutrition.cholesterol_mg", nutrition.cholesterol_mg);
+        setValue("nutrition.sodium_mg", nutrition.sodium_mg);
+        setValue("nutrition.total_carbs_g", nutrition.total_carbs_g);
+        setValue("nutrition.fiber_g", nutrition.fiber_g);
+        setValue("nutrition.total_sugar_g", nutrition.total_sugar_g);
+        setValue("nutrition.added_sugar_g", nutrition.added_sugar_g);
+        setValue("nutrition.protein_g", nutrition.protein_g);
+        setValue("nutrition.vitamin_d_mcg", nutrition.vitamin_d_mcg);
+        setValue("nutrition.calcium_mg", nutrition.calcium_mg);
+        setValue("nutrition.iron_mg", nutrition.iron_mg);
+        setValue("nutrition.potassium_mg", nutrition.potassium_mg);
+    };
+
     const onSelectView = (key: string) => {
+        if (key === selectedKey) return;
+        // If we're navigating AWAY from the primary view, capture the
+        // current form values (which reflect the primary serving, including
+        // any edits the user made) as the authoritative primary nutrition.
+        // This must happen BEFORE the form is overwritten with the new
+        // view's values, and must be keyed off the outgoing view, not the
+        // incoming one - otherwise the primary's data gets clobbered with
+        // whatever alternative was being viewed.
+        if (selectedKey === "primary") {
+            setPrimaryNutrition({
+                ...(getValues("nutrition") as INutritionAlternative["nutrition"]),
+            });
+        }
         setSelectedKey(key);
         const view = servingViews.find(v => v.key === key);
         if (!view?.nutrition) return;
-        // When switching back to the primary view, capture the current form
-        // values as the authoritative primary nutrition (used for scaling new
-        // alternatives). This avoids reading a ref during render.
-        if (key === "primary") {
-            setPrimaryNutrition(getValues("nutrition") as INutritionAlternative["nutrition"]);
-        }
-        setValue("nutrition.serving_size_description", view.nutrition.serving_size_description);
-        setValue("nutrition.serving_size_oz", view.nutrition.serving_size_oz);
-        setValue("nutrition.serving_size_g", view.nutrition.serving_size_g);
-        setValue("nutrition.calories", view.nutrition.calories);
-        setValue("nutrition.total_fat_g", view.nutrition.total_fat_g);
-        setValue("nutrition.saturated_fat_g", view.nutrition.saturated_fat_g);
-        setValue("nutrition.trans_fat_g", view.nutrition.trans_fat_g);
-        setValue("nutrition.cholesterol_mg", view.nutrition.cholesterol_mg);
-        setValue("nutrition.sodium_mg", view.nutrition.sodium_mg);
-        setValue("nutrition.total_carbs_g", view.nutrition.total_carbs_g);
-        setValue("nutrition.fiber_g", view.nutrition.fiber_g);
-        setValue("nutrition.total_sugar_g", view.nutrition.total_sugar_g);
-        setValue("nutrition.added_sugar_g", view.nutrition.added_sugar_g);
-        setValue("nutrition.protein_g", view.nutrition.protein_g);
-        setValue("nutrition.vitamin_d_mcg", view.nutrition.vitamin_d_mcg);
-        setValue("nutrition.calcium_mg", view.nutrition.calcium_mg);
-        setValue("nutrition.iron_mg", view.nutrition.iron_mg);
-        setValue("nutrition.potassium_mg", view.nutrition.potassium_mg);
+        applyServingToForm({ ...view.nutrition });
     };
 
     const [isAddingNew, setIsAddingNew] = useState(false);
-    const [newKind, setNewKind] = useState<"solid"|"liquid"|"arbitrary">("solid");
-    const [newValue, setNewValue] = useState(1);
+    const [newValue, setNewValue] = useState(100);
     const [newUnit, setNewUnit] = useState("g");
+    const newServingKind = NEW_SERVING_UNITS.find(unit => unit.value === newUnit)?.kind ?? "solid";
     const [newHhName, setNewHhName] = useState("");
     const [newHhWeight, setNewHhWeight] = useState<number|null>(null);
+    const [newSolidWeightG, setNewSolidWeightG] = useState<number|null>(null);
+    const [newLiquidDensity, setNewLiquidDensity] = useState<number|null>(1);
 
     const handleAddServing = () => {
-        const primary = primaryNutrition;
-        const density = getValues("density") as number | null;
-        const newWeightG = computeServingWeightG(newKind, newValue, newUnit, newHhWeight, density);
+        // If we're currently viewing the primary serving, capture any
+        // unsaved edits before using it as the scaling base, and before the
+        // form is switched over to the new alternative's view.
+        const primary = selectedKey === "primary"
+            ? { ...(getValues("nutrition") as INutritionAlternative["nutrition"]) }
+            : { ...primaryNutrition };
+        if (selectedKey === "primary") {
+            setPrimaryNutrition(primary);
+        }
+
+        const density = newServingKind === "liquid" ? newLiquidDensity : null;
+        const newWeightG = newServingKind === "solid" && newUnit !== "g" && newUnit !== "oz"
+            ? newSolidWeightG
+            : newServingKind === "solid"
+                ? computeServingWeightG(newServingKind, newValue, newUnit, newHhWeight, density)
+                : newServingKind === "liquid" && newUnit === "fl oz" && density != null
+                ? newValue * density * 28.3495
+                : computeServingWeightG(newServingKind, newValue, newUnit, newHhWeight, density);
         const primaryWeightG = primary?.serving_size_g ?? 0;
 
         // The label reflects the user's new serving selections.
-        const description = newKind === "arbitrary"
+        const description = newServingKind === "arbitrary"
             ? (newHhName || newUnit)
             : `${newValue} ${newUnit}`;
 
@@ -278,28 +330,47 @@ function FoodForm() {
         const newAlt: INutritionAlternative = {
             ordinal: localAlternatives.length,
             serving_value: newValue,
-            serving_unit: newKind === "arbitrary" ? (newHhName || newUnit) : newUnit,
-            serving_unit_kind: newKind,
-            household_weight_g: newKind === "arbitrary" ? newHhWeight : null,
+            serving_unit: newServingKind === "arbitrary" ? (newHhName || newUnit) : newUnit,
+            serving_unit_kind: newServingKind,
+            household_weight_g: newServingKind === "arbitrary" ? newHhWeight : null,
             is_primary: false,
             nutrition,
         };
         setLocalAlternatives(prev => [...prev, newAlt]);
         setSelectedKey(`alt-${localAlternatives.length}`);
+        applyServingToForm({ ...nutrition });
         setIsAddingNew(false);
         // Reset the add form
-        setNewKind("solid");
-        setNewValue(1);
+        setNewValue(100);
         setNewUnit("g");
         setNewHhName("");
         setNewHhWeight(null);
+        setNewSolidWeightG(null);
+        setNewLiquidDensity(1);
     };
 
     const handleDeleteServing = () => {
-        if (selectedKey === "primary") return;
+        if (servingViews.length <= 1) return;
+
+        if (selectedKey === "primary") {
+            // Promote the first alternative to primary when the original
+            // primary serving is deleted. The promoted serving is removed
+            // from the alternatives list so it is not duplicated.
+            const promoted = localAlternatives[0]?.nutrition;
+            if (!promoted) return;
+
+            const nextPrimary = { ...promoted };
+            setPrimaryNutrition(nextPrimary);
+            setLocalAlternatives(prev => prev.slice(1));
+            setSelectedKey("primary");
+            applyServingToForm(nextPrimary);
+            return;
+        }
+
         const idx = Number(selectedKey.replace("alt-", ""));
         setLocalAlternatives(prev => prev.filter((_, i) => i !== idx));
         setSelectedKey("primary");
+        applyServingToForm({ ...primaryNutrition });
     };
 
     const onSubmit = async (data: FoodFormValues) => {
@@ -658,7 +729,7 @@ function FoodForm() {
                         <IconButton size="small" color="primary" onClick={() => setIsAddingNew(true)}>
                             <AddCircleOutlineIcon fontSize="small" />
                         </IconButton>
-                        {selectedKey !== "primary" && (
+                        {servingViews.length > 1 && (
                             <IconButton size="small" color="error" onClick={handleDeleteServing}>
                                 <RemoveCircleOutlineIcon fontSize="small" />
                             </IconButton>
@@ -667,88 +738,126 @@ function FoodForm() {
 
                     {/* ── Add New Serving Size (inline form) ── */}
                     {isAddingNew && (
-                        <Box sx={{ bgcolor: '#f5f5f5', borderRadius: 1, p: 1, mb: 1 }}>
-                            <Typography variant="caption" sx={{ fontWeight: 600, mb: 0.5 }}>New Serving Size</Typography>
+                        <Box sx={{ bgcolor: '#f5f5f5', border: '1px solid #d5d5d5', borderRadius: 1, p: 1, pt: 0.5, mb: 1 }}>
+                            <Typography variant="caption" sx={{ display: 'block', fontWeight: 600, lineHeight: 1.2, mb: 1.5 }}>New Serving Size</Typography>
                             <Grid container spacing={0.5}>
                                 <Grid size={{ xs: 4 }}>
-                                    <FormControl size="small" fullWidth>
-                                        <InputLabel>Kind</InputLabel>
-                                        <Select value={newKind} label="Kind"
-                                            onChange={(e) => { setNewKind(e.target.value as "solid" | "liquid" | "arbitrary"); setNewUnit(e.target.value === "solid" ? "g" : e.target.value === "liquid" ? "ml" : ""); }}>
-                                            <MenuItem value="solid">Solid</MenuItem>
-                                            <MenuItem value="liquid">Liquid</MenuItem>
-                                            <MenuItem value="arbitrary">Arbitrary</MenuItem>
-                                        </Select>
-                                    </FormControl>
+                                    <TextField
+                                        select
+                                        label="Unit"
+                                        InputLabelProps={{ shrink: true }}
+                                        size="small"
+                                        value={newUnit}
+                                        onChange={e => {
+                                            const nextUnit = e.target.value;
+                                            const previousOption = NEW_SERVING_UNITS.find(unit => unit.value === newUnit);
+                                            const nextOption = NEW_SERVING_UNITS.find(unit => unit.value === nextUnit);
+                                            setNewUnit(nextUnit);
+                                            if (newValue === (previousOption?.defaultAmount ?? 1)) {
+                                                setNewValue(nextOption?.defaultAmount ?? 1);
+                                            }
+                                        }}
+                                        fullWidth
+                                        sx={{ "& .MuiInputBase-root": { height: 40 } }}
+                                    >
+                                        {NEW_SERVING_UNITS.map(unit => (
+                                            <MenuItem key={unit.value} value={unit.value}>{unit.label}</MenuItem>
+                                        ))}
+                                    </TextField>
                                 </Grid>
                                 <Grid size={{ xs: 3 }}>
-                                    <TextField label="Amount" type="number" size="small" value={newValue}
+                                    <TextField
+                                        label="Amount"
+                                        InputLabelProps={{ shrink: true }}
+                                        type="number"
+                                        size="small"
+                                        value={newValue}
                                         onChange={e => setNewValue(Number(e.target.value))}
-                                        inputProps={{ min: 0, step: 0.01 }} fullWidth />
+                                        inputProps={{ min: 0, step: 0.01 }}
+                                        fullWidth
+                                        sx={{ "& .MuiInputBase-root": { height: 40 } }}
+                                    />
                                 </Grid>
-                                <Grid size={{ xs: 3 }}>
-                                    {newKind === "arbitrary" ? (
-                                        <TextField label="Name" size="small" value={newHhName}
-                                            onChange={e => { setNewHhName(e.target.value); setNewUnit(e.target.value); }}
-                                            inputProps={{ maxLength: 30 }} fullWidth />
-                                    ) : newKind === "liquid" ? (
-                                        <FormControl size="small" fullWidth>
-                                            <InputLabel>Unit</InputLabel>
-                                            <Select value={newUnit} label="Unit" onChange={e => setNewUnit(e.target.value)}>
-                                                <MenuItem value="ml">ml</MenuItem>
-                                                <MenuItem value="fl oz">fl oz</MenuItem>
-                                                <MenuItem value="cup">cup</MenuItem>
-                                                <MenuItem value="tbsp">tbsp</MenuItem>
-                                                <MenuItem value="tsp">tsp</MenuItem>
-                                            </Select>
-                                        </FormControl>
-                                    ) : (
-                                        <FormControl size="small" fullWidth>
-                                            <InputLabel>Unit</InputLabel>
-                                            <Select value={newUnit} label="Unit" onChange={e => setNewUnit(e.target.value)}>
-                                                <MenuItem value="g">g</MenuItem>
-                                                <MenuItem value="oz">oz</MenuItem>
-                                            </Select>
-                                        </FormControl>
-                                    )}
-                                </Grid>
-                                {newKind === "arbitrary" && (
-                                    <Grid size={{ xs: 12 }}>
-                                        <TextField label="Weight (g)" type="number" size="small"
+                                {newServingKind === "arbitrary" && (
+                                    <Grid size={{ xs: 5 }}>
+                                        <TextField
+                                            label="Name"
+                                            InputLabelProps={{ shrink: true }}
+                                            size="small"
+                                            value={newHhName}
+                                            onChange={e => setNewHhName(e.target.value)}
+                                            inputProps={{ maxLength: 30 }}
+                                            fullWidth
+                                            sx={{ "& .MuiInputBase-root": { height: 40 } }}
+                                        />
+                                    </Grid>
+                                )}
+                                {newServingKind === "arbitrary" ? (
+                                    <Grid size={{ xs: 12 }} sx={{ mt: 1 }}>
+                                        <TextField
+                                            label="Weight (g)"
+                                            InputLabelProps={{ shrink: true }}
+                                            type="number"
+                                            size="small"
                                             value={newHhWeight ?? ""}
                                             onChange={e => setNewHhWeight(e.target.value ? Number(e.target.value) : null)}
                                             helperText="Weight in grams for this arbitrary unit"
-                                            inputProps={{ min: 0, step: 0.1 }} fullWidth />
+                                            inputProps={{ min: 0, step: 0.1 }}
+                                            fullWidth
+                                            sx={{ "& .MuiInputBase-root": { height: 40 } }}
+                                        />
                                     </Grid>
-                                )}
-                                <Grid size={{ xs: 12 }} sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1, mt: 0.5 }}>
-                                    <Button size="small" onClick={() => setIsAddingNew(false)}>Cancel</Button>
+                                ) : newServingKind === "solid" && newUnit !== "g" && newUnit !== "oz" ? (
+                                    <Grid size={{ xs: 12 }} sx={{ mt: 1 }}>
+                                        <TextField
+                                            label="Weight (g)"
+                                            InputLabelProps={{ shrink: true }}
+                                            type="number"
+                                            size="small"
+                                            value={newSolidWeightG ?? ""}
+                                            onChange={e => setNewSolidWeightG(e.target.value ? Number(e.target.value) : null)}
+                                            helperText="Weight in grams for this serving"
+                                            inputProps={{ min: 0, step: 0.1 }}
+                                            fullWidth
+                                            sx={{ "& .MuiInputBase-root": { height: 40 } }}
+                                        />
+                                    </Grid>
+                                ) : newServingKind === "liquid" ? (
+                                    <Grid size={{ xs: 12 }} sx={{ mt: 1 }}>
+                                        <TextField
+                                            label={newUnit === "fl oz" ? "Density (oz/fl oz)" : "Density (g/ml)"}
+                                            InputLabelProps={{ shrink: true }}
+                                            type="number"
+                                            size="small"
+                                            value={newLiquidDensity ?? ""}
+                                            onChange={e => setNewLiquidDensity(e.target.value ? Number(e.target.value) : null)}
+                                            helperText={newUnit === "fl oz" ? "Ounces per fluid ounce" : "Grams per milliliter"}
+                                            inputProps={{ min: 0, step: 0.01 }}
+                                            fullWidth
+                                            sx={{ "& .MuiInputBase-root": { height: 40 } }}
+                                        />
+                                    </Grid>
+                                ) : null}
+                                <Grid size={{ xs: 12 }} sx={{ display: 'flex', justifyContent: 'flex-start', gap: 1, mt: 0.5 }}>
                                     <Button size="small" variant="contained" onClick={handleAddServing}>Add</Button>
+                                    <Button size="small" onClick={() => setIsAddingNew(false)}>Cancel</Button>
                                 </Grid>
                             </Grid>
                         </Box>
                     )}
 
                     {/* ── Serving Size oz/g ── */}
-                    <Box sx={{ display: 'flex', gap: 1, mt: 0.5, mb: 1 }}>
+                    <Box sx={{ display: 'flex', gap: 1, mt: 1.5, mb: 1 }}>
                         <TextField label="Serving Size (oz)" id="serving_size_oz" type="number"
-                            {...register("nutrition.serving_size_oz", { valueAsNumber: true,
-                                onChange: (event) => {
-                                    const nextOz = Number(event.target.value);
-                                    if (!Number.isNaN(nextOz)) { setValue('nutrition.serving_size_g', Math.round(nextOz * 28.3495), { shouldValidate: true }); }
-                                }})}
+                            {...register("nutrition.serving_size_oz", { valueAsNumber: true })}
                             error={!!errors.nutrition?.serving_size_oz} helperText={errors.nutrition?.serving_size_oz?.message}
-                            inputProps={{ min: 0, step: 0.01 }} size="small" fullWidth
-                            sx={{ '& .MuiInputBase-input': { py: 0.75 } }} />
+                            inputProps={{ min: 0, step: 0.01, readOnly: true }} size="small" fullWidth
+                            sx={{ backgroundColor: '#f5f5f5', '& .MuiInputBase-input': { py: 0.75 } }} />
                         <TextField label="Serving Size (g)" id="serving_size_g" type="number"
-                            {...register("nutrition.serving_size_g", { valueAsNumber: true,
-                                onChange: (event) => {
-                                    const nextG = Number(event.target.value);
-                                    if (!Number.isNaN(nextG)) { setValue('nutrition.serving_size_oz', parseFloat((nextG / 28.3495).toFixed(2)), { shouldValidate: true }); }
-                                }})}
+                            {...register("nutrition.serving_size_g", { valueAsNumber: true })}
                             error={!!errors.nutrition?.serving_size_g} helperText={errors.nutrition?.serving_size_g?.message}
-                            inputProps={{ min: 0, step: 1 }} size="small" fullWidth
-                            sx={{ '& .MuiInputBase-input': { py: 0.75 } }} />
+                            inputProps={{ min: 0, step: 1, readOnly: true }} size="small" fullWidth
+                            sx={{ backgroundColor: '#f5f5f5', '& .MuiInputBase-input': { py: 0.75 } }} />
                     </Box>
 
                     <Divider sx={{ borderBottomWidth: 2, my: 1 }} />
