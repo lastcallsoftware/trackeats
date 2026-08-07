@@ -154,7 +154,7 @@ export type IFood = {
     size_description_2: string | null
     size_imperial: number | null
     size_metric: number | null
-    unit_type: "weight" | "volume"
+    unit_type: "solid" | "liquid"
     density: number | null
     size_oz: number
     size_g: number

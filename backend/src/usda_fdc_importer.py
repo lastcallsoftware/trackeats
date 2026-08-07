@@ -267,7 +267,7 @@ class USDAFdcImporter:
             size_description_2=None,
             size_imperial=serving_size_oz,
             size_metric=serving_size_g,
-            unit_type="weight",
+            unit_type="solid",
             density=1.0,
             source=USDA_SOURCE,
             fdc_id=fdc_id,

@@ -920,7 +920,7 @@ class Food(db.Model):
     size_description_2: Mapped[str | None] = mapped_column(db.String(50), nullable=True)
     size_imperial: Mapped[float | None] = mapped_column(db.Float, nullable=True)
     size_metric: Mapped[int | None] = mapped_column(db.Integer, nullable=True)
-    unit_type: Mapped[str] = mapped_column(db.Enum("weight", "volume", name="unit_type_enum"), nullable=False, default="weight")
+    unit_type: Mapped[str] = mapped_column(db.Enum("solid", "liquid", name="unit_type_enum"), nullable=False, default="solid")
     density: Mapped[float | None] = mapped_column(db.Float, nullable=True, default=1.0)
     servings: Mapped[float] = mapped_column(db.Float, nullable=False)
     nutrition_id: Mapped[int | None] = mapped_column(db.Integer, db.ForeignKey("nutrition.id"), nullable=True)
@@ -976,7 +976,7 @@ class Food(db.Model):
     
     def json(self) -> dict[str,Any]:
         # Compute derived weight fields for backward compatibility
-        if self.unit_type == "volume" and self.size_metric is not None and self.density is not None:
+        if self.unit_type == "liquid" and self.size_metric is not None and self.density is not None:
             computed_weight_g = round(self.size_metric * self.density)
             computed_weight_oz = round(computed_weight_g / 28.3495, 2)
         else:

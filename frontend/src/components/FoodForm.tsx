@@ -61,7 +61,7 @@ const foodSchema = z.object({
     size_description_2: z.string().max(50, "Must be 50 characters or fewer").nullable().optional(),
     size_imperial: z.coerce.number().min(0, "Must be 0 or greater"),
     size_metric: z.coerce.number().min(0, "Must be 0 or greater"),
-    unit_type: z.enum(["weight", "volume"]).default("weight"),
+    unit_type: z.enum(["solid", "liquid"]).default("solid"),
     density: z.coerce.number().min(0, "Must be 0 or greater").default(1.0),
     servings: z.coerce.number().gt(0, "Servings must be greater than 0"),
     nutrition_id: z.number().optional(),
@@ -599,15 +599,15 @@ function FoodForm() {
                             control={control}
                             render={({ field }) => (
                                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, pt: 1 }}>
-                                    <Typography variant="body2" sx={{ color: field.value === "volume" ? 'text.disabled' : 'text.primary', fontWeight: field.value === "volume" ? 400 : 600 }}>
+                                    <Typography variant="body2" sx={{ color: field.value === "liquid" ? 'text.disabled' : 'text.primary', fontWeight: field.value === "liquid" ? 400 : 600 }}>
                                         Solid
                                     </Typography>
                                     <Switch
-                                        checked={field.value === "volume"}
-                                        onChange={(_, checked) => field.onChange(checked ? "volume" : "weight")}
+                                        checked={field.value === "liquid"}
+                                        onChange={(_, checked) => field.onChange(checked ? "liquid" : "solid")}
                                         inputRef={field.ref}
                                     />
-                                    <Typography variant="body2" sx={{ color: field.value === "volume" ? 'text.primary' : 'text.disabled', fontWeight: field.value === "volume" ? 600 : 400 }}>
+                                    <Typography variant="body2" sx={{ color: field.value === "liquid" ? 'text.primary' : 'text.disabled', fontWeight: field.value === "liquid" ? 600 : 400 }}>
                                         Liquid
                                     </Typography>
                                 </Box>
@@ -616,7 +616,7 @@ function FoodForm() {
                     </Grid>
                     <Grid size={{ xs: 6, sm: 3 }}>
                         <TextField
-                            label={unitType === "volume" ? "Volume (fl oz)" : "Weight (oz)"}
+                            label={unitType === "liquid" ? "Volume (fl oz)" : "Weight (oz)"}
                             id="size_imperial"
                             type="number"
                             {...register("size_imperial", {
@@ -630,7 +630,7 @@ function FoodForm() {
                                     const nextImperial = Number(raw);
                                     if (!Number.isNaN(nextImperial)) {
                                         // Solid: oz → g (28.3495 g/oz). Liquid: fl oz → ml (29.5735 ml/fl oz).
-                                        const factor = unitType === "volume" ? 29.5735 : 28.3495;
+                                        const factor = unitType === "liquid" ? 29.5735 : 28.3495;
                                         setValue('size_metric', Math.round(nextImperial * factor), { shouldValidate: true });
                                     }
                                 },
@@ -645,7 +645,7 @@ function FoodForm() {
                     </Grid>
                     <Grid size={{ xs: 6, sm: 3 }}>
                             <TextField
-                                label={unitType === "volume" ? "Volume (ml)" : "Weight (g)"}
+                                label={unitType === "liquid" ? "Volume (ml)" : "Weight (g)"}
                                 id="size_metric"
                                 type="number"
                                 {...register("size_metric", {
@@ -659,7 +659,7 @@ function FoodForm() {
                                         const nextMetric = Number(raw);
                                         if (!Number.isNaN(nextMetric)) {
                                             // Solid: g → oz (28.3495 g/oz). Liquid: ml → fl oz (29.5735 ml/fl oz).
-                                            const factor = unitType === "volume" ? 29.5735 : 28.3495;
+                                            const factor = unitType === "liquid" ? 29.5735 : 28.3495;
                                             setValue('size_imperial', parseFloat((nextMetric / factor).toFixed(2)), { shouldValidate: true });
                                         }
                                     },

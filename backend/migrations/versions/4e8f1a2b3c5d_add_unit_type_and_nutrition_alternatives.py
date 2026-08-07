@@ -25,13 +25,13 @@ def upgrade():
     with op.batch_alter_table('food', schema=None) as batch_op:
         batch_op.alter_column('size_g', new_column_name='size_metric', existing_type=sa.Integer())
 
-    # 3. Add unit_type ENUM column (default 'weight' for backward compat)
+    # 3. Add unit_type ENUM column (default 'solid' for backward compat)
     with op.batch_alter_table('food', schema=None) as batch_op:
         batch_op.add_column(sa.Column(
             'unit_type',
-            sa.Enum('weight', 'volume', name='unit_type_enum'),
+            sa.Enum('solid', 'liquid', name='unit_type_enum'),
             nullable=False,
-            server_default='weight'
+            server_default='solid'
         ))
 
     # 4. Add density FLOAT column (default 1.0 for backward compat)

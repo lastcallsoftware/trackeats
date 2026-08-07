@@ -42,7 +42,7 @@ export class Food implements IFood {
     size_description_2: string | null = null;
     size_imperial: number | null = null;
     size_metric: number | null = null;
-    unit_type: "weight" | "volume" = "weight";
+    unit_type: "solid" | "liquid" = "solid";
     density: number | null = 1.0;
     size_oz = 0;
     size_g= 0;
