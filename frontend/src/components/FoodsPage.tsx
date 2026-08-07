@@ -332,7 +332,7 @@ const FoodsPage = () => {
             sidebar={(() => {
                 const food = foods.find(f => f.id === selectedRowId);
                 const pricePerServing = food ? (food.price ?? 0) / (food.servings || 1) : null;
-                return <NutritionLabel nutrition={food?.nutrition || null} pricePerServing={pricePerServing} />;
+                return <NutritionLabel nutrition={food?.nutrition || null} nutritionAlternatives={food?.nutrition_alternatives} pricePerServing={pricePerServing} />;
             })()}
         />
     )

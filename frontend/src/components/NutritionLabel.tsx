@@ -1,8 +1,11 @@
-import React from "react";
+import React, { useState } from "react";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import Divider from "@mui/material/Divider";
-import { INutrition } from "@/contexts/DataProvider";
+import FormControl from "@mui/material/FormControl";
+import Select from "@mui/material/Select";
+import MenuItem from "@mui/material/MenuItem";
+import { INutrition, INutritionAlternative } from "@/contexts/DataProvider";
 import { DAILY_VALUES } from "../utils/dailyValues";
 
 // Format a value to two significant digits
@@ -16,10 +19,20 @@ const formatSignificantDigit = (value: number | null | undefined): string => {
   }).format(value);
 };
 
+type ServingView = {
+  key: string;
+  label: string;
+  nutrition: INutrition;
+};
+
 // A simple FDA-style Nutrition Facts label for use in FoodsTable/RecipesTable detail panel
-export const NutritionLabel: React.FC<{ nutrition: INutrition | null, dvDivisor?: number, pricePerServing?: number | null }> = ({ nutrition, dvDivisor, pricePerServing }) => {
-  // If no nutrition, show empty/placeholder label
-  const n = nutrition || {
+export const NutritionLabel: React.FC<{
+  nutrition: INutrition | null;
+  nutritionAlternatives?: INutritionAlternative[];
+  dvDivisor?: number;
+  pricePerServing?: number | null;
+}> = ({ nutrition, nutritionAlternatives, dvDivisor, pricePerServing }) => {
+  const defaultNutrition: INutrition = {
     serving_size_description: "-",
     serving_size_oz: 0,
     serving_size_g: 0,
@@ -40,6 +53,39 @@ export const NutritionLabel: React.FC<{ nutrition: INutrition | null, dvDivisor?
     potassium_mg: 0,
   };
 
+  const buildServingViews = (): ServingView[] => {
+    const views: ServingView[] = [
+      {
+        key: "primary",
+        label: nutrition?.serving_size_description || "Primary",
+        nutrition: nutrition || defaultNutrition,
+      },
+    ];
+    if (nutritionAlternatives) {
+      // The backend's nutrition_alternatives list includes the primary
+      // serving (marked is_primary). The primary is already the first view
+      // above, so skip it here to avoid showing it twice.
+      nutritionAlternatives.forEach((alt, i) => {
+        if (alt.is_primary) return;
+        views.push({
+          key: `alt-${i}`,
+          label: alt.nutrition?.serving_size_description || `${alt.serving_value} ${alt.serving_unit}`,
+          nutrition: alt.nutrition || defaultNutrition,
+        });
+      });
+    }
+    return views;
+  };
+
+  const servingViews = buildServingViews();
+  const [selectedKey, setSelectedKey] = useState("primary");
+
+  // If the selected key no longer exists in the current serving views (e.g.
+  // the user switched to a different food that has fewer or no alternatives),
+  // fall back to the primary view instead of showing all-zero nutrition.
+  const effectiveKey = servingViews.some(v => v.key === selectedKey) ? selectedKey : "primary";
+  const n = servingViews.find(v => v.key === effectiveKey)?.nutrition || defaultNutrition;
+
   return (
     <Box
       sx={{
@@ -59,9 +105,40 @@ export const NutritionLabel: React.FC<{ nutrition: INutrition | null, dvDivisor?
         Nutrition Facts
       </Typography>
       <Divider sx={{ borderBottomWidth: 4, mb: 1 }} />
-      <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 0.5 }}>
-        Serving Size: {n.serving_size_description}
-      </Typography>
+
+      {/* ── Serving View Switcher ── */}
+      {/* The bold "Serving Size:" label always remains. When there are multiple
+          serving sizes, a dropdown replaces the value next to the label. */}
+      <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, mb: 0.5 }}>
+        <Typography variant="subtitle2" sx={{ fontWeight: 700, whiteSpace: "nowrap" }}>
+          Serving Size:
+        </Typography>
+        {servingViews.length > 1 ? (
+          <FormControl size="small" sx={{ flex: 1, minWidth: 0, height: 32 }}>
+            <Select
+              value={selectedKey}
+              onChange={(e) => setSelectedKey(e.target.value)}
+              sx={{
+                height: "100%",
+                fontSize: "0.8rem",
+                fontWeight: 700,
+                "& .MuiSelect-select": { py: 0.5, pl: 1, pr: 2.5, fontWeight: 700, height: "100%", display: "flex", alignItems: "center" },
+              }}
+            >
+              {servingViews.map(v => (
+                <MenuItem key={v.key} value={v.key} sx={{ fontSize: "0.8rem", py: 0.5, fontWeight: 700 }}>{v.label}</MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        ) : (
+          <Typography
+            variant="subtitle2"
+            sx={{ fontWeight: 700, height: 32, display: "flex", alignItems: "center" }}
+          >
+            {n.serving_size_description}
+          </Typography>
+        )}
+      </Box>
       <Typography variant="caption" sx={{ color: "#555", display: "block", mb: 1 }}>
         {[
           n.serving_size_oz > 0 ? `${formatSignificantDigit(n.serving_size_oz)} oz` : null,

@@ -120,6 +120,7 @@ export const FoodDetailScreen: React.FC<FoodDetailScreenProps> = ({ foodId: prop
       <View style={{ borderTopWidth: 1, borderTopColor: '#e0e0e0', marginVertical: 12 }}>
         <NutritionLabel
           nutrition={food.nutrition}
+          nutritionAlternatives={food.nutrition_alternatives}
           servings={food.servings}
           servingSizeDescription={food.nutrition.serving_size_description}
           trailingRows={[

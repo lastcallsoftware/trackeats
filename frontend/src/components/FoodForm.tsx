@@ -1,11 +1,11 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
-import { IFood } from "../contexts/DataProvider";
+import { IFood, INutritionAlternative } from "../contexts/DataProvider";
 import { foodGroups } from "./FoodGroups";
 import TitleCard from "./TitleCard";
 import { useData, Food } from "@/utils/useData";
-import { useToast } from "@/contexts/ToastContext";
-import { Controller, useForm } from "react-hook-form";
+import { useToast } from "@/contexts/useToast";
+import { Controller, useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -20,7 +20,14 @@ import {
     Alert,
     FormControlLabel,
     Checkbox,
+    IconButton,
+    Select,
+    FormControl,
+    InputLabel,
+    Switch,
 } from '@mui/material';
+import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
+import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutline';
 
 const nutritionSchema = z.object({
     serving_size_description: z.string().max(50, "Must be 50 characters or fewer"),
@@ -52,8 +59,10 @@ const foodSchema = z.object({
     description: z.string().max(100, "Must be 100 characters or fewer"),
     size_description: z.string().max(50, "Must be 50 characters or fewer"),
     size_description_2: z.string().max(50, "Must be 50 characters or fewer").nullable().optional(),
-    size_oz: z.coerce.number().min(0, "Must be 0 or greater"),
-    size_g: z.coerce.number().min(0, "Must be 0 or greater"),
+    size_imperial: z.coerce.number().min(0, "Must be 0 or greater"),
+    size_metric: z.coerce.number().min(0, "Must be 0 or greater"),
+    unit_type: z.enum(["weight", "volume"]).default("weight"),
+    density: z.coerce.number().min(0, "Must be 0 or greater").default(1.0),
     servings: z.coerce.number().gt(0, "Servings must be greater than 0"),
     nutrition_id: z.number().optional(),
     nutrition: nutritionSchema,
@@ -71,6 +80,103 @@ const foodSchema = z.object({
 type FoodFormInput = z.input<typeof foodSchema>;
 type FoodFormValues = z.output<typeof foodSchema>;
 
+// Conversion factors to grams (for solid units) or milliliters (for liquid units).
+// Mirrors the backend NutritionAlternative.compute_serving_weight_g() logic.
+const SOLID_TO_G: Record<string, number> = {
+    g: 1.0, gram: 1.0, grams: 1.0,
+    oz: 28.3495, ounce: 28.3495, ounces: 28.3495,
+    kg: 1000.0, kilogram: 1000.0, kilograms: 1000.0,
+    lb: 453.592, pound: 453.592, pounds: 453.592,
+    mg: 0.001, milligram: 0.001, milligrams: 0.001,
+};
+
+type NewServingUnitKind = "solid" | "liquid" | "arbitrary";
+
+type NewServingUnitOption = {
+    value: string;
+    label: string;
+    kind: NewServingUnitKind;
+    defaultAmount: number;
+};
+
+const NEW_SERVING_UNITS: NewServingUnitOption[] = [
+    { value: "g", label: "g", kind: "solid", defaultAmount: 100 },
+    { value: "oz", label: "oz", kind: "solid", defaultAmount: 1 },
+    { value: "kg", label: "kg", kind: "solid", defaultAmount: 1 },
+    { value: "lb", label: "lb", kind: "solid", defaultAmount: 1 },
+    { value: "mg", label: "mg", kind: "solid", defaultAmount: 100 },
+    { value: "ml", label: "ml", kind: "liquid", defaultAmount: 100 },
+    { value: "fl oz", label: "fl oz", kind: "liquid", defaultAmount: 1 },
+    { value: "cup", label: "cup", kind: "solid", defaultAmount: 1 },
+    { value: "tbsp", label: "tbsp", kind: "solid", defaultAmount: 1 },
+    { value: "tsp", label: "tsp", kind: "solid", defaultAmount: 1 },
+    { value: "arbitrary", label: "Arbitrary", kind: "arbitrary", defaultAmount: 1 },
+];
+
+const LIQUID_TO_ML: Record<string, number> = {
+    ml: 1.0, milliliter: 1.0, milliliters: 1.0,
+    l: 1000.0, liter: 1000.0, liters: 1000.0,
+    "fl oz": 29.5735, "fluid ounce": 29.5735, "fluid ounces": 29.5735,
+    cup: 236.588, cups: 236.588,
+    tbsp: 14.7868, tablespoon: 14.7868, tablespoons: 14.7868,
+    tsp: 4.92892, teaspoon: 4.92892, teaspoons: 4.92892,
+    pint: 473.176, pints: 473.176,
+    quart: 946.353, quarts: 946.353,
+    gallon: 3785.41, gallons: 3785.41,
+};
+
+const computeServingWeightG = (
+    kind: "solid" | "liquid" | "arbitrary",
+    value: number,
+    unit: string,
+    householdWeightG: number | null,
+    density: number | null,
+): number | null => {
+    if (kind === "solid") {
+        const factor = SOLID_TO_G[unit.toLowerCase()];
+        return factor == null ? null : value * factor;
+    }
+    if (kind === "liquid") {
+        const factor = LIQUID_TO_ML[unit.toLowerCase()];
+        if (factor == null || density == null) return null;
+        return value * factor * density;
+    }
+    if (kind === "arbitrary") {
+        return householdWeightG;
+    }
+    return null;
+};
+
+const round1 = (v: number): number => Math.round(v * 10) / 10;
+
+// Scale a base nutrition record to a new serving size.
+const scaleNutrition = (
+    base: INutritionAlternative["nutrition"],
+    scale: number,
+    servingSizeG: number,
+    servingSizeOz: number,
+    description: string,
+): INutritionAlternative["nutrition"] => ({
+    serving_size_description: description,
+    serving_size_oz: servingSizeOz,
+    serving_size_g: servingSizeG,
+    calories: Math.round(base.calories * scale),
+    total_fat_g: round1(base.total_fat_g * scale),
+    saturated_fat_g: round1(base.saturated_fat_g * scale),
+    trans_fat_g: round1(base.trans_fat_g * scale),
+    cholesterol_mg: Math.round(base.cholesterol_mg * scale),
+    sodium_mg: Math.round(base.sodium_mg * scale),
+    total_carbs_g: Math.round(base.total_carbs_g * scale),
+    fiber_g: Math.round(base.fiber_g * scale),
+    total_sugar_g: Math.round(base.total_sugar_g * scale),
+    added_sugar_g: Math.round(base.added_sugar_g * scale),
+    protein_g: Math.round(base.protein_g * scale),
+    vitamin_d_mcg: Math.round(base.vitamin_d_mcg * scale),
+    calcium_mg: Math.round(base.calcium_mg * scale),
+    iron_mg: round1(base.iron_mg * scale),
+    potassium_mg: Math.round(base.potassium_mg * scale),
+});
+
 
 function FoodForm() {
     const navigate = useNavigate();
@@ -84,9 +190,9 @@ function FoodForm() {
     const {
         register,
         handleSubmit,
-        reset,
         control,
         setValue,
+        getValues,
         formState: { errors },
     } = useForm<FoodFormInput, unknown, FoodFormValues>({
         mode: "onBlur",
@@ -95,14 +201,189 @@ function FoodForm() {
         defaultValues: (food || new Food()) as FoodFormInput,
     });
 
-    useEffect(() => {
-        reset((food || new Food()) as FoodFormInput);
-    }, [food, reset]);
 
-    // Scroll to top on mount
     useEffect(() => {
         window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
     }, []);
+
+    const unitType = useWatch({ control, name: "unit_type" });
+    const sizeImperial = useWatch({ control, name: "size_imperial" });
+    const sizeMetric = useWatch({ control, name: "size_metric" });
+
+    // A field is "empty" when it's null, undefined, an empty string, or NaN
+    // (react-hook-form coerces an empty number input to NaN via valueAsNumber).
+    const hasValue = (v: unknown): boolean =>
+        v !== null && v !== undefined && v !== "" && !(typeof v === "number" && Number.isNaN(v));
+
+    // ── Serving view dropdown state ──
+    // The backend's nutrition_alternatives list includes the primary serving
+    // (marked is_primary). Filter it out here so localAlternatives only holds
+    // the non-primary alternatives. The primary is tracked separately via
+    // primaryNutrition and rendered as the "primary" view.
+    const [localAlternatives, setLocalAlternatives] = useState<INutritionAlternative[]>(
+        (food?.nutrition_alternatives ?? []).filter(alt => !alt.is_primary)
+    );
+
+    // Track the primary serving's nutrition so new alternatives can be scaled
+    // from it regardless of which serving view is currently selected.
+    // Stored in state (not a ref) so it can be read safely during render.
+    const [primaryNutrition, setPrimaryNutrition] = useState<INutritionAlternative["nutrition"]>(
+        { ...((food?.nutrition || getValues("nutrition")) as INutritionAlternative["nutrition"]) }
+    );
+
+    const buildServingViews = () => {
+        // The primary view always reflects the true primary serving, not the
+        // live form values (which get overwritten when switching to an
+        // alternative view).
+        const primary = primaryNutrition;
+        const views = [{ key: "primary", label: primary?.serving_size_description || "Primary", nutrition: primary, isPrimary: true }];
+        localAlternatives.forEach((alt, i) => {
+            views.push({
+                key: `alt-${i}`,
+                label: alt.nutrition?.serving_size_description || `${alt.serving_value} ${alt.serving_unit}`,
+                nutrition: alt.nutrition,
+                isPrimary: false,
+            });
+        });
+        return views;
+    };
+
+    const [selectedKey, setSelectedKey] = useState("primary");
+
+    const servingViews = buildServingViews();
+
+    // Write a nutrition record's values into the live form fields.
+    const applyServingToForm = (nutrition: INutritionAlternative["nutrition"]) => {
+        setValue("nutrition.serving_size_description", nutrition.serving_size_description);
+        setValue("nutrition.serving_size_oz", nutrition.serving_size_oz);
+        setValue("nutrition.serving_size_g", nutrition.serving_size_g);
+        setValue("nutrition.calories", nutrition.calories);
+        setValue("nutrition.total_fat_g", nutrition.total_fat_g);
+        setValue("nutrition.saturated_fat_g", nutrition.saturated_fat_g);
+        setValue("nutrition.trans_fat_g", nutrition.trans_fat_g);
+        setValue("nutrition.cholesterol_mg", nutrition.cholesterol_mg);
+        setValue("nutrition.sodium_mg", nutrition.sodium_mg);
+        setValue("nutrition.total_carbs_g", nutrition.total_carbs_g);
+        setValue("nutrition.fiber_g", nutrition.fiber_g);
+        setValue("nutrition.total_sugar_g", nutrition.total_sugar_g);
+        setValue("nutrition.added_sugar_g", nutrition.added_sugar_g);
+        setValue("nutrition.protein_g", nutrition.protein_g);
+        setValue("nutrition.vitamin_d_mcg", nutrition.vitamin_d_mcg);
+        setValue("nutrition.calcium_mg", nutrition.calcium_mg);
+        setValue("nutrition.iron_mg", nutrition.iron_mg);
+        setValue("nutrition.potassium_mg", nutrition.potassium_mg);
+    };
+
+    const onSelectView = (key: string) => {
+        if (key === selectedKey) return;
+        // If we're navigating AWAY from the primary view, capture the
+        // current form values (which reflect the primary serving, including
+        // any edits the user made) as the authoritative primary nutrition.
+        // This must happen BEFORE the form is overwritten with the new
+        // view's values, and must be keyed off the outgoing view, not the
+        // incoming one - otherwise the primary's data gets clobbered with
+        // whatever alternative was being viewed.
+        if (selectedKey === "primary") {
+            setPrimaryNutrition({
+                ...(getValues("nutrition") as INutritionAlternative["nutrition"]),
+            });
+        }
+        setSelectedKey(key);
+        const view = servingViews.find(v => v.key === key);
+        if (!view?.nutrition) return;
+        applyServingToForm({ ...view.nutrition });
+    };
+
+    const [isAddingNew, setIsAddingNew] = useState(false);
+    const [newValue, setNewValue] = useState(100);
+    const [newUnit, setNewUnit] = useState("g");
+    const newServingKind = NEW_SERVING_UNITS.find(unit => unit.value === newUnit)?.kind ?? "solid";
+    const [newHhName, setNewHhName] = useState("");
+    const [newHhWeight, setNewHhWeight] = useState<number|null>(null);
+    const [newSolidWeightG, setNewSolidWeightG] = useState<number|null>(null);
+    const [newLiquidDensity, setNewLiquidDensity] = useState<number|null>(1);
+
+    const handleAddServing = () => {
+        // If we're currently viewing the primary serving, capture any
+        // unsaved edits before using it as the scaling base, and before the
+        // form is switched over to the new alternative's view.
+        const primary = selectedKey === "primary"
+            ? { ...(getValues("nutrition") as INutritionAlternative["nutrition"]) }
+            : { ...primaryNutrition };
+        if (selectedKey === "primary") {
+            setPrimaryNutrition(primary);
+        }
+
+        const density = newServingKind === "liquid" ? newLiquidDensity : null;
+        const newWeightG = newServingKind === "solid" && newUnit !== "g" && newUnit !== "oz"
+            ? newSolidWeightG
+            : newServingKind === "solid"
+                ? computeServingWeightG(newServingKind, newValue, newUnit, newHhWeight, density)
+                : newServingKind === "liquid" && newUnit === "fl oz" && density != null
+                ? newValue * density * 28.3495
+                : computeServingWeightG(newServingKind, newValue, newUnit, newHhWeight, density);
+        const primaryWeightG = primary?.serving_size_g ?? 0;
+
+        // The label reflects the user's new serving selections.
+        const description = newServingKind === "arbitrary"
+            ? `${newValue} ${newHhName || newUnit}`
+            : `${newValue} ${newUnit}`;
+
+        let nutrition: INutritionAlternative["nutrition"];
+        if (newWeightG != null && primaryWeightG > 0) {
+            const scale = newWeightG / primaryWeightG;
+            const newWeightOz = newWeightG / 28.3495;
+            nutrition = scaleNutrition(primary, scale, Math.round(newWeightG), round1(newWeightOz), description);
+        } else {
+            // Fallback: copy the primary nutrition with the new description.
+            nutrition = { ...primary, serving_size_description: description };
+        }
+
+        const newAlt: INutritionAlternative = {
+            ordinal: localAlternatives.length,
+            serving_value: newValue,
+            serving_unit: newServingKind === "arbitrary" ? (newHhName || newUnit) : newUnit,
+            serving_unit_kind: newServingKind,
+            household_weight_g: newServingKind === "arbitrary" ? newHhWeight : null,
+            is_primary: false,
+            nutrition,
+        };
+        setLocalAlternatives(prev => [...prev, newAlt]);
+        setSelectedKey(`alt-${localAlternatives.length}`);
+        applyServingToForm({ ...nutrition });
+        setIsAddingNew(false);
+        // Reset the add form
+        setNewValue(100);
+        setNewUnit("g");
+        setNewHhName("");
+        setNewHhWeight(null);
+        setNewSolidWeightG(null);
+        setNewLiquidDensity(1);
+    };
+
+    const handleDeleteServing = () => {
+        if (servingViews.length <= 1) return;
+
+        if (selectedKey === "primary") {
+            // Promote the first alternative to primary when the original
+            // primary serving is deleted. The promoted serving is removed
+            // from the alternatives list so it is not duplicated.
+            const promoted = localAlternatives[0]?.nutrition;
+            if (!promoted) return;
+
+            const nextPrimary = { ...promoted };
+            setPrimaryNutrition(nextPrimary);
+            setLocalAlternatives(prev => prev.slice(1));
+            setSelectedKey("primary");
+            applyServingToForm(nextPrimary);
+            return;
+        }
+
+        const idx = Number(selectedKey.replace("alt-", ""));
+        setLocalAlternatives(prev => prev.filter((_, i) => i !== idx));
+        setSelectedKey("primary");
+        applyServingToForm({ ...primaryNutrition });
+    };
 
     const onSubmit = async (data: FoodFormValues) => {
         if (!canWrite) {
@@ -110,29 +391,74 @@ function FoodForm() {
             return
         }
 
+        // The form's nutrition fields reflect whatever serving view is currently
+        // selected. The currently selected serving becomes the PRIMARY serving
+        // on save; all other servings become non-primary alternatives.
+        const originalPrimaryAlt = (food?.nutrition_alternatives ?? []).find(alt => alt.is_primary);
+
+        // Metadata for the original primary serving (used when it is demoted to
+        // a non-primary alternative, or as defaults for the new primary).
+        const primaryMeta = {
+            serving_value: originalPrimaryAlt?.serving_value ?? 1,
+            serving_unit: originalPrimaryAlt?.serving_unit ?? primaryNutrition?.serving_size_description ?? "",
+            serving_unit_kind: originalPrimaryAlt?.serving_unit_kind ?? "solid",
+            household_weight_g: originalPrimaryAlt?.household_weight_g ?? null,
+        };
+
+        // The live form fields always reflect the currently selected serving.
+        const selectedNutrition = { ...(data.nutrition as INutritionAlternative["nutrition"]) };
+
+        let primaryAlt: INutritionAlternative;
+        let otherAlts: INutritionAlternative[];
+
+        if (selectedKey === "primary") {
+            // The primary view is selected: it stays primary with the edited values.
+            primaryAlt = { ...primaryMeta, ordinal: 0, is_primary: true, nutrition: selectedNutrition };
+            otherAlts = localAlternatives.map((alt, i) => ({ ...alt, ordinal: i + 1, is_primary: false }));
+        } else {
+            // An alternative view is selected: it becomes the new primary.
+            const idx = Number(selectedKey.replace("alt-", ""));
+            const selectedAlt = localAlternatives[idx];
+            primaryAlt = {
+                serving_value: selectedAlt?.serving_value ?? 1,
+                serving_unit: selectedAlt?.serving_unit ?? selectedNutrition.serving_size_description,
+                serving_unit_kind: selectedAlt?.serving_unit_kind ?? "solid",
+                household_weight_g: selectedAlt?.household_weight_g ?? null,
+                ordinal: 0,
+                is_primary: true,
+                nutrition: selectedNutrition,
+            };
+            // The old primary is demoted to a non-primary alternative, followed
+            // by the remaining alternatives (excluding the newly promoted one).
+            otherAlts = [
+                { ...primaryMeta, ordinal: 1, is_primary: false, nutrition: { ...primaryNutrition } },
+                ...localAlternatives
+                    .filter((_, i) => i !== idx)
+                    .map((alt, i) => ({ ...alt, ordinal: i + 2, is_primary: false })),
+            ];
+        }
+
         const payload = {
             ...data,
+            nutrition: primaryAlt.nutrition,
             size_description_2: data.size_description_2 && data.size_description_2.trim().length > 0
                 ? data.size_description_2
                 : null,
             starter_food: isAdmin ? Boolean(data.starter_food) : false,
+            nutrition_alternatives: [primaryAlt, ...otherAlts],
         };
 
-        // Save the new Food
         if (isEditMode)
             await updateFood(payload as IFood);
         else
             await addFood(payload as IFood);
         
-        // Return to the Foods page
         const returnPath = searchParams.get("returnTo") || "/foods"
         navigate(returnPath)
     }
 
     const handleCancel = (e: { preventDefault: () => void; }) => {
         e.preventDefault();
-
-        // Return to the Foods page
         const returnPath = searchParams.get("returnTo") || "/foods"
         navigate(returnPath)
     }
@@ -209,7 +535,7 @@ function FoodForm() {
                     </Grid>
                     <Grid size={{ xs: 12, sm: 6 }}>
                         <TextField
-                            label="Vendor"
+                            label="Brand"
                             id="vendor"
                             {...register("vendor")}
                             error={!!errors.vendor}
@@ -255,46 +581,6 @@ function FoodForm() {
                         />
                     </Grid>
                     <Grid size={{ xs: 6, sm: 3 }}>
-                        <TextField
-                            label="Size (oz)"
-                            id="size_oz"
-                            type="number"
-                            {...register("size_oz", {
-                                valueAsNumber: true,
-                                onChange: (event) => {
-                                    const nextOz = Number(event.target.value);
-                                    if (!Number.isNaN(nextOz)) {
-                                        setValue('size_g', Math.round(nextOz * 28.3495), { shouldValidate: true });
-                                    }
-                                },
-                            })}
-                            error={!!errors.size_oz}
-                            helperText={errors.size_oz?.message}
-                            inputProps={{ min: 0, step: 0.01 }}
-                            fullWidth
-                        />
-                    </Grid>
-                    <Grid size={{ xs: 6, sm: 3 }}>
-                            <TextField
-                                label="Size (g)"
-                                id="size_g"
-                                type="number"
-                                {...register("size_g", {
-                                    valueAsNumber: true,
-                                    onChange: (event) => {
-                                        const nextG = Number(event.target.value);
-                                        if (!Number.isNaN(nextG)) {
-                                            setValue('size_oz', parseFloat((nextG / 28.3495).toFixed(2)), { shouldValidate: true });
-                                        }
-                                    },
-                                })}
-                                error={!!errors.size_g}
-                                helperText={errors.size_g?.message}
-                                inputProps={{ min: 0, step: 1 }}
-                                fullWidth
-                            />
-                    </Grid>
-                    <Grid size={{ xs: 6, sm: 3 }}>
                             <TextField
                                 label="Servings"
                                 id="servings"
@@ -303,6 +589,85 @@ function FoodForm() {
                                 error={!!errors.servings}
                                 helperText={errors.servings?.message}
                                 inputProps={{ min: 0, step: 1 }}
+                                fullWidth
+                                required
+                            />
+                    </Grid>
+                    <Grid size={{ xs: 6, sm: 3 }}>
+                        <Controller
+                            name="unit_type"
+                            control={control}
+                            render={({ field }) => (
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, pt: 1 }}>
+                                    <Typography variant="body2" sx={{ color: field.value === "volume" ? 'text.disabled' : 'text.primary', fontWeight: field.value === "volume" ? 400 : 600 }}>
+                                        Solid
+                                    </Typography>
+                                    <Switch
+                                        checked={field.value === "volume"}
+                                        onChange={(_, checked) => field.onChange(checked ? "volume" : "weight")}
+                                        inputRef={field.ref}
+                                    />
+                                    <Typography variant="body2" sx={{ color: field.value === "volume" ? 'text.primary' : 'text.disabled', fontWeight: field.value === "volume" ? 600 : 400 }}>
+                                        Liquid
+                                    </Typography>
+                                </Box>
+                            )}
+                        />
+                    </Grid>
+                    <Grid size={{ xs: 6, sm: 3 }}>
+                        <TextField
+                            label={unitType === "volume" ? "Volume (fl oz)" : "Weight (oz)"}
+                            id="size_imperial"
+                            type="number"
+                            {...register("size_imperial", {
+                                valueAsNumber: true,
+                                onChange: (event) => {
+                                    const raw = event.target.value;
+                                    if (raw === "") {
+                                        setValue('size_metric', undefined as unknown as number, { shouldValidate: true });
+                                        return;
+                                    }
+                                    const nextImperial = Number(raw);
+                                    if (!Number.isNaN(nextImperial)) {
+                                        // Solid: oz → g (28.3495 g/oz). Liquid: fl oz → ml (29.5735 ml/fl oz).
+                                        const factor = unitType === "volume" ? 29.5735 : 28.3495;
+                                        setValue('size_metric', Math.round(nextImperial * factor), { shouldValidate: true });
+                                    }
+                                },
+                            })}
+                            error={!!errors.size_imperial}
+                            helperText={errors.size_imperial?.message}
+                            inputProps={{ min: 0, step: 0.01 }}
+                            InputLabelProps={{ shrink: hasValue(sizeImperial) }}
+                            fullWidth
+                            required
+                        />
+                    </Grid>
+                    <Grid size={{ xs: 6, sm: 3 }}>
+                            <TextField
+                                label={unitType === "volume" ? "Volume (ml)" : "Weight (g)"}
+                                id="size_metric"
+                                type="number"
+                                {...register("size_metric", {
+                                    valueAsNumber: true,
+                                    onChange: (event) => {
+                                        const raw = event.target.value;
+                                        if (raw === "") {
+                                            setValue('size_imperial', undefined as unknown as number, { shouldValidate: true });
+                                            return;
+                                        }
+                                        const nextMetric = Number(raw);
+                                        if (!Number.isNaN(nextMetric)) {
+                                            // Solid: g → oz (28.3495 g/oz). Liquid: ml → fl oz (29.5735 ml/fl oz).
+                                            const factor = unitType === "volume" ? 29.5735 : 28.3495;
+                                            setValue('size_imperial', parseFloat((nextMetric / factor).toFixed(2)), { shouldValidate: true });
+                                        }
+                                    },
+                                })}
+                                error={!!errors.size_metric}
+                                helperText={errors.size_metric?.message}
+                                inputProps={{ min: 0, step: 1 }}
+                                InputLabelProps={{ shrink: hasValue(sizeMetric) }}
                                 fullWidth
                                 required
                             />
@@ -385,6 +750,7 @@ function FoodForm() {
                 </Grid>
                 </Box>
 
+                {/* ── NUTRITION FACTS PANEL ── */}
                 <Box
                     sx={{
                         width: { xs: '100%', md: 380 },
@@ -396,22 +762,10 @@ function FoodForm() {
                         p: 2,
                         boxShadow: 2,
                         fontFamily: 'Arial Narrow, Arial, sans-serif',
-                        '& .MuiInputLabel-root': {
-                            fontSize: '0.72rem',
-                        },
-                        '& .MuiInputBase-input': {
-                            fontSize: '0.72rem',
-                            py: 0.35,
-                        },
-                        '& .MuiFormHelperText-root': {
-                            fontSize: '0.62rem',
-                            lineHeight: 1.1,
-                            mt: 0.25,
-                        },
-                        '& .nutrition-input-rows .MuiTypography-root': {
-                            fontSize: '0.78rem',
-                            lineHeight: 1.1,
-                        },
+                        '& .MuiInputLabel-root': { fontSize: '0.72rem' },
+                        '& .MuiInputBase-input': { fontSize: '0.72rem', py: 0.35 },
+                        '& .MuiFormHelperText-root': { fontSize: '0.62rem', lineHeight: 1.1, mt: 0.25 },
+                        '& .nutrition-input-rows .MuiTypography-root': { fontSize: '0.78rem', lineHeight: 1.1 },
                     }}
                 >
                     <Typography variant="h5" sx={{ fontWeight: 900, letterSpacing: 1, mb: 1 }}>
@@ -419,97 +773,162 @@ function FoodForm() {
                     </Typography>
                     <Divider sx={{ borderBottomWidth: 4, mb: 1 }} />
 
-                    <TextField
-                        label="Serving Size Description"
-                        id="serving_size_description"
-                        {...register("nutrition.serving_size_description")}
-                        error={!!errors.nutrition?.serving_size_description}
-                        helperText={errors.nutrition?.serving_size_description?.message}
-                        inputProps={{ maxLength: 50 }}
-                        size="small"
-                        fullWidth
-                        sx={{
-                            mb: 1,
-                            '& .MuiInputBase-input': {
-                                py: 0.75,
-                            },
-                            mt: 0.5 
-                        }}
-                    />
+                    {/* ── Serving View Selector ── */}
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 0.5 }}>
+                        <FormControl size="small" fullWidth sx={{ mt: 0.5 }}>
+                            <InputLabel id="serving-select-label">Serving Size</InputLabel>
+                            <Select
+                                labelId="serving-select-label"
+                                label="Serving Size"
+                                value={selectedKey}
+                                onChange={(e) => onSelectView(e.target.value)}
+                            >
+                                {servingViews.map(v => (
+                                    <MenuItem key={v.key} value={v.key}>{v.label}</MenuItem>
+                                ))}
+                            </Select>
+                        </FormControl>
+                        <IconButton size="small" color="primary" onClick={() => setIsAddingNew(true)}>
+                            <AddCircleOutlineIcon fontSize="small" />
+                        </IconButton>
+                        {servingViews.length > 1 && (
+                            <IconButton size="small" color="error" onClick={handleDeleteServing}>
+                                <RemoveCircleOutlineIcon fontSize="small" />
+                            </IconButton>
+                        )}
+                    </Box>
 
-                    <Box sx={{ display: 'flex', gap: 1, mt: 0.5, mb: 1 }}>
-                        <TextField
-                            label="Serving Size (oz)"
-                            id="serving_size_oz"
-                            type="number"
-                            {...register("nutrition.serving_size_oz", {
-                                valueAsNumber: true,
-                                onChange: (event) => {
-                                    const nextOz = Number(event.target.value);
-                                    if (!Number.isNaN(nextOz)) {
-                                        setValue('nutrition.serving_size_g', Math.round(nextOz * 28.3495), { shouldValidate: true });
-                                    }
-                                },
-                            })}
-                            error={!!errors.nutrition?.serving_size_oz}
-                            helperText={errors.nutrition?.serving_size_oz?.message}
-                            inputProps={{ min: 0, step: 0.01 }}
-                            size="small"
-                            fullWidth
-                            sx={{
-                                '& .MuiInputBase-input': {
-                                    py: 0.75,
-                                },
-                            }}
-                        />
-                        <TextField
-                            label="Serving Size (g)"
-                            id="serving_size_g"
-                            type="number"
-                            {...register("nutrition.serving_size_g", {
-                                valueAsNumber: true,
-                                onChange: (event) => {
-                                    const nextG = Number(event.target.value);
-                                    if (!Number.isNaN(nextG)) {
-                                        setValue('nutrition.serving_size_oz', parseFloat((nextG / 28.3495).toFixed(2)), { shouldValidate: true });
-                                    }
-                                },
-                            })}
-                            error={!!errors.nutrition?.serving_size_g}
-                            helperText={errors.nutrition?.serving_size_g?.message}
-                            inputProps={{ min: 0, step: 1 }}
-                            size="small"
-                            fullWidth
-                            sx={{
-                                '& .MuiInputBase-input': {
-                                    py: 0.75,
-                                },
-                            }}
-                        />
+                    {/* ── Add New Serving Size (inline form) ── */}
+                    {isAddingNew && (
+                        <Box sx={{ bgcolor: '#f5f5f5', border: '1px solid #d5d5d5', borderRadius: 1, p: 1, pt: 0.5, mb: 1 }}>
+                            <Typography variant="caption" sx={{ display: 'block', fontWeight: 600, lineHeight: 1.2, mb: 1.5 }}>New Serving Size</Typography>
+                            <Grid container spacing={0.5}>
+                                <Grid size={{ xs: 4 }}>
+                                    <TextField
+                                        select
+                                        label="Unit"
+                                        InputLabelProps={{ shrink: true }}
+                                        size="small"
+                                        value={newUnit}
+                                        onChange={e => {
+                                            const nextUnit = e.target.value;
+                                            const previousOption = NEW_SERVING_UNITS.find(unit => unit.value === newUnit);
+                                            const nextOption = NEW_SERVING_UNITS.find(unit => unit.value === nextUnit);
+                                            setNewUnit(nextUnit);
+                                            if (newValue === (previousOption?.defaultAmount ?? 1)) {
+                                                setNewValue(nextOption?.defaultAmount ?? 1);
+                                            }
+                                        }}
+                                        fullWidth
+                                        sx={{ "& .MuiInputBase-root": { height: 40 } }}
+                                    >
+                                        {NEW_SERVING_UNITS.map(unit => (
+                                            <MenuItem key={unit.value} value={unit.value}>{unit.label}</MenuItem>
+                                        ))}
+                                    </TextField>
+                                </Grid>
+                                <Grid size={{ xs: 3 }}>
+                                    <TextField
+                                        label="Amount"
+                                        InputLabelProps={{ shrink: true }}
+                                        type="number"
+                                        size="small"
+                                        value={newValue}
+                                        onChange={e => setNewValue(Number(e.target.value))}
+                                        inputProps={{ min: 0, step: 0.01 }}
+                                        fullWidth
+                                        sx={{ "& .MuiInputBase-root": { height: 40 } }}
+                                    />
+                                </Grid>
+                                {newServingKind === "arbitrary" && (
+                                    <Grid size={{ xs: 5 }}>
+                                        <TextField
+                                            label="Name"
+                                            InputLabelProps={{ shrink: true }}
+                                            size="small"
+                                            value={newHhName}
+                                            onChange={e => setNewHhName(e.target.value)}
+                                            inputProps={{ maxLength: 30 }}
+                                            fullWidth
+                                            sx={{ "& .MuiInputBase-root": { height: 40 } }}
+                                        />
+                                    </Grid>
+                                )}
+                                {newServingKind === "arbitrary" ? (
+                                    <Grid size={{ xs: 12 }} sx={{ mt: 1 }}>
+                                        <TextField
+                                            label="Weight (g)"
+                                            InputLabelProps={{ shrink: true }}
+                                            type="number"
+                                            size="small"
+                                            value={newHhWeight ?? ""}
+                                            onChange={e => setNewHhWeight(e.target.value ? Number(e.target.value) : null)}
+                                            helperText="Weight in grams for this arbitrary unit"
+                                            inputProps={{ min: 0, step: 0.1 }}
+                                            fullWidth
+                                            sx={{ "& .MuiInputBase-root": { height: 40 } }}
+                                        />
+                                    </Grid>
+                                ) : newServingKind === "solid" && newUnit !== "g" && newUnit !== "oz" ? (
+                                    <Grid size={{ xs: 12 }} sx={{ mt: 1 }}>
+                                        <TextField
+                                            label="Weight (g)"
+                                            InputLabelProps={{ shrink: true }}
+                                            type="number"
+                                            size="small"
+                                            value={newSolidWeightG ?? ""}
+                                            onChange={e => setNewSolidWeightG(e.target.value ? Number(e.target.value) : null)}
+                                            helperText="Weight in grams for this serving"
+                                            inputProps={{ min: 0, step: 0.1 }}
+                                            fullWidth
+                                            sx={{ "& .MuiInputBase-root": { height: 40 } }}
+                                        />
+                                    </Grid>
+                                ) : newServingKind === "liquid" ? (
+                                    <Grid size={{ xs: 12 }} sx={{ mt: 1 }}>
+                                        <TextField
+                                            label={newUnit === "fl oz" ? "Density (oz/fl oz)" : "Density (g/ml)"}
+                                            InputLabelProps={{ shrink: true }}
+                                            type="number"
+                                            size="small"
+                                            value={newLiquidDensity ?? ""}
+                                            onChange={e => setNewLiquidDensity(e.target.value ? Number(e.target.value) : null)}
+                                            helperText={newUnit === "fl oz" ? "Ounces per fluid ounce" : "Grams per milliliter"}
+                                            inputProps={{ min: 0, step: 0.01 }}
+                                            fullWidth
+                                            sx={{ "& .MuiInputBase-root": { height: 40 } }}
+                                        />
+                                    </Grid>
+                                ) : null}
+                                <Grid size={{ xs: 12 }} sx={{ display: 'flex', justifyContent: 'flex-start', gap: 1, mt: 0.5 }}>
+                                    <Button size="small" variant="contained" onClick={handleAddServing}>Add</Button>
+                                    <Button size="small" onClick={() => setIsAddingNew(false)}>Cancel</Button>
+                                </Grid>
+                            </Grid>
+                        </Box>
+                    )}
+
+                    {/* ── Serving Size oz/g ── */}
+                    <Box sx={{ display: 'flex', gap: 1, mt: 1.5, mb: 1 }}>
+                        <TextField label="Serving Size (oz)" id="serving_size_oz" type="number"
+                            {...register("nutrition.serving_size_oz", { valueAsNumber: true })}
+                            error={!!errors.nutrition?.serving_size_oz} helperText={errors.nutrition?.serving_size_oz?.message}
+                            inputProps={{ min: 0, step: 0.01, readOnly: true }} size="small" fullWidth
+                            sx={{ backgroundColor: '#f5f5f5', '& .MuiInputBase-input': { py: 0.75 } }} />
+                        <TextField label="Serving Size (g)" id="serving_size_g" type="number"
+                            {...register("nutrition.serving_size_g", { valueAsNumber: true })}
+                            error={!!errors.nutrition?.serving_size_g} helperText={errors.nutrition?.serving_size_g?.message}
+                            inputProps={{ min: 0, step: 1, readOnly: true }} size="small" fullWidth
+                            sx={{ backgroundColor: '#f5f5f5', '& .MuiInputBase-input': { py: 0.75 } }} />
                     </Box>
 
                     <Divider sx={{ borderBottomWidth: 2, my: 1 }} />
 
                     <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 0.5 }}>
-                        <Typography variant="h5" sx={{ fontWeight: 900 }}>
-                            Calories
-                        </Typography>
-                        <TextField
-                            id="calories"
-                            type="number"
-                            {...register("nutrition.calories", { valueAsNumber: true })}
-                            error={!!errors.nutrition?.calories}
-                            inputProps={{ min: 0, step: 1 }}
-                            size="small"
-                            sx={{
-                                width: 110,
-                                '& .MuiInputBase-input': {
-                                    py: 0.75,
-                                    fontSize: '1rem',
-                                    fontWeight: 700,
-                                },
-                            }}
-                        />
+                        <Typography variant="h5" sx={{ fontWeight: 900 }}>Calories</Typography>
+                        <TextField id="calories" type="number" {...register("nutrition.calories", { valueAsNumber: true })}
+                            error={!!errors.nutrition?.calories} inputProps={{ min: 0, step: 1 }} size="small"
+                            sx={{ width: 110, '& .MuiInputBase-input': { py: 0.75, fontSize: '1rem', fontWeight: 700 } }} />
                     </Box>
 
                     <Divider sx={{ borderBottomWidth: 2, my: 1 }} />

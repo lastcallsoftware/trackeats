@@ -1,5 +1,5 @@
 import { createContext, useContext } from 'react';
-import { DataContextType, IDailyLogItem, IFood, INutrition, IRecipe } from '@/contexts/DataProvider';
+import { DataContextType, IDailyLogItem, IFood, INutrition, INutritionAlternative, IRecipe } from '@/contexts/DataProvider';
 
 export const DataContext = createContext<DataContextType | null>(null)
 
@@ -40,10 +40,15 @@ export class Food implements IFood {
     vendor= "";
     size_description= "";
     size_description_2: string | null = null;
+    size_imperial: number | null = null;
+    size_metric: number | null = null;
+    unit_type: "weight" | "volume" = "weight";
+    density: number | null = 1.0;
     size_oz = 0;
     size_g= 0;
     servings = 0;
     nutrition = new Nutrition();
+    nutrition_alternatives: INutritionAlternative[] = [];
     price = 0;
     price_per_serving = 0;
     price_per_oz = 0;

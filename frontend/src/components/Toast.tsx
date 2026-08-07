@@ -1,4 +1,4 @@
-import { useToast } from '@/contexts/ToastContext';
+import { useToast } from '@/contexts/useToast';
 import Snackbar from '@mui/material/Snackbar';
 import Alert from '@mui/material/Alert';
 
