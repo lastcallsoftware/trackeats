@@ -1589,6 +1589,7 @@ def copy_catalog_foods():
         raw_food_ids = payload.get("food_ids")
         if not isinstance(raw_food_ids, list):
             raise ValueError("'food_ids' must be a non-empty array")
+        raw_food_ids = cast(list[Any], raw_food_ids)
 
         parsed_ids: list[int] = []
         for value in raw_food_ids:
