@@ -433,6 +433,12 @@ function DailyLogPage() {
             ? `Total for ${selectedDateKey}`
             : selectedWeekLabel ?? selectedSummaryLabel;
 
+    // When a food item is selected, look up the food's nutrition alternatives
+    // so the user can switch between serving size views in the panel.
+    const selectedFoodAlternatives = selectedItem?.food_id != null
+        ? foods.find(f => f.id === selectedItem.food_id)?.nutrition_alternatives
+        : undefined;
+
     // For week selection in month view, count days with calories > 0
     let weekDvDivisor: number | undefined = undefined;
     if (viewMode === 'month' && activeSelectedWeekKey && !selectedItem && !selectedDateKey) {
@@ -781,7 +787,7 @@ function DailyLogPage() {
                             {panelLabel}
                         </Typography>
                     )}
-                    <NutritionLabel nutrition={panelNutrition} dvDivisor={weekDvDivisor} pricePerServing={selectedItem?.price && selectedItem.servings ? selectedItem.price / selectedItem.servings : null} />
+                    <NutritionLabel nutrition={panelNutrition} nutritionAlternatives={selectedFoodAlternatives} dvDivisor={weekDvDivisor} pricePerServing={selectedItem?.price && selectedItem.servings ? selectedItem.price / selectedItem.servings : null} />
                 </>
             }
         />

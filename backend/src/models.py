@@ -1186,6 +1186,13 @@ class Food(db.Model):
                     alt_dao.is_primary = alt_request.is_primary
                     db.session.add(alt_dao)
 
+            # The in-memory nutrition_alternatives collection is stale: it still
+            # references the old (deleted) alternatives and does not include the
+            # newly added ones. Refresh it so the caller's json() serialization
+            # reflects the actual saved state.
+            db.session.flush()
+            db.session.refresh(food_dao)
+
             return food_dao
 
         except Exception as e:

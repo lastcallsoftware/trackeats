@@ -102,14 +102,6 @@ const foodColumns = [
                 cell: info => info.getValue(),
                 size: 80
             }),
-            columnHelper.accessor("nutrition_alternatives", {
-                header: () => <span>Alt</span>,
-                cell: info => {
-                    const alts = info.getValue();
-                    return alts && alts.length > 0 ? alts.length : "";
-                },
-                size: 45
-            }),
             columnHelper.accessor("servings", {
                 header: () => <span>Servings</span>,
                 cell: info => info.getValue(),

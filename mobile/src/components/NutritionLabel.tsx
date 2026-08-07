@@ -74,7 +74,11 @@ export const NutritionLabel: React.FC<NutritionLabelProps> = ({
       },
     ];
     if (nutritionAlternatives) {
+      // The backend's nutrition_alternatives list includes the primary
+      // serving (marked is_primary). The primary is already the first view
+      // above, so skip it here to avoid showing it twice.
       nutritionAlternatives.forEach((alt, i) => {
+        if (alt.is_primary) return;
         views.push({
           key: `alt-${i}`,
           label: alt.nutrition?.serving_size_description || `${alt.serving_value} ${alt.serving_unit}`,

@@ -173,7 +173,7 @@ const scaleNutrition = (
     vitamin_d_mcg: Math.round(base.vitamin_d_mcg * scale),
     calcium_mg: Math.round(base.calcium_mg * scale),
     iron_mg: round1(base.iron_mg * scale),
-    potassium_mg: round1(base.potassium_mg * scale),
+    potassium_mg: Math.round(base.potassium_mg * scale),
 });
 
 
@@ -208,8 +208,12 @@ function FoodForm() {
     const unitType = useWatch({ control, name: "unit_type" });
 
     // ── Serving view dropdown state ──
+    // The backend's nutrition_alternatives list includes the primary serving
+    // (marked is_primary). Filter it out here so localAlternatives only holds
+    // the non-primary alternatives. The primary is tracked separately via
+    // primaryNutrition and rendered as the "primary" view.
     const [localAlternatives, setLocalAlternatives] = useState<INutritionAlternative[]>(
-        food?.nutrition_alternatives ?? []
+        (food?.nutrition_alternatives ?? []).filter(alt => !alt.is_primary)
     );
 
     // Track the primary serving's nutrition so new alternatives can be scaled
@@ -314,7 +318,7 @@ function FoodForm() {
 
         // The label reflects the user's new serving selections.
         const description = newServingKind === "arbitrary"
-            ? (newHhName || newUnit)
+            ? `${newValue} ${newHhName || newUnit}`
             : `${newValue} ${newUnit}`;
 
         let nutrition: INutritionAlternative["nutrition"];
@@ -379,13 +383,61 @@ function FoodForm() {
             return
         }
 
+        // The form's nutrition fields reflect whatever serving view is currently
+        // selected. The currently selected serving becomes the PRIMARY serving
+        // on save; all other servings become non-primary alternatives.
+        const originalPrimaryAlt = (food?.nutrition_alternatives ?? []).find(alt => alt.is_primary);
+
+        // Metadata for the original primary serving (used when it is demoted to
+        // a non-primary alternative, or as defaults for the new primary).
+        const primaryMeta = {
+            serving_value: originalPrimaryAlt?.serving_value ?? 1,
+            serving_unit: originalPrimaryAlt?.serving_unit ?? primaryNutrition?.serving_size_description ?? "",
+            serving_unit_kind: originalPrimaryAlt?.serving_unit_kind ?? "solid",
+            household_weight_g: originalPrimaryAlt?.household_weight_g ?? null,
+        };
+
+        // The live form fields always reflect the currently selected serving.
+        const selectedNutrition = { ...(data.nutrition as INutritionAlternative["nutrition"]) };
+
+        let primaryAlt: INutritionAlternative;
+        let otherAlts: INutritionAlternative[];
+
+        if (selectedKey === "primary") {
+            // The primary view is selected: it stays primary with the edited values.
+            primaryAlt = { ...primaryMeta, ordinal: 0, is_primary: true, nutrition: selectedNutrition };
+            otherAlts = localAlternatives.map((alt, i) => ({ ...alt, ordinal: i + 1, is_primary: false }));
+        } else {
+            // An alternative view is selected: it becomes the new primary.
+            const idx = Number(selectedKey.replace("alt-", ""));
+            const selectedAlt = localAlternatives[idx];
+            primaryAlt = {
+                serving_value: selectedAlt?.serving_value ?? 1,
+                serving_unit: selectedAlt?.serving_unit ?? selectedNutrition.serving_size_description,
+                serving_unit_kind: selectedAlt?.serving_unit_kind ?? "solid",
+                household_weight_g: selectedAlt?.household_weight_g ?? null,
+                ordinal: 0,
+                is_primary: true,
+                nutrition: selectedNutrition,
+            };
+            // The old primary is demoted to a non-primary alternative, followed
+            // by the remaining alternatives (excluding the newly promoted one).
+            otherAlts = [
+                { ...primaryMeta, ordinal: 1, is_primary: false, nutrition: { ...primaryNutrition } },
+                ...localAlternatives
+                    .filter((_, i) => i !== idx)
+                    .map((alt, i) => ({ ...alt, ordinal: i + 2, is_primary: false })),
+            ];
+        }
+
         const payload = {
             ...data,
+            nutrition: primaryAlt.nutrition,
             size_description_2: data.size_description_2 && data.size_description_2.trim().length > 0
                 ? data.size_description_2
                 : null,
             starter_food: isAdmin ? Boolean(data.starter_food) : false,
-            nutrition_alternatives: localAlternatives,
+            nutrition_alternatives: [primaryAlt, ...otherAlts],
         };
 
         if (isEditMode)
