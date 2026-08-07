@@ -56,7 +56,7 @@ def upgrade():
         sa.Column('serving_unit_kind', sa.Enum('solid', 'liquid', 'arbitrary', name='serving_unit_kind_enum'), nullable=False),
         sa.Column('household_weight_g', sa.Float(), nullable=True),
         sa.Column('ordinal', sa.Integer(), nullable=False, server_default='0'),
-        sa.Column('is_primary', sa.Boolean(), nullable=False, server_default='false'),
+        sa.Column('is_primary', sa.Boolean(), nullable=False, server_default='0'),
         sa.ForeignKeyConstraint(['food_id'], ['food.id'], ondelete='CASCADE'),
         sa.ForeignKeyConstraint(['nutrition_id'], ['nutrition.id'], ondelete='CASCADE'),
         sa.PrimaryKeyConstraint('id')
