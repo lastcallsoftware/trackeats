@@ -87,11 +87,6 @@ const foodColumns = [
                 cell: info => info.getValue(),
                 size: 120
             }),
-            columnHelper.accessor("unit_type", {
-                header: () => <span>Unit</span>,
-                cell: info => info.getValue() === "volume" ? "Vol" : "Wt",
-                size: 50
-            }),
             columnHelper.accessor("size_oz", {
                 header: () => <span>Size (oz)</span>,
                 cell: info => info.getValue(),

@@ -24,6 +24,7 @@ import {
     Select,
     FormControl,
     InputLabel,
+    Switch,
 } from '@mui/material';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutline';
@@ -206,6 +207,13 @@ function FoodForm() {
     }, []);
 
     const unitType = useWatch({ control, name: "unit_type" });
+    const sizeImperial = useWatch({ control, name: "size_imperial" });
+    const sizeMetric = useWatch({ control, name: "size_metric" });
+
+    // A field is "empty" when it's null, undefined, an empty string, or NaN
+    // (react-hook-form coerces an empty number input to NaN via valueAsNumber).
+    const hasValue = (v: unknown): boolean =>
+        v !== null && v !== undefined && v !== "" && !(typeof v === "number" && Number.isNaN(v));
 
     // ── Serving view dropdown state ──
     // The backend's nutrition_alternatives list includes the primary serving
@@ -527,7 +535,7 @@ function FoodForm() {
                     </Grid>
                     <Grid size={{ xs: 12, sm: 6 }}>
                         <TextField
-                            label="Vendor"
+                            label="Brand"
                             id="vendor"
                             {...register("vendor")}
                             error={!!errors.vendor}
@@ -573,69 +581,6 @@ function FoodForm() {
                         />
                     </Grid>
                     <Grid size={{ xs: 6, sm: 3 }}>
-                        <Controller
-                            name="unit_type"
-                            control={control}
-                            render={({ field }) => (
-                                <TextField
-                                    select
-                                    label="Unit Type"
-                                    id="unit_type"
-                                    value={field.value ?? "weight"}
-                                    onChange={field.onChange}
-                                    onBlur={field.onBlur}
-                                    inputRef={field.ref}
-                                    error={!!errors.unit_type}
-                                    helperText={errors.unit_type?.message}
-                                    fullWidth
-                                >
-                                    <MenuItem value="weight">Weight</MenuItem>
-                                    <MenuItem value="volume">Volume</MenuItem>
-                                </TextField>
-                            )}
-                        />
-                    </Grid>
-                    <Grid size={{ xs: 6, sm: 3 }}>
-                        <TextField
-                            label="Size (oz / fl oz)"
-                            id="size_imperial"
-                            type="number"
-                            {...register("size_imperial", {
-                                valueAsNumber: true,
-                                onChange: (event) => {
-                                    const nextImperial = Number(event.target.value);
-                                    if (!Number.isNaN(nextImperial)) {
-                                        setValue('size_metric', Math.round(nextImperial * 28.3495), { shouldValidate: true });
-                                    }
-                                },
-                            })}
-                            error={!!errors.size_imperial}
-                            helperText={errors.size_imperial?.message}
-                            inputProps={{ min: 0, step: 0.01 }}
-                            fullWidth
-                        />
-                    </Grid>
-                    <Grid size={{ xs: 6, sm: 3 }}>
-                            <TextField
-                                label="Size (g / ml)"
-                                id="size_metric"
-                                type="number"
-                                {...register("size_metric", {
-                                    valueAsNumber: true,
-                                    onChange: (event) => {
-                                        const nextMetric = Number(event.target.value);
-                                        if (!Number.isNaN(nextMetric)) {
-                                            setValue('size_imperial', parseFloat((nextMetric / 28.3495).toFixed(2)), { shouldValidate: true });
-                                        }
-                                    },
-                                })}
-                                error={!!errors.size_metric}
-                                helperText={errors.size_metric?.message}
-                                inputProps={{ min: 0, step: 1 }}
-                                fullWidth
-                            />
-                    </Grid>
-                    <Grid size={{ xs: 6, sm: 3 }}>
                             <TextField
                                 label="Servings"
                                 id="servings"
@@ -648,20 +593,85 @@ function FoodForm() {
                                 required
                             />
                     </Grid>
-                    {unitType === "volume" && (
-                        <Grid size={{ xs: 6, sm: 3 }}>
+                    <Grid size={{ xs: 6, sm: 3 }}>
+                        <Controller
+                            name="unit_type"
+                            control={control}
+                            render={({ field }) => (
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, pt: 1 }}>
+                                    <Typography variant="body2" sx={{ color: field.value === "volume" ? 'text.disabled' : 'text.primary', fontWeight: field.value === "volume" ? 400 : 600 }}>
+                                        Solid
+                                    </Typography>
+                                    <Switch
+                                        checked={field.value === "volume"}
+                                        onChange={(_, checked) => field.onChange(checked ? "volume" : "weight")}
+                                        inputRef={field.ref}
+                                    />
+                                    <Typography variant="body2" sx={{ color: field.value === "volume" ? 'text.primary' : 'text.disabled', fontWeight: field.value === "volume" ? 600 : 400 }}>
+                                        Liquid
+                                    </Typography>
+                                </Box>
+                            )}
+                        />
+                    </Grid>
+                    <Grid size={{ xs: 6, sm: 3 }}>
+                        <TextField
+                            label={unitType === "volume" ? "Volume (fl oz)" : "Weight (oz)"}
+                            id="size_imperial"
+                            type="number"
+                            {...register("size_imperial", {
+                                valueAsNumber: true,
+                                onChange: (event) => {
+                                    const raw = event.target.value;
+                                    if (raw === "") {
+                                        setValue('size_metric', undefined as unknown as number, { shouldValidate: true });
+                                        return;
+                                    }
+                                    const nextImperial = Number(raw);
+                                    if (!Number.isNaN(nextImperial)) {
+                                        // Solid: oz → g (28.3495 g/oz). Liquid: fl oz → ml (29.5735 ml/fl oz).
+                                        const factor = unitType === "volume" ? 29.5735 : 28.3495;
+                                        setValue('size_metric', Math.round(nextImperial * factor), { shouldValidate: true });
+                                    }
+                                },
+                            })}
+                            error={!!errors.size_imperial}
+                            helperText={errors.size_imperial?.message}
+                            inputProps={{ min: 0, step: 0.01 }}
+                            InputLabelProps={{ shrink: hasValue(sizeImperial) }}
+                            fullWidth
+                            required
+                        />
+                    </Grid>
+                    <Grid size={{ xs: 6, sm: 3 }}>
                             <TextField
-                                label="Density (g/ml)"
-                                id="density"
+                                label={unitType === "volume" ? "Volume (ml)" : "Weight (g)"}
+                                id="size_metric"
                                 type="number"
-                                {...register("density", { valueAsNumber: true })}
-                                error={!!errors.density}
-                                helperText={errors.density?.message || "Grams per milliliter"}
-                                inputProps={{ min: 0, step: 0.01 }}
+                                {...register("size_metric", {
+                                    valueAsNumber: true,
+                                    onChange: (event) => {
+                                        const raw = event.target.value;
+                                        if (raw === "") {
+                                            setValue('size_imperial', undefined as unknown as number, { shouldValidate: true });
+                                            return;
+                                        }
+                                        const nextMetric = Number(raw);
+                                        if (!Number.isNaN(nextMetric)) {
+                                            // Solid: g → oz (28.3495 g/oz). Liquid: ml → fl oz (29.5735 ml/fl oz).
+                                            const factor = unitType === "volume" ? 29.5735 : 28.3495;
+                                            setValue('size_imperial', parseFloat((nextMetric / factor).toFixed(2)), { shouldValidate: true });
+                                        }
+                                    },
+                                })}
+                                error={!!errors.size_metric}
+                                helperText={errors.size_metric?.message}
+                                inputProps={{ min: 0, step: 1 }}
+                                InputLabelProps={{ shrink: hasValue(sizeMetric) }}
                                 fullWidth
+                                required
                             />
-                        </Grid>
-                    )}
+                    </Grid>
                     <Grid size={{ xs: 12 }}>
                         <TextField
                             label="Shelf Life"
