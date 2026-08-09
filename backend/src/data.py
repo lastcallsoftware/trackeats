@@ -79,10 +79,10 @@ class Data:
         Load all the data in the /data subdirectory, overwriting the user_id fields 
         in the raw data so the stored data will be for this user only.
         """
-        # Delete all Food and Recipe and Daiyl Log records for this User.
-        # The Recipe deletion code also deletes the associated Ingrdient records,
-        # and the child Nutrition records of the Foods and Recipes are deleted 
-        # automatically by SQLAlchemy as a result of the record setup.
+        # Delete all Food and Recipe and Daily Log records for this User.
+        # The Recipe deletion code also deletes the associated Ingrdient records.
+        # Nutrition and NutritionAlternative records are deleted as part of their
+        # "parent" record deletion.
         DailyLogItem.delete_all_for_user(user_id)
         Recipe.delete_all_for_user(user_id)
         Food.delete_all_for_user(user_id)
@@ -94,7 +94,7 @@ class Data:
         Data.import_foods(user_id, keylists)
         Data.import_recipes(user_id, keylists)
         Data.import_ingredients(user_id, keylists)
-        
+        Data.import_daily_logs(user_id)
 
     @staticmethod
     def purge_data(user_id: int, for_user_id: int|None):
