@@ -107,11 +107,6 @@ const foodPickerColumns = [
         id: "nutrition_data",
         header: () => <span>Nutrition Info (per serving)</span>,
         columns: [
-            columnHelper.accessor("nutrition_id", {
-                header: () => <span>Nutrition ID</span>,
-                cell: info => info.getValue(),
-                size: 80,
-            }),
             columnHelper.accessor("nutrition.serving_size_description", {
                 header: () => <span>Serving Size Desc</span>,
                 cell: info => info.getValue(),

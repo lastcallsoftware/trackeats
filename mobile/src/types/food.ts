@@ -48,7 +48,6 @@ export type IFood = {
   size_oz: number
   size_g: number
   servings: number
-  nutrition_id?: number
   nutrition: INutrition
   nutrition_alternatives: INutritionAlternative[]
   price: number

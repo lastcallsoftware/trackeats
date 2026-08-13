@@ -5,7 +5,7 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from email_validator import validate_email
 from crypto import Crypto
-from schemas import FoodRequest, RecipeRequest, IngredientRequest, DailyLogItemRequest, DailyLogItemUpdateRequest, NutritionRequest
+from schemas import FoodRequest, RecipeRequest, IngredientRequest, DailyLogItemRequest, DailyLogItemUpdateRequest, NutritionRequest, NutritionAlternativeRequest
 import enum
 import datetime
 import re
@@ -832,9 +832,9 @@ class Ingredient(db.Model):
             if food_ingredient_id:
                 food_ingredient_dao = Food.get(user_id, food_ingredient_id)
 
-                ingredient_nutrition_dao = db.session.get(Nutrition, food_ingredient_dao.nutrition_id)
+                ingredient_nutrition_dao = food_ingredient_dao.primary_nutrition
                 if not ingredient_nutrition_dao:
-                    raise ValueError(f"Ingredient record {food_ingredient_id}/{food_ingredient_dao.nutrition_id} not found")
+                    raise ValueError(f"Ingredient record {food_ingredient_id} has no primary Nutrition record")
 
                 recipe_nutrition_dao.sum(ingredient_nutrition_dao, servings)
                 price_per_serving = (food_ingredient_dao.price or 0) / food_ingredient_dao.servings
@@ -908,6 +908,7 @@ class Food(db.Model):
     This is the app's basic building-block record.
     """
     __tablename__ = "food"
+    __allow_unmapped__ = True
 
     id: Mapped[int] = mapped_column(primary_key=True)
     user_id: Mapped[int] = mapped_column(db.Integer, db.ForeignKey("user.id"), nullable=False)
@@ -923,8 +924,6 @@ class Food(db.Model):
     unit_type: Mapped[str] = mapped_column(db.Enum("solid", "liquid", name="unit_type_enum"), nullable=False, default="solid")
     density: Mapped[float | None] = mapped_column(db.Float, nullable=True, default=1.0)
     servings: Mapped[float] = mapped_column(db.Float, nullable=False)
-    nutrition_id: Mapped[int | None] = mapped_column(db.Integer, db.ForeignKey("nutrition.id"), nullable=True)
-    nutrition: Mapped[Nutrition] = relationship("Nutrition")
     nutrition_alternatives: Mapped[list["NutritionAlternative"]] = relationship("NutritionAlternative", back_populates="food", cascade="all, delete-orphan")
     price: Mapped[float | None] = mapped_column(db.Float, nullable=True)
     price_date: Mapped[datetime.date | None] = mapped_column(db.Date, nullable=True)
@@ -935,12 +934,35 @@ class Food(db.Model):
     starter_food: Mapped[bool] = mapped_column(db.Boolean, nullable=False, default=False)
     last_synced_at: Mapped[datetime.datetime | None] = mapped_column(db.DateTime, nullable=True)
 
+    # Transient placeholder for the primary Nutrition while a Food is being built
+    # in-memory.  It is flushed and linked via the primary NutritionAlternative
+    # (which owns the foreign key) in add()/update().  Not a mapped column.
+    _primary_nutrition: Nutrition | None = None
+
     def __init__(self, user_id: int, data: FoodRequest | None = None):
         if data is not None:
             self.from_schema(user_id, data)
         else:
             self.group = FoodGroup.other
-            self.nutrition = Nutrition(user_id)
+            self._primary_nutrition = Nutrition(user_id)
+
+    @property
+    def primary_nutrition(self) -> Nutrition | None:
+        """
+        Return the primary Nutrition record for this Food.
+
+        The nutrition_alternative table is the single source of truth.  The
+        primary serving size is the alternative with is_primary=1.  While a
+        Food is being built/edited in-memory, the transient _primary_nutrition
+        may hold the not-yet-persisted primary record; otherwise we resolve it
+        from the alternatives list.
+        """
+        if self._primary_nutrition is not None:
+            return self._primary_nutrition
+        primary_alt = next(
+            (alt for alt in (self.nutrition_alternatives or []) if alt.is_primary), None
+        )
+        return primary_alt.nutrition if primary_alt else None
 
     def from_schema(self, user_id: int, food_request: FoodRequest) -> None:
         """Load Food attributes from a FoodRequest Pydantic schema."""
@@ -966,10 +988,12 @@ class Food(db.Model):
         self.fdc_id = food_request.fdc_id
         self.fdc_data_type = food_request.fdc_data_type
         self.starter_food = food_request.starter_food
-        # Create nutrition record from nested schema
-        if not self.nutrition:
-            self.nutrition = Nutrition(user_id)
-        self.nutrition.from_schema(user_id, food_request.nutrition)
+        # Create the primary Nutrition record from the nested schema.  It is
+        # held transiently (on _primary_nutrition) until add()/update() flush
+        # and link it via the primary NutritionAlternative.
+        if self._primary_nutrition is None:
+            self._primary_nutrition = Nutrition(user_id)
+        self._primary_nutrition.from_schema(user_id, food_request.nutrition)
 
     def __str__(self):
         return str(vars(self))
@@ -1000,8 +1024,8 @@ class Food(db.Model):
             "size_oz": computed_weight_oz,
             "size_g": computed_weight_g,
             "servings": self.servings,
-            "nutrition_id": self.nutrition_id,
-            "nutrition": self.nutrition.json(),
+            # Backward-compatible convenience field: the primary serving's nutrition.
+            "nutrition": self.primary_nutrition.json() if self.primary_nutrition else None,
             "nutrition_alternatives": [alt.json() for alt in (self.nutrition_alternatives or [])],
             "price": self.price,
             "price_date": self.price_date.strftime("%Y-%m-%d") if self.price_date else None,
@@ -1089,31 +1113,70 @@ class Food(db.Model):
             # Flush without committing to get the new IDs
             db.session.flush()
 
-            # Persist nutrition alternatives (serving sizes).
-            # The primary serving size (is_primary=True) reuses the Food's primary
-            # Nutrition record (food.nutrition_id) so there is a single source of
-            # truth for the default serving view.
-            if food.nutrition_alternatives:
-                for alt_request in food.nutrition_alternatives:
-                    if alt_request.is_primary:
-                        # Primary serving size uses the Food's primary Nutrition record
-                        alt_nutrition = new_food_dao.nutrition
-                    else:
-                        alt_nutrition = Nutrition(user_id)
-                        alt_nutrition.from_schema(user_id, alt_request.nutrition)
-                        db.session.add(alt_nutrition)
-                        db.session.flush()
+            # Persist the primary Nutrition record.  It is held transiently on the
+            # Food (via _primary_nutrition) rather than as a relationship, so we
+            # must add and flush it explicitly before the primary alternative can
+            # reference its id.
+            primary_nutrition = new_food_dao.primary_nutrition
+            if not primary_nutrition:
+                raise ValueError("Primary Nutrition record for Food is required")
+            db.session.add(primary_nutrition)
+            db.session.flush()
 
-                    alt_dao = NutritionAlternative()
-                    alt_dao.food_id = new_food_dao.id
-                    alt_dao.nutrition_id = alt_nutrition.id
-                    alt_dao.serving_value = alt_request.serving_value
-                    alt_dao.serving_unit = alt_request.serving_unit
-                    alt_dao.serving_unit_kind = alt_request.serving_unit_kind
-                    alt_dao.household_weight_g = alt_request.household_weight_g
-                    alt_dao.ordinal = alt_request.ordinal
-                    alt_dao.is_primary = alt_request.is_primary
-                    db.session.add(alt_dao)
+            alts_to_persist: list[NutritionAlternativeRequest | None] = []
+            if food.nutrition_alternatives:
+                alternatives: list[NutritionAlternativeRequest] = list(food.nutrition_alternatives)
+                # Ensure exactly one alternative is marked primary; if none is, default
+                # the first one to primary so the invariant is preserved.
+                if not any(a.is_primary for a in alternatives):
+                    alternatives[0] = alternatives[0].model_copy(update={"is_primary": True})
+                alts_to_persist = list(alternatives)
+            else:
+                # No alternatives provided: create a single primary alternative from
+                # the Food's primary Nutrition record.
+                alts_to_persist = [None]
+
+            for alt_request in alts_to_persist:
+                if alt_request is None:
+                    # Back-compat: synthesize a primary alternative from the primary nutrition.
+                    alt_nutrition = primary_nutrition
+                    serving_value = 1.0
+                    serving_unit = primary_nutrition.serving_size_description or "serving"
+                    serving_unit_kind = "solid"
+                    household_weight_g = None
+                    ordinal = 0
+                    is_primary = True
+                elif alt_request.is_primary:
+                    # Primary serving size uses the Food's primary Nutrition record
+                    alt_nutrition = primary_nutrition
+                    serving_value = alt_request.serving_value
+                    serving_unit = alt_request.serving_unit
+                    serving_unit_kind = alt_request.serving_unit_kind
+                    household_weight_g = alt_request.household_weight_g
+                    ordinal = alt_request.ordinal
+                    is_primary = True
+                else:
+                    alt_nutrition = Nutrition(user_id)
+                    alt_nutrition.from_schema(user_id, alt_request.nutrition)
+                    db.session.add(alt_nutrition)
+                    db.session.flush()
+                    serving_value = alt_request.serving_value
+                    serving_unit = alt_request.serving_unit
+                    serving_unit_kind = alt_request.serving_unit_kind
+                    household_weight_g = alt_request.household_weight_g
+                    ordinal = alt_request.ordinal
+                    is_primary = False
+
+                alt_dao = NutritionAlternative()
+                alt_dao.food_id = new_food_dao.id
+                alt_dao.nutrition_id = alt_nutrition.id
+                alt_dao.serving_value = serving_value
+                alt_dao.serving_unit = serving_unit
+                alt_dao.serving_unit_kind = serving_unit_kind
+                alt_dao.household_weight_g = household_weight_g
+                alt_dao.ordinal = ordinal
+                alt_dao.is_primary = is_primary
+                db.session.add(alt_dao)
 
             # Save the old ID to new ID mapping (only if old_food_id is not None)
             if keylists is not None and old_food_id is not None:
@@ -1144,31 +1207,52 @@ class Food(db.Model):
             if food_dao.user_id != user_id:
                 raise ValueError(f"Food record {food_id} does not belong to this user")
 
-            if not food_dao.nutrition:
-                raise ValueError(f"Nutrition record for Food {food_id} not found")
+            primary_nutrition = food_dao.primary_nutrition
+            if not primary_nutrition:
+                raise ValueError(f"Primary Nutrition record for Food {food_id} not found")
 
             # Update the data fields from schema
             food_dao.from_schema(user_id, food)
 
-            # Replace nutrition alternatives (serving sizes).
-            # Delete old alternatives, but preserve the Food's primary Nutrition
-            # record (food.nutrition_id) since it's referenced by the Food.
+            # Replace nutrition alternatives (serving sizes).  The nutrition_alternative
+            # table is the single source of truth.  Delete the old alternatives and all
+            # of their Nutrition records.  The primary is NOT reused: from_schema()
+            # above rebuilds a brand-new primary Nutrition from the submitted schema,
+            # so every old Nutrition row here is now orphaned and must be removed.
+            primary_nutrition = food_dao.primary_nutrition
             for old_alt in list(food_dao.nutrition_alternatives or []):
                 old_nutrition_id = old_alt.nutrition_id
                 db.session.delete(old_alt)
-                # Don't delete the primary Nutrition record -- it's owned by the Food
-                if old_nutrition_id and old_nutrition_id != food_dao.nutrition_id:
+                if old_nutrition_id:
                     old_nutrition = db.session.get(Nutrition, old_nutrition_id)
                     if old_nutrition:
                         db.session.delete(old_nutrition)
 
             db.session.flush()
 
+            # Rebuild the primary Nutrition from the (possibly updated) schema.
+            # When from_schema() re-mapped the Food, it may have created a brand-new
+            # Nutrition object holding the input values.  That object is not yet
+            # persisted, so add it to the session and flush it to assign a primary
+            # key; the alternative rows reference nutrition_id and must not be None.
+            primary_nutrition = food_dao.primary_nutrition
+            if primary_nutrition is None:
+                primary_nutrition = Nutrition(user_id)
+                food_dao._primary_nutrition = primary_nutrition
+            primary_nutrition.from_schema(user_id, food.nutrition)
+            db.session.add(primary_nutrition)
+            db.session.flush()
+
             if food.nutrition_alternatives:
-                for alt_request in food.nutrition_alternatives:
+                sorted_alts = list(food.nutrition_alternatives)
+                # Ensure exactly one alternative is marked primary; if none is, default
+                # the first one to primary so the invariant is preserved.
+                if not any(a.is_primary for a in sorted_alts):
+                    sorted_alts[0] = sorted_alts[0].model_copy(update={"is_primary": True})
+                for alt_request in sorted_alts:
                     if alt_request.is_primary:
                         # Primary serving size reuses the Food's primary Nutrition record
-                        alt_nutrition = food_dao.nutrition
+                        alt_nutrition = primary_nutrition
                     else:
                         alt_nutrition = Nutrition(user_id)
                         alt_nutrition.from_schema(user_id, alt_request.nutrition)
@@ -1185,6 +1269,23 @@ class Food(db.Model):
                     alt_dao.ordinal = alt_request.ordinal
                     alt_dao.is_primary = alt_request.is_primary
                     db.session.add(alt_dao)
+            else:
+                # Back-compat: no alternatives provided, create a single primary
+                # alternative from the Food's primary Nutrition record.
+                alt_dao = NutritionAlternative()
+                alt_dao.food_id = food_id
+                alt_dao.nutrition_id = primary_nutrition.id
+                alt_dao.serving_value = 1.0
+                alt_dao.serving_unit = primary_nutrition.serving_size_description or "serving"
+                alt_dao.serving_unit_kind = "solid"
+                alt_dao.household_weight_g = None
+                alt_dao.ordinal = 0
+                alt_dao.is_primary = True
+                db.session.add(alt_dao)
+
+            # Clear the transient _primary_nutrition so json() resolves the primary
+            # from the persisted nutrition_alternatives relationship.
+            food_dao._primary_nutrition = None
 
             # The in-memory nutrition_alternatives collection is stale: it still
             # references the old (deleted) alternatives and does not include the
@@ -1203,6 +1304,12 @@ class Food(db.Model):
     def delete(user_id: int, food_id: int) -> None:
         """
         Delete a particular Food record
+
+        The Food's nutrition_alternative rows (and, via the DB-level ON DELETE
+        CASCADE, their Nutrition records) are removed automatically when the
+        Food is deleted.  The nutrition_alternative table is the single source
+        of truth for a Food's nutrition, so no manual Nutrition cleanup is
+        required here.
         """
         try:
             # Get the Food record
@@ -1210,15 +1317,7 @@ class Food(db.Model):
             if not food_dao:
                 raise ValueError(f"Food record {food_id} not found")
 
-            # Food has a foreign key on Nutrition so it must be deleted first
-            nutrition_id = food_dao.nutrition_id
             db.session.delete(food_dao)
-
-            # Delete its associated Nutrition record qif it exists
-            if nutrition_id:
-                nutrition_dao = db.session.get(Nutrition, food_dao.nutrition_id)
-                if nutrition_dao:
-                    db.session.delete(nutrition_dao)
 
         except Exception as e:
             raise ValueError("Food record could not be deleted: " + str(e))
@@ -1233,15 +1332,9 @@ class Food(db.Model):
         try:
             food_daos = db.session.scalars(db.select(Food).where(Food.user_id == user_id)).all()
             for food_dao in food_daos:
-                # Food has a foreign key on Nutrition so it must be deleted first
-                nutrition_id = food_dao.nutrition_id
+                # The Food's nutrition_alternatives and their Nutrition records
+                # cascade-delete automatically (see Food.delete).
                 db.session.delete(food_dao)
-
-                # Delete its associated Nutrition record if it exists
-                if nutrition_id:
-                    nutrition_dao = db.session.get(Nutrition, nutrition_id)
-                    if nutrition_dao:
-                        db.session.delete(nutrition_dao)
 
         except Exception as e:
             raise ValueError(f"Food records could not be deleted for user {user_id}: {str(e)}")
@@ -1595,28 +1688,33 @@ class Recipe(db.Model):
             ingredient_daos: list[Ingredient] = Ingredient.get_all_for_recipe(user_id, recipe_id)
             for ingredient_dao in ingredient_daos:
                 # Get the corresponding Food or Recipe record
-                ingredient_nutrition_id = None
                 food_ingredient_dao = None
                 recipe_ingredient_dao = None
+                ingredient_nutrition_dao = None
                 if ingredient_dao.food_ingredient_id and not ingredient_dao.recipe_ingredient_id:
                     food_ingredient_dao = Food.get(user_id, ingredient_dao.food_ingredient_id)
                     if not food_ingredient_dao:
                         raise ValueError(f"Food Ingedient record {ingredient_dao.food_ingredient_id} not found")
-                    ingredient_nutrition_id = food_ingredient_dao.nutrition_id
+                    # Food nutrition now resolves via the primary nutrition_alternative.
+                    ingredient_nutrition_dao = food_ingredient_dao.primary_nutrition
+                    if not ingredient_nutrition_dao:
+                        raise ValueError(
+                            f"Nutrition record for Food ingredient {ingredient_dao.food_ingredient_id} not found"
+                        )
                 elif ingredient_dao.recipe_ingredient_id and not ingredient_dao.food_ingredient_id:
                     recipe_ingredient_dao = Recipe.get(user_id, ingredient_dao.recipe_ingredient_id)
                     if not recipe_ingredient_dao:
                         raise ValueError(f"Recipe Ingedient record {ingredient_dao.recipe_ingredient_id} not found")
-                    ingredient_nutrition_id = recipe_ingredient_dao.nutrition_id
+                    recipe_nutrition_id = recipe_ingredient_dao.nutrition_id
+                    ingredient_nutrition_dao = (
+                        Nutrition.get(user_id, recipe_nutrition_id) if recipe_nutrition_id is not None else None
+                    )
+                    if not ingredient_nutrition_dao:
+                        raise ValueError(
+                            f"Nutrition record for Recipe ingredient {ingredient_dao.recipe_ingredient_id} not found"
+                        )
                 else:
                     raise ValueError("Either food ID or recipe ID must be proviided for an ingredient, but not both")
-                if not ingredient_nutrition_id:
-                    raise ValueError(f"Nutrition ID for Ingredient record {ingredient_dao.id} could not be determined")
-
-                # Get the Food or Recipe's Nutrition record
-                ingredient_nutrition_dao = Nutrition.get(user_id, ingredient_nutrition_id)
-                if not ingredient_nutrition_dao:
-                    raise ValueError(f"Nutrition record {ingredient_nutrition_id} not found")
 
                 # Add its nutrition data to the total. Recipe ingredients store
                 # whole-recipe nutrition, so scale by 1 / child servings first.
@@ -1856,10 +1954,10 @@ class DailyLogItem(db.Model):
             source_price = source_dao.price
             source_modifier = (1.0 / source_servings) if source_servings else 0
         else:
-            # Food path: look up the Food and get its nutrition
+            # Food path: look up the Food and get its primary nutrition
             assert log_request.food_id is not None
             source_dao = Food.get(user_id, log_request.food_id)
-            source_nutrition_dao = db.session.get(Nutrition, source_dao.nutrition_id)
+            source_nutrition_dao = source_dao.primary_nutrition
             if not source_nutrition_dao:
                 raise ValueError(f"Nutrition record for Food {log_request.food_id} not found")
             source_servings = source_dao.servings
@@ -1964,7 +2062,7 @@ class DailyLogItem(db.Model):
             else:
                 assert log_dao.food_id is not None
                 source_dao = Food.get(user_id, log_dao.food_id)
-                source_nutrition_dao = db.session.get(Nutrition, source_dao.nutrition_id)
+                source_nutrition_dao = source_dao.primary_nutrition
                 if not source_nutrition_dao:
                     raise ValueError(f"Nutrition record for Food {log_dao.food_id} not found")
                 source_servings = source_dao.servings
@@ -2039,8 +2137,9 @@ class DailyLogItem(db.Model):
 class NutritionAlternative(db.Model):
     """
     A Food can have multiple serving size "views", each backed by its own
-    complete Nutrition record.  The primary nutrition_id on Food remains the
-    default serving view; additional views are stored here.
+    complete Nutrition record.  This table is the sole source of truth for a
+    Food's Nutrition: the alternative with is_primary=1 is the default serving
+    view, and any additional rows are alternate serving sizes.
 
     Three unit kinds:
       - solid:     oz, g, kg, lb (weight-based; weight IS the size)
@@ -2049,8 +2148,11 @@ class NutritionAlternative(db.Model):
                    (requires household_weight_g for weight calculation)
 
     The `is_primary` flag marks the default serving size.  Exactly one serving
-    size per Food should be primary.  The primary serving size's Nutrition
-    record is also referenced by Food.nutrition_id for backward compatibility.
+    size per Food should be primary.  This table is the sole source of truth
+    for a Food's Nutrition; there is no separate Food.nutrition_id.
+
+    Other tables remain direct: Recipe and DailyLogItem each reference a
+    Nutrition record directly via their own nutrition_id.
     """
     __tablename__ = "nutrition_alternative"
 
@@ -2058,7 +2160,7 @@ class NutritionAlternative(db.Model):
     food_id: Mapped[int] = mapped_column(db.Integer, db.ForeignKey("food.id"), nullable=False)
     nutrition_id: Mapped[int] = mapped_column(db.Integer, db.ForeignKey("nutrition.id"), nullable=False)
     serving_value: Mapped[float] = mapped_column(db.Float, nullable=False)
-    serving_unit: Mapped[str] = mapped_column(db.String(30), nullable=False)
+    serving_unit: Mapped[str] = mapped_column(db.String(50), nullable=False)
     serving_unit_kind: Mapped[str] = mapped_column(db.Enum("solid", "liquid", "arbitrary", name="serving_unit_kind_enum"), nullable=False)
     household_weight_g: Mapped[float | None] = mapped_column(db.Float, nullable=True)
     ordinal: Mapped[int] = mapped_column(db.Integer, nullable=False, default=0)

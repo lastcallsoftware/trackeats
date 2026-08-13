@@ -68,10 +68,10 @@ def test_recipe_recalculate_sums_food_and_recipe_ingredients(
         _IngredientRow(row_id=1, food_id=10, recipe_id=None, servings=1.5),
         _IngredientRow(row_id=2, food_id=None, recipe_id=20, servings=2.0),
     ]
-    food_dao = SimpleNamespace(nutrition_id=101, price=0)
-    recipe_ingredient_dao = SimpleNamespace(nutrition_id=202, price=0, servings=4.0)
     ingredient_food_nutrition = object()
     ingredient_recipe_nutrition = object()
+    food_dao = SimpleNamespace(primary_nutrition=ingredient_food_nutrition, price=0)
+    recipe_ingredient_dao = SimpleNamespace(nutrition_id=202, price=0, servings=4.0)
 
     def _get_all_for_recipe(user_id: int, recipe_id: int) -> list[object]:
         assert user_id == 1
@@ -90,11 +90,8 @@ def test_recipe_recalculate_sums_food_and_recipe_ingredients(
 
     def _nutrition_get(user_id: int, nutrition_id: int) -> object:
         assert user_id == 1
-        if nutrition_id == 101:
-            return ingredient_food_nutrition
-        if nutrition_id == 202:
-            return ingredient_recipe_nutrition
-        raise AssertionError(f"Unexpected nutrition id: {nutrition_id}")
+        assert nutrition_id == 202
+        return ingredient_recipe_nutrition
 
     monkeypatch.setattr(models.Ingredient, "get_all_for_recipe", staticmethod(_get_all_for_recipe))
     monkeypatch.setattr(models.Food, "get", staticmethod(_food_get))
@@ -214,10 +211,10 @@ def test_recipe_recalculate_sets_total_weight_from_ingredient_nutrition(
         _IngredientRow(row_id=1, food_id=10, recipe_id=None, servings=1.5),
         _IngredientRow(row_id=2, food_id=None, recipe_id=20, servings=2.0),
     ]
-    food_dao = SimpleNamespace(nutrition_id=101, price=0)
-    recipe_ingredient_dao = SimpleNamespace(nutrition_id=202, price=0, servings=4.0)
     ingredient_food_nutrition = SimpleNamespace(serving_size_oz=4.0, serving_size_g=113)
     ingredient_recipe_nutrition = SimpleNamespace(serving_size_oz=2.0, serving_size_g=56)
+    food_dao = SimpleNamespace(primary_nutrition=ingredient_food_nutrition, price=0)
+    recipe_ingredient_dao = SimpleNamespace(nutrition_id=202, price=0, servings=4.0)
 
     def _get_all_for_recipe(user_id: int, recipe_id: int) -> list[object]:
         return ingredient_rows
@@ -229,11 +226,8 @@ def test_recipe_recalculate_sets_total_weight_from_ingredient_nutrition(
         return recipe_ingredient_dao
 
     def _nutrition_get(user_id: int, nutrition_id: int) -> object:
-        if nutrition_id == 101:
-            return ingredient_food_nutrition
-        if nutrition_id == 202:
-            return ingredient_recipe_nutrition
-        raise AssertionError(f"Unexpected nutrition id: {nutrition_id}")
+        assert nutrition_id == 202
+        return ingredient_recipe_nutrition
 
     monkeypatch.setattr(models.Ingredient, "get_all_for_recipe", staticmethod(_get_all_for_recipe))
     monkeypatch.setattr(models.Food, "get", staticmethod(_food_get))
@@ -296,9 +290,10 @@ def test_recipe_recalculate_raises_when_ingredient_nutrition_missing(
         return ingredient_rows
 
     def _food_get(user_id: int, food_id: int) -> object:
-        return SimpleNamespace(nutrition_id=101)
+        return SimpleNamespace(primary_nutrition=None)
 
     def _nutrition_get(user_id: int, nutrition_id: int) -> None:
+        assert nutrition_id == 500
         return None
 
     monkeypatch.setattr(
@@ -316,7 +311,7 @@ def test_recipe_recalculate_raises_when_ingredient_nutrition_missing(
     recipe_dao = cast(models.Recipe, SimpleNamespace(id=99, nutrition_id=500))
     recipe_nutrition_dao = _NutritionAccumulator()
 
-    with pytest.raises(ValueError, match="Nutrition record 101 not found"):
+    with pytest.raises(ValueError, match="Nutrition record for Food ingredient 10 not found"):
         models.Recipe.recalculate(
             user_id=1,
             recipe_id=99,
@@ -386,7 +381,7 @@ def test_ingredient_add_from_schema_preserves_provided_id(monkeypatch: pytest.Mo
         return SimpleNamespace(id=recipe_id, nutrition_id=900, price=0)
 
     def _food_get(user_id: int, food_id: int) -> object:
-        return SimpleNamespace(id=food_id, nutrition_id=901, price=5.0, servings=2.0)
+        return SimpleNamespace(id=food_id, primary_nutrition=ingredient_nutrition, price=5.0, servings=2.0)
 
     monkeypatch.setattr(models.Recipe, "get", staticmethod(_recipe_get))
     monkeypatch.setattr(models.Food, "get", staticmethod(_food_get))

@@ -11,7 +11,7 @@ export const Toast = () => {
                 <Snackbar
                     key={toast.id}
                     open={true}
-                    autoHideDuration={toast.severity === 'error' ? 7000 : 5000}
+                    autoHideDuration={toast.severity === 'error' ? null : 5000}
                     onClose={() => removeToast(toast.id)}
                     anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
                 >
