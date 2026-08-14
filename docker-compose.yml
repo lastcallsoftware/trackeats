@@ -138,5 +138,5 @@ volumes:
 
 networks:
   trackeats-net:
+    external: true
     name: trackeats-net
-    driver: bridge
