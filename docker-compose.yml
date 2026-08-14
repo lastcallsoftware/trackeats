@@ -7,13 +7,9 @@ services:
       backend:
         condition: service_healthy
     ports:
-      - "80:8080"
-      - "443:8443"
+      - "3000:8080"
     environment:
       - NODE_ENV=production
-    volumes:
-      - /etc/letsencrypt:/etc/letsencrypt:ro
-      - /var/www/certbot:/var/www/certbot
     restart: on-failure
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/"]
@@ -26,6 +22,8 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
+    networks:
+      - trackeats-net
 
   backend:
     container_name: trackeats-backend
@@ -88,6 +86,8 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
+    networks:
+      - trackeats-net
 
   migrate:
     image: lastcallsoftware/trackeats-backend:latest
@@ -106,6 +106,8 @@ services:
       #APP_IMPORTER_PASSWORD: ${APP_IMPORTER_PASSWORD}
       #APP_CATALOG_PASSWORD: ${APP_CATALOG_PASSWORD}
       BACKEND_ENCRYPTION_KEY_B64: ${BACKEND_ENCRYPTION_KEY_B64:?}
+    networks:
+      - trackeats-net
 
   db:
     container_name: trackeats-db
@@ -127,11 +129,14 @@ services:
       timeout: 5s
       retries: 5
       start_period: 30s
+    networks:
+      - trackeats-net
 
 volumes:
   db-data:
     name: trackeats-db-data
 
 networks:
-  default:
+  trackeats-net:
     name: trackeats-net
+    driver: bridge

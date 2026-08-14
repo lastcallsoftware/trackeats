@@ -1,0 +1,140 @@
+# COMBINED LOCAL TEST COMPOSE FILE
+# This file includes both trackeats and webspaces services for local development/testing.
+# In production, these would be deployed as two separate docker-compose stacks.
+
+services:
+  # ===== TRACKEATS SERVICES =====
+  frontend:
+    container_name: trackeats-frontend
+    image: node:lts-alpine
+    working_dir: /app/frontend
+    volumes:
+      - ./frontend:/app/frontend
+      - /app/frontend/node_modules
+    command: npm run dev
+    ports:
+      - "5173:5173"
+    environment:
+      - VITE_BACKEND_BASE_URL=http://trackeats-backend:5000
+      - VITE_PORTFOLIO_URL=http://localhost:3000
+      - VITE_GOOGLE_CLIENT_ID=${VITE_GOOGLE_CLIENT_ID:-}
+      - VITE_FACEBOOK_APP_ID=${VITE_FACEBOOK_APP_ID:-}
+      - VITE_TURNSTILE_SITE_KEY_PUBLIC=${VITE_TURNSTILE_SITE_KEY_PUBLIC:-}
+    depends_on:
+      - backend
+    networks:
+      - trackeats-net
+    restart: on-failure
+
+  backend:
+    container_name: trackeats-backend
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "5000:5000"
+    environment:
+      FLASK_ENV: development
+      DB_HOSTNAME: db
+      DB_DATABASE_NAME: ${DB_DATABASE_NAME:-trackeats}
+      DB_APP_USERNAME: ${DB_APP_USERNAME:-app_user}
+      DB_APP_PASSWORD: ${DB_APP_PASSWORD:-app_password}
+      APP_ADMIN_PASSWORD: ${APP_ADMIN_PASSWORD:-admin_pass}
+      APP_TEST_PASSWORD: ${APP_TEST_PASSWORD:-test_pass}
+      SMTP_HOSTNAME: ${SMTP_HOSTNAME:-localhost}
+      SMTP_USERNAME: ${SMTP_USERNAME:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      BACKEND_ENCRYPTION_KEY_B64: ${BACKEND_ENCRYPTION_KEY_B64:-}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-dev_secret_key}
+      ACCESS_TOKEN_DURATION: ${ACCESS_TOKEN_DURATION:-120}
+      FRONTEND_BASE_URL: http://localhost:3000
+      BACKEND_BASE_URL: http://localhost:5000
+      CONFIRM_LINK_BASE_URL: ${CONFIRM_LINK_BASE_URL:-}
+      PORTFOLIO_URL: http://localhost:3000/portfolio
+      GOOGLE_WEB_CLIENT_ID: ${GOOGLE_WEB_CLIENT_ID:-}
+      GOOGLE_ANDROID_CLIENT_ID: ${GOOGLE_ANDROID_CLIENT_ID:-}
+      FACEBOOK_APP_ID: ${FACEBOOK_APP_ID:-}
+      FACEBOOK_APP_SECRET: ${FACEBOOK_APP_SECRET:-}
+      TURNSTILE_SECRET_KEY: ${TURNSTILE_SECRET_KEY:-}
+      RATELIMIT_STORAGE_URI: ${RATELIMIT_STORAGE_URI:-memory://}
+    depends_on:
+      - db
+      - migrate
+    networks:
+      - trackeats-net
+    restart: on-failure
+
+  migrate:
+    container_name: trackeats-migrate
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    command: sh -c "flask init-db && flask db upgrade"
+    environment:
+      FLASK_APP: src/app:minimal_app_config
+      DB_HOSTNAME: db
+      DB_DATABASE_NAME: ${DB_DATABASE_NAME:-trackeats}
+      DB_APP_USERNAME: ${DB_APP_USERNAME:-app_user}
+      DB_APP_PASSWORD: ${DB_APP_PASSWORD:-app_password}
+      APP_ADMIN_PASSWORD: ${APP_ADMIN_PASSWORD:-admin_pass}
+      APP_TEST_PASSWORD: ${APP_TEST_PASSWORD:-test_pass}
+      BACKEND_ENCRYPTION_KEY_B64: ${BACKEND_ENCRYPTION_KEY_B64:-}
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - trackeats-net
+
+  db:
+    container_name: trackeats-db
+    image: mysql:8
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-root_password}
+      MYSQL_DATABASE: ${DB_DATABASE_NAME:-trackeats}
+      MYSQL_USER: ${DB_APP_USERNAME:-app_user}
+      MYSQL_PASSWORD: ${DB_APP_PASSWORD:-app_password}
+    ports:
+      - "3306:3306"
+    volumes:
+      - db-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - trackeats-net
+    restart: unless-stopped
+
+  # ===== WEBSPACES SERVICES =====
+  nginx:
+    container_name: webspaces-nginx
+    build:
+      context: ./webspaces
+      dockerfile: Dockerfile
+      args:
+        VITE_BACKEND_BASE_URL: http://trackeats-backend:5000
+        VITE_TURNSTILE_SITE_KEY_PUBLIC: ${VITE_TURNSTILE_SITE_KEY_PUBLIC:-}
+    ports:
+      - "80:8080"
+      - "8080:8080"
+      - "443:8443"
+      - "8443:8443"
+    environment:
+      - NODE_ENV=development
+    depends_on:
+      - frontend
+      - backend
+    networks:
+      - trackeats-net
+    restart: on-failure
+
+volumes:
+  db-data:
+    name: trackeats-db-data
+
+networks:
+  trackeats-net:
+    name: trackeats-net
+    driver: bridge
