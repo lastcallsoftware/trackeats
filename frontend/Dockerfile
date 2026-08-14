@@ -1,5 +1,5 @@
 # BUILD STAGE
-FROM node:24-alpine3.24.1 AS build
+FROM node:24-alpine3.24 AS build
 
 ARG VITE_BACKEND_BASE_URL
 ARG VITE_PORTFOLIO_URL
