@@ -47,10 +47,15 @@ jobs:
 
       - name: Get IP address of GH Actions task runner
         id: ip
-        run: echo "ip=$(curl -s ifconfig.me)" >> $GITHUB_OUTPUT
+        run: echo "ip=$(curl -4 -fsS https://api.ipify.org)" >> "$GITHUB_OUTPUT"
 
       - name: Allow runner IP address through firewall
-        run: doctl compute firewall add-rules ${{ secrets.DIGITALOCEAN_FIREWALL_ID }} --inbound-rules "protocol:tcp,ports:22,address:${{ steps.ip.outputs.ip }}/32"
+        run: |
+          doctl compute firewall add-rules \
+            "${{ secrets.DIGITALOCEAN_FIREWALL_ID }}" \
+            --inbound-rules "protocol:tcp,ports:22,address:${{ steps.ip.outputs.ip }}/32"
+          # Allow the cloud firewall time to propagate before opening SSH.
+          sleep 15
         
       - name: Build and push frontend image
         uses: docker/build-push-action@v7
