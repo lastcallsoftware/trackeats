@@ -16,7 +16,7 @@ export const ToastProvider = ({ children }: { children: ReactNode }) => {
 
         setToasts((prev) => [...prev, toast]);
 
-        if (durationMs > 0) {
+        if (severity !== 'error' && durationMs > 0) {
             setTimeout(() => {
                 removeToast(id);
             }, durationMs);
