@@ -150,13 +150,13 @@ const round2 = (v: number): number => Math.round(v * 100) / 100;
 const scaleNutrition = (
     base: INutritionAlternative["nutrition"],
     scale: number,
-    servingSizeG: number,
-    servingSizeOz: number,
+    servingSizeMetric: number,
+    servingSizeImperial: number,
     description: string,
 ): INutritionAlternative["nutrition"] => ({
     serving_size_description: description,
-    serving_size_imperial: servingSizeOz,
-    serving_size_metric: servingSizeG,
+    serving_size_imperial: servingSizeImperial,
+    serving_size_metric: servingSizeMetric,
     calories: round2(base.calories * scale),
     total_fat_g: round2(base.total_fat_g * scale),
     saturated_fat_g: round2(base.saturated_fat_g * scale),
@@ -206,6 +206,22 @@ function FoodForm() {
     const unitType = useWatch({ control, name: "unit_type" });
     const sizeImperial = useWatch({ control, name: "size_imperial" });
     const sizeMetric = useWatch({ control, name: "size_metric" });
+    const foodDensity = Number(useWatch({ control, name: "density" })) || 0;
+
+    // Convert a stored serving weight (grams) to the metric/imperial values
+    // that match this food's unit type: g/oz for solid, ml/fl oz for liquid.
+    const weightGToServingSize = (weightG: number): { metric: number; imperial: number } => {
+        if (unitType === "liquid" && foodDensity > 0) {
+            const volumeMl = weightG / foodDensity;
+            return { metric: round2(volumeMl), imperial: round2(volumeMl / 29.5735) };
+        }
+        return { metric: round2(weightG), imperial: round2(weightG / 28.3495) };
+    };
+
+    // Inverse of weightGToServingSize: recover the serving weight (grams) from
+    // a stored metric value, so nutrient scaling always happens by weight.
+    const servingSizeMetricToWeightG = (metricValue: number): number =>
+        unitType === "liquid" && foodDensity > 0 ? metricValue * foodDensity : metricValue;
 
     // A field is "empty" when it's null, undefined, an empty string, or NaN
     // (react-hook-form coerces an empty number input to NaN via valueAsNumber).
@@ -332,7 +348,7 @@ function FoodForm() {
         } else {
             newWeightG = computeServingWeightG(effectiveUnitType, newValue, newUnit, density);
         }
-        const primaryWeightG = primary?.serving_size_metric ?? 0;
+        const primaryWeightG = servingSizeMetricToWeightG(primary?.serving_size_metric ?? 0);
 
         // The label reflects the user's new serving selections.
         const description = isHouseholdUnit
@@ -342,8 +358,8 @@ function FoodForm() {
         let nutrition: INutritionAlternative["nutrition"];
         if (newWeightG != null && primaryWeightG > 0) {
             const scale = newWeightG / primaryWeightG;
-            const newWeightOz = newWeightG / 28.3495;
-            nutrition = scaleNutrition(primary, scale, round2(newWeightG), round2(newWeightOz), description);
+            const { metric, imperial } = weightGToServingSize(newWeightG);
+            nutrition = scaleNutrition(primary, scale, metric, imperial, description);
         } else {
             // Fallback: copy the primary nutrition with the new description.
             nutrition = { ...primary, serving_size_description: description };
