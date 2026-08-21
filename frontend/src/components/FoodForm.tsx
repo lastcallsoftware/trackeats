@@ -210,10 +210,12 @@ function FoodForm() {
     // density doesn't silently fall back to solid math and misread ml as grams.
     const foodDensity = Number(useWatch({ control, name: "density" })) || 1;
 
-    // Convert a stored serving weight (grams) to the metric/imperial values
-    // that match this food's unit type: g/oz for solid, ml/fl oz for liquid.
-    const weightGToServingSize = (weightG: number): { metric: number; imperial: number } => {
-        if (unitType === "liquid") {
+    // Convert a stored serving weight (grams) to the metric/imperial values for
+    // the given serving kind: g/oz for solid, ml/fl oz for liquid. The kind is
+    // per-serving, not the food-level unit_type toggle (which only labels the
+    // total food size fields).
+    const weightGToServingSize = (weightG: number, kind: "solid" | "liquid"): { metric: number; imperial: number } => {
+        if (kind === "liquid") {
             const volumeMl = weightG / foodDensity;
             return { metric: round2(volumeMl), imperial: round2(volumeMl / 29.5735) };
         }
@@ -222,8 +224,8 @@ function FoodForm() {
 
     // Inverse of weightGToServingSize: recover the serving weight (grams) from
     // a stored metric value, so nutrient scaling always happens by weight.
-    const servingSizeMetricToWeightG = (metricValue: number): number =>
-        unitType === "liquid" ? metricValue * foodDensity : metricValue;
+    const servingSizeMetricToWeightG = (metricValue: number, kind: "solid" | "liquid"): number =>
+        kind === "liquid" ? metricValue * foodDensity : metricValue;
 
     // A field is "empty" when it's null, undefined, an empty string, or NaN
     // (react-hook-form coerces an empty number input to NaN via valueAsNumber).
@@ -246,6 +248,16 @@ function FoodForm() {
         { ...((food?.nutrition || getValues("nutrition")) as INutritionAlternative["nutrition"]) }
     );
 
+    // Track the primary serving's own identity (value/unit/kind), separate from
+    // the food-level unit_type toggle, so it can survive a different
+    // alternative being promoted to primary via handleDeleteServing.
+    const originalPrimaryAlt = (food?.nutrition_alternatives ?? []).find(alt => alt.is_primary);
+    const [primaryMeta, setPrimaryMeta] = useState<Pick<INutritionAlternative, "serving_value" | "serving_unit" | "serving_unit_kind">>({
+        serving_value: originalPrimaryAlt?.serving_value ?? 1,
+        serving_unit: originalPrimaryAlt?.serving_unit ?? "",
+        serving_unit_kind: originalPrimaryAlt?.serving_unit_kind ?? getValues("unit_type") ?? "solid",
+    });
+
     const buildServingViews = () => {
         // The primary view always reflects the true primary serving, not the
         // live form values (which get overwritten when switching to an
@@ -266,6 +278,12 @@ function FoodForm() {
     const [selectedKey, setSelectedKey] = useState("primary");
 
     const servingViews = buildServingViews();
+
+    // The unit kind (solid/liquid) of whichever serving is currently being
+    // viewed/edited - independent of the food-level unit_type toggle.
+    const currentServingUnitKind: "solid" | "liquid" = selectedKey === "primary"
+        ? primaryMeta.serving_unit_kind
+        : localAlternatives[Number(selectedKey.replace("alt-", ""))]?.serving_unit_kind ?? "solid";
 
     // Write a nutrition record's values into the live form fields.
     const applyServingToForm = (nutrition: INutritionAlternative["nutrition"]) => {
@@ -350,7 +368,7 @@ function FoodForm() {
         } else {
             newWeightG = computeServingWeightG(effectiveUnitType, newValue, newUnit, density);
         }
-        const primaryWeightG = servingSizeMetricToWeightG(primary?.serving_size_metric ?? 0);
+        const primaryWeightG = servingSizeMetricToWeightG(primary?.serving_size_metric ?? 0, primaryMeta.serving_unit_kind);
 
         // The label reflects the user's new serving selections.
         const description = isHouseholdUnit
@@ -360,7 +378,7 @@ function FoodForm() {
         let nutrition: INutritionAlternative["nutrition"];
         if (newWeightG != null && primaryWeightG > 0) {
             const scale = newWeightG / primaryWeightG;
-            const { metric, imperial } = weightGToServingSize(newWeightG);
+            const { metric, imperial } = weightGToServingSize(newWeightG, effectiveUnitType);
             nutrition = scaleNutrition(primary, scale, metric, imperial, description);
         } else {
             // Fallback: copy the primary nutrition with the new description.
@@ -396,11 +414,16 @@ function FoodForm() {
             // Promote the first alternative to primary when the original
             // primary serving is deleted. The promoted serving is removed
             // from the alternatives list so it is not duplicated.
-            const promoted = localAlternatives[0]?.nutrition;
-            if (!promoted) return;
+            const promotedAlt = localAlternatives[0];
+            if (!promotedAlt) return;
 
-            const nextPrimary = { ...promoted };
+            const nextPrimary = { ...promotedAlt.nutrition };
             setPrimaryNutrition(nextPrimary);
+            setPrimaryMeta({
+                serving_value: promotedAlt.serving_value,
+                serving_unit: promotedAlt.serving_unit,
+                serving_unit_kind: promotedAlt.serving_unit_kind,
+            });
             setLocalAlternatives(prev => prev.slice(1));
             setSelectedKey("primary");
             applyServingToForm(nextPrimary);
@@ -422,15 +445,8 @@ function FoodForm() {
         // The form's nutrition fields reflect whatever serving view is currently
         // selected. The currently selected serving becomes the PRIMARY serving
         // on save; all other servings become non-primary alternatives.
-        const originalPrimaryAlt = (food?.nutrition_alternatives ?? []).find(alt => alt.is_primary);
-
-        // Metadata for the original primary serving (used when it is demoted to
-        // a non-primary alternative, or as defaults for the new primary).
-        const primaryMeta = {
-            serving_value: originalPrimaryAlt?.serving_value ?? 1,
-            serving_unit: originalPrimaryAlt?.serving_unit ?? primaryNutrition?.serving_size_description ?? "",
-            serving_unit_kind: originalPrimaryAlt?.serving_unit_kind ?? "solid",
-        };
+        // primaryMeta (state) already holds the original primary's identity,
+        // kept in sync with promotions via handleDeleteServing.
 
         // The live form fields always reflect the currently selected serving.
         const selectedNutrition = { ...(data.nutrition as INutritionAlternative["nutrition"]) };
@@ -961,12 +977,12 @@ function FoodForm() {
 
                     {/* ── Serving Size oz/g ── */}
                     <Box sx={{ display: 'flex', gap: 1, mt: 1.5, mb: 1 }}>
-                        <TextField label={unitType === "liquid" ? "Serving Size (fl oz)" : "Serving Size (oz)"} id="serving_size_imperial" type="number"
+                        <TextField label={currentServingUnitKind === "liquid" ? "Serving Size (fl oz)" : "Serving Size (oz)"} id="serving_size_imperial" type="number"
                             {...register("nutrition.serving_size_imperial", { valueAsNumber: true })}
                             error={!!errors.nutrition?.serving_size_imperial} helperText={errors.nutrition?.serving_size_imperial?.message}
                             inputProps={{ min: 0, step: 0.01, readOnly: true }} size="small" fullWidth
                             sx={{ backgroundColor: '#f5f5f5', '& .MuiInputBase-input': { py: 0.75 } }} />
-                        <TextField label={unitType === "liquid" ? "Serving Size (ml)" : "Serving Size (g)"} id="serving_size_metric" type="number"
+                        <TextField label={currentServingUnitKind === "liquid" ? "Serving Size (ml)" : "Serving Size (g)"} id="serving_size_metric" type="number"
                             {...register("nutrition.serving_size_metric", { valueAsNumber: true })}
                             error={!!errors.nutrition?.serving_size_metric} helperText={errors.nutrition?.serving_size_metric?.message}
                             inputProps={{ min: 0, step: 0.01, readOnly: true }} size="small" fullWidth
