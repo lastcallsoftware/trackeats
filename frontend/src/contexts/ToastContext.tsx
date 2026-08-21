@@ -16,6 +16,7 @@ export const ToastProvider = ({ children }: { children: ReactNode }) => {
 
         setToasts((prev) => [...prev, toast]);
 
+        if (severity !== 'error' && durationMs > 0) {
         // Error toasts persist until dismissed; non-error toasts auto-hide.
         let effectiveDurationMs = durationMs;
         if (effectiveDurationMs === undefined) {

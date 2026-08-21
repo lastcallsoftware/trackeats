@@ -94,12 +94,14 @@ vendor/
 coverage/
 .cache/
 tmp/
+.tmp/
 
 # Skills for agents
 skills-lock.json
 .agents/
 .claude/
 .pi/
+.cursor/
 
-# plan files used by agents
-plans/
+# Temporary test data
+.pytest_cache/
