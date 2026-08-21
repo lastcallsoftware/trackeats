@@ -38,20 +38,6 @@ const NUMERIC_NUTRITION_FIELDS: NumericNutritionField[] = [
   'potassium_mg',
 ]
 
-const FLOAT_NUTRITION_FIELDS = new Set<NumericNutritionField>([
-  'serving_size_oz',
-  'serving_size_g',
-  'total_fat_g',
-  'saturated_fat_g',
-  'trans_fat_g',
-  'total_carbs_g',
-  'fiber_g',
-  'total_sugar_g',
-  'added_sugar_g',
-  'protein_g',
-  'iron_mg',
-])
-
 function divideNutritionPerServing(nutrition: INutrition, servings?: number): INutrition {
   if (!servings || servings <= 0) {
     return nutrition
@@ -63,9 +49,7 @@ function divideNutritionPerServing(nutrition: INutrition, servings?: number): IN
     const sourceValue = nutrition[field] ?? 0
     const dividedValue = sourceValue / servings
 
-    perServing[field] = FLOAT_NUTRITION_FIELDS.has(field)
-      ? Math.round(dividedValue * 10) / 10
-      : Math.round(dividedValue)
+    perServing[field] = Math.round(dividedValue * 100) / 100
   })
 
   return perServing

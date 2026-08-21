@@ -47,7 +47,7 @@ def upgrade():
     # 1. Backfill a primary alternative for Foods that have NO alternatives.
     #    Guarded with NOT EXISTS so re-runs are no-ops.  serving_unit falls back
     #    to the nutrition's serving size description (or 'serving'), and
-    #    serving_unit_kind defaults to 'solid' (never 'arbitrary', which would
+    #    serving_unit_kind defaults to 'solid' (never 'household', which would
     #    require household_weight_g).
     conn.execute(sa.text("""
         INSERT INTO nutrition_alternative

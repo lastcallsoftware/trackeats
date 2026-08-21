@@ -32,20 +32,20 @@ import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutline';
 const nutritionSchema = z.object({
     serving_size_description: z.string().max(50, "Must be 50 characters or fewer"),
     serving_size_oz: z.coerce.number().min(0, "Must be 0 or greater"),
-    serving_size_g: z.coerce.number().int("Must be an integer").min(0, "Must be 0 or greater"),
-    calories: z.coerce.number().int("Must be an integer").min(0, "Must be 0 or greater"),
+    serving_size_g: z.coerce.number().min(0, "Must be 0 or greater"),
+    calories: z.coerce.number().min(0, "Must be 0 or greater"),
     total_fat_g: z.coerce.number().min(0, "Must be 0 or greater"),
     saturated_fat_g: z.coerce.number().min(0, "Must be 0 or greater"),
     trans_fat_g: z.coerce.number().min(0, "Must be 0 or greater"),
-    cholesterol_mg: z.coerce.number().int("Must be an integer").min(0, "Must be 0 or greater"),
-    sodium_mg: z.coerce.number().int("Must be an integer").min(0, "Must be 0 or greater"),
-    total_carbs_g: z.coerce.number().int("Must be an integer").min(0, "Must be 0 or greater"),
-    fiber_g: z.coerce.number().int("Must be an integer").min(0, "Must be 0 or greater"),
-    total_sugar_g: z.coerce.number().int("Must be an integer").min(0, "Must be 0 or greater"),
-    added_sugar_g: z.coerce.number().int("Must be an integer").min(0, "Must be 0 or greater"),
-    protein_g: z.coerce.number().int("Must be an integer").min(0, "Must be 0 or greater"),
-    vitamin_d_mcg: z.coerce.number().int("Must be an integer").min(0, "Must be 0 or greater"),
-    calcium_mg: z.coerce.number().int("Must be an integer").min(0, "Must be 0 or greater"),
+    cholesterol_mg: z.coerce.number().min(0, "Must be 0 or greater"),
+    sodium_mg: z.coerce.number().min(0, "Must be 0 or greater"),
+    total_carbs_g: z.coerce.number().min(0, "Must be 0 or greater"),
+    fiber_g: z.coerce.number().min(0, "Must be 0 or greater"),
+    total_sugar_g: z.coerce.number().min(0, "Must be 0 or greater"),
+    added_sugar_g: z.coerce.number().min(0, "Must be 0 or greater"),
+    protein_g: z.coerce.number().min(0, "Must be 0 or greater"),
+    vitamin_d_mcg: z.coerce.number().min(0, "Must be 0 or greater"),
+    calcium_mg: z.coerce.number().min(0, "Must be 0 or greater"),
     iron_mg: z.coerce.number().min(0, "Must be 0 or greater"),
     potassium_mg: z.coerce.number().min(0, "Must be 0 or greater"),
 });
@@ -90,7 +90,7 @@ const SOLID_TO_G: Record<string, number> = {
     mg: 0.001, milligram: 0.001, milligrams: 0.001,
 };
 
-type NewServingUnitKind = "solid" | "liquid" | "arbitrary";
+type NewServingUnitKind = "solid" | "liquid" | "household";
 
 type NewServingUnitOption = {
     value: string;
@@ -107,17 +107,18 @@ const NEW_SERVING_UNITS: NewServingUnitOption[] = [
     { value: "mg", label: "mg", kind: "solid", defaultAmount: 100 },
     { value: "ml", label: "ml", kind: "liquid", defaultAmount: 100 },
     { value: "fl oz", label: "fl oz", kind: "liquid", defaultAmount: 1 },
+    { value: "cup (liquid)", label: "cup (liquid)", kind: "liquid", defaultAmount: 1 },
     { value: "cup", label: "cup", kind: "solid", defaultAmount: 1 },
     { value: "tbsp", label: "tbsp", kind: "solid", defaultAmount: 1 },
     { value: "tsp", label: "tsp", kind: "solid", defaultAmount: 1 },
-    { value: "arbitrary", label: "Arbitrary", kind: "arbitrary", defaultAmount: 1 },
+    { value: "household", label: "Household", kind: "household", defaultAmount: 1 },
 ];
 
 const LIQUID_TO_ML: Record<string, number> = {
     ml: 1.0, milliliter: 1.0, milliliters: 1.0,
     l: 1000.0, liter: 1000.0, liters: 1000.0,
     "fl oz": 29.5735, "fluid ounce": 29.5735, "fluid ounces": 29.5735,
-    cup: 236.588, cups: 236.588,
+    cup: 236.588, cups: 236.588, "cup (liquid)": 236.588,
     tbsp: 14.7868, tablespoon: 14.7868, tablespoons: 14.7868,
     tsp: 4.92892, teaspoon: 4.92892, teaspoons: 4.92892,
     pint: 473.176, pints: 473.176,
@@ -126,7 +127,7 @@ const LIQUID_TO_ML: Record<string, number> = {
 };
 
 const computeServingWeightG = (
-    kind: "solid" | "liquid" | "arbitrary",
+    kind: "solid" | "liquid" | "household",
     value: number,
     unit: string,
     householdWeightG: number | null,
@@ -141,13 +142,14 @@ const computeServingWeightG = (
         if (factor == null || density == null) return null;
         return value * factor * density;
     }
-    if (kind === "arbitrary") {
+    if (kind === "household") {
         return householdWeightG;
     }
     return null;
 };
 
 const round1 = (v: number): number => Math.round(v * 10) / 10;
+const round2 = (v: number): number => Math.round(v * 100) / 100;
 
 // Scale a base nutrition record to a new serving size.
 const scaleNutrition = (
@@ -160,21 +162,21 @@ const scaleNutrition = (
     serving_size_description: description,
     serving_size_oz: servingSizeOz,
     serving_size_g: servingSizeG,
-    calories: Math.round(base.calories * scale),
-    total_fat_g: round1(base.total_fat_g * scale),
-    saturated_fat_g: round1(base.saturated_fat_g * scale),
-    trans_fat_g: round1(base.trans_fat_g * scale),
-    cholesterol_mg: Math.round(base.cholesterol_mg * scale),
-    sodium_mg: Math.round(base.sodium_mg * scale),
-    total_carbs_g: Math.round(base.total_carbs_g * scale),
-    fiber_g: Math.round(base.fiber_g * scale),
-    total_sugar_g: Math.round(base.total_sugar_g * scale),
-    added_sugar_g: Math.round(base.added_sugar_g * scale),
-    protein_g: Math.round(base.protein_g * scale),
-    vitamin_d_mcg: Math.round(base.vitamin_d_mcg * scale),
-    calcium_mg: Math.round(base.calcium_mg * scale),
+    calories: round2(base.calories * scale),
+    total_fat_g: round2(base.total_fat_g * scale),
+    saturated_fat_g: round2(base.saturated_fat_g * scale),
+    trans_fat_g: round2(base.trans_fat_g * scale),
+    cholesterol_mg: round2(base.cholesterol_mg * scale),
+    sodium_mg: round2(base.sodium_mg * scale),
+    total_carbs_g: round2(base.total_carbs_g * scale),
+    fiber_g: round2(base.fiber_g * scale),
+    total_sugar_g: round2(base.total_sugar_g * scale),
+    added_sugar_g: round2(base.added_sugar_g * scale),
+    protein_g: round2(base.protein_g * scale),
+    vitamin_d_mcg: round2(base.vitamin_d_mcg * scale),
+    calcium_mg: round2(base.calcium_mg * scale),
     iron_mg: round1(base.iron_mg * scale),
-    potassium_mg: Math.round(base.potassium_mg * scale),
+    potassium_mg: round2(base.potassium_mg * scale),
 });
 
 
@@ -315,7 +317,7 @@ function FoodForm() {
         }
 
         const density = newServingKind === "liquid" ? newLiquidDensity : null;
-        const newWeightG = newServingKind === "solid" && newUnit !== "g" && newUnit !== "oz"
+        const newWeightG = newServingKind === "solid" && !["g", "oz", "kg", "lb", "mg"].includes(newUnit)
             ? newSolidWeightG
             : newServingKind === "solid"
                 ? computeServingWeightG(newServingKind, newValue, newUnit, newHhWeight, density)
@@ -325,7 +327,7 @@ function FoodForm() {
         const primaryWeightG = primary?.serving_size_g ?? 0;
 
         // The label reflects the user's new serving selections.
-        const description = newServingKind === "arbitrary"
+        const description = newServingKind === "household"
             ? `${newValue} ${newHhName || newUnit}`
             : `${newValue} ${newUnit}`;
 
@@ -333,7 +335,7 @@ function FoodForm() {
         if (newWeightG != null && primaryWeightG > 0) {
             const scale = newWeightG / primaryWeightG;
             const newWeightOz = newWeightG / 28.3495;
-            nutrition = scaleNutrition(primary, scale, Math.round(newWeightG), round1(newWeightOz), description);
+            nutrition = scaleNutrition(primary, scale, round2(newWeightG), round2(newWeightOz), description);
         } else {
             // Fallback: copy the primary nutrition with the new description.
             nutrition = { ...primary, serving_size_description: description };
@@ -342,9 +344,9 @@ function FoodForm() {
         const newAlt: INutritionAlternative = {
             ordinal: localAlternatives.length,
             serving_value: newValue,
-            serving_unit: newServingKind === "arbitrary" ? (newHhName || newUnit) : newUnit,
+            serving_unit: newServingKind === "household" ? (newHhName || newUnit) : newUnit,
             serving_unit_kind: newServingKind,
-            household_weight_g: newServingKind === "arbitrary" ? newHhWeight : null,
+            household_weight_g: newServingKind === "household" ? newHhWeight : null,
             is_primary: false,
             nutrition,
         };
@@ -840,7 +842,7 @@ function FoodForm() {
                                         sx={{ "& .MuiInputBase-root": { height: 40 } }}
                                     />
                                 </Grid>
-                                {newServingKind === "arbitrary" && (
+                                {newServingKind === "household" && (
                                     <Grid size={{ xs: 5 }}>
                                         <TextField
                                             label="Name"
@@ -854,7 +856,7 @@ function FoodForm() {
                                         />
                                     </Grid>
                                 )}
-                                {newServingKind === "arbitrary" ? (
+                                {newServingKind === "household" ? (
                                     <Grid size={{ xs: 12 }} sx={{ mt: 1 }}>
                                         <TextField
                                             label="Weight (g)"
@@ -863,13 +865,13 @@ function FoodForm() {
                                             size="small"
                                             value={newHhWeight ?? ""}
                                             onChange={e => setNewHhWeight(e.target.value ? Number(e.target.value) : null)}
-                                            helperText="Weight in grams for this arbitrary unit"
+                                            helperText="Weight in grams for this household unit"
                                             inputProps={{ min: 0, step: 0.1 }}
                                             fullWidth
                                             sx={{ "& .MuiInputBase-root": { height: 40 } }}
                                         />
                                     </Grid>
-                                ) : newServingKind === "solid" && newUnit !== "g" && newUnit !== "oz" ? (
+                                ) : newServingKind === "solid" && !["g", "oz", "kg", "lb", "mg"].includes(newUnit) ? (
                                     <Grid size={{ xs: 12 }} sx={{ mt: 1 }}>
                                         <TextField
                                             label="Weight (g)"
@@ -918,7 +920,7 @@ function FoodForm() {
                         <TextField label="Serving Size (g)" id="serving_size_g" type="number"
                             {...register("nutrition.serving_size_g", { valueAsNumber: true })}
                             error={!!errors.nutrition?.serving_size_g} helperText={errors.nutrition?.serving_size_g?.message}
-                            inputProps={{ min: 0, step: 1, readOnly: true }} size="small" fullWidth
+                            inputProps={{ min: 0, step: 0.01, readOnly: true }} size="small" fullWidth
                             sx={{ backgroundColor: '#f5f5f5', '& .MuiInputBase-input': { py: 0.75 } }} />
                     </Box>
 
@@ -927,7 +929,7 @@ function FoodForm() {
                     <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 0.5 }}>
                         <Typography variant="h5" sx={{ fontWeight: 900 }}>Calories</Typography>
                         <TextField id="calories" type="number" {...register("nutrition.calories", { valueAsNumber: true })}
-                            error={!!errors.nutrition?.calories} inputProps={{ min: 0, step: 1 }} size="small"
+                            error={!!errors.nutrition?.calories} inputProps={{ min: 0, step: 0.01 }} size="small"
                             sx={{ width: 110, '& .MuiInputBase-input': { py: 0.75, fontSize: '1rem', fontWeight: 700 } }} />
                     </Box>
 
@@ -948,39 +950,39 @@ function FoodForm() {
                         </Box>
                         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                             <Typography sx={{ fontWeight: 700 }}>Cholesterol (mg)</Typography>
-                            <TextField id="cholesterol_mg" type="number" {...register("nutrition.cholesterol_mg", { valueAsNumber: true })} error={!!errors.nutrition?.cholesterol_mg} inputProps={{ min: 0, step: 1 }} size="small" sx={{ width: 110 }} />
+                            <TextField id="cholesterol_mg" type="number" {...register("nutrition.cholesterol_mg", { valueAsNumber: true })} error={!!errors.nutrition?.cholesterol_mg} inputProps={{ min: 0, step: 0.01 }} size="small" sx={{ width: 110 }} />
                         </Box>
                         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                             <Typography sx={{ fontWeight: 700 }}>Sodium (mg)</Typography>
-                            <TextField id="sodium_mg" type="number" {...register("nutrition.sodium_mg", { valueAsNumber: true })} error={!!errors.nutrition?.sodium_mg} inputProps={{ min: 0, step: 1 }} size="small" sx={{ width: 110 }} />
+                            <TextField id="sodium_mg" type="number" {...register("nutrition.sodium_mg", { valueAsNumber: true })} error={!!errors.nutrition?.sodium_mg} inputProps={{ min: 0, step: 0.01 }} size="small" sx={{ width: 110 }} />
                         </Box>
                         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                             <Typography sx={{ fontWeight: 700 }}>Total Carbohydrate (g)</Typography>
-                            <TextField id="total_carbs_g" type="number" {...register("nutrition.total_carbs_g", { valueAsNumber: true })} error={!!errors.nutrition?.total_carbs_g} inputProps={{ min: 0, step: 1 }} size="small" sx={{ width: 110 }} />
+                            <TextField id="total_carbs_g" type="number" {...register("nutrition.total_carbs_g", { valueAsNumber: true })} error={!!errors.nutrition?.total_carbs_g} inputProps={{ min: 0, step: 0.01 }} size="small" sx={{ width: 110 }} />
                         </Box>
                         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', pl: 2 }}>
                             <Typography>Dietary Fiber (g)</Typography>
-                            <TextField id="fiber_g" type="number" {...register("nutrition.fiber_g", { valueAsNumber: true })} error={!!errors.nutrition?.fiber_g} inputProps={{ min: 0, step: 1 }} size="small" sx={{ width: 110 }} />
+                            <TextField id="fiber_g" type="number" {...register("nutrition.fiber_g", { valueAsNumber: true })} error={!!errors.nutrition?.fiber_g} inputProps={{ min: 0, step: 0.01 }} size="small" sx={{ width: 110 }} />
                         </Box>
                         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', pl: 2 }}>
                             <Typography>Total Sugars (g)</Typography>
-                            <TextField id="total_sugar_g" type="number" {...register("nutrition.total_sugar_g", { valueAsNumber: true })} error={!!errors.nutrition?.total_sugar_g} inputProps={{ min: 0, step: 1 }} size="small" sx={{ width: 110 }} />
+                            <TextField id="total_sugar_g" type="number" {...register("nutrition.total_sugar_g", { valueAsNumber: true })} error={!!errors.nutrition?.total_sugar_g} inputProps={{ min: 0, step: 0.01 }} size="small" sx={{ width: 110 }} />
                         </Box>
                         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', pl: 2 }}>
                             <Typography>Added Sugars (g)</Typography>
-                            <TextField id="added_sugar_g" type="number" {...register("nutrition.added_sugar_g", { valueAsNumber: true })} error={!!errors.nutrition?.added_sugar_g} inputProps={{ min: 0, step: 1 }} size="small" sx={{ width: 110 }} />
+                            <TextField id="added_sugar_g" type="number" {...register("nutrition.added_sugar_g", { valueAsNumber: true })} error={!!errors.nutrition?.added_sugar_g} inputProps={{ min: 0, step: 0.01 }} size="small" sx={{ width: 110 }} />
                         </Box>
                         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                             <Typography sx={{ fontWeight: 700 }}>Protein (g)</Typography>
-                            <TextField id="protein_g" type="number" {...register("nutrition.protein_g", { valueAsNumber: true })} error={!!errors.nutrition?.protein_g} inputProps={{ min: 0, step: 1 }} size="small" sx={{ width: 110 }} />
+                            <TextField id="protein_g" type="number" {...register("nutrition.protein_g", { valueAsNumber: true })} error={!!errors.nutrition?.protein_g} inputProps={{ min: 0, step: 0.01 }} size="small" sx={{ width: 110 }} />
                         </Box>
                         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                             <Typography sx={{ fontWeight: 700 }}>Vitamin D (mcg)</Typography>
-                            <TextField id="vitamin_d_mcg" type="number" {...register("nutrition.vitamin_d_mcg", { valueAsNumber: true })} error={!!errors.nutrition?.vitamin_d_mcg} inputProps={{ min: 0, step: 1 }} size="small" sx={{ width: 110 }} />
+                            <TextField id="vitamin_d_mcg" type="number" {...register("nutrition.vitamin_d_mcg", { valueAsNumber: true })} error={!!errors.nutrition?.vitamin_d_mcg} inputProps={{ min: 0, step: 0.01 }} size="small" sx={{ width: 110 }} />
                         </Box>
                         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                             <Typography sx={{ fontWeight: 700 }}>Calcium (mg)</Typography>
-                            <TextField id="calcium_mg" type="number" {...register("nutrition.calcium_mg", { valueAsNumber: true })} error={!!errors.nutrition?.calcium_mg} inputProps={{ min: 0, step: 1 }} size="small" sx={{ width: 110 }} />
+                            <TextField id="calcium_mg" type="number" {...register("nutrition.calcium_mg", { valueAsNumber: true })} error={!!errors.nutrition?.calcium_mg} inputProps={{ min: 0, step: 0.01 }} size="small" sx={{ width: 110 }} />
                         </Box>
                         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                             <Typography sx={{ fontWeight: 700 }}>Iron (mg)</Typography>

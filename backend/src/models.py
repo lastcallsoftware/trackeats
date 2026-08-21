@@ -1,4 +1,5 @@
 from __future__ import annotations
+from decimal import Decimal, ROUND_HALF_UP
 from typing import Any
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import func, select
@@ -554,23 +555,23 @@ class Nutrition(db.Model):
     id: Mapped[int] = mapped_column(primary_key=True)
     user_id: Mapped[int] = mapped_column(db.Integer, db.ForeignKey("user.id"), nullable=False)
     serving_size_description: Mapped[str] = mapped_column(db.String(50), nullable=False)
-    serving_size_g: Mapped[int | None] = mapped_column(db.Integer, nullable=True)
-    serving_size_oz: Mapped[float | None] = mapped_column(db.Float, nullable=True)
-    calories: Mapped[int] = mapped_column(db.Integer, nullable=False)
-    total_fat_g: Mapped[float | None] = mapped_column(db.Float, nullable=True)
-    saturated_fat_g: Mapped[float | None] = mapped_column(db.Float, nullable=True)
-    trans_fat_g: Mapped[float | None] = mapped_column(db.Float, nullable=True)
-    cholesterol_mg: Mapped[int | None] = mapped_column(db.Integer, nullable=True)
-    sodium_mg: Mapped[int | None] = mapped_column(db.Integer, nullable=True)
-    total_carbs_g: Mapped[int | None] = mapped_column(db.Integer, nullable=True)
-    fiber_g: Mapped[int | None] = mapped_column(db.Integer, nullable=True)
-    total_sugar_g: Mapped[int | None] = mapped_column(db.Integer, nullable=True)
-    added_sugar_g: Mapped[int | None] = mapped_column(db.Integer, nullable=True)
-    protein_g: Mapped[int | None] = mapped_column(db.Integer, nullable=True)
-    vitamin_d_mcg: Mapped[int | None] = mapped_column(db.Integer, nullable=True)
-    calcium_mg: Mapped[int | None] = mapped_column(db.Integer, nullable=True)
-    iron_mg: Mapped[float | None] = mapped_column(db.Float, nullable=True)
-    potassium_mg: Mapped[int | None] = mapped_column(db.Integer, nullable=True)
+    serving_size_g: Mapped[Decimal | None] = mapped_column(db.Numeric(7, 2), nullable=True)
+    serving_size_oz: Mapped[Decimal | None] = mapped_column(db.Numeric(7, 2), nullable=True)
+    calories: Mapped[Decimal] = mapped_column(db.Numeric(7, 2), nullable=False)
+    total_fat_g: Mapped[Decimal | None] = mapped_column(db.Numeric(7, 2), nullable=True)
+    saturated_fat_g: Mapped[Decimal | None] = mapped_column(db.Numeric(7, 2), nullable=True)
+    trans_fat_g: Mapped[Decimal | None] = mapped_column(db.Numeric(7, 2), nullable=True)
+    cholesterol_mg: Mapped[Decimal | None] = mapped_column(db.Numeric(7, 2), nullable=True)
+    sodium_mg: Mapped[Decimal | None] = mapped_column(db.Numeric(7, 2), nullable=True)
+    total_carbs_g: Mapped[Decimal | None] = mapped_column(db.Numeric(7, 2), nullable=True)
+    fiber_g: Mapped[Decimal | None] = mapped_column(db.Numeric(7, 2), nullable=True)
+    total_sugar_g: Mapped[Decimal | None] = mapped_column(db.Numeric(7, 2), nullable=True)
+    added_sugar_g: Mapped[Decimal | None] = mapped_column(db.Numeric(7, 2), nullable=True)
+    protein_g: Mapped[Decimal | None] = mapped_column(db.Numeric(7, 2), nullable=True)
+    vitamin_d_mcg: Mapped[Decimal | None] = mapped_column(db.Numeric(7, 2), nullable=True)
+    calcium_mg: Mapped[Decimal | None] = mapped_column(db.Numeric(7, 2), nullable=True)
+    iron_mg: Mapped[Decimal | None] = mapped_column(db.Numeric(7, 2), nullable=True)
+    potassium_mg: Mapped[Decimal | None] = mapped_column(db.Numeric(7, 2), nullable=True)
 
     def __init__(self, user_id: int, data: NutritionRequest | None = None):
         if data is not None:
@@ -601,27 +602,30 @@ class Nutrition(db.Model):
         return str(vars(self))
 
     def json(self) -> dict[str,Any]:
+        def json_number(value: Decimal | None) -> float | None:
+            return float(value) if value is not None else None
+
         return {
             "id": self.id,
             "user_id": self.user_id,
             "serving_size_description": self.serving_size_description,
-            "serving_size_oz": self.serving_size_oz,
-            "serving_size_g": self.serving_size_g,
-            "calories": self.calories,
-            "total_fat_g": self.total_fat_g,
-            "saturated_fat_g": self.saturated_fat_g,
-            "trans_fat_g": self.trans_fat_g,
-            "cholesterol_mg": self.cholesterol_mg,
-            "sodium_mg": self.sodium_mg,
-            "total_carbs_g": self.total_carbs_g,
-            "fiber_g": self.fiber_g,
-            "total_sugar_g": self.total_sugar_g,
-            "added_sugar_g": self.added_sugar_g,
-            "protein_g": self.protein_g,
-            "vitamin_d_mcg": self.vitamin_d_mcg,
-            "calcium_mg": self.calcium_mg,
-            "iron_mg": self.iron_mg,
-            "potassium_mg": self.potassium_mg
+            "serving_size_oz": json_number(self.serving_size_oz),
+            "serving_size_g": json_number(self.serving_size_g),
+            "calories": json_number(self.calories),
+            "total_fat_g": json_number(self.total_fat_g),
+            "saturated_fat_g": json_number(self.saturated_fat_g),
+            "trans_fat_g": json_number(self.trans_fat_g),
+            "cholesterol_mg": json_number(self.cholesterol_mg),
+            "sodium_mg": json_number(self.sodium_mg),
+            "total_carbs_g": json_number(self.total_carbs_g),
+            "fiber_g": json_number(self.fiber_g),
+            "total_sugar_g": json_number(self.total_sugar_g),
+            "added_sugar_g": json_number(self.added_sugar_g),
+            "protein_g": json_number(self.protein_g),
+            "vitamin_d_mcg": json_number(self.vitamin_d_mcg),
+            "calcium_mg": json_number(self.calcium_mg),
+            "iron_mg": json_number(self.iron_mg),
+            "potassium_mg": json_number(self.potassium_mg)
         }
     
 
@@ -635,23 +639,28 @@ class Nutrition(db.Model):
         """
         Add one Nutrition record to another.
         """
-        self.calories = (self.calories or 0) + round((nutrition2.calories or 0) * servings * modifier)
-        self.total_fat_g = (self.total_fat_g or 0) + round((nutrition2.total_fat_g or 0) * servings * modifier, 1)
-        self.saturated_fat_g = (self.saturated_fat_g or 0) + round((nutrition2.saturated_fat_g or 0) * servings * modifier, 1)
-        self.trans_fat_g = (self.trans_fat_g or 0) + round((nutrition2.trans_fat_g or 0) * servings * modifier, 1)
-        self.cholesterol_mg = (self.cholesterol_mg or 0) + round((nutrition2.cholesterol_mg or 0) * servings * modifier)
-        self.sodium_mg = (self.sodium_mg or 0) + round((nutrition2.sodium_mg or 0) * servings * modifier)
-        self.total_carbs_g = (self.total_carbs_g or 0) + round((nutrition2.total_carbs_g or 0) * servings * modifier)
-        self.fiber_g = (self.fiber_g or 0) + round((nutrition2.fiber_g or 0) * servings * modifier)
-        self.total_sugar_g = (self.total_sugar_g or 0) + round((nutrition2.total_sugar_g or 0) * servings * modifier)
-        self.added_sugar_g = (self.added_sugar_g or 0) + round((nutrition2.added_sugar_g or 0) * servings * modifier)
-        self.protein_g = (self.protein_g or 0) + round((nutrition2.protein_g or 0) * servings * modifier)
-        self.vitamin_d_mcg = (self.vitamin_d_mcg or 0) + round((nutrition2.vitamin_d_mcg or 0) * servings * modifier)
-        self.calcium_mg = (self.calcium_mg or 0) + round((nutrition2.calcium_mg or 0) * servings * modifier)
-        self.iron_mg = (self.iron_mg or 0) + round((nutrition2.iron_mg or 0) * servings * modifier, 1)
-        self.potassium_mg = (self.potassium_mg or 0) + round((nutrition2.potassium_mg or 0) * servings * modifier)
-        self.serving_size_oz = (self.serving_size_oz or 0) + round((nutrition2.serving_size_oz or 0) * servings * modifier, 2)
-        self.serving_size_g = (self.serving_size_g or 0) + round((nutrition2.serving_size_g or 0) * servings * modifier)
+        def add_scaled(current: Decimal | float | int | None, incoming: Decimal | float | int | None) -> Decimal:
+            scale = Decimal(str(servings)) * Decimal(str(modifier))
+            total = Decimal(str(current or 0)) + Decimal(str(incoming or 0)) * scale
+            return total.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+
+        self.calories = add_scaled(self.calories, nutrition2.calories)
+        self.total_fat_g = add_scaled(self.total_fat_g, nutrition2.total_fat_g)
+        self.saturated_fat_g = add_scaled(self.saturated_fat_g, nutrition2.saturated_fat_g)
+        self.trans_fat_g = add_scaled(self.trans_fat_g, nutrition2.trans_fat_g)
+        self.cholesterol_mg = add_scaled(self.cholesterol_mg, nutrition2.cholesterol_mg)
+        self.sodium_mg = add_scaled(self.sodium_mg, nutrition2.sodium_mg)
+        self.total_carbs_g = add_scaled(self.total_carbs_g, nutrition2.total_carbs_g)
+        self.fiber_g = add_scaled(self.fiber_g, nutrition2.fiber_g)
+        self.total_sugar_g = add_scaled(self.total_sugar_g, nutrition2.total_sugar_g)
+        self.added_sugar_g = add_scaled(self.added_sugar_g, nutrition2.added_sugar_g)
+        self.protein_g = add_scaled(self.protein_g, nutrition2.protein_g)
+        self.vitamin_d_mcg = add_scaled(self.vitamin_d_mcg, nutrition2.vitamin_d_mcg)
+        self.calcium_mg = add_scaled(self.calcium_mg, nutrition2.calcium_mg)
+        self.iron_mg = add_scaled(self.iron_mg, nutrition2.iron_mg)
+        self.potassium_mg = add_scaled(self.potassium_mg, nutrition2.potassium_mg)
+        self.serving_size_oz = add_scaled(self.serving_size_oz, nutrition2.serving_size_oz)
+        self.serving_size_g = add_scaled(self.serving_size_g, nutrition2.serving_size_g)
         return self
 
     
@@ -2144,7 +2153,7 @@ class NutritionAlternative(db.Model):
     Three unit kinds:
       - solid:     oz, g, kg, lb (weight-based; weight IS the size)
       - liquid:    fl oz, ml, cup, tbsp, tsp (volume-based; weight = volume × density)
-      - arbitrary: user-defined names like "1 breast", "1 medium banana"
+    - household: user-defined names like "1 breast", "1 medium banana"
                    (requires household_weight_g for weight calculation)
 
     The `is_primary` flag marks the default serving size.  Exactly one serving
@@ -2161,7 +2170,7 @@ class NutritionAlternative(db.Model):
     nutrition_id: Mapped[int] = mapped_column(db.Integer, db.ForeignKey("nutrition.id"), nullable=False)
     serving_value: Mapped[float] = mapped_column(db.Float, nullable=False)
     serving_unit: Mapped[str] = mapped_column(db.String(50), nullable=False)
-    serving_unit_kind: Mapped[str] = mapped_column(db.Enum("solid", "liquid", "arbitrary", name="serving_unit_kind_enum"), nullable=False)
+    serving_unit_kind: Mapped[str] = mapped_column(db.Enum("solid", "liquid", "household", name="serving_unit_kind_enum"), nullable=False)
     household_weight_g: Mapped[float | None] = mapped_column(db.Float, nullable=True)
     ordinal: Mapped[int] = mapped_column(db.Integer, nullable=False, default=0)
     is_primary: Mapped[bool] = mapped_column(db.Boolean, nullable=False, default=False)
@@ -2220,7 +2229,7 @@ class NutritionAlternative(db.Model):
 
         - solid:     serving_value × unit_to_g
         - liquid:    serving_value × unit_to_ml × density
-        - arbitrary: household_weight_g (the user-provided weight)
+        - household: household_weight_g (the user-provided weight)
 
         Returns None if the weight cannot be computed (e.g. unknown unit or
         missing density for liquids).
@@ -2239,7 +2248,7 @@ class NutritionAlternative(db.Model):
                 return None
             return round(self.serving_value * factor * density, 2)
 
-        if self.serving_unit_kind == "arbitrary":
+        if self.serving_unit_kind == "household":
             if self.household_weight_g is None:
                 return None
             return round(self.household_weight_g, 2)

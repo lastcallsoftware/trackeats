@@ -667,12 +667,12 @@ def _build_alternatives_from_portions(
             potassium_mg=int(round((primary_nutrition.potassium_mg or 0) * scale_factor)),
         )
 
-        household_weight = gram_weight if serving_unit_kind == "arbitrary" else None
+        household_weight = gram_weight if serving_unit_kind == "household" else None
 
         alternatives.append(
             NutritionAlternativeRequest(
                 serving_value=amount,
-                serving_unit=portion_description if serving_unit_kind == "arbitrary" else unit_name,
+                serving_unit=portion_description if serving_unit_kind == "household" else unit_name,
                 serving_unit_kind=serving_unit_kind,
                 household_weight_g=household_weight,
                 is_primary=is_primary,
@@ -683,12 +683,12 @@ def _build_alternatives_from_portions(
     return alternatives
 
 
-def _determine_unit_kind(unit_name: str) -> Literal["solid", "liquid", "arbitrary"]:
+def _determine_unit_kind(unit_name: str) -> Literal["solid", "liquid", "household"]:
     """Determine serving_unit_kind from a USDA unit name.
 
     - solid:     weight-based units (g, oz, kg, lb, mg)
     - liquid:    volume-based units (ml, fl oz, cup, tbsp, tsp, l, pint, quart, gallon)
-    - arbitrary: everything else (user-defined household measures)
+    - household: everything else (user-defined household measures)
     """
     unit_lower = unit_name.strip().lower()
 
@@ -700,5 +700,5 @@ def _determine_unit_kind(unit_name: str) -> Literal["solid", "liquid", "arbitrar
     if unit_lower in {"ml", "milliliter", "milliliters", "millilitre", "millilitres", "l", "liter", "liters", "litre", "litres", "fl oz", "fluid ounce", "fluid ounces", "cup", "cups", "tbsp", "tablespoon", "tablespoons", "tsp", "teaspoon", "teaspoons", "pint", "pints", "quart", "quarts", "gallon", "gallons"}:
         return "liquid"
 
-    # Everything else is arbitrary
-    return "arbitrary"
+    # Everything else is a household measure.
+    return "household"

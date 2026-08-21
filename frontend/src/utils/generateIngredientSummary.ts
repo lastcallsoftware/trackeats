@@ -267,7 +267,7 @@ export function generateIngredientSummary(
         unitLine = formatAmount(totalTbsp, parsed.unitEntry);
     } else {
         // Check whether the description starts with a plain number followed by
-        // arbitrary text (e.g. "2 grapes", "1 slice", "3 crackers").
+        // household text (e.g. "2 grapes", "1 slice", "3 crackers").
         // If so, multiply the count and keep the rest of the text as-is.
         const countMatch = desc.trim().match(/^(\d+\.?\d*|\d+\/\d+)\s+(.+)$/);
         if (countMatch) {

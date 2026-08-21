@@ -142,7 +142,7 @@ export const NutritionLabel: React.FC<{
       <Typography variant="caption" sx={{ color: "#555", display: "block", mb: 1 }}>
         {[
           n.serving_size_oz > 0 ? `${formatSignificantDigit(n.serving_size_oz)} oz` : null,
-          n.serving_size_g > 0 ? `${Math.round(n.serving_size_g)} g` : null,
+          n.serving_size_g > 0 ? `${formatSignificantDigit(n.serving_size_g)} g` : null,
           pricePerServing != null && Number.isFinite(pricePerServing) ? `$${pricePerServing.toFixed(2)}` : null,
         ]
           .filter(Boolean)
@@ -190,9 +190,7 @@ type LabelRowProps = {
 };
 
 function formatNutrientValue(value: number): string {
-  if (value >= 10) return String(Math.round(value));
-  if (Number.isInteger(value)) return String(value);
-  return value.toFixed(1);
+  return new Intl.NumberFormat("en-US", { maximumFractionDigits: 2 }).format(value);
 }
 
 const LabelRow: React.FC<LabelRowProps> = ({ label, value, unit, dv, indent, dvDivisor }) => {

@@ -348,12 +348,12 @@ def test_nutrition_alternative_compute_serving_weight_liquid() -> None:
     assert weight_g_dense == 150.0
 
 
-def test_nutrition_alternative_compute_serving_weight_arbitrary() -> None:
-    """Arbitrary serving sizes use the user-provided household weight."""
+def test_nutrition_alternative_compute_serving_weight_household() -> None:
+    """Household serving sizes use the user-provided household weight."""
     alt = models.NutritionAlternative()
     alt.serving_value = 1
     alt.serving_unit = "slice"
-    alt.serving_unit_kind = "arbitrary"
+    alt.serving_unit_kind = "household"
     alt.household_weight_g = 45.0
 
     weight_g = alt.compute_serving_weight_g()
