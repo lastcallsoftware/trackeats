@@ -57,8 +57,8 @@ def _food_request(food_id: int | None = None) -> FoodRequest:
         shelf_life="7 days",
         nutrition=NutritionRequest(
             serving_size_description="1 orange",
-            serving_size_oz=4.0,
-            serving_size_g=113,
+            serving_size_imperial=4.0,
+            serving_size_metric=113,
             calories=62,
             total_fat_g=0.2,
             saturated_fat_g=0.0,
@@ -154,8 +154,8 @@ def _food_request_with_alternatives() -> FoodRequest:
         servings=2.0,
         nutrition=NutritionRequest(
             serving_size_description="1 orange",
-            serving_size_oz=4.0,
-            serving_size_g=113,
+            serving_size_imperial=4.0,
+            serving_size_metric=113,
             calories=62,
             total_fat_g=0.2,
             saturated_fat_g=0.0,
@@ -180,8 +180,8 @@ def _food_request_with_alternatives() -> FoodRequest:
                 is_primary=True,
                 nutrition=NutritionRequest(
                     serving_size_description="1 orange",
-                    serving_size_oz=4.0,
-                    serving_size_g=113,
+                    serving_size_imperial=4.0,
+                    serving_size_metric=113,
                     calories=62,
                     total_fat_g=0.2,
                     saturated_fat_g=0.0,
@@ -205,8 +205,8 @@ def _food_request_with_alternatives() -> FoodRequest:
                 serving_unit_kind="liquid",
                 nutrition=NutritionRequest(
                     serving_size_description="100 ml",
-                    serving_size_oz=3.5,
-                    serving_size_g=100,
+                    serving_size_imperial=3.5,
+                    serving_size_metric=100,
                     calories=25,
                     total_fat_g=0.0,
                     saturated_fat_g=0.0,
@@ -323,7 +323,6 @@ def test_nutrition_alternative_compute_serving_weight_solid() -> None:
     alt.serving_value = 2
     alt.serving_unit = "oz"
     alt.serving_unit_kind = "solid"
-    alt.household_weight_g = None
 
     weight_g = alt.compute_serving_weight_g()
     assert weight_g is not None
@@ -339,7 +338,6 @@ def test_nutrition_alternative_compute_serving_weight_liquid() -> None:
     alt.serving_value = 100
     alt.serving_unit = "ml"
     alt.serving_unit_kind = "liquid"
-    alt.household_weight_g = None
 
     weight_g = alt.compute_serving_weight_g(density=1.0)
     assert weight_g == 100.0
@@ -348,27 +346,12 @@ def test_nutrition_alternative_compute_serving_weight_liquid() -> None:
     assert weight_g_dense == 150.0
 
 
-def test_nutrition_alternative_compute_serving_weight_household() -> None:
-    """Household serving sizes use the user-provided household weight."""
-    alt = models.NutritionAlternative()
-    alt.serving_value = 1
-    alt.serving_unit = "slice"
-    alt.serving_unit_kind = "household"
-    alt.household_weight_g = 45.0
-
-    weight_g = alt.compute_serving_weight_g()
-    assert weight_g == 45.0
-    weight_oz = alt.compute_serving_weight_oz()
-    assert weight_oz == round(45.0 / 28.3495, 2)
-
-
 def test_nutrition_alternative_compute_serving_weight_unknown_unit() -> None:
     """Unknown units should return None for weight computation."""
     alt = models.NutritionAlternative()
     alt.serving_value = 1
     alt.serving_unit = "furlong"
     alt.serving_unit_kind = "solid"
-    alt.household_weight_g = None
 
     assert alt.compute_serving_weight_g() is None
     assert alt.compute_serving_weight_oz() is None

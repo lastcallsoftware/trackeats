@@ -144,8 +144,8 @@ class ContactRequest(BaseModel):
 class NutritionRequest(BaseModel):
     """Validated nutrition payload used by ORM model constructors and updates."""
     serving_size_description: str
-    serving_size_oz: Decimal | None = Decimal("0.00")
-    serving_size_g: Decimal | None = Decimal("0.00")
+    serving_size_imperial: Decimal | None = Decimal("0.00")
+    serving_size_metric: Decimal | None = Decimal("0.00")
     calories: Decimal = Decimal("0.00")
     total_fat_g: Decimal | None = Decimal("0.00")
     saturated_fat_g: Decimal | None = Decimal("0.00")
@@ -163,7 +163,7 @@ class NutritionRequest(BaseModel):
     potassium_mg: Decimal | None = Decimal("0.00")
 
     @field_validator(
-        "serving_size_oz", "serving_size_g", "calories", "total_fat_g",
+        "serving_size_imperial", "serving_size_metric", "calories", "total_fat_g",
         "saturated_fat_g", "trans_fat_g", "cholesterol_mg", "sodium_mg",
         "total_carbs_g", "fiber_g", "total_sugar_g", "added_sugar_g",
         "protein_g", "vitamin_d_mcg", "calcium_mg", "iron_mg", "potassium_mg",
@@ -188,8 +188,7 @@ class NutritionAlternativeRequest(BaseModel):
     nutrition_id: int | None = None
     serving_value: float
     serving_unit: str
-    serving_unit_kind: Literal["solid", "liquid", "household"]
-    household_weight_g: float | None = None
+    serving_unit_kind: Literal["solid", "liquid"]
     ordinal: int = 0
     is_primary: bool = False
     nutrition: NutritionRequest
@@ -216,14 +215,6 @@ class NutritionAlternativeRequest(BaseModel):
         if v < 0:
             raise ValueError("ordinal must be non-negative")
         return v
-
-    @model_validator(mode="after")
-    def validate_household_weight(self) -> "NutritionAlternativeRequest":
-        if self.serving_unit_kind == "household" and self.household_weight_g is None:
-            raise ValueError("household_weight_g is required for household serving units")
-        if self.serving_unit_kind == "household" and self.household_weight_g is not None and self.household_weight_g <= 0:
-            raise ValueError("household_weight_g must be greater than 0 for household serving units")
-        return self
 
 
 def _empty_nutrition_alternatives() -> list[NutritionAlternativeRequest]:

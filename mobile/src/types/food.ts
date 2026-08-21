@@ -1,7 +1,7 @@
 export type INutrition = {
   serving_size_description: string
-  serving_size_oz: number
-  serving_size_g: number
+  serving_size_imperial: number
+  serving_size_metric: number
   calories: number
   total_fat_g: number
   saturated_fat_g: number
@@ -25,8 +25,7 @@ export type INutritionAlternative = {
   nutrition_id?: number
   serving_value: number
   serving_unit: string
-  serving_unit_kind: "solid" | "liquid" | "household"
-  household_weight_g: number | null
+  serving_unit_kind: "solid" | "liquid"
   ordinal: number
   is_primary: boolean
   nutrition: INutrition

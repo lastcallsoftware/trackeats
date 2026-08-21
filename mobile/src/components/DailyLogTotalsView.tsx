@@ -25,7 +25,7 @@ export function DailyLogTotalsView({ nutrition }: DailyLogTotalsViewProps): Reac
         nutrition={nutrition}
         showServingSizeRow={false}
         emphasizeCalories={true}
-        excludeFields={['serving_size_oz', 'serving_size_g']}
+        excludeFields={['serving_size_imperial', 'serving_size_metric']}
       />
     </View>
   )

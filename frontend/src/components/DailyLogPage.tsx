@@ -294,8 +294,8 @@ function DailyLogPage() {
             const n = i.nutrition!;
             return {
                 serving_size_description: '',
-                serving_size_oz:  acc.serving_size_oz  + (n.serving_size_oz  ?? 0),
-                serving_size_g:   acc.serving_size_g   + (n.serving_size_g   ?? 0),
+                serving_size_imperial:  acc.serving_size_imperial  + (n.serving_size_imperial  ?? 0),
+                serving_size_metric:   acc.serving_size_metric   + (n.serving_size_metric   ?? 0),
                 calories:         acc.calories         + (n.calories         ?? 0),
                 total_fat_g:      acc.total_fat_g      + (n.total_fat_g      ?? 0),
                 saturated_fat_g:  acc.saturated_fat_g  + (n.saturated_fat_g  ?? 0),
@@ -314,7 +314,7 @@ function DailyLogPage() {
             };
         }, {
             serving_size_description: '',
-            serving_size_oz: 0, serving_size_g: 0, calories: 0,
+            serving_size_imperial: 0, serving_size_metric: 0, calories: 0,
             total_fat_g: 0, saturated_fat_g: 0, trans_fat_g: 0,
             cholesterol_mg: 0, sodium_mg: 0, total_carbs_g: 0,
             fiber_g: 0, total_sugar_g: 0, added_sugar_g: 0,
@@ -335,8 +335,8 @@ function DailyLogPage() {
             const n = i.nutrition!;
             return {
                 serving_size_description: '',
-                serving_size_oz: acc.serving_size_oz + (n.serving_size_oz ?? 0),
-                serving_size_g: acc.serving_size_g + (n.serving_size_g ?? 0),
+                serving_size_imperial: acc.serving_size_imperial + (n.serving_size_imperial ?? 0),
+                serving_size_metric: acc.serving_size_metric + (n.serving_size_metric ?? 0),
                 calories: acc.calories + (n.calories ?? 0),
                 total_fat_g: acc.total_fat_g + (n.total_fat_g ?? 0),
                 saturated_fat_g: acc.saturated_fat_g + (n.saturated_fat_g ?? 0),
@@ -355,7 +355,7 @@ function DailyLogPage() {
             };
         }, {
             serving_size_description: '',
-            serving_size_oz: 0, serving_size_g: 0, calories: 0,
+            serving_size_imperial: 0, serving_size_metric: 0, calories: 0,
             total_fat_g: 0, saturated_fat_g: 0, trans_fat_g: 0,
             cholesterol_mg: 0, sodium_mg: 0, total_carbs_g: 0,
             fiber_g: 0, total_sugar_g: 0, added_sugar_g: 0,
@@ -387,8 +387,8 @@ function DailyLogPage() {
             const n = i.nutrition!;
             return {
                 serving_size_description: '',
-                serving_size_oz: acc.serving_size_oz + (n.serving_size_oz ?? 0),
-                serving_size_g: acc.serving_size_g + (n.serving_size_g ?? 0),
+                serving_size_imperial: acc.serving_size_imperial + (n.serving_size_imperial ?? 0),
+                serving_size_metric: acc.serving_size_metric + (n.serving_size_metric ?? 0),
                 calories: acc.calories + (n.calories ?? 0),
                 total_fat_g: acc.total_fat_g + (n.total_fat_g ?? 0),
                 saturated_fat_g: acc.saturated_fat_g + (n.saturated_fat_g ?? 0),
@@ -407,7 +407,7 @@ function DailyLogPage() {
             };
         }, {
             serving_size_description: '',
-            serving_size_oz: 0, serving_size_g: 0, calories: 0,
+            serving_size_imperial: 0, serving_size_metric: 0, calories: 0,
             total_fat_g: 0, saturated_fat_g: 0, trans_fat_g: 0,
             cholesterol_mg: 0, sodium_mg: 0, total_carbs_g: 0,
             fiber_g: 0, total_sugar_g: 0, added_sugar_g: 0,

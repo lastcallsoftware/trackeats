@@ -34,8 +34,8 @@ export const NutritionLabel: React.FC<{
 }> = ({ nutrition, nutritionAlternatives, dvDivisor, pricePerServing }) => {
   const defaultNutrition: INutrition = {
     serving_size_description: "-",
-    serving_size_oz: 0,
-    serving_size_g: 0,
+    serving_size_imperial: 0,
+    serving_size_metric: 0,
     calories: 0,
     total_fat_g: 0,
     saturated_fat_g: 0,
@@ -141,8 +141,8 @@ export const NutritionLabel: React.FC<{
       </Box>
       <Typography variant="caption" sx={{ color: "#555", display: "block", mb: 1 }}>
         {[
-          n.serving_size_oz > 0 ? `${formatSignificantDigit(n.serving_size_oz)} oz` : null,
-          n.serving_size_g > 0 ? `${formatSignificantDigit(n.serving_size_g)} g` : null,
+          n.serving_size_imperial > 0 ? `${formatSignificantDigit(n.serving_size_imperial)} oz` : null,
+          n.serving_size_metric > 0 ? `${formatSignificantDigit(n.serving_size_metric)} g` : null,
           pricePerServing != null && Number.isFinite(pricePerServing) ? `$${pricePerServing.toFixed(2)}` : null,
         ]
           .filter(Boolean)

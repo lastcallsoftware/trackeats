@@ -19,8 +19,8 @@ import { formatRecipeMetaLine, formatRecipeSizeLine } from '@/utils/recipeFormat
 type NumericNutritionField = Exclude<keyof INutrition, 'serving_size_description'>
 
 const NUMERIC_NUTRITION_FIELDS: NumericNutritionField[] = [
-  'serving_size_oz',
-  'serving_size_g',
+  'serving_size_imperial',
+  'serving_size_metric',
   'calories',
   'total_fat_g',
   'saturated_fat_g',
@@ -220,7 +220,7 @@ export const RecipeDetailScreen: React.FC<RecipeDetailScreenProps> = ({
         <NutritionLabel
           nutrition={nutritionPerServing}
           servingSizeDescription={recipe.nutrition.serving_size_description}
-          excludeFields={['serving_size_oz', 'serving_size_g']}
+          excludeFields={['serving_size_imperial', 'serving_size_metric']}
           trailingRows={[
             { label: 'Price / serving', value: formatCurrency(pricePerServing) },
             { label: 'Price / 100 calories', value: formatCurrency(pricePer100Calories) },

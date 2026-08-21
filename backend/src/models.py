@@ -555,8 +555,8 @@ class Nutrition(db.Model):
     id: Mapped[int] = mapped_column(primary_key=True)
     user_id: Mapped[int] = mapped_column(db.Integer, db.ForeignKey("user.id"), nullable=False)
     serving_size_description: Mapped[str] = mapped_column(db.String(50), nullable=False)
-    serving_size_g: Mapped[Decimal | None] = mapped_column(db.Numeric(7, 2), nullable=True)
-    serving_size_oz: Mapped[Decimal | None] = mapped_column(db.Numeric(7, 2), nullable=True)
+    serving_size_metric: Mapped[Decimal | None] = mapped_column(db.Numeric(7, 2), nullable=True)
+    serving_size_imperial: Mapped[Decimal | None] = mapped_column(db.Numeric(7, 2), nullable=True)
     calories: Mapped[Decimal] = mapped_column(db.Numeric(7, 2), nullable=False)
     total_fat_g: Mapped[Decimal | None] = mapped_column(db.Numeric(7, 2), nullable=True)
     saturated_fat_g: Mapped[Decimal | None] = mapped_column(db.Numeric(7, 2), nullable=True)
@@ -580,8 +580,8 @@ class Nutrition(db.Model):
     def from_schema(self, user_id: int, data: NutritionRequest) -> None:
         self.user_id = user_id
         self.serving_size_description = data.serving_size_description
-        self.serving_size_oz = data.serving_size_oz
-        self.serving_size_g = data.serving_size_g
+        self.serving_size_imperial = data.serving_size_imperial
+        self.serving_size_metric = data.serving_size_metric
         self.calories = data.calories
         self.total_fat_g = data.total_fat_g
         self.saturated_fat_g = data.saturated_fat_g
@@ -609,8 +609,8 @@ class Nutrition(db.Model):
             "id": self.id,
             "user_id": self.user_id,
             "serving_size_description": self.serving_size_description,
-            "serving_size_oz": json_number(self.serving_size_oz),
-            "serving_size_g": json_number(self.serving_size_g),
+            "serving_size_imperial": json_number(self.serving_size_imperial),
+            "serving_size_metric": json_number(self.serving_size_metric),
             "calories": json_number(self.calories),
             "total_fat_g": json_number(self.total_fat_g),
             "saturated_fat_g": json_number(self.saturated_fat_g),
@@ -659,8 +659,8 @@ class Nutrition(db.Model):
         self.calcium_mg = add_scaled(self.calcium_mg, nutrition2.calcium_mg)
         self.iron_mg = add_scaled(self.iron_mg, nutrition2.iron_mg)
         self.potassium_mg = add_scaled(self.potassium_mg, nutrition2.potassium_mg)
-        self.serving_size_oz = add_scaled(self.serving_size_oz, nutrition2.serving_size_oz)
-        self.serving_size_g = add_scaled(self.serving_size_g, nutrition2.serving_size_g)
+        self.serving_size_imperial = add_scaled(self.serving_size_imperial, nutrition2.serving_size_imperial)
+        self.serving_size_metric = add_scaled(self.serving_size_metric, nutrition2.serving_size_metric)
         return self
 
     
@@ -690,8 +690,8 @@ class Nutrition(db.Model):
         self.calcium_mg = 0
         self.iron_mg = 0
         self.potassium_mg = 0
-        self.serving_size_oz = 0
-        self.serving_size_g = 0
+        self.serving_size_imperial = 0
+        self.serving_size_metric = 0
         return self
 
 
@@ -1152,7 +1152,6 @@ class Food(db.Model):
                     serving_value = 1.0
                     serving_unit = primary_nutrition.serving_size_description or "serving"
                     serving_unit_kind = "solid"
-                    household_weight_g = None
                     ordinal = 0
                     is_primary = True
                 elif alt_request.is_primary:
@@ -1161,7 +1160,6 @@ class Food(db.Model):
                     serving_value = alt_request.serving_value
                     serving_unit = alt_request.serving_unit
                     serving_unit_kind = alt_request.serving_unit_kind
-                    household_weight_g = alt_request.household_weight_g
                     ordinal = alt_request.ordinal
                     is_primary = True
                 else:
@@ -1172,7 +1170,6 @@ class Food(db.Model):
                     serving_value = alt_request.serving_value
                     serving_unit = alt_request.serving_unit
                     serving_unit_kind = alt_request.serving_unit_kind
-                    household_weight_g = alt_request.household_weight_g
                     ordinal = alt_request.ordinal
                     is_primary = False
 
@@ -1182,7 +1179,6 @@ class Food(db.Model):
                 alt_dao.serving_value = serving_value
                 alt_dao.serving_unit = serving_unit
                 alt_dao.serving_unit_kind = serving_unit_kind
-                alt_dao.household_weight_g = household_weight_g
                 alt_dao.ordinal = ordinal
                 alt_dao.is_primary = is_primary
                 db.session.add(alt_dao)
@@ -1274,7 +1270,6 @@ class Food(db.Model):
                     alt_dao.serving_value = alt_request.serving_value
                     alt_dao.serving_unit = alt_request.serving_unit
                     alt_dao.serving_unit_kind = alt_request.serving_unit_kind
-                    alt_dao.household_weight_g = alt_request.household_weight_g
                     alt_dao.ordinal = alt_request.ordinal
                     alt_dao.is_primary = alt_request.is_primary
                     db.session.add(alt_dao)
@@ -1287,7 +1282,6 @@ class Food(db.Model):
                 alt_dao.serving_value = 1.0
                 alt_dao.serving_unit = primary_nutrition.serving_size_description or "serving"
                 alt_dao.serving_unit_kind = "solid"
-                alt_dao.household_weight_g = None
                 alt_dao.ordinal = 0
                 alt_dao.is_primary = True
                 db.session.add(alt_dao)
@@ -1734,8 +1728,8 @@ class Recipe(db.Model):
                     modifier = 1
                     recipe_nutrition_dao.sum(ingredient_nutrition_dao, ingredient_dao.servings)
 
-                recipe_size_oz += (getattr(ingredient_nutrition_dao, "serving_size_oz", 0) or 0) * ingredient_dao.servings * modifier
-                recipe_size_g += (getattr(ingredient_nutrition_dao, "serving_size_g", 0) or 0) * ingredient_dao.servings * modifier
+                recipe_size_oz += (getattr(ingredient_nutrition_dao, "serving_size_imperial", 0) or 0) * ingredient_dao.servings * modifier
+                recipe_size_g += (getattr(ingredient_nutrition_dao, "serving_size_metric", 0) or 0) * ingredient_dao.servings * modifier
 
                 # Add its price total
                 if food_ingredient_dao and food_ingredient_dao.price:
@@ -1769,8 +1763,8 @@ class Recipe(db.Model):
             recipe_nutrition_dao.calcium_mg = round(getattr(recipe_nutrition_dao, "calcium_mg", 0) or 0)
             recipe_nutrition_dao.iron_mg = round(getattr(recipe_nutrition_dao, "iron_mg", 0) or 0, 1)
             recipe_nutrition_dao.potassium_mg = round(getattr(recipe_nutrition_dao, "potassium_mg", 0) or 0)
-            recipe_nutrition_dao.serving_size_oz = round(getattr(recipe_nutrition_dao, "serving_size_oz", 0) or 0, 2)
-            recipe_nutrition_dao.serving_size_g = round(getattr(recipe_nutrition_dao, "serving_size_g", 0) or 0)
+            recipe_nutrition_dao.serving_size_imperial = round(getattr(recipe_nutrition_dao, "serving_size_imperial", 0) or 0, 2)
+            recipe_nutrition_dao.serving_size_metric = round(getattr(recipe_nutrition_dao, "serving_size_metric", 0) or 0)
 
             recipe_dao.size_oz = round(recipe_size_oz, 2)
             recipe_dao.size_g = round(recipe_size_g)
@@ -2150,11 +2144,11 @@ class NutritionAlternative(db.Model):
     Food's Nutrition: the alternative with is_primary=1 is the default serving
     view, and any additional rows are alternate serving sizes.
 
-    Three unit kinds:
-      - solid:     oz, g, kg, lb (weight-based; weight IS the size)
-      - liquid:    fl oz, ml, cup, tbsp, tsp (volume-based; weight = volume × density)
-    - household: user-defined names like "1 breast", "1 medium banana"
-                   (requires household_weight_g for weight calculation)
+    Two unit kinds:
+      - solid:  weight-based; weight IS the size (oz, g, kg, lb, mg, or a
+                custom name like "1 breast" with a directly-entered weight)
+      - liquid: volume-based; weight = volume × density (fl oz, ml, cup,
+                tbsp, tsp, or a custom name with a directly-entered volume)
 
     The `is_primary` flag marks the default serving size.  Exactly one serving
     size per Food should be primary.  This table is the sole source of truth
@@ -2170,8 +2164,7 @@ class NutritionAlternative(db.Model):
     nutrition_id: Mapped[int] = mapped_column(db.Integer, db.ForeignKey("nutrition.id"), nullable=False)
     serving_value: Mapped[float] = mapped_column(db.Float, nullable=False)
     serving_unit: Mapped[str] = mapped_column(db.String(50), nullable=False)
-    serving_unit_kind: Mapped[str] = mapped_column(db.Enum("solid", "liquid", "household", name="serving_unit_kind_enum"), nullable=False)
-    household_weight_g: Mapped[float | None] = mapped_column(db.Float, nullable=True)
+    serving_unit_kind: Mapped[str] = mapped_column(db.Enum("solid", "liquid", name="serving_unit_kind_enum"), nullable=False)
     ordinal: Mapped[int] = mapped_column(db.Integer, nullable=False, default=0)
     is_primary: Mapped[bool] = mapped_column(db.Boolean, nullable=False, default=False)
 
@@ -2227,12 +2220,12 @@ class NutritionAlternative(db.Model):
         """
         Compute the weight of one serving in grams based on the serving unit kind.
 
-        - solid:     serving_value × unit_to_g
-        - liquid:    serving_value × unit_to_ml × density
-        - household: household_weight_g (the user-provided weight)
+        - solid:  serving_value × unit_to_g
+        - liquid: serving_value × unit_to_ml × density
 
-        Returns None if the weight cannot be computed (e.g. unknown unit or
-        missing density for liquids).
+        Returns None if the weight cannot be computed (e.g. unknown unit, such
+        as a custom name whose weight was entered directly rather than via a
+        recognized conversion, or missing density for liquids).
         """
         if self.serving_unit_kind == "solid":
             factor = self._SOLID_TO_G.get(self.serving_unit.lower())
@@ -2247,11 +2240,6 @@ class NutritionAlternative(db.Model):
             if density is None:
                 return None
             return round(self.serving_value * factor * density, 2)
-
-        if self.serving_unit_kind == "household":
-            if self.household_weight_g is None:
-                return None
-            return round(self.household_weight_g, 2)
 
         return None
 
@@ -2272,7 +2260,6 @@ class NutritionAlternative(db.Model):
             "serving_value": self.serving_value,
             "serving_unit": self.serving_unit,
             "serving_unit_kind": self.serving_unit_kind,
-            "household_weight_g": self.household_weight_g,
             "ordinal": self.ordinal,
             "is_primary": self.is_primary,
             "nutrition": self.nutrition.json() if self.nutrition else None,

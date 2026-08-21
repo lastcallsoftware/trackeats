@@ -283,8 +283,8 @@ export function generateIngredientSummary(
     }
 
     // Weight annotation — only when non-zero
-    const oz = (nutrition.serving_size_oz ?? 0) * servings;
-    const g  = (nutrition.serving_size_g  ?? 0) * servings;
+    const oz = (nutrition.serving_size_imperial ?? 0) * servings;
+    const g  = (nutrition.serving_size_metric  ?? 0) * servings;
     const weightStr = oz > 0 || g > 0
         ? ` (${oz.toFixed(1)} oz/${g.toFixed(1)} g)`
         : "";

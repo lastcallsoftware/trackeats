@@ -7,8 +7,8 @@ import { INutrition } from '@/types/food';
 
 const mockNutrition: INutrition = {
   serving_size_description: '1 cup',
-  serving_size_oz: 8,
-  serving_size_g: 227,
+  serving_size_imperial: 8,
+  serving_size_metric: 227,
   calories: 150,
   total_fat_g: 5,
   saturated_fat_g: 2,
@@ -30,8 +30,8 @@ describe('NutritionLabel', () => {
   it('should have all 18 required nutrition fields in mockNutrition', () => {
     const fieldNames: Array<keyof INutrition> = [
       'serving_size_description',
-      'serving_size_oz',
-      'serving_size_g',
+      'serving_size_imperial',
+      'serving_size_metric',
       'calories',
       'total_fat_g',
       'saturated_fat_g',

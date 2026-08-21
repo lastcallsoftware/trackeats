@@ -10,8 +10,8 @@ import { INutrition, INutritionAlternative } from '@/types/food';
 // Map INutrition field names to display labels in USDA order
 const NUTRITION_FIELD_LABELS: Record<keyof INutrition, string> = {
   serving_size_description: 'Serving Size',
-  serving_size_oz: 'Serving Size (oz)',
-  serving_size_g: 'Serving Size (g)',
+  serving_size_imperial: 'Serving Size (oz)',
+  serving_size_metric: 'Serving Size (g)',
   calories: 'Calories',
   total_fat_g: 'Total Fat (g)',
   saturated_fat_g: 'Saturated Fat (g)',
@@ -94,8 +94,8 @@ export const NutritionLabel: React.FC<NutritionLabelProps> = ({
   const activeView = servingViews.find((v) => v.key === selectedKey) || servingViews[0];
   const activeNutrition = activeView.nutrition;
   const allFields: Array<keyof INutrition> = [
-    'serving_size_oz',
-    'serving_size_g',
+    'serving_size_imperial',
+    'serving_size_metric',
     'calories',
     'total_fat_g',
     'saturated_fat_g',

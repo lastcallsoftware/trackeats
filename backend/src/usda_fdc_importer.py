@@ -228,14 +228,14 @@ class USDAFdcImporter:
 
         serving_size, serving_unit = _serving_size_fields(usda_food)
         serving_size_description = _serving_size_description(usda_food, serving_size, serving_unit)
-        serving_size_g, serving_size_oz = _serving_mass(serving_size, serving_unit)
+        serving_size_metric, serving_size_imperial = _serving_mass(serving_size, serving_unit)
 
         calorie_value, _ = _calorie_value_with_source(usda_food)
 
         nutrition = NutritionRequest(
             serving_size_description=_truncate(serving_size_description, 50),
-            serving_size_g=serving_size_g,
-            serving_size_oz=serving_size_oz,
+            serving_size_metric=serving_size_metric,
+            serving_size_imperial=serving_size_imperial,
             calories=_to_int(calorie_value),
             total_fat_g=_to_float(_nutrient_value_any(usda_food, ["1004", "204"], "fat")),
             saturated_fat_g=_to_float(_nutrient_value_any(usda_food, ["1258", "606"], "saturatedFat")),
@@ -265,8 +265,8 @@ class USDAFdcImporter:
             description=long_description,
             size_description=_truncate(serving_size_description, 50),
             size_description_2=None,
-            size_imperial=serving_size_oz,
-            size_metric=serving_size_g,
+            size_imperial=serving_size_imperial,
+            size_metric=serving_size_metric,
             unit_type="solid",
             density=1.0,
             source=USDA_SOURCE,
@@ -599,7 +599,7 @@ def _build_alternatives_from_portions(
     alternatives: list[NutritionAlternativeRequest] = []
 
     # Get the gram weight of the primary serving for scaling
-    primary_g = primary_nutrition.serving_size_g or 100
+    primary_g = primary_nutrition.serving_size_metric or 100
 
     for portion_any in food_portions:
         if not isinstance(portion_any, dict):
@@ -643,13 +643,12 @@ def _build_alternatives_from_portions(
         # Determine unit kind
         serving_unit_kind = _determine_unit_kind(unit_name)
         is_primary = False  # USDA portions are all alternatives; primary is the main serving
-
         # Scale nutrition to this portion's gram weight
         scale_factor = gram_weight / primary_g if primary_g > 0 else 1.0
         scaled_nutrition = NutritionRequest(
             serving_size_description=_truncate(portion_description, 50),
-            serving_size_g=int(round(gram_weight)),
-            serving_size_oz=round(gram_weight / 28.3495, 3),
+            serving_size_metric=int(round(gram_weight)),
+            serving_size_imperial=round(gram_weight / 28.3495, 3),
             calories=int(round((primary_nutrition.calories or 0) * scale_factor)),
             total_fat_g=round((primary_nutrition.total_fat_g or 0) * scale_factor, 1),
             saturated_fat_g=round((primary_nutrition.saturated_fat_g or 0) * scale_factor, 1),
@@ -667,14 +666,16 @@ def _build_alternatives_from_portions(
             potassium_mg=int(round((primary_nutrition.potassium_mg or 0) * scale_factor)),
         )
 
-        household_weight = gram_weight if serving_unit_kind == "household" else None
+        # Custom/unrecognized unit names (e.g. "slice") have no fixed conversion
+        # factor, so use the descriptive text and rely on the gramWeight above
+        # (already baked into scaled_nutrition) rather than a recomputed one.
+        is_standard_unit = _is_standard_unit_name(unit_name)
 
         alternatives.append(
             NutritionAlternativeRequest(
                 serving_value=amount,
-                serving_unit=portion_description if serving_unit_kind == "household" else unit_name,
+                serving_unit=unit_name if is_standard_unit else portion_description,
                 serving_unit_kind=serving_unit_kind,
-                household_weight_g=household_weight,
                 is_primary=is_primary,
                 nutrition=scaled_nutrition,
             )
@@ -683,22 +684,25 @@ def _build_alternatives_from_portions(
     return alternatives
 
 
-def _determine_unit_kind(unit_name: str) -> Literal["solid", "liquid", "household"]:
+_SOLID_UNIT_NAMES = {"g", "gram", "grams", "oz", "ounce", "ounces", "kg", "kilogram", "kilograms", "lb", "lbs", "pound", "pounds", "mg", "milligram", "milligrams"}
+_LIQUID_UNIT_NAMES = {"ml", "milliliter", "milliliters", "millilitre", "millilitres", "l", "liter", "liters", "litre", "litres", "fl oz", "fluid ounce", "fluid ounces", "cup", "cups", "tbsp", "tablespoon", "tablespoons", "tsp", "teaspoon", "teaspoons", "pint", "pints", "quart", "quarts", "gallon", "gallons"}
+
+
+def _is_standard_unit_name(unit_name: str) -> bool:
+    """Whether unit_name is a recognized solid or liquid unit (vs. a custom name)."""
+    unit_lower = unit_name.strip().lower()
+    return unit_lower in _SOLID_UNIT_NAMES or unit_lower in _LIQUID_UNIT_NAMES
+
+
+def _determine_unit_kind(unit_name: str) -> Literal["solid", "liquid"]:
     """Determine serving_unit_kind from a USDA unit name.
 
-    - solid:     weight-based units (g, oz, kg, lb, mg)
-    - liquid:    volume-based units (ml, fl oz, cup, tbsp, tsp, l, pint, quart, gallon)
-    - household: everything else (user-defined household measures)
+    - solid:  weight-based units (g, oz, kg, lb, mg), or any unrecognized
+              custom name (e.g. "slice"), since gramWeight is already known
+              directly from the USDA payload.
+    - liquid: volume-based units (ml, fl oz, cup, tbsp, tsp, l, pint, quart, gallon)
     """
     unit_lower = unit_name.strip().lower()
-
-    # Solid (weight) units
-    if unit_lower in {"g", "gram", "grams", "oz", "ounce", "ounces", "kg", "kilogram", "kilograms", "lb", "lbs", "pound", "pounds", "mg", "milligram", "milligrams"}:
-        return "solid"
-
-    # Liquid (volume) units
-    if unit_lower in {"ml", "milliliter", "milliliters", "millilitre", "millilitres", "l", "liter", "liters", "litre", "litres", "fl oz", "fluid ounce", "fluid ounces", "cup", "cups", "tbsp", "tablespoon", "tablespoons", "tsp", "teaspoon", "teaspoons", "pint", "pints", "quart", "quarts", "gallon", "gallons"}:
+    if unit_lower in _LIQUID_UNIT_NAMES:
         return "liquid"
-
-    # Everything else is a household measure.
-    return "household"
+    return "solid"

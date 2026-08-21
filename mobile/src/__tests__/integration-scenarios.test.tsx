@@ -162,8 +162,8 @@ describe('Integration Scenarios', () => {
 
       const sampleNutrition = {
         serving_size_description: '1 serving',
-        serving_size_oz: 8,
-        serving_size_g: 240,
+        serving_size_imperial: 8,
+        serving_size_metric: 240,
         calories: 100,
         total_fat_g: 2,
         saturated_fat_g: 0.5,

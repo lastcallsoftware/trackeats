@@ -13,8 +13,8 @@ export const useData = () => {
 
 export class Nutrition implements INutrition {
     serving_size_description = "";
-    serving_size_oz = 0;
-    serving_size_g = 0;
+    serving_size_imperial = 0;
+    serving_size_metric = 0;
     calories = 0;
     total_fat_g = 0;
     saturated_fat_g = 0;
