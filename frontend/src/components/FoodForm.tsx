@@ -206,12 +206,14 @@ function FoodForm() {
     const unitType = useWatch({ control, name: "unit_type" });
     const sizeImperial = useWatch({ control, name: "size_imperial" });
     const sizeMetric = useWatch({ control, name: "size_metric" });
-    const foodDensity = Number(useWatch({ control, name: "density" })) || 0;
+    // Default to 1 (matching the backend's density default) so a blank/invalid
+    // density doesn't silently fall back to solid math and misread ml as grams.
+    const foodDensity = Number(useWatch({ control, name: "density" })) || 1;
 
     // Convert a stored serving weight (grams) to the metric/imperial values
     // that match this food's unit type: g/oz for solid, ml/fl oz for liquid.
     const weightGToServingSize = (weightG: number): { metric: number; imperial: number } => {
-        if (unitType === "liquid" && foodDensity > 0) {
+        if (unitType === "liquid") {
             const volumeMl = weightG / foodDensity;
             return { metric: round2(volumeMl), imperial: round2(volumeMl / 29.5735) };
         }
@@ -221,7 +223,7 @@ function FoodForm() {
     // Inverse of weightGToServingSize: recover the serving weight (grams) from
     // a stored metric value, so nutrient scaling always happens by weight.
     const servingSizeMetricToWeightG = (metricValue: number): number =>
-        unitType === "liquid" && foodDensity > 0 ? metricValue * foodDensity : metricValue;
+        unitType === "liquid" ? metricValue * foodDensity : metricValue;
 
     // A field is "empty" when it's null, undefined, an empty string, or NaN
     // (react-hook-form coerces an empty number input to NaN via valueAsNumber).

@@ -205,8 +205,8 @@ class NutritionAlternativeRequest(BaseModel):
     def validate_serving_unit(cls, v: str) -> str:
         if not v or len(v.strip()) == 0:
             raise ValueError("serving_unit cannot be empty")
-        if len(v) > 30:
-            raise ValueError("serving_unit must be 30 characters or fewer")
+        if len(v) > 50:
+            raise ValueError("serving_unit must be 50 characters or fewer")
         return v
 
     @field_validator("ordinal")

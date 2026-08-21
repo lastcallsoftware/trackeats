@@ -1,5 +1,8 @@
+from decimal import Decimal
 from types import SimpleNamespace
 from typing import cast
+
+from decimal import Decimal
 
 import pytest
 
@@ -8,21 +11,27 @@ from schemas import IngredientRequest, NutritionRequest, RecipeRequest
 
 
 class _NutritionAccumulator:
+    # serving_size_imperial/metric are Decimal in production (Numeric(7,2) columns),
+    # so this stub mirrors Nutrition.sum()'s add_scaled conversion (via Decimal(str(...)))
+    # rather than raw float arithmetic, to catch Decimal/float TypeErrors.
     def __init__(self) -> None:
         self.reset_called = False
         self.sum_calls: list[tuple[object, float, float]] = []
-        self.serving_size_imperial = 0.0
-        self.serving_size_metric = 0
+        self.serving_size_imperial = Decimal("0.00")
+        self.serving_size_metric = Decimal("0.00")
 
     def reset(self) -> None:
         self.reset_called = True
-        self.serving_size_imperial = 0.0
-        self.serving_size_metric = 0
+        self.serving_size_imperial = Decimal("0.00")
+        self.serving_size_metric = Decimal("0.00")
 
     def sum(self, nutrition: object, servings: float, modifier: float = 1.0) -> None:
         self.sum_calls.append((nutrition, servings, modifier))
-        self.serving_size_imperial += getattr(nutrition, "serving_size_imperial", 0) * servings * modifier
-        self.serving_size_metric += getattr(nutrition, "serving_size_metric", 0) * servings * modifier
+        scale = Decimal(str(servings)) * Decimal(str(modifier))
+        imperial = getattr(nutrition, "serving_size_imperial", 0) or 0
+        metric = getattr(nutrition, "serving_size_metric", 0) or 0
+        self.serving_size_imperial += Decimal(str(imperial)) * scale
+        self.serving_size_metric += Decimal(str(metric)) * scale
 
 
 class _RecipeNutritionStub:
@@ -128,8 +137,8 @@ def test_recipe_from_schema_populates_recipe_size_fields() -> None:
         price=3.5,
         nutrition=NutritionRequest(
             serving_size_description="1 bowl",
-            serving_size_imperial=4.0,
-            serving_size_metric=113,
+            serving_size_imperial=Decimal("4.0"),
+            serving_size_metric=Decimal("113"),
         ),
     )
 
@@ -211,8 +220,14 @@ def test_recipe_recalculate_sets_total_weight_from_ingredient_nutrition(
         _IngredientRow(row_id=1, food_id=10, recipe_id=None, servings=1.5),
         _IngredientRow(row_id=2, food_id=None, recipe_id=20, servings=2.0),
     ]
-    ingredient_food_nutrition = SimpleNamespace(serving_size_imperial=4.0, serving_size_metric=113)
-    ingredient_recipe_nutrition = SimpleNamespace(serving_size_imperial=2.0, serving_size_metric=56)
+    # Decimal to match production Nutrition.serving_size_imperial/metric (Numeric(7,2)),
+    # so this test exercises the same Decimal/float interactions as real recalculate() calls.
+    ingredient_food_nutrition = SimpleNamespace(
+        serving_size_imperial=Decimal("4.00"), serving_size_metric=Decimal("113")
+    )
+    ingredient_recipe_nutrition = SimpleNamespace(
+        serving_size_imperial=Decimal("2.00"), serving_size_metric=Decimal("56")
+    )
     food_dao = SimpleNamespace(primary_nutrition=ingredient_food_nutrition, price=0)
     recipe_ingredient_dao = SimpleNamespace(nutrition_id=202, price=0, servings=4.0)
 
@@ -246,8 +261,17 @@ def test_recipe_recalculate_sets_total_weight_from_ingredient_nutrition(
 
     # recalculate stores totals (not per-serving); the frontend divides by servings.
     # serving_size_imperial is rounded to 2 decimals, serving_size_metric to a whole number.
-    assert recipe_nutrition_dao.serving_size_imperial == round(4.0 * 1.5 + 2.0 * 2.0 * 0.25, 2)
-    assert recipe_nutrition_dao.serving_size_metric == round(113 * 1.5 + 56 * 2.0 * 0.25)
+    assert recipe_nutrition_dao.serving_size_imperial == round(
+        Decimal("4.00") * Decimal("1.5") + Decimal("2.00") * Decimal("2.0") * Decimal("0.25"), 2
+    )
+    assert recipe_nutrition_dao.serving_size_metric == round(
+        Decimal("113") * Decimal("1.5") + Decimal("56") * Decimal("2.0") * Decimal("0.25")
+    )
+
+    # recipe_dao.size_oz/size_g are accumulated separately via float(Decimal) casts in
+    # recalculate() (the actual fix for the Decimal*float TypeError); verify those too.
+    assert recipe_dao.size_oz == round(4.0 * 1.5 + 2.0 * 2.0 * 0.25, 2)
+    assert recipe_dao.size_g == round(113 * 1.5 + 56 * 2.0 * 0.25)
 
 
 def test_recipe_recalculate_raises_for_invalid_ingredient_link(
@@ -356,7 +380,7 @@ def test_recipe_add_from_schema_preserves_provided_id(monkeypatch: pytest.Monkey
         servings=4.0,
         nutrition=NutritionRequest(
             serving_size_description="1 serving",
-            calories=400,
+            calories=Decimal("400"),
         ),
         ingredients=[],
     )

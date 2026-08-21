@@ -675,23 +675,24 @@ class Nutrition(db.Model):
         """
         Reset the Nutrition totals to zero (leave the ID and serving info intact).
         """
-        self.calories = 0
-        self.total_fat_g = 0
-        self.saturated_fat_g = 0
-        self.trans_fat_g = 0
-        self.cholesterol_mg = 0
-        self.sodium_mg = 0
-        self.total_carbs_g = 0
-        self.fiber_g = 0
-        self.total_sugar_g = 0
-        self.added_sugar_g = 0
-        self.protein_g = 0
-        self.vitamin_d_mcg = 0
-        self.calcium_mg = 0
-        self.iron_mg = 0
-        self.potassium_mg = 0
-        self.serving_size_imperial = 0
-        self.serving_size_metric = 0
+        zero = Decimal("0.00")
+        self.calories = zero
+        self.total_fat_g = zero
+        self.saturated_fat_g = zero
+        self.trans_fat_g = zero
+        self.cholesterol_mg = zero
+        self.sodium_mg = zero
+        self.total_carbs_g = zero
+        self.fiber_g = zero
+        self.total_sugar_g = zero
+        self.added_sugar_g = zero
+        self.protein_g = zero
+        self.vitamin_d_mcg = zero
+        self.calcium_mg = zero
+        self.iron_mg = zero
+        self.potassium_mg = zero
+        self.serving_size_imperial = zero
+        self.serving_size_metric = zero
         return self
 
 
@@ -1728,8 +1729,10 @@ class Recipe(db.Model):
                     modifier = 1
                     recipe_nutrition_dao.sum(ingredient_nutrition_dao, ingredient_dao.servings)
 
-                recipe_size_oz += (getattr(ingredient_nutrition_dao, "serving_size_imperial", 0) or 0) * ingredient_dao.servings * modifier
-                recipe_size_g += (getattr(ingredient_nutrition_dao, "serving_size_metric", 0) or 0) * ingredient_dao.servings * modifier
+                # serving_size_imperial/metric are Decimal columns; cast to float since these
+                # accumulators mix with float servings/modifier values.
+                recipe_size_oz += float(getattr(ingredient_nutrition_dao, "serving_size_imperial", 0) or 0) * ingredient_dao.servings * modifier
+                recipe_size_g += float(getattr(ingredient_nutrition_dao, "serving_size_metric", 0) or 0) * ingredient_dao.servings * modifier
 
                 # Add its price total
                 if food_ingredient_dao and food_ingredient_dao.price:
@@ -1748,23 +1751,27 @@ class Recipe(db.Model):
             # Store the calculated totals as-is (not per-serving). The frontend calculates
             # and sends totals when manually editing recipes, and RecipesTable displays
             # per-serving values by dividing by servings. So the database should store totals.
-            recipe_nutrition_dao.calories = round(getattr(recipe_nutrition_dao, "calories", 0) or 0)
-            recipe_nutrition_dao.total_fat_g = round(getattr(recipe_nutrition_dao, "total_fat_g", 0) or 0, 1)
-            recipe_nutrition_dao.saturated_fat_g = round(getattr(recipe_nutrition_dao, "saturated_fat_g", 0) or 0, 1)
-            recipe_nutrition_dao.trans_fat_g = round(getattr(recipe_nutrition_dao, "trans_fat_g", 0) or 0, 1)
-            recipe_nutrition_dao.cholesterol_mg = round(getattr(recipe_nutrition_dao, "cholesterol_mg", 0) or 0)
-            recipe_nutrition_dao.sodium_mg = round(getattr(recipe_nutrition_dao, "sodium_mg", 0) or 0)
-            recipe_nutrition_dao.total_carbs_g = round(getattr(recipe_nutrition_dao, "total_carbs_g", 0) or 0)
-            recipe_nutrition_dao.fiber_g = round(getattr(recipe_nutrition_dao, "fiber_g", 0) or 0)
-            recipe_nutrition_dao.total_sugar_g = round(getattr(recipe_nutrition_dao, "total_sugar_g", 0) or 0)
-            recipe_nutrition_dao.added_sugar_g = round(getattr(recipe_nutrition_dao, "added_sugar_g", 0) or 0)
-            recipe_nutrition_dao.protein_g = round(getattr(recipe_nutrition_dao, "protein_g", 0) or 0)
-            recipe_nutrition_dao.vitamin_d_mcg = round(getattr(recipe_nutrition_dao, "vitamin_d_mcg", 0) or 0)
-            recipe_nutrition_dao.calcium_mg = round(getattr(recipe_nutrition_dao, "calcium_mg", 0) or 0)
-            recipe_nutrition_dao.iron_mg = round(getattr(recipe_nutrition_dao, "iron_mg", 0) or 0, 1)
-            recipe_nutrition_dao.potassium_mg = round(getattr(recipe_nutrition_dao, "potassium_mg", 0) or 0)
-            recipe_nutrition_dao.serving_size_imperial = round(getattr(recipe_nutrition_dao, "serving_size_imperial", 0) or 0, 2)
-            recipe_nutrition_dao.serving_size_metric = round(getattr(recipe_nutrition_dao, "serving_size_metric", 0) or 0)
+            def rounded_decimal(value: Decimal | None, decimal_places: int = 0) -> Decimal:
+                quantum = Decimal("1") if decimal_places == 0 else Decimal("0." + "0" * (decimal_places - 1) + "1")
+                return Decimal(str(value or 0)).quantize(quantum, rounding=ROUND_HALF_UP)
+
+            recipe_nutrition_dao.calories = rounded_decimal(getattr(recipe_nutrition_dao, "calories", None))
+            recipe_nutrition_dao.total_fat_g = rounded_decimal(getattr(recipe_nutrition_dao, "total_fat_g", None), 1)
+            recipe_nutrition_dao.saturated_fat_g = rounded_decimal(getattr(recipe_nutrition_dao, "saturated_fat_g", None), 1)
+            recipe_nutrition_dao.trans_fat_g = rounded_decimal(getattr(recipe_nutrition_dao, "trans_fat_g", None), 1)
+            recipe_nutrition_dao.cholesterol_mg = rounded_decimal(getattr(recipe_nutrition_dao, "cholesterol_mg", None))
+            recipe_nutrition_dao.sodium_mg = rounded_decimal(getattr(recipe_nutrition_dao, "sodium_mg", None))
+            recipe_nutrition_dao.total_carbs_g = rounded_decimal(getattr(recipe_nutrition_dao, "total_carbs_g", None))
+            recipe_nutrition_dao.fiber_g = rounded_decimal(getattr(recipe_nutrition_dao, "fiber_g", None))
+            recipe_nutrition_dao.total_sugar_g = rounded_decimal(getattr(recipe_nutrition_dao, "total_sugar_g", None))
+            recipe_nutrition_dao.added_sugar_g = rounded_decimal(getattr(recipe_nutrition_dao, "added_sugar_g", None))
+            recipe_nutrition_dao.protein_g = rounded_decimal(getattr(recipe_nutrition_dao, "protein_g", None))
+            recipe_nutrition_dao.vitamin_d_mcg = rounded_decimal(getattr(recipe_nutrition_dao, "vitamin_d_mcg", None))
+            recipe_nutrition_dao.calcium_mg = rounded_decimal(getattr(recipe_nutrition_dao, "calcium_mg", None))
+            recipe_nutrition_dao.iron_mg = rounded_decimal(getattr(recipe_nutrition_dao, "iron_mg", None), 1)
+            recipe_nutrition_dao.potassium_mg = rounded_decimal(getattr(recipe_nutrition_dao, "potassium_mg", None))
+            recipe_nutrition_dao.serving_size_imperial = rounded_decimal(getattr(recipe_nutrition_dao, "serving_size_imperial", None), 2)
+            recipe_nutrition_dao.serving_size_metric = rounded_decimal(getattr(recipe_nutrition_dao, "serving_size_metric", None))
 
             recipe_dao.size_oz = round(recipe_size_oz, 2)
             recipe_dao.size_g = round(recipe_size_g)
