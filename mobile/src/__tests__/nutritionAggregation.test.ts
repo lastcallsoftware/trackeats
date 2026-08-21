@@ -5,8 +5,8 @@ import { INutrition } from '@/types/food'
 // Sample nutrition data for tests
 const sampleNutrition1: INutrition = {
   serving_size_description: '1 cup',
-  serving_size_oz: 8,
-  serving_size_g: 240,
+  serving_size_imperial: 8,
+  serving_size_metric: 240,
   calories: 100,
   total_fat_g: 2,
   saturated_fat_g: 0.5,
@@ -26,8 +26,8 @@ const sampleNutrition1: INutrition = {
 
 const sampleNutrition2: INutrition = {
   serving_size_description: '1 piece',
-  serving_size_oz: 4,
-  serving_size_g: 120,
+  serving_size_imperial: 4,
+  serving_size_metric: 120,
   calories: 150,
   total_fat_g: 3,
   saturated_fat_g: 1,
@@ -74,8 +74,8 @@ describe('aggregateNutrition function', () => {
 
     // Verify serving sizes are placeholder
     expect(result.serving_size_description).toBe('Total')
-    expect(result.serving_size_oz).toBe(12) // 8 + 4
-    expect(result.serving_size_g).toBe(360) // 240 + 120
+    expect(result.serving_size_imperial).toBe(12) // 8 + 4
+    expect(result.serving_size_metric).toBe(360) // 240 + 120
 
     // Verify all 18 numeric fields are summed
     expect(result.calories).toBe(250) // 100 + 150
@@ -134,8 +134,8 @@ describe('aggregateNutrition function', () => {
 
     // Verify all fields are zero (except serving_size_description which is 'Total')
     expect(result.serving_size_description).toBe('Total')
-    expect(result.serving_size_oz).toBe(0)
-    expect(result.serving_size_g).toBe(0)
+    expect(result.serving_size_imperial).toBe(0)
+    expect(result.serving_size_metric).toBe(0)
     expect(result.calories).toBe(0)
     expect(result.total_fat_g).toBe(0)
     expect(result.saturated_fat_g).toBe(0)
@@ -156,8 +156,8 @@ describe('aggregateNutrition function', () => {
   it('(d) handles entry with undefined nutrition fields gracefully', () => {
     const nutritionWithUndefined: INutrition = {
       serving_size_description: '1 serving',
-      serving_size_oz: 8,
-      serving_size_g: 240,
+      serving_size_imperial: 8,
+      serving_size_metric: 240,
       calories: 100,
       total_fat_g: undefined as any,
       saturated_fat_g: undefined as any,

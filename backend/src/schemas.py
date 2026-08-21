@@ -11,6 +11,7 @@ Each schema is used to validate request.json before passing to the model layer.
 """
 
 from datetime import datetime
+from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
 from typing import Any, Literal, TypeVar
 from pydantic import BaseModel, field_validator, model_validator, EmailStr, Field
 
@@ -143,23 +144,46 @@ class ContactRequest(BaseModel):
 class NutritionRequest(BaseModel):
     """Validated nutrition payload used by ORM model constructors and updates."""
     serving_size_description: str
-    serving_size_oz: float | None = 0
-    serving_size_g: int | None = 0
-    calories: int = 0
-    total_fat_g: float | None = 0
-    saturated_fat_g: float | None = 0
-    trans_fat_g: float | None = 0
-    cholesterol_mg: int | None = 0
-    sodium_mg: int | None = 0
-    total_carbs_g: int | None = 0
-    fiber_g: int | None = 0
-    total_sugar_g: int | None = 0
-    added_sugar_g: int | None = 0
-    protein_g: int | None = 0
-    vitamin_d_mcg: int | None = 0
-    calcium_mg: int | None = 0
-    iron_mg: float | None = 0
-    potassium_mg: int | None = 0
+    serving_size_imperial: Decimal | None = Decimal("0.00")
+    serving_size_metric: Decimal | None = Decimal("0.00")
+    calories: Decimal = Decimal("0.00")
+    total_fat_g: Decimal | None = Decimal("0.00")
+    saturated_fat_g: Decimal | None = Decimal("0.00")
+    trans_fat_g: Decimal | None = Decimal("0.00")
+    cholesterol_mg: Decimal | None = Decimal("0.00")
+    sodium_mg: Decimal | None = Decimal("0.00")
+    total_carbs_g: Decimal | None = Decimal("0.00")
+    fiber_g: Decimal | None = Decimal("0.00")
+    total_sugar_g: Decimal | None = Decimal("0.00")
+    added_sugar_g: Decimal | None = Decimal("0.00")
+    protein_g: Decimal | None = Decimal("0.00")
+    vitamin_d_mcg: Decimal | None = Decimal("0.00")
+    calcium_mg: Decimal | None = Decimal("0.00")
+    iron_mg: Decimal | None = Decimal("0.00")
+    potassium_mg: Decimal | None = Decimal("0.00")
+
+    @field_validator(
+        "serving_size_imperial", "serving_size_metric", "calories", "total_fat_g",
+        "saturated_fat_g", "trans_fat_g", "cholesterol_mg", "sodium_mg",
+        "total_carbs_g", "fiber_g", "total_sugar_g", "added_sugar_g",
+        "protein_g", "vitamin_d_mcg", "calcium_mg", "iron_mg", "potassium_mg",
+        mode="before",
+    )
+    @classmethod
+    def normalize_decimal(cls, value: Decimal | int | float | None) -> Decimal | None:
+        if value is None:
+            return None
+        # str(float("nan"|"inf")) produces "nan"/"inf" strings that Decimal() rejects with
+        # InvalidOperation rather than a friendly error, so catch it and surface a clean message.
+        try:
+            normalized = Decimal(str(value)).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+        except InvalidOperation:
+            raise ValueError("value must be a valid finite number")
+        if not normalized.is_finite():
+            raise ValueError("value must be a valid finite number")
+        if abs(normalized) > Decimal("99999.99"):
+            raise ValueError("value must fit DECIMAL(7,2)")
+        return normalized
 
 
 ##############################
@@ -171,8 +195,7 @@ class NutritionAlternativeRequest(BaseModel):
     nutrition_id: int | None = None
     serving_value: float
     serving_unit: str
-    serving_unit_kind: Literal["solid", "liquid", "arbitrary"]
-    household_weight_g: float | None = None
+    serving_unit_kind: Literal["solid", "liquid"]
     ordinal: int = 0
     is_primary: bool = False
     nutrition: NutritionRequest
@@ -189,8 +212,8 @@ class NutritionAlternativeRequest(BaseModel):
     def validate_serving_unit(cls, v: str) -> str:
         if not v or len(v.strip()) == 0:
             raise ValueError("serving_unit cannot be empty")
-        if len(v) > 30:
-            raise ValueError("serving_unit must be 30 characters or fewer")
+        if len(v) > 50:
+            raise ValueError("serving_unit must be 50 characters or fewer")
         return v
 
     @field_validator("ordinal")
@@ -199,14 +222,6 @@ class NutritionAlternativeRequest(BaseModel):
         if v < 0:
             raise ValueError("ordinal must be non-negative")
         return v
-
-    @model_validator(mode="after")
-    def validate_household_weight(self) -> "NutritionAlternativeRequest":
-        if self.serving_unit_kind == "arbitrary" and self.household_weight_g is None:
-            raise ValueError("household_weight_g is required when serving_unit_kind is 'arbitrary'")
-        if self.serving_unit_kind == "arbitrary" and self.household_weight_g is not None and self.household_weight_g <= 0:
-            raise ValueError("household_weight_g must be greater than 0")
-        return self
 
 
 def _empty_nutrition_alternatives() -> list[NutritionAlternativeRequest]:

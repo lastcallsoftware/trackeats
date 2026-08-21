@@ -157,7 +157,10 @@ class Data:
                     "price": starter_food.price,
                     "price_date": starter_food.price_date.strftime("%Y-%m-%d") if starter_food.price_date else None,
                     "shelf_life": starter_food.shelf_life,
-                    "nutrition": starter_food.nutrition.json(),
+                    "nutrition": starter_food.primary_nutrition.json() if starter_food.primary_nutrition else None,
+                    "nutrition_alternatives": [
+                        alt.json() for alt in (starter_food.nutrition_alternatives or [])
+                    ],
                 }
             )
             Food.add(user_id, payload)

@@ -113,7 +113,7 @@ const columns = [
                 cell: info => info.getValue(),
                 size: 120
             }),
-            columnHelper.accessor("nutrition.serving_size_oz", {
+            columnHelper.accessor("nutrition.serving_size_imperial", {
                 header: () => <span>Serving Size (oz)</span>,
                 cell: info => {
                     const servings = info.row.original.servings || 1;
@@ -122,7 +122,7 @@ const columns = [
                 },
                 size: 80
             }),
-            columnHelper.accessor("nutrition.serving_size_g", {
+            columnHelper.accessor("nutrition.serving_size_metric", {
                 header: () => <span>Serving Size (g)</span>,
                 cell: info => {
                     const servings = info.row.original.servings || 1;

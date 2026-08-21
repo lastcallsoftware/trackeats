@@ -44,7 +44,7 @@ def upgrade():
         ))
 
     # 5. Create nutrition_alternative table
-    #    serving_unit_kind uses solid/liquid/arbitrary (replacing mass/volume/household)
+    #    serving_unit_kind uses solid/liquid/household (replacing mass/volume)
     #    is_primary marks the default serving size
     op.create_table(
         'nutrition_alternative',
@@ -53,7 +53,7 @@ def upgrade():
         sa.Column('nutrition_id', sa.Integer(), nullable=False),
         sa.Column('serving_value', sa.Float(), nullable=False),
         sa.Column('serving_unit', sa.String(length=30), nullable=False),
-        sa.Column('serving_unit_kind', sa.Enum('solid', 'liquid', 'arbitrary', name='serving_unit_kind_enum'), nullable=False),
+        sa.Column('serving_unit_kind', sa.Enum('solid', 'liquid', 'household', name='serving_unit_kind_enum'), nullable=False),
         sa.Column('household_weight_g', sa.Float(), nullable=True),
         sa.Column('ordinal', sa.Integer(), nullable=False, server_default='0'),
         sa.Column('is_primary', sa.Boolean(), nullable=False, server_default='0'),

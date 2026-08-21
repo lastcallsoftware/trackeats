@@ -12,8 +12,8 @@ export function aggregateNutrition(items: IDailyLogItem[]): INutrition {
   // Initialize accumulator with all zeros
   const totals: INutrition = {
     serving_size_description: 'Total',
-    serving_size_oz: 0,
-    serving_size_g: 0,
+    serving_size_imperial: 0,
+    serving_size_metric: 0,
     calories: 0,
     total_fat_g: 0,
     saturated_fat_g: 0,
@@ -37,9 +37,9 @@ export function aggregateNutrition(items: IDailyLogItem[]): INutrition {
       return // Skip items with null or undefined nutrition
     }
 
-    // Sum the 18 numeric fields
-    totals.serving_size_oz += item.nutrition.serving_size_oz ?? 0
-    totals.serving_size_g += item.nutrition.serving_size_g ?? 0
+    // Sum the numeric fields
+    totals.serving_size_imperial += item.nutrition.serving_size_imperial ?? 0
+    totals.serving_size_metric += item.nutrition.serving_size_metric ?? 0
     totals.calories += item.nutrition.calories ?? 0
     totals.total_fat_g += item.nutrition.total_fat_g ?? 0
     totals.saturated_fat_g += item.nutrition.saturated_fat_g ?? 0

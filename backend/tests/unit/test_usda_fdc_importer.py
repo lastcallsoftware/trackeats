@@ -17,8 +17,8 @@ def test_map_group_fallback_other() -> None:
     assert _map_group("completely unknown category") == "other"
 
 
-def test_determine_unit_kind_solid_liquid_arbitrary() -> None:
-    """Unit kind classification should map to solid/liquid/arbitrary."""
+def test_determine_unit_kind_solid_liquid_household() -> None:
+    """Unit kind classification should map to solid/liquid, with custom names as solid."""
     # Solid (weight) units
     assert _determine_unit_kind("g") == "solid"
     assert _determine_unit_kind("oz") == "solid"
@@ -37,10 +37,10 @@ def test_determine_unit_kind_solid_liquid_arbitrary() -> None:
     assert _determine_unit_kind("quart") == "liquid"
     assert _determine_unit_kind("gallon") == "liquid"
 
-    # Arbitrary (household) units
-    assert _determine_unit_kind("slice") == "arbitrary"
-    assert _determine_unit_kind("breast") == "arbitrary"
-    assert _determine_unit_kind("medium banana") == "arbitrary"
+    # Custom/household units fall back to solid, since their weight is known directly
+    assert _determine_unit_kind("slice") == "solid"
+    assert _determine_unit_kind("breast") == "solid"
+    assert _determine_unit_kind("medium banana") == "solid"
 
 
 def test_map_group_detects_common_categories() -> None:

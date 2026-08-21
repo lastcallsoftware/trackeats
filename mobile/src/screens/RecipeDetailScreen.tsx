@@ -18,39 +18,33 @@ import { formatRecipeMetaLine, formatRecipeSizeLine } from '@/utils/recipeFormat
 
 type NumericNutritionField = Exclude<keyof INutrition, 'serving_size_description'>
 
-const NUMERIC_NUTRITION_FIELDS: NumericNutritionField[] = [
-  'serving_size_oz',
-  'serving_size_g',
-  'calories',
-  'total_fat_g',
-  'saturated_fat_g',
-  'trans_fat_g',
-  'cholesterol_mg',
-  'sodium_mg',
-  'total_carbs_g',
-  'fiber_g',
-  'total_sugar_g',
-  'added_sugar_g',
-  'protein_g',
-  'vitamin_d_mcg',
-  'calcium_mg',
-  'iron_mg',
-  'potassium_mg',
-]
+// Decimal places per field, matching the backend's Recipe.recalculate() rounding
+// policy: whole numbers for calories/mg/most g fields, 1 decimal for fats and iron,
+// 2 decimals for the imperial serving size.
+const NUTRITION_FIELD_PRECISION: Record<NumericNutritionField, number> = {
+  serving_size_imperial: 2,
+  serving_size_metric: 0,
+  calories: 0,
+  total_fat_g: 1,
+  saturated_fat_g: 1,
+  trans_fat_g: 1,
+  cholesterol_mg: 0,
+  sodium_mg: 0,
+  total_carbs_g: 0,
+  fiber_g: 0,
+  total_sugar_g: 0,
+  added_sugar_g: 0,
+  protein_g: 0,
+  vitamin_d_mcg: 0,
+  calcium_mg: 0,
+  iron_mg: 1,
+  potassium_mg: 0,
+}
 
-const FLOAT_NUTRITION_FIELDS = new Set<NumericNutritionField>([
-  'serving_size_oz',
-  'serving_size_g',
-  'total_fat_g',
-  'saturated_fat_g',
-  'trans_fat_g',
-  'total_carbs_g',
-  'fiber_g',
-  'total_sugar_g',
-  'added_sugar_g',
-  'protein_g',
-  'iron_mg',
-])
+function roundToPrecision(value: number, decimals: number): number {
+  const factor = 10 ** decimals
+  return Math.round(value * factor) / factor
+}
 
 function divideNutritionPerServing(nutrition: INutrition, servings?: number): INutrition {
   if (!servings || servings <= 0) {
@@ -59,13 +53,11 @@ function divideNutritionPerServing(nutrition: INutrition, servings?: number): IN
 
   const perServing: INutrition = { ...nutrition }
 
-  NUMERIC_NUTRITION_FIELDS.forEach((field) => {
+  ;(Object.keys(NUTRITION_FIELD_PRECISION) as NumericNutritionField[]).forEach((field) => {
     const sourceValue = nutrition[field] ?? 0
     const dividedValue = sourceValue / servings
 
-    perServing[field] = FLOAT_NUTRITION_FIELDS.has(field)
-      ? Math.round(dividedValue * 10) / 10
-      : Math.round(dividedValue)
+    perServing[field] = roundToPrecision(dividedValue, NUTRITION_FIELD_PRECISION[field])
   })
 
   return perServing
@@ -236,7 +228,7 @@ export const RecipeDetailScreen: React.FC<RecipeDetailScreenProps> = ({
         <NutritionLabel
           nutrition={nutritionPerServing}
           servingSizeDescription={recipe.nutrition.serving_size_description}
-          excludeFields={['serving_size_oz', 'serving_size_g']}
+          excludeFields={['serving_size_imperial', 'serving_size_metric']}
           trailingRows={[
             { label: 'Price / serving', value: formatCurrency(pricePerServing) },
             { label: 'Price / 100 calories', value: formatCurrency(pricePer100Calories) },

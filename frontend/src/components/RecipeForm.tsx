@@ -48,8 +48,8 @@ const cloneRecipe = (source: IRecipe): IRecipe => ({
 
 const emptyNutritionTotals = (): INutrition => ({
     serving_size_description: "",
-    serving_size_oz: 0,
-    serving_size_g: 0,
+    serving_size_imperial: 0,
+    serving_size_metric: 0,
     calories: 0,
     total_fat_g: 0,
     saturated_fat_g: 0,
@@ -69,8 +69,8 @@ const emptyNutritionTotals = (): INutrition => ({
 
 const nutritionSchema = z.object({
     serving_size_description: z.string().trim().min(1, "Serving size is required").max(100, "Must be 100 characters or fewer"),
-    serving_size_oz: z.coerce.number().min(0, "Must be 0 or greater"),
-    serving_size_g: z.coerce.number().min(0, "Must be 0 or greater"),
+    serving_size_imperial: z.coerce.number().min(0, "Must be 0 or greater"),
+    serving_size_metric: z.coerce.number().min(0, "Must be 0 or greater"),
     calories: z.coerce.number().min(0, "Must be 0 or greater"),
     total_fat_g: z.coerce.number().min(0, "Must be 0 or greater"),
     saturated_fat_g: z.coerce.number().min(0, "Must be 0 or greater"),
@@ -109,7 +109,7 @@ type RecipeFormValues = z.output<typeof recipeSchema>;
 
 const normalizeNutritionForApi = (nutrition: RecipeFormValues["nutrition"]): RecipeFormValues["nutrition"] => ({
     ...nutrition,
-    serving_size_g: Math.round(nutrition.serving_size_g),
+    serving_size_metric: Math.round(nutrition.serving_size_metric),
     calories: Math.round(nutrition.calories),
     cholesterol_mg: Math.round(nutrition.cholesterol_mg),
     sodium_mg: Math.round(nutrition.sodium_mg),
@@ -313,8 +313,8 @@ function RecipeForm() {
             totals.calcium_mg += nutrition.calcium_mg * servings * modifier;
             totals.iron_mg += nutrition.iron_mg * servings * modifier;
             totals.potassium_mg += nutrition.potassium_mg * servings * modifier;
-            totals.serving_size_oz += (nutrition.serving_size_oz ?? 0) * servings * modifier;
-            totals.serving_size_g += (nutrition.serving_size_g ?? 0) * servings * modifier;
+            totals.serving_size_imperial += (nutrition.serving_size_imperial ?? 0) * servings * modifier;
+            totals.serving_size_metric += (nutrition.serving_size_metric ?? 0) * servings * modifier;
 
             priceTotal += ingredientServingPrice * servings;
         }
@@ -326,8 +326,8 @@ function RecipeForm() {
             "nutrition",
             {
                 serving_size_description: currentNutrition.serving_size_description,
-                serving_size_oz: totals.serving_size_oz,
-                serving_size_g: totals.serving_size_g,
+                serving_size_imperial: totals.serving_size_imperial,
+                serving_size_metric: totals.serving_size_metric,
                 calories: totals.calories,
                 total_fat_g: totals.total_fat_g,
                 saturated_fat_g: totals.saturated_fat_g,
@@ -541,8 +541,8 @@ function RecipeForm() {
 
     const perServingNutrition: INutrition = {
         serving_size_description: recipeNutrition.serving_size_description,
-        serving_size_oz: recipeNutrition.serving_size_oz / (recipeServings > 0 ? recipeServings : 1),
-        serving_size_g: recipeNutrition.serving_size_g / (recipeServings > 0 ? recipeServings : 1),
+        serving_size_imperial: recipeNutrition.serving_size_imperial / (recipeServings > 0 ? recipeServings : 1),
+        serving_size_metric: recipeNutrition.serving_size_metric / (recipeServings > 0 ? recipeServings : 1),
         calories: recipeNutrition.calories / (recipeServings > 0 ? recipeServings : 1),
         total_fat_g: recipeNutrition.total_fat_g / (recipeServings > 0 ? recipeServings : 1),
         saturated_fat_g: recipeNutrition.saturated_fat_g / (recipeServings > 0 ? recipeServings : 1),

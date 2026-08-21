@@ -86,7 +86,7 @@ function formatWeekLabel(firstIso: string, lastIso: string): string {
 function zeroNutrition(): INutrition {
     return {
         serving_size_description: '',
-        serving_size_oz: 0, serving_size_g: 0,
+        serving_size_imperial: 0, serving_size_metric: 0,
         calories: 0, total_fat_g: 0, saturated_fat_g: 0, trans_fat_g: 0,
         cholesterol_mg: 0, sodium_mg: 0, total_carbs_g: 0, fiber_g: 0,
         total_sugar_g: 0, added_sugar_g: 0, protein_g: 0,
@@ -98,8 +98,8 @@ function addNutrition(acc: INutrition, n: INutrition | undefined): INutrition {
     if (!n) return acc;
     return {
         serving_size_description: '',
-        serving_size_oz:   acc.serving_size_oz   + (n.serving_size_oz   ?? 0),
-        serving_size_g:    acc.serving_size_g    + (n.serving_size_g    ?? 0),
+        serving_size_imperial:   acc.serving_size_imperial   + (n.serving_size_imperial   ?? 0),
+        serving_size_metric:    acc.serving_size_metric    + (n.serving_size_metric    ?? 0),
         calories:          acc.calories          + (n.calories          ?? 0),
         total_fat_g:       acc.total_fat_g       + (n.total_fat_g       ?? 0),
         saturated_fat_g:   acc.saturated_fat_g   + (n.saturated_fat_g   ?? 0),
@@ -415,14 +415,14 @@ const columns = [
                 cell: info => info.getValue() || '',
                 size: 120,
             }),
-            columnHelper.accessor(row => nutVal(row, 'serving_size_oz'), {
-                id: 'nutrition_serving_size_oz',
+            columnHelper.accessor(row => nutVal(row, 'serving_size_imperial'), {
+                id: 'nutrition_serving_size_imperial',
                 header: () => <span>Serving Size (oz)</span>,
                 cell: info => info.getValue() ?? '',
                 size: 80,
             }),
-            columnHelper.accessor(row => nutVal(row, 'serving_size_g'), {
-                id: 'nutrition_serving_size_g',
+            columnHelper.accessor(row => nutVal(row, 'serving_size_metric'), {
+                id: 'nutrition_serving_size_metric',
                 header: () => <span>Serving Size (g)</span>,
                 cell: info => info.getValue() ?? '',
                 size: 80,
