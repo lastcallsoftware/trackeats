@@ -2230,23 +2230,29 @@ class NutritionAlternative(db.Model):
         - solid:  serving_value × unit_to_g
         - liquid: serving_value × unit_to_ml × density
 
-        Returns None if the weight cannot be computed (e.g. unknown unit, such
-        as a custom name whose weight was entered directly rather than via a
-        recognized conversion, or missing density for liquids).
+        For custom unit names not in the conversion tables (e.g. "slice", or a
+        household name), the UI/importer records the weight/volume directly on
+        the linked Nutrition record's serving_size_metric instead of a named
+        unit. Fall back to that value so such alternatives still have a
+        computable weight (liquids still need density to convert ml to g).
         """
         if self.serving_unit_kind == "solid":
             factor = self._SOLID_TO_G.get(self.serving_unit.lower())
-            if factor is None:
-                return None
-            return round(self.serving_value * factor, 2)
+            if factor is not None:
+                return round(self.serving_value * factor, 2)
+            if self.nutrition and self.nutrition.serving_size_metric is not None:
+                return round(float(self.nutrition.serving_size_metric), 2)
+            return None
 
         if self.serving_unit_kind == "liquid":
             factor = self._LIQUID_TO_ML.get(self.serving_unit.lower())
-            if factor is None:
-                return None
-            if density is None:
-                return None
-            return round(self.serving_value * factor * density, 2)
+            if factor is not None:
+                if density is None:
+                    return None
+                return round(self.serving_value * factor * density, 2)
+            if self.nutrition and self.nutrition.serving_size_metric is not None and density is not None:
+                return round(float(self.nutrition.serving_size_metric) * density, 2)
+            return None
 
         return None
 

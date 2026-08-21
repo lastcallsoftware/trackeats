@@ -1,4 +1,5 @@
 import datetime
+from decimal import Decimal
 from types import SimpleNamespace
 import pytest
 import models
@@ -347,7 +348,7 @@ def test_nutrition_alternative_compute_serving_weight_liquid() -> None:
 
 
 def test_nutrition_alternative_compute_serving_weight_unknown_unit() -> None:
-    """Unknown units should return None for weight computation."""
+    """Unknown units with no linked Nutrition weight should return None."""
     alt = models.NutritionAlternative()
     alt.serving_value = 1
     alt.serving_unit = "furlong"
@@ -355,6 +356,32 @@ def test_nutrition_alternative_compute_serving_weight_unknown_unit() -> None:
 
     assert alt.compute_serving_weight_g() is None
     assert alt.compute_serving_weight_oz() is None
+
+
+def test_nutrition_alternative_compute_serving_weight_custom_unit_falls_back_to_nutrition(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Custom-named units (e.g. household servings) fall back to the linked
+    Nutrition record's directly-entered serving_size_metric."""
+    alt = models.NutritionAlternative()
+    alt.serving_value = 1
+    alt.serving_unit = "slice"
+    alt.serving_unit_kind = "solid"
+    monkeypatch.setattr(models.NutritionAlternative, "nutrition", SimpleNamespace(serving_size_metric=Decimal("45.00")), raising=False)
+
+    assert alt.compute_serving_weight_g() == 45.0
+    assert alt.compute_serving_weight_oz() == round(45.0 / 28.3495, 2)
+
+
+def test_nutrition_alternative_compute_serving_weight_custom_liquid_unit_falls_back_to_nutrition(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Custom-named liquid units convert the linked Nutrition's serving_size_metric
+    (ml) to grams using density."""
+    alt = models.NutritionAlternative()
+    alt.serving_value = 1
+    alt.serving_unit = "scoop"
+    alt.serving_unit_kind = "liquid"
+    monkeypatch.setattr(models.NutritionAlternative, "nutrition", SimpleNamespace(serving_size_metric=Decimal("100.00")), raising=False)
+
+    assert alt.compute_serving_weight_g(density=1.2) == 120.0
+    assert alt.compute_serving_weight_g(density=None) is None
 
 
 def test_preferences_get_returns_none_when_missing(monkeypatch: pytest.MonkeyPatch) -> None:

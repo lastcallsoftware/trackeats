@@ -2,8 +2,6 @@ from decimal import Decimal
 from types import SimpleNamespace
 from typing import cast
 
-from decimal import Decimal
-
 import pytest
 
 import models

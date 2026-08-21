@@ -1,6 +1,7 @@
 import logging
 import os
 import re
+from decimal import Decimal, ROUND_HALF_UP
 from typing import Any, Literal, cast
 
 import requests as req
@@ -234,23 +235,23 @@ class USDAFdcImporter:
 
         nutrition = NutritionRequest(
             serving_size_description=_truncate(serving_size_description, 50),
-            serving_size_metric=serving_size_metric,
-            serving_size_imperial=serving_size_imperial,
-            calories=_to_int(calorie_value),
-            total_fat_g=_to_float(_nutrient_value_any(usda_food, ["1004", "204"], "fat")),
-            saturated_fat_g=_to_float(_nutrient_value_any(usda_food, ["1258", "606"], "saturatedFat")),
-            trans_fat_g=_to_float(_nutrient_value_any(usda_food, ["1257", "605"], "transFat")),
-            cholesterol_mg=_to_int(_nutrient_value_any(usda_food, ["1253", "601"], "cholesterol")),
-            sodium_mg=_to_int(_nutrient_value_any(usda_food, ["1093", "307"], "sodium")),
-            total_carbs_g=_to_int(_nutrient_value_any(usda_food, ["1005", "205"], "carbohydrates")),
-            fiber_g=_to_int(_nutrient_value_any(usda_food, ["1079", "291"], "fiber")),
-            total_sugar_g=_to_int(_nutrient_value_any(usda_food, ["2000", "269"], "sugars")),
-            added_sugar_g=_to_int(_nutrient_value_any(usda_food, ["1235", "539"], None)),
-            protein_g=_to_int(_nutrient_value_any(usda_food, ["1003", "203"], "protein")),
-            vitamin_d_mcg=_to_int(_nutrient_value_any(usda_food, ["1114", "328"], None)),
-            calcium_mg=_to_int(_nutrient_value_any(usda_food, ["1087", "301"], "calcium")),
-            iron_mg=_to_float(_nutrient_value_any(usda_food, ["1089", "303"], "iron")),
-            potassium_mg=_to_int(_nutrient_value_any(usda_food, ["1092", "306"], "postassium")),
+            serving_size_metric=_dec(serving_size_metric),
+            serving_size_imperial=_dec(serving_size_imperial),
+            calories=_dec(_to_int(calorie_value)),
+            total_fat_g=_dec(_to_float(_nutrient_value_any(usda_food, ["1004", "204"], "fat"))),
+            saturated_fat_g=_dec(_to_float(_nutrient_value_any(usda_food, ["1258", "606"], "saturatedFat"))),
+            trans_fat_g=_dec(_to_float(_nutrient_value_any(usda_food, ["1257", "605"], "transFat"))),
+            cholesterol_mg=_dec(_to_int(_nutrient_value_any(usda_food, ["1253", "601"], "cholesterol"))),
+            sodium_mg=_dec(_to_int(_nutrient_value_any(usda_food, ["1093", "307"], "sodium"))),
+            total_carbs_g=_dec(_to_int(_nutrient_value_any(usda_food, ["1005", "205"], "carbohydrates"))),
+            fiber_g=_dec(_to_int(_nutrient_value_any(usda_food, ["1079", "291"], "fiber"))),
+            total_sugar_g=_dec(_to_int(_nutrient_value_any(usda_food, ["2000", "269"], "sugars"))),
+            added_sugar_g=_dec(_to_int(_nutrient_value_any(usda_food, ["1235", "539"], None))),
+            protein_g=_dec(_to_int(_nutrient_value_any(usda_food, ["1003", "203"], "protein"))),
+            vitamin_d_mcg=_dec(_to_int(_nutrient_value_any(usda_food, ["1114", "328"], None))),
+            calcium_mg=_dec(_to_int(_nutrient_value_any(usda_food, ["1087", "301"], "calcium"))),
+            iron_mg=_dec(_to_float(_nutrient_value_any(usda_food, ["1089", "303"], "iron"))),
+            potassium_mg=_dec(_to_int(_nutrient_value_any(usda_food, ["1092", "306"], "postassium"))),
         )
 
         # Build nutrition alternatives from foodPortions
@@ -327,6 +328,13 @@ def _to_float(value: float | int | None) -> float:
         return round(float(value), 3)
     except Exception:
         return 0.0
+
+
+def _dec(value: float | int | None) -> Decimal:
+    """Convert a raw number to the Decimal(7,2)-shaped value NutritionRequest expects."""
+    if value is None:
+        return Decimal("0.00")
+    return Decimal(str(value)).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
 
 
 def _query_terms(query: str) -> list[str]:
@@ -598,8 +606,10 @@ def _build_alternatives_from_portions(
 
     alternatives: list[NutritionAlternativeRequest] = []
 
-    # Get the gram weight of the primary serving for scaling
-    primary_g = primary_nutrition.serving_size_metric or 100
+    # Get the gram weight of the primary serving for scaling. primary_nutrition's
+    # numeric fields are Decimal (validated NutritionRequest), so convert to float
+    # up front for the scaling arithmetic below.
+    primary_g = float(primary_nutrition.serving_size_metric) if primary_nutrition.serving_size_metric else 100.0
 
     for portion_any in food_portions:
         if not isinstance(portion_any, dict):
@@ -645,25 +655,29 @@ def _build_alternatives_from_portions(
         is_primary = False  # USDA portions are all alternatives; primary is the main serving
         # Scale nutrition to this portion's gram weight
         scale_factor = gram_weight / primary_g if primary_g > 0 else 1.0
+
+        def _scaled(value: Decimal | None) -> float:
+            return float(value or 0) * scale_factor
+
         scaled_nutrition = NutritionRequest(
             serving_size_description=_truncate(portion_description, 50),
-            serving_size_metric=int(round(gram_weight)),
-            serving_size_imperial=round(gram_weight / 28.3495, 3),
-            calories=int(round((primary_nutrition.calories or 0) * scale_factor)),
-            total_fat_g=round((primary_nutrition.total_fat_g or 0) * scale_factor, 1),
-            saturated_fat_g=round((primary_nutrition.saturated_fat_g or 0) * scale_factor, 1),
-            trans_fat_g=round((primary_nutrition.trans_fat_g or 0) * scale_factor, 1),
-            cholesterol_mg=int(round((primary_nutrition.cholesterol_mg or 0) * scale_factor)),
-            sodium_mg=int(round((primary_nutrition.sodium_mg or 0) * scale_factor)),
-            total_carbs_g=int(round((primary_nutrition.total_carbs_g or 0) * scale_factor)),
-            fiber_g=int(round((primary_nutrition.fiber_g or 0) * scale_factor)),
-            total_sugar_g=int(round((primary_nutrition.total_sugar_g or 0) * scale_factor)),
-            added_sugar_g=int(round((primary_nutrition.added_sugar_g or 0) * scale_factor)),
-            protein_g=int(round((primary_nutrition.protein_g or 0) * scale_factor)),
-            vitamin_d_mcg=int(round((primary_nutrition.vitamin_d_mcg or 0) * scale_factor)),
-            calcium_mg=int(round((primary_nutrition.calcium_mg or 0) * scale_factor)),
-            iron_mg=round((primary_nutrition.iron_mg or 0) * scale_factor, 1),
-            potassium_mg=int(round((primary_nutrition.potassium_mg or 0) * scale_factor)),
+            serving_size_metric=_dec(round(gram_weight)),
+            serving_size_imperial=_dec(round(gram_weight / 28.3495, 3)),
+            calories=_dec(round(_scaled(primary_nutrition.calories))),
+            total_fat_g=_dec(round(_scaled(primary_nutrition.total_fat_g), 1)),
+            saturated_fat_g=_dec(round(_scaled(primary_nutrition.saturated_fat_g), 1)),
+            trans_fat_g=_dec(round(_scaled(primary_nutrition.trans_fat_g), 1)),
+            cholesterol_mg=_dec(round(_scaled(primary_nutrition.cholesterol_mg))),
+            sodium_mg=_dec(round(_scaled(primary_nutrition.sodium_mg))),
+            total_carbs_g=_dec(round(_scaled(primary_nutrition.total_carbs_g))),
+            fiber_g=_dec(round(_scaled(primary_nutrition.fiber_g))),
+            total_sugar_g=_dec(round(_scaled(primary_nutrition.total_sugar_g))),
+            added_sugar_g=_dec(round(_scaled(primary_nutrition.added_sugar_g))),
+            protein_g=_dec(round(_scaled(primary_nutrition.protein_g))),
+            vitamin_d_mcg=_dec(round(_scaled(primary_nutrition.vitamin_d_mcg))),
+            calcium_mg=_dec(round(_scaled(primary_nutrition.calcium_mg))),
+            iron_mg=_dec(round(_scaled(primary_nutrition.iron_mg), 1)),
+            potassium_mg=_dec(round(_scaled(primary_nutrition.potassium_mg))),
         )
 
         # Custom/unrecognized unit names (e.g. "slice") have no fixed conversion
@@ -674,7 +688,7 @@ def _build_alternatives_from_portions(
         alternatives.append(
             NutritionAlternativeRequest(
                 serving_value=amount,
-                serving_unit=unit_name if is_standard_unit else portion_description,
+                serving_unit=unit_name if is_standard_unit else _truncate(portion_description, 50),
                 serving_unit_kind=serving_unit_kind,
                 is_primary=is_primary,
                 nutrition=scaled_nutrition,

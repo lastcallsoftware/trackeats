@@ -11,7 +11,7 @@ Each schema is used to validate request.json before passing to the model layer.
 """
 
 from datetime import datetime
-from decimal import Decimal, ROUND_HALF_UP
+from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
 from typing import Any, Literal, TypeVar
 from pydantic import BaseModel, field_validator, model_validator, EmailStr, Field
 
@@ -173,7 +173,14 @@ class NutritionRequest(BaseModel):
     def normalize_decimal(cls, value: Decimal | int | float | None) -> Decimal | None:
         if value is None:
             return None
-        normalized = Decimal(str(value)).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+        # str(float("nan"|"inf")) produces "nan"/"inf" strings that Decimal() rejects with
+        # InvalidOperation rather than a friendly error, so catch it and surface a clean message.
+        try:
+            normalized = Decimal(str(value)).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+        except InvalidOperation:
+            raise ValueError("value must be a valid finite number")
+        if not normalized.is_finite():
+            raise ValueError("value must be a valid finite number")
         if abs(normalized) > Decimal("99999.99"):
             raise ValueError("value must fit DECIMAL(7,2)")
         return normalized
