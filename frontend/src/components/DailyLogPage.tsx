@@ -433,10 +433,14 @@ function DailyLogPage() {
             ? `Total for ${selectedDateKey}`
             : selectedWeekLabel ?? selectedSummaryLabel;
 
+    const selectedFood = selectedItem?.food_id != null
+        ? foods.find(f => f.id === selectedItem.food_id)
+        : undefined;
+
     // When a food item is selected, look up the food's nutrition alternatives
     // so the user can switch between serving size views in the panel.
-    const selectedFoodAlternatives = selectedItem?.food_id != null
-        ? foods.find(f => f.id === selectedItem.food_id)?.nutrition_alternatives
+    const selectedFoodAlternatives = selectedFood
+        ? selectedFood.nutrition_alternatives
         : undefined;
 
     // For week selection in month view, count days with calories > 0

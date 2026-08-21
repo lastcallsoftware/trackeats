@@ -87,13 +87,13 @@ const foodColumns = [
                 cell: info => info.getValue(),
                 size: 120
             }),
-            columnHelper.accessor("size_oz", {
-                header: () => <span>Size (oz)</span>,
+            columnHelper.accessor("size_imperial", {
+                header: () => <span>Size (oz / fl oz)</span>,
                 cell: info => info.getValue(),
                 size: 80
             }),
-            columnHelper.accessor("size_g", {
-                header: () => <span>Size (g)</span>,
+            columnHelper.accessor("size_metric", {
+                header: () => <span>Size (g / ml)</span>,
                 cell: info => info.getValue(),
                 size: 80
             }),
@@ -114,12 +114,12 @@ const foodColumns = [
                 size: 120
             }),
             columnHelper.accessor("nutrition.serving_size_imperial", {
-                header: () => <span>Serving Size (oz)</span>,
+                header: () => <span>Serving Size (oz / fl oz)</span>,
                 cell: info => info.getValue(),
                 size: 100
             }),
             columnHelper.accessor("nutrition.serving_size_metric", {
-                header: () => <span>Serving Size (g)</span>,
+                header: () => <span>Serving Size (g / ml)</span>,
                 cell: info => info.getValue(),
                 size: 100
             }),

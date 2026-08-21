@@ -307,20 +307,23 @@ function FoodForm() {
         setValue("nutrition.potassium_mg", nutrition.potassium_mg);
     };
 
+    // Persist the currently-displayed view's live form edits back into its
+    // backing state (primaryNutrition or the corresponding localAlternatives
+    // entry) before the form gets overwritten with a different view's data -
+    // otherwise unsaved edits to whichever serving is on screen are lost.
+    const commitOutgoingView = () => {
+        const current = { ...(getValues("nutrition") as INutritionAlternative["nutrition"]) };
+        if (selectedKey === "primary") {
+            setPrimaryNutrition(current);
+        } else {
+            const idx = Number(selectedKey.replace("alt-", ""));
+            setLocalAlternatives(prev => prev.map((alt, i) => i === idx ? { ...alt, nutrition: current } : alt));
+        }
+    };
+
     const onSelectView = (key: string) => {
         if (key === selectedKey) return;
-        // If we're navigating AWAY from the primary view, capture the
-        // current form values (which reflect the primary serving, including
-        // any edits the user made) as the authoritative primary nutrition.
-        // This must happen BEFORE the form is overwritten with the new
-        // view's values, and must be keyed off the outgoing view, not the
-        // incoming one - otherwise the primary's data gets clobbered with
-        // whatever alternative was being viewed.
-        if (selectedKey === "primary") {
-            setPrimaryNutrition({
-                ...(getValues("nutrition") as INutritionAlternative["nutrition"]),
-            });
-        }
+        commitOutgoingView();
         setSelectedKey(key);
         const view = servingViews.find(v => v.key === key);
         if (!view?.nutrition) return;
@@ -338,31 +341,105 @@ function FoodForm() {
     const [newHhName, setNewHhName] = useState("");
     // Manual weight, used when the unit's weight can't be computed from a fixed
     // conversion factor: household (solid), or cup/tbsp/tsp toggled to solid.
+    // Tracked in both units (like size_imperial/size_metric on the main form)
+    // so the oz and g fields stay in sync with each other.
+    const [newManualWeightOz, setNewManualWeightOz] = useState<number|null>(null);
     const [newManualWeightG, setNewManualWeightG] = useState<number|null>(null);
     // Manual volume, used only for household toggled to liquid (no fixed name to convert).
+    const [newHhVolumeFlOz, setNewHhVolumeFlOz] = useState<number|null>(null);
     const [newHhVolumeMl, setNewHhVolumeMl] = useState<number|null>(null);
     const [newLiquidDensity, setNewLiquidDensity] = useState<number|null>(1);
 
+    // Mirrors the size_imperial/size_metric onChange pairing on the main form:
+    // oz → g (28.3495 g/oz), updating the other unit's field to match.
+    const handleManualWeightOzChange = (raw: string) => {
+        if (raw === "") {
+            setNewManualWeightOz(null);
+            setNewManualWeightG(null);
+            return;
+        }
+        const oz = Number(raw);
+        setNewManualWeightOz(oz);
+        if (!Number.isNaN(oz)) {
+            setNewManualWeightG(Math.round(oz * 28.3495));
+        }
+    };
+
+    const handleManualWeightGChange = (raw: string) => {
+        if (raw === "") {
+            setNewManualWeightG(null);
+            setNewManualWeightOz(null);
+            return;
+        }
+        const g = Number(raw);
+        setNewManualWeightG(g);
+        if (!Number.isNaN(g)) {
+            setNewManualWeightOz(parseFloat((g / 28.3495).toFixed(2)));
+        }
+    };
+
+    // Mirrors the size_imperial/size_metric onChange pairing: fl oz → ml (29.5735 ml/fl oz).
+    const handleHhVolumeFlOzChange = (raw: string) => {
+        if (raw === "") {
+            setNewHhVolumeFlOz(null);
+            setNewHhVolumeMl(null);
+            return;
+        }
+        const flOz = Number(raw);
+        setNewHhVolumeFlOz(flOz);
+        if (!Number.isNaN(flOz)) {
+            setNewHhVolumeMl(Math.round(flOz * 29.5735));
+        }
+    };
+
+    const handleHhVolumeMlChange = (raw: string) => {
+        if (raw === "") {
+            setNewHhVolumeMl(null);
+            setNewHhVolumeFlOz(null);
+            return;
+        }
+        const ml = Number(raw);
+        setNewHhVolumeMl(ml);
+        if (!Number.isNaN(ml)) {
+            setNewHhVolumeFlOz(parseFloat((ml / 29.5735).toFixed(2)));
+        }
+    };
+
     const handleAddServing = () => {
-        // If we're currently viewing the primary serving, capture any
-        // unsaved edits before using it as the scaling base, and before the
-        // form is switched over to the new alternative's view.
+        // Persist whatever view is currently on screen (primary or an
+        // alternative) before it gets replaced by the new serving's view.
+        commitOutgoingView();
+        // The primary is always the scaling base, regardless of which view
+        // is currently displayed - use the live form values if we're viewing
+        // the primary, otherwise the already-committed primaryNutrition state.
         const primary = selectedKey === "primary"
             ? { ...(getValues("nutrition") as INutritionAlternative["nutrition"]) }
             : { ...primaryNutrition };
-        if (selectedKey === "primary") {
-            setPrimaryNutrition(primary);
-        }
 
         const density = effectiveUnitType === "liquid" ? newLiquidDensity : null;
+        // When the user directly entered paired oz/g or fl oz/ml values, use
+        // those exact values for the serving size fields instead of
+        // re-deriving them from newWeightG - otherwise the intermediate
+        // rounding of newWeightG causes the redisplayed value to drift from
+        // what the user actually typed (e.g. 6 fl oz becoming 5.99 fl oz).
         let newWeightG: number | null;
+        let directImperial: number | null = null;
+        let directMetric: number | null = null;
         if (isHouseholdUnit) {
-            newWeightG = effectiveUnitType === "solid"
-                ? newManualWeightG
-                : (newHhVolumeMl != null && density != null ? newHhVolumeMl * density : null);
+            if (effectiveUnitType === "solid") {
+                newWeightG = newManualWeightG;
+                directImperial = newManualWeightOz;
+                directMetric = newManualWeightG;
+            } else {
+                newWeightG = newHhVolumeMl != null && density != null ? newHhVolumeMl * density : null;
+                directImperial = newHhVolumeFlOz;
+                directMetric = newHhVolumeMl;
+            }
         } else if (effectiveUnitType === "solid" && !["g", "oz", "kg", "lb", "mg"].includes(newUnit)) {
             // cup/tbsp/tsp toggled to solid have no fixed weight conversion.
             newWeightG = newManualWeightG;
+            directImperial = newManualWeightOz;
+            directMetric = newManualWeightG;
         } else if (effectiveUnitType === "liquid" && newUnit === "fl oz" && density != null) {
             newWeightG = newValue * density * 28.3495;
         } else {
@@ -378,7 +455,9 @@ function FoodForm() {
         let nutrition: INutritionAlternative["nutrition"];
         if (newWeightG != null && primaryWeightG > 0) {
             const scale = newWeightG / primaryWeightG;
-            const { metric, imperial } = weightGToServingSize(newWeightG, effectiveUnitType);
+            const { metric, imperial } = directMetric != null && directImperial != null
+                ? { metric: directMetric, imperial: directImperial }
+                : weightGToServingSize(newWeightG, effectiveUnitType);
             nutrition = scaleNutrition(primary, scale, metric, imperial, description);
         } else {
             // Fallback: copy the primary nutrition with the new description.
@@ -402,7 +481,9 @@ function FoodForm() {
         setNewUnit("g");
         setNewUnitType("solid");
         setNewHhName("");
+        setNewManualWeightOz(null);
         setNewManualWeightG(null);
+        setNewHhVolumeFlOz(null);
         setNewHhVolumeMl(null);
         setNewLiquidDensity(1);
     };
@@ -918,38 +999,68 @@ function FoodForm() {
                                 )}
                                 {effectiveUnitType === "solid" ? (
                                     (isHouseholdUnit || !["g", "oz", "kg", "lb", "mg"].includes(newUnit)) && (
-                                        <Grid size={{ xs: 12 }} sx={{ mt: 1 }}>
-                                            <TextField
-                                                label="Weight (g)"
-                                                InputLabelProps={{ shrink: true }}
-                                                type="number"
-                                                size="small"
-                                                value={newManualWeightG ?? ""}
-                                                onChange={e => setNewManualWeightG(e.target.value ? Number(e.target.value) : null)}
-                                                helperText="Weight in grams for this serving"
-                                                inputProps={{ min: 0, step: 0.1 }}
-                                                fullWidth
-                                                sx={{ "& .MuiInputBase-root": { height: 40 } }}
-                                            />
-                                        </Grid>
-                                    )
-                                ) : (
-                                    <>
-                                        {isHouseholdUnit && (
-                                            <Grid size={{ xs: 12 }} sx={{ mt: 1 }}>
+                                        <>
+                                            <Grid size={{ xs: 6 }} sx={{ mt: 1 }}>
                                                 <TextField
-                                                    label="Volume (ml)"
+                                                    label="Weight (oz)"
                                                     InputLabelProps={{ shrink: true }}
                                                     type="number"
                                                     size="small"
-                                                    value={newHhVolumeMl ?? ""}
-                                                    onChange={e => setNewHhVolumeMl(e.target.value ? Number(e.target.value) : null)}
-                                                    helperText="Volume in milliliters for this serving"
+                                                    value={newManualWeightOz ?? ""}
+                                                    onChange={e => handleManualWeightOzChange(e.target.value)}
+                                                    inputProps={{ min: 0, step: 0.01 }}
+                                                    fullWidth
+                                                    sx={{ "& .MuiInputBase-root": { height: 40 } }}
+                                                />
+                                            </Grid>
+                                            <Grid size={{ xs: 6 }} sx={{ mt: 1 }}>
+                                                <TextField
+                                                    label="Weight (g)"
+                                                    InputLabelProps={{ shrink: true }}
+                                                    type="number"
+                                                    size="small"
+                                                    value={newManualWeightG ?? ""}
+                                                    onChange={e => handleManualWeightGChange(e.target.value)}
+                                                    helperText="Weight for this serving"
                                                     inputProps={{ min: 0, step: 0.1 }}
                                                     fullWidth
                                                     sx={{ "& .MuiInputBase-root": { height: 40 } }}
                                                 />
                                             </Grid>
+                                        </>
+                                    )
+                                ) : (
+                                    <>
+                                        {isHouseholdUnit && (
+                                            <>
+                                                <Grid size={{ xs: 6 }} sx={{ mt: 1 }}>
+                                                    <TextField
+                                                        label="Volume (fl oz)"
+                                                        InputLabelProps={{ shrink: true }}
+                                                        type="number"
+                                                        size="small"
+                                                        value={newHhVolumeFlOz ?? ""}
+                                                        onChange={e => handleHhVolumeFlOzChange(e.target.value)}
+                                                        inputProps={{ min: 0, step: 0.01 }}
+                                                        fullWidth
+                                                        sx={{ "& .MuiInputBase-root": { height: 40 } }}
+                                                    />
+                                                </Grid>
+                                                <Grid size={{ xs: 6 }} sx={{ mt: 1 }}>
+                                                    <TextField
+                                                        label="Volume (ml)"
+                                                        InputLabelProps={{ shrink: true }}
+                                                        type="number"
+                                                        size="small"
+                                                        value={newHhVolumeMl ?? ""}
+                                                        onChange={e => handleHhVolumeMlChange(e.target.value)}
+                                                        helperText="Volume for this serving"
+                                                        inputProps={{ min: 0, step: 0.1 }}
+                                                        fullWidth
+                                                        sx={{ "& .MuiInputBase-root": { height: 40 } }}
+                                                    />
+                                                </Grid>
+                                            </>
                                         )}
                                         <Grid size={{ xs: 12 }} sx={{ mt: 1 }}>
                                             <TextField

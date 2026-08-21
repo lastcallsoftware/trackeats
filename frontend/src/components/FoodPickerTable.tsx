@@ -86,13 +86,13 @@ const foodPickerColumns = [
                 cell: info => info.getValue(),
                 size: 120,
             }),
-            columnHelper.accessor("size_oz", {
-                header: () => <span>Size (oz)</span>,
+            columnHelper.accessor("size_imperial", {
+                header: () => <span>Size (oz/fl oz)</span>,
                 cell: info => info.getValue(),
                 size: 80,
             }),
-            columnHelper.accessor("size_g", {
-                header: () => <span>Size (g)</span>,
+            columnHelper.accessor("size_metric", {
+                header: () => <span>Size (g/ml)</span>,
                 cell: info => info.getValue(),
                 size: 80,
             }),

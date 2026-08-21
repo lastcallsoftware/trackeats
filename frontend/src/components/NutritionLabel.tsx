@@ -23,6 +23,15 @@ type ServingView = {
   key: string;
   label: string;
   nutrition: INutrition;
+  servingUnitKind: "solid" | "liquid";
+};
+
+const inferServingUnitKind = (servingDescription: string | null | undefined): "solid" | "liquid" => {
+  const normalized = (servingDescription ?? "").toLowerCase();
+  if (normalized.includes("fl oz") || normalized.includes("fluid") || normalized.includes("ml") || normalized.includes("cup") || normalized.includes("tbsp") || normalized.includes("tsp")) {
+    return "liquid";
+  }
+  return "solid";
 };
 
 // A simple FDA-style Nutrition Facts label for use in FoodsTable/RecipesTable detail panel
@@ -54,11 +63,14 @@ export const NutritionLabel: React.FC<{
   };
 
   const buildServingViews = (): ServingView[] => {
+    const primaryAlternative = nutritionAlternatives?.find(alt => alt.is_primary);
+    const primaryKind = primaryAlternative?.serving_unit_kind ?? inferServingUnitKind(nutrition?.serving_size_description);
     const views: ServingView[] = [
       {
         key: "primary",
         label: nutrition?.serving_size_description || "Primary",
         nutrition: nutrition || defaultNutrition,
+        servingUnitKind: primaryKind,
       },
     ];
     if (nutritionAlternatives) {
@@ -71,6 +83,7 @@ export const NutritionLabel: React.FC<{
           key: `alt-${i}`,
           label: alt.nutrition?.serving_size_description || `${alt.serving_value} ${alt.serving_unit}`,
           nutrition: alt.nutrition || defaultNutrition,
+          servingUnitKind: alt.serving_unit_kind,
         });
       });
     }
@@ -84,7 +97,11 @@ export const NutritionLabel: React.FC<{
   // the user switched to a different food that has fewer or no alternatives),
   // fall back to the primary view instead of showing all-zero nutrition.
   const effectiveKey = servingViews.some(v => v.key === selectedKey) ? selectedKey : "primary";
-  const n = servingViews.find(v => v.key === effectiveKey)?.nutrition || defaultNutrition;
+  const activeView = servingViews.find(v => v.key === effectiveKey);
+  const n = activeView?.nutrition || defaultNutrition;
+  const activeServingUnitKind = activeView?.servingUnitKind ?? inferServingUnitKind(n.serving_size_description);
+  const imperialUnitLabel = activeServingUnitKind === "liquid" ? "fl oz" : "oz";
+  const metricUnitLabel = activeServingUnitKind === "liquid" ? "ml" : "g";
 
   return (
     <Box
@@ -141,8 +158,8 @@ export const NutritionLabel: React.FC<{
       </Box>
       <Typography variant="caption" sx={{ color: "#555", display: "block", mb: 1 }}>
         {[
-          n.serving_size_imperial > 0 ? `${formatSignificantDigit(n.serving_size_imperial)} oz` : null,
-          n.serving_size_metric > 0 ? `${formatSignificantDigit(n.serving_size_metric)} g` : null,
+          n.serving_size_imperial > 0 ? `${formatSignificantDigit(n.serving_size_imperial)} ${imperialUnitLabel}` : null,
+          n.serving_size_metric > 0 ? `${formatSignificantDigit(n.serving_size_metric)} ${metricUnitLabel}` : null,
           pricePerServing != null && Number.isFinite(pricePerServing) ? `$${pricePerServing.toFixed(2)}` : null,
         ]
           .filter(Boolean)
