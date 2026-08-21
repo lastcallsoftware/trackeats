@@ -344,7 +344,9 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
             (error) => {
                 const status = error.response?.status;
                 const url = error.config?.url ?? "";
-                const hasToken = !!sessionStorage.getItem("access_token");
+                // Check the request itself (not current sessionStorage) so concurrent
+                // requests aren't missed once the first 401 clears the token.
+                const hadToken = !!error.config?.headers?.Authorization;
                 const isPublicAuthEndpoint = [
                     "/api/register",
                     "/api/resend_confirmation",
@@ -354,7 +356,7 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
                     "/api/reset_password",
                 ].some((path) => url.includes(path));
 
-                if (status === 401 && hasToken && !isPublicAuthEndpoint) {
+                if (status === 401 && hadToken && !isPublicAuthEndpoint) {
                     error.trackeatsSessionExpired = true;
                     removeToken();
                     navigateRef.current("/login", { state: { message: "Your token has expired and you have been logged out." } });
