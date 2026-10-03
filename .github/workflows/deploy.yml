@@ -135,6 +135,8 @@ jobs:
           FACEBOOK_APP_ID: ${{ vars.FACEBOOK_APP_ID }}
           FACEBOOK_APP_SECRET: ${{ secrets.FACEBOOK_APP_SECRET }}
           TURNSTILE_SECRET_KEY: ${{ secrets.TURNSTILE_SECRET_KEY }}
+          USDA_FDC_API_KEY: ${{ secrets.USDA_FDC_API_KEY }}
+          USDA_FDC_TIMEOUT_SECONDS: ${{ secrets.USDA_FDC_TIMEOUT_SECONDS }}
         with:
           host: ${{ secrets.APP_SERVER_HOST }}
           username: ${{ secrets.APP_SERVER_USERNAME }}
@@ -161,7 +163,8 @@ jobs:
             GOOGLE_ANDROID_CLIENT_ID,
             FACEBOOK_APP_ID,
             FACEBOOK_APP_SECRET,
-            TURNSTILE_SECRET_KEY
+            TURNSTILE_SECRET_KEY,
+            USDA_FDC_API_KEY
           script: |
             set -euo pipefail
             DEPLOY_DIR=/srv/trackeats
