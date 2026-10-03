@@ -1,22 +1,21 @@
-from types import TracebackType
-from smtplib import SMTPException
+from botocore.exceptions import ClientError
 
 import pytest
 
 from sendmail import Sendmail
 
 
-def test_send_confirmation_email_builds_link_and_calls_smtp(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_send_confirmation_email_builds_link_and_calls_ses(monkeypatch: pytest.MonkeyPatch) -> None:
     captured: dict[str, str] = {}
 
-    def fake_sendmail_smtp(email_address: str, email_subject: str, email_body_text: str, email_body_html: str) -> None:
+    def fake_sendmail_ses(email_address: str, email_subject: str, email_body_text: str, email_body_html: str) -> None:
         captured["email"] = email_address
         captured["subject"] = email_subject
         captured["text"] = email_body_text
         captured["html"] = email_body_html
 
     monkeypatch.setenv("CONFIRM_LINK_BASE_URL", "http://localhost:5000")
-    monkeypatch.setattr(Sendmail, "sendmail_smtp", staticmethod(fake_sendmail_smtp))
+    monkeypatch.setattr(Sendmail, "sendmail_ses", staticmethod(fake_sendmail_ses))
 
     Sendmail.send_confirmation_email("user1", "abc123", "user1@example.com")
 
@@ -33,7 +32,7 @@ def test_send_confirmation_email_adds_mobile_source_to_link(monkeypatch: pytest.
         captured["html"] = html
 
     monkeypatch.setenv("CONFIRM_LINK_BASE_URL", "https://example.trycloudflare.com")
-    monkeypatch.setattr(Sendmail, "sendmail_smtp", staticmethod(_send))
+    monkeypatch.setattr(Sendmail, "sendmail_ses", staticmethod(_send))
 
     Sendmail.send_confirmation_email("user1", "abc123", "user1@example.com", "mobile")
 
@@ -44,14 +43,14 @@ def test_send_confirmation_email_adds_mobile_source_to_link(monkeypatch: pytest.
 def test_send_confirmation_email_normalizes_trailing_slash_in_confirm_link_base_url(monkeypatch: pytest.MonkeyPatch) -> None:
     captured: dict[str, str] = {}
 
-    def fake_sendmail_smtp(email_address: str, email_subject: str, email_body_text: str, email_body_html: str) -> None:
+    def fake_sendmail_ses(email_address: str, email_subject: str, email_body_text: str, email_body_html: str) -> None:
         captured["email"] = email_address
         captured["subject"] = email_subject
         captured["text"] = email_body_text
         captured["html"] = email_body_html
 
     monkeypatch.setenv("CONFIRM_LINK_BASE_URL", "https://trackeats.com/")
-    monkeypatch.setattr(Sendmail, "sendmail_smtp", staticmethod(fake_sendmail_smtp))
+    monkeypatch.setattr(Sendmail, "sendmail_ses", staticmethod(fake_sendmail_ses))
 
     Sendmail.send_confirmation_email("user1", "abc123", "user1@example.com")
 
@@ -68,13 +67,13 @@ def test_send_confirmation_email_falls_back_to_backend_base_url(monkeypatch: pyt
 
     captured: dict[str, str] = {}
 
-    def fake_sendmail_smtp(email_address: str, email_subject: str, email_body_text: str, email_body_html: str) -> None:
+    def fake_sendmail_ses(email_address: str, email_subject: str, email_body_text: str, email_body_html: str) -> None:
         captured["email"] = email_address
         captured["subject"] = email_subject
         captured["text"] = email_body_text
         captured["html"] = email_body_html
 
-    monkeypatch.setattr(Sendmail, "sendmail_smtp", staticmethod(fake_sendmail_smtp))
+    monkeypatch.setattr(Sendmail, "sendmail_ses", staticmethod(fake_sendmail_ses))
 
     Sendmail.send_confirmation_email("user1", "abc123", "user1@example.com")
 
@@ -91,43 +90,114 @@ def test_send_confirmation_email_requires_confirm_or_backend_base_url(monkeypatc
         Sendmail.send_confirmation_email("user1", "abc123", "user1@example.com")
 
 
-def test_sendmail_smtp_requires_env_vars(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.delenv("SMTP_HOSTNAME", raising=False)
-    monkeypatch.delenv("SMTP_USERNAME", raising=False)
-    monkeypatch.delenv("SMTP_PASSWORD", raising=False)
+def test_send_contact_email_uses_ses_and_sets_reply_to(monkeypatch: pytest.MonkeyPatch) -> None:
+    captured: dict[str, object] = {}
 
-    with pytest.raises(ValueError, match="SMTP Hostname may not be None"):
-        Sendmail.sendmail_smtp("a@b.com", "subject", "txt", "<p>txt</p>")
+    def fake_sendmail_ses(
+        email_address: str,
+        email_subject: str,
+        email_body_text: str,
+        email_body_html: str,
+        reply_to: str | None = None,
+    ) -> None:
+        captured["email"] = email_address
+        captured["subject"] = email_subject
+        captured["text"] = email_body_text
+        captured["html"] = email_body_html
+        captured["reply_to"] = reply_to or ""
+
+    monkeypatch.setenv("CONTACT_RECIPIENT_EMAIL", "contact@example.com")
+    monkeypatch.setattr(Sendmail, "sendmail_ses", staticmethod(fake_sendmail_ses))
+
+    Sendmail.send_contact_email(
+        "Visitor",
+        "visitor@example.com",
+        "Question",
+        "Hello <there>",
+    )
+
+    assert captured["email"] == "contact@example.com"
+    assert captured["subject"] == "Portfolio Contact: Question"
+    text = captured["text"]
+    html = captured["html"]
+    assert isinstance(text, str)
+    assert isinstance(html, str)
+    assert "Hello <there>" in text
+    assert "Hello &lt;there&gt;" in html
+    assert captured["reply_to"] == "visitor@example.com"
 
 
-class _FailingSMTP:
-    def __init__(self, hostname: str, port: int) -> None:
-        self.hostname = hostname
-        self.port = port
+def test_sendmail_ses_uses_ses_api_and_preserves_reply_to(monkeypatch: pytest.MonkeyPatch) -> None:
+    captured: dict[str, object] = {}
 
-    def __enter__(self) -> "_FailingSMTP":
-        return self
+    class _FakeSesClient:
+        def send_email(self, **request: object) -> None:
+            captured["request"] = request
 
-    def __exit__(
-        self,
-        exc_type: type[BaseException] | None,
-        exc: BaseException | None,
-        tb: TracebackType | None,
-    ) -> bool:
-        return False
+    def fake_boto3_client(
+        service_name: str,
+        **kwargs: str,
+    ) -> _FakeSesClient:
+        captured["service_name"] = service_name
+        captured["client_kwargs"] = kwargs
+        return _FakeSesClient()
 
-    def login(self, username: str, password: str) -> None:
-        raise SMTPException("boom")
+    monkeypatch.setenv("AWS_ACCESS_KEY_ID", "access-key")
+    monkeypatch.setenv("AWS_SECRET_ACCESS_KEY", "secret-key")
+    monkeypatch.setenv("AWS_REGION", "us-east-1")
+    monkeypatch.setattr("sendmail.boto3.client", fake_boto3_client)
 
-    def sendmail(self, sender: str, to: str, message: str) -> dict[str, tuple[int, bytes]]:
-        return {}
+    Sendmail.sendmail_ses(
+        "recipient@example.com",
+        "subject",
+        "plain message",
+        "<p>html message</p>",
+        reply_to="reply@example.com",
+    )
+
+    assert captured["service_name"] == "sesv2"
+    assert captured["client_kwargs"] == {
+        "region_name": "us-east-1",
+        "aws_access_key_id": "access-key",
+        "aws_secret_access_key": "secret-key",
+    }
+    request = captured["request"]
+    assert isinstance(request, dict)
+    assert request["Destination"] == {"ToAddresses": ["recipient@example.com"]}
+    assert request["ReplyToAddresses"] == ["reply@example.com"]
+    assert request["Content"] == {
+        "Simple": {
+            "Subject": {"Data": "subject", "Charset": "UTF-8"},
+            "Body": {
+                "Text": {"Data": "plain message", "Charset": "UTF-8"},
+                "Html": {"Data": "<p>html message</p>", "Charset": "UTF-8"},
+            },
+        }
+    }
 
 
-def test_sendmail_smtp_wraps_smtp_error(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setenv("SMTP_HOSTNAME", "smtp.example.com")
-    monkeypatch.setenv("SMTP_USERNAME", "user")
-    monkeypatch.setenv("SMTP_PASSWORD", "password")
-    monkeypatch.setattr("sendmail.SMTP_SSL", _FailingSMTP)
+def test_sendmail_ses_requires_api_credentials(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.delenv("AWS_ACCESS_KEY_ID", raising=False)
+    monkeypatch.delenv("AWS_SECRET_ACCESS_KEY", raising=False)
 
-    with pytest.raises(RuntimeError, match="SMTP server"):
-        Sendmail.sendmail_smtp("a@b.com", "subject", "txt", "<p>txt</p>")
+    with pytest.raises(ValueError, match="AWS_ACCESS_KEY_ID must be configured"):
+        Sendmail.sendmail_ses("a@b.com", "subject", "txt", "<p>txt</p>")
+
+
+def test_sendmail_ses_wraps_aws_api_error(monkeypatch: pytest.MonkeyPatch) -> None:
+    class _FailingSesClient:
+        def send_email(self, **request: object) -> None:
+            raise ClientError(
+                {"Error": {"Code": "MessageRejected", "Message": "Email address not verified"}},
+                "SendEmail",
+            )
+
+    def fake_boto3_client(service_name: str, **kwargs: str) -> _FailingSesClient:
+        return _FailingSesClient()
+
+    monkeypatch.setenv("AWS_ACCESS_KEY_ID", "access-key")
+    monkeypatch.setenv("AWS_SECRET_ACCESS_KEY", "secret-key")
+    monkeypatch.setattr("sendmail.boto3.client", fake_boto3_client)
+
+    with pytest.raises(RuntimeError, match="Amazon SES API request failed"):
+        Sendmail.sendmail_ses("a@b.com", "subject", "txt", "<p>txt</p>")

@@ -74,3 +74,9 @@ cryptography
 
 # requests is used to fetch Facebook token introspection and Apple public keys.
 requests
+
+# boto3 is used to send email through the Amazon SES HTTPS API.
+boto3
+
+# boto3-stubs provides type information for the SESv2 SDK client.
+boto3-stubs[sesv2]

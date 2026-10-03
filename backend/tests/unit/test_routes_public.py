@@ -59,6 +59,39 @@ def test_health_db_failure_returns_500(client: FlaskClient, monkeypatch: pytest.
     assert "Health check failed" in resp.get_json()["msg"]
 
 
+def test_contact_sends_message_after_turnstile_verification(
+    client: FlaskClient,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(routes, "verify_turnstile", lambda token, remote_addr: True)
+    captured: dict[str, str] = {}
+
+    def _send_contact(name: str, email_address: str, subject: str, message: str) -> None:
+        captured.update(name=name, email=email_address, subject=subject, message=message)
+
+    monkeypatch.setattr(routes.Sendmail, "send_contact_email", staticmethod(_send_contact))
+
+    resp = client.post(
+        "/api/contact",
+        json={
+            "name": "Visitor",
+            "email": "visitor@example.com",
+            "subject": "Question",
+            "message": "Hello",
+            "turnstileToken": "valid-token",
+        },
+    )
+
+    assert resp.status_code == 200
+    assert resp.get_json()["msg"] == "Contact message sent successfully"
+    assert captured == {
+        "name": "Visitor",
+        "email": "visitor@example.com",
+        "subject": "Question",
+        "message": "Hello",
+    }
+
+
 def test_register_non_json_returns_401(client: FlaskClient, monkeypatch: pytest.MonkeyPatch) -> None:
     _mock_session(monkeypatch)
 

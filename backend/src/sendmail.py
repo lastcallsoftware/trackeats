@@ -1,23 +1,19 @@
 import os
 from email.utils import formataddr
-from smtplib import SMTP_SSL, SMTPException
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
+from typing import Protocol, cast
 
-# Amazon SES SMTP credentials.
-# This is the name of the key under which the actual value is stored in
-# os.environ.
-SMTP_HOSTNAME_KEY = "SMTP_HOSTNAME"
-SMTP_USERNAME_KEY = "SMTP_USERNAME"
-SMTP_PASSWORD_KEY = "SMTP_PASSWORD"
+import boto3
+from botocore.exceptions import BotoCoreError, ClientError
 
-# The normal SMTP port is 587.  When using SSL (which we are) it's port 465.
-SMTP_PORT = 465
+AWS_ACCESS_KEY_ID_KEY = "AWS_ACCESS_KEY_ID"
+AWS_SECRET_ACCESS_KEY_KEY = "AWS_SECRET_ACCESS_KEY"
+AWS_REGION_KEY = "AWS_REGION"
+DEFAULT_AWS_REGION = "us-east-1"
 
-# (Optional) the name of a configuration set to use for this message.
-# If you comment out this line, you also need to remove or comment out
-# the "X-SES-CONFIGURATION-SET:" header below.
-# CONFIGURATION_SET = "ConfigSet"
+
+class _SesV2Client(Protocol):
+    def send_email(self, **request: object) -> object: ...
+
 
 # The email address of the sender.  This address must be verified by AWS.
 EMAIL_SENDER_ADDRESS = 'support@trackeats.com'
@@ -130,7 +126,7 @@ class Sendmail:
         #logging.info("email_body_text: " + email_body_text)
         #logging.info("email_body_html: " + email_body_html)
         
-        Sendmail.sendmail_smtp(email_address, VERIFY_EMAIL_SUBJECT, email_body_text, email_body_html)
+        Sendmail.sendmail_ses(email_address, VERIFY_EMAIL_SUBJECT, email_body_text, email_body_html)
 
 
     @staticmethod
@@ -147,7 +143,7 @@ class Sendmail:
         email_body_text = RESET_EMAIL_TEMPLATE_TEXT.format(link=link, support_email_addr=EMAIL_SENDER_ADDRESS)
         email_body_html = RESET_EMAIL_TEMPLATE_HTML.format(link=link, support_email_addr=EMAIL_SENDER_ADDRESS)
 
-        Sendmail.sendmail_smtp(email_address, RESET_EMAIL_SUBJECT, email_body_text, email_body_html)
+        Sendmail.sendmail_ses(email_address, RESET_EMAIL_SUBJECT, email_body_text, email_body_html)
 
     @staticmethod
     def send_contact_email(name: str, email_address: str, subject: str, message: str) -> None:
@@ -173,7 +169,7 @@ class Sendmail:
             message_html=message_html,
         )
 
-        Sendmail.sendmail_smtp(
+        Sendmail.sendmail_ses(
             recipient_email_address,
             email_subject,
             email_body_text,
@@ -182,7 +178,7 @@ class Sendmail:
         )
 
     @staticmethod
-    def sendmail_smtp(
+    def sendmail_ses(
         email_address: str,
         email_subject: str,
         email_body_text: str,
@@ -190,127 +186,49 @@ class Sendmail:
         reply_to: str | None = None,
     ) -> None:
         """
-        Send an email using the standard Python SMTP library.
-        We use Amazon's SES service, using credentials obtained from the AWS website.
+        Send an email through the Amazon SES HTTPS API.
         """
-        smtp_hostname = os.environ.get(SMTP_HOSTNAME_KEY)
-        smtp_username = os.environ.get(SMTP_USERNAME_KEY)
-        smtp_password = os.environ.get(SMTP_PASSWORD_KEY)
+        aws_access_key_id = os.environ.get(AWS_ACCESS_KEY_ID_KEY)
+        aws_secret_access_key = os.environ.get(AWS_SECRET_ACCESS_KEY_KEY)
+        if not aws_access_key_id:
+            raise ValueError("AWS_ACCESS_KEY_ID must be configured")
+        if not aws_secret_access_key:
+            raise ValueError("AWS_SECRET_ACCESS_KEY must be configured")
 
-        if (not smtp_hostname):
-            raise ValueError("SMTP Hostname may not be None")
-        if (not smtp_username):
-            raise ValueError("SMTP Username may not be None")
-        if (not smtp_password):
-            raise ValueError("SMTP Password may not be None")
-
-        # Create message container - the correct MIME type is multipart/alternative.
-        email_msg = MIMEMultipart('alternative')
-        email_msg['Subject'] = email_subject
-        email_msg['From'] = formataddr((EMAIL_SENDER_NAME, EMAIL_SENDER_ADDRESS))
-        email_msg['To'] = email_address
+        region = os.environ.get(AWS_REGION_KEY, DEFAULT_AWS_REGION)
+        ses_client = boto3.client(
+            "sesv2",
+            region_name=region,
+            aws_access_key_id=aws_access_key_id,
+            aws_secret_access_key=aws_secret_access_key,
+        )
+        content = {
+            "Simple": {
+                "Subject": {"Data": email_subject, "Charset": "UTF-8"},
+                "Body": {
+                    "Text": {"Data": email_body_text, "Charset": "UTF-8"},
+                    "Html": {"Data": email_body_html, "Charset": "UTF-8"},
+                },
+            }
+        }
+        request: dict[str, object] = {
+            "FromEmailAddress": formataddr((EMAIL_SENDER_NAME, EMAIL_SENDER_ADDRESS)),
+            "Destination": {"ToAddresses": [email_address]},
+            "Content": content,
+        }
         if reply_to:
-            email_msg['Reply-To'] = reply_to
-        # Comment or delete the next line if you are not using a configuration set
-        # msg.add_header('X-SES-CONFIGURATION-SET',CONFIGURATION_SET)
+            request["ReplyToAddresses"] = [reply_to]
 
-        # Record the MIME types of both parts - text/plain and text/html.
-        part1 = MIMEText(email_body_text, 'plain')
-        part2 = MIMEText(email_body_html, 'html')
-
-        # Attach parts into message container.
-        # According to RFC 2046, the last part of a multipart message, in this case
-        # the HTML message, is best and preferred.
-        email_msg.attach(part1)
-        email_msg.attach(part2)
-
-        # Try to send the message.
         try:
-            # There are apparently two ways to call an SMTP server using the SSL/TLS
-            # protocol (which you absolutely do want/need to do).  One is to use the
-            # SMTP object and call its starttls() API, and the other is to use the 
-            # SMTP_SSL object, which handles it automatically.  I'm using the latter
-            # because anything "automatic"seems inherently more reliable, but
-            # # honestly I have no idea if that's true or if either way is better.
-            #with SMTP(AWS_SMTP_ENDPOINT) as smtp:
-            #    smtp.starttls()
-            with SMTP_SSL(smtp_hostname, SMTP_PORT) as smtp:
-                smtp.login(smtp_username, smtp_password)
-                response = smtp.sendmail(EMAIL_SENDER_ADDRESS, email_address, email_msg.as_string())
-                if (len(response) > 0):
-                    err_code, err_msg = next(iter(response.values()))
-                    raise SMTPException(f"Unable to send email to one or more particular recipients: {err_code} {err_msg}")
-
-        except SMTPException as e:
-            raise RuntimeError(f"An error occurred on the SMTP server: {repr(e)}")
-
-        except Exception as e:
-            raise RuntimeError(f"Unexpected server error: {repr(e)}")
-
-
-    # -------------------------------------------
-    # Send an email using Amazon's boto3 library.
-    #
-    # boto3 is the Amazon SDK for Python, which provides support for all AWS 
-    # services.  I had intended to use it to access Amazon's Simple Email Service
-    # (SES), but that turned out to be way more trouble than it's worth.
-    # To use it, you first have to create a session and log on using the library's
-    # SSO APIs, and use a complicated (and poorly documented) JSON format for the
-    # message and its recipients.
-    #
-    # Here's an example:
-    #
-    #   {
-    #   	"Subject": {
-    # 	    	"Data": "Test email sent using AWS CLI",
-    # 		    "Charset": "UTF-8"
-    # 	    },
-    # 	    "Body": {
-    # 		    "Text": {
-    # 			    "Data": "This is the message body in text format.",
-    #    			"Charset": "UTF-8"
-    # 	    	},
-    # 		    "Html": {
-    # 			    "Data": "This message body contains <b>HTML formatting</b>.",
-    # 			    "Charset": "UTF-8"
-    # 		    }
-    # 	    }
-    #   }
-    #
-    # NO THANKS!  There is a MUCH simpler way to use AWS's email servers to send
-    # emails, which is to just use the standard Python SMTP library and feed it the 
-    # AWS SMTP server credentials (i.e., what I actually implemented above).  I'm
-    # just keeping the boto3 crap here but commented out in the highly unlikely 
-    # event I'll want to use it again for some reason.
-    # Note that this isn't a complete implementation, either -- I gave up when I
-    # learned I needed to create a session first, so that bit isn't written yet.
-    #
-    # import boto3
-    # from botocore.exceptions import ClientError, WaiterError
-    # ------------------------------------------
-    # def sendmail_boto3(email_address: str):
-    #     sender_email_address = "admin@lastcallsoftware.com"
-    #     message_subject = "TrackEats User Verification"
-    #     message_text = "Hello from TrackEats!"
-    #     message_html = "<p>Hello from <b>TrackEats!</b></p>"
-    #
-    #     send_args = {
-    #         "Source": sender_email_address,
-    #         "Destination": {"ToAddresses": [email_address]},
-    #         "Message": {
-    #             "Subject": {"Data": message_subject},
-    #             "Body": {"Text": {"Data": message_text}, "Html": {"Data": message_html}}
-    #         },
-    #     }
-    #
-    #     msg = None
-    #     try:
-    #         ses_client = boto3.client("ses")
-    #         response = ses_client.send_email(**send_args)
-    #         message_id = response["MessageId"]
-    #     except ClientError:
-    #         msg = f"Couldn't send email from {sender_email_address} to {email_address}"
-    #     else:
-    #         msg = f"Email {message_id} sent from {sender_email_address} to {email_address}"
-    #
-    #     return msg
+            ses_client = cast(
+                _SesV2Client,
+                boto3.client(
+                    "sesv2",
+                    region_name=region,
+                    aws_access_key_id=aws_access_key_id,
+                    aws_secret_access_key=aws_secret_access_key,
+                ),
+            )
+            ses_client.send_email(**request)
+        except (BotoCoreError, ClientError) as e:
+            raise RuntimeError(f"Amazon SES API request failed: {e}") from e
