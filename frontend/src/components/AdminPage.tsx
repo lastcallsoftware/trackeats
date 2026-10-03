@@ -30,7 +30,7 @@ import { MdDeleteForever, MdRefresh } from 'react-icons/md';
 import DataPageLayout from './DataPageLayout';
 import USDAFoodsTable from './USDAFoodsTable';
 import { NutritionLabel } from './NutritionLabel';
-import { INutrition } from '@/contexts/DataProvider';
+import { INutrition, INutritionAlternative } from '@/contexts/DataProvider';
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -84,6 +84,7 @@ type FdcImportResponse = {
 
 type FdcPreviewResponse = {
     count: number;
+    failures?: Array<{ fdc_id: number; error: string; retryable: boolean }>;
     items: Array<{
         fdcId: number;
         dataType?: string;
@@ -92,6 +93,7 @@ type FdcPreviewResponse = {
         nutritionStatus?: string;
         mapped?: {
             nutrition?: INutrition;
+            nutrition_alternatives?: INutritionAlternative[];
         };
     }>;
 };
@@ -164,6 +166,7 @@ function AdminPage() {
     const [fdcPreviewRowId, setFdcPreviewRowId] = useState<number | null>(null);
     const [fdcPreviewItems, setFdcPreviewItems] = useState<Record<number, FdcPreviewItem>>({});
     const [fdcPreviewLoading, setFdcPreviewLoading] = useState(false);
+    const [fdcPreviewError, setFdcPreviewError] = useState<{ message: string; retryable: boolean } | null>(null);
     const [fdcLoading, setFdcLoading] = useState(false);
     const [fdcImporting, setFdcImporting] = useState(false);
     const [fdcError, setFdcError] = useState<string | null>(null);
@@ -188,41 +191,46 @@ function AdminPage() {
 
     useEffect(() => { fetchUsers(); }, [fetchUsers]);
 
-    const fetchFdcPreviews = useCallback(async (foods: FdcSearchFood[]) => {
-        const fdcIds = foods.map((food) => food.fdcId);
-        if (fdcIds.length === 0) {
-            setFdcPreviewItems({});
-            setFdcPreviewLoading(false);
-            return;
-        }
-
+    const fetchFdcPreview = useCallback(async (fdcId: number) => {
         const requestSeq = ++fdcPreviewRequestSeq.current;
         setFdcPreviewLoading(true);
         setFdcPreviewItems({});
+        setFdcPreviewError(null);
+
+        const discardFood = () => {
+            setFdcResults((prev) => prev.filter((food) => food.fdcId !== fdcId));
+            setFdcSelectedIds((prev) => {
+                const next = new Set(prev);
+                next.delete(fdcId);
+                return next;
+            });
+        };
 
         try {
             const res = await axios.post<FdcPreviewResponse>('/api/import/fdc/preview', {
-                fdc_ids: fdcIds,
+                fdc_ids: [fdcId],
             }, {
                 timeout: USDA_REQUEST_TIMEOUT_MS,
             });
-            if (requestSeq !== fdcPreviewRequestSeq.current) {
-                return;
+            if (requestSeq !== fdcPreviewRequestSeq.current) return;
+            const item = res.data.items.find((food) => food.fdcId === fdcId);
+            if (item) {
+                setFdcPreviewItems({ [fdcId]: item });
+            } else {
+                const failure = res.data.failures?.find((food) => food.fdc_id === fdcId);
+                const retryable = failure?.retryable ?? false;
+                setFdcPreviewError({ message: failure?.error ?? 'Food not found in USDA response', retryable });
+                if (!retryable) discardFood();
             }
-
-            const nextItems: Record<number, FdcPreviewItem> = {};
-            for (const item of res.data.items ?? []) {
-                nextItems[item.fdcId] = item;
-            }
-            setFdcPreviewItems(nextItems);
-        } catch {
-            if (requestSeq === fdcPreviewRequestSeq.current) {
-                setFdcPreviewItems({});
-            }
+        } catch (err: unknown) {
+            if (requestSeq !== fdcPreviewRequestSeq.current) return;
+            const retryable = axios.isAxiosError(err)
+                && ((!err.response && ['ERR_NETWORK', 'ECONNABORTED', 'ETIMEDOUT'].includes(err.code ?? ''))
+                    || err.response?.data?.retryable === true);
+            const message = axios.isAxiosError(err) ? (err.response?.data?.msg ?? err.message) : String(err);
+            setFdcPreviewError({ message, retryable });
         } finally {
-            if (requestSeq === fdcPreviewRequestSeq.current) {
-                setFdcPreviewLoading(false);
-            }
+            if (requestSeq === fdcPreviewRequestSeq.current) setFdcPreviewLoading(false);
         }
     }, []);
 
@@ -251,7 +259,9 @@ function AdminPage() {
             setFdcPageNumber(res.data.currentPage ?? pageNumber);
             setFdcPreviewRowId(null);
             setFdcPreviewLoading(false);
-            void fetchFdcPreviews(foods);
+            ++fdcPreviewRequestSeq.current;
+            setFdcPreviewItems({});
+            setFdcPreviewError(null);
         } catch (err: unknown) {
             const msg = axios.isAxiosError(err)
                 ? (err.response?.data?.msg ?? err.message)
@@ -261,7 +271,7 @@ function AdminPage() {
         } finally {
             setFdcLoading(false);
         }
-    }, [fdcDataType, fdcPageSize, fdcQuery, fetchFdcPreviews]);
+    }, [fdcDataType, fdcPageSize, fdcQuery]);
 
     const toggleFdcSelected = (fdcId: number) => {
         setFdcSelectedIds((prev) => {
@@ -306,7 +316,8 @@ function AdminPage() {
 
     const selectFdcPreviewRow = useCallback((fdcId: number) => {
         setFdcPreviewRowId(fdcId);
-    }, []);
+        void fetchFdcPreview(fdcId);
+    }, [fetchFdcPreview]);
 
     // ── Sorting ──────────────────────────────────────────────────────────────
 
@@ -646,8 +657,11 @@ function AdminPage() {
                                         Nutrition Preview Unavailable
                                     </Typography>
                                     <Typography variant="body2" color="text.secondary">
-                                        USDA did not return preview data for this record. Try searching again.
+                                        {fdcPreviewError?.message ?? 'Preview data is unavailable.'}
                                     </Typography>
+                                    {fdcPreviewError?.retryable && fdcPreviewRowId && (
+                                        <Button onClick={() => void fetchFdcPreview(fdcPreviewRowId)}>Retry preview</Button>
+                                    )}
                                 </Box>
                             ) : selectedFdcPreviewMissingCore ? (
                                 <Box
@@ -673,13 +687,13 @@ function AdminPage() {
                                     </Typography>
                                 </Box>
                             ) : (
-                                <NutritionLabel nutrition={selectedFdcNutrition} />
+                                <NutritionLabel key={fdcPreviewRowId} nutrition={selectedFdcNutrition} nutritionAlternatives={selectedFdcPreview?.mapped?.nutrition_alternatives} />
                             )}
                             <Typography variant="caption" color="text.secondary" sx={{ px: { xs: 1, lg: 0 } }}>
                                 {selectedFdcPreviewPending
                                     ? 'Loading calorie source...'
                                     : (selectedFdcPreviewUnavailable
-                                        ? 'Calories source: unavailable (record missing from USDA preview response)'
+                                        ? 'Calories source: unavailable'
                                         : (selectedFdcPreviewMissingCore
                                             ? 'Calories source: N/A (missing in USDA record)'
                                             : calorieSourceLabel(selectedFdcCalorieSource)))}

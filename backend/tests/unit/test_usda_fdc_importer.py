@@ -360,3 +360,87 @@ def test_get_foods_by_ids_falls_back_for_ids_omitted_by_batch(monkeypatch: pytes
         ("/v1/foods", [100, 200]),
         ("/v1/foods", [200]),
     ]
+
+@pytest.mark.parametrize("network_failure", [True, False])
+def test_usda_request_retryable_only_for_network_errors(monkeypatch: pytest.MonkeyPatch, network_failure: bool) -> None:
+    import requests
+    from usda_fdc_importer import USDAFdcImporterError
+
+    def fail(*args: Any, **kwargs: Any) -> None:
+        if network_failure:
+            raise requests.Timeout("Timed out")
+        raise ValueError("Invalid JSON")
+
+    monkeypatch.setattr(requests, "post", fail)
+    importer = USDAFdcImporter(api_key="test-key")
+    with pytest.raises(USDAFdcImporterError) as error:
+        importer._post("/v1/foods", {"fdcIds": [1]}, {})
+    assert error.value.retryable is network_failure
+
+
+def test_foundation_milk_uses_liquid_total_and_primary_serving_with_measured_density() -> None:
+    importer = USDAFdcImporter(api_key="test-key")
+    food = {
+        "fdcId": 10, "dataType": "Foundation",
+        "description": "Milk, reduced fat, fluid, 2% milkfat",
+        "foodNutrients": [{"nutrient": {"number": "208"}, "amount": 50}],
+        "foodPortions": [{"amount": 1, "modifier": "cup", "measureUnit": {"name": "undetermined"}, "gramWeight": 244}],
+    }
+    mapped = importer.validate_and_map_food(food)
+    assert mapped.unit_type == "liquid"
+    assert mapped.density == pytest.approx(244 / 236.588)
+    assert mapped.size_metric == round(100 / mapped.density)
+    assert mapped.size_imperial == pytest.approx(100 / mapped.density / 29.5735, abs=0.001)
+    primary, cup = mapped.nutrition_alternatives
+    assert primary.is_primary
+    assert primary.serving_unit_kind == "liquid"
+    assert primary.serving_unit == "ml"
+    assert primary.serving_value == pytest.approx(100 / mapped.density)
+    assert float(primary.nutrition.serving_size_metric) == pytest.approx(100 / mapped.density, abs=0.01)
+    assert primary.nutrition.calories == 50
+    assert not cup.is_primary
+    assert cup.serving_unit == "cup"
+    assert cup.serving_unit_kind == "liquid"
+    assert float(cup.nutrition.serving_size_metric) == pytest.approx(236.588, abs=0.01)
+    assert float(cup.nutrition.serving_size_imperial) == pytest.approx(8, abs=0.01)
+    assert cup.nutrition.calories == 122
+
+
+@pytest.mark.parametrize("unit,amount,ml", [("ml", 240, 240), ("fl oz", 8, 236.588), ("l", 0.25, 250)])
+def test_branded_liquid_serving_units_preserve_label_nutrition(unit: str, amount: float, ml: float) -> None:
+    mapped = USDAFdcImporter(api_key="test-key").validate_and_map_food({
+        "fdcId": 11, "dataType": "Branded", "description": "Milk",
+        "servingSize": amount, "servingSizeUnit": unit,
+        "labelNutrients": {"calories": {"value": 120}},
+    })
+    assert mapped.unit_type == "liquid"
+    assert mapped.size_metric == round(ml)
+    assert float(mapped.nutrition.serving_size_metric) == pytest.approx(ml, abs=0.01)
+    assert mapped.nutrition.calories == 120
+    primary = mapped.nutrition_alternatives[0]
+    assert primary.is_primary and primary.serving_unit_kind == "liquid"
+    assert primary.serving_value == amount and primary.serving_unit == unit
+
+
+def test_solid_food_keeps_weight_total_and_explicit_primary_with_volume_alternative() -> None:
+    mapped = USDAFdcImporter(api_key="test-key").validate_and_map_food({
+        "fdcId": 12, "dataType": "Foundation", "description": "Flour, wheat",
+        "labelNutrients": {"calories": {"value": 360}},
+        "foodPortions": [{"amount": 1, "measureUnit": {"name": "cup"}, "gramWeight": 120}],
+    })
+    assert mapped.unit_type == "solid" and mapped.size_metric == 100
+    primary, cup = mapped.nutrition_alternatives
+    assert primary.is_primary and primary.serving_unit == "g"
+    assert primary.serving_value == 100 and primary.serving_unit_kind == "solid"
+    assert cup.serving_unit_kind == "liquid"
+    assert float(cup.nutrition.serving_size_metric) == pytest.approx(236.588, abs=0.01)
+    assert cup.nutrition.calories == 432
+
+
+@pytest.mark.parametrize("description", ["Milk, dry", "Milk chocolate", "Cheese", "Yogurt", "Water chestnuts", "Nuts, roasted in oil"])
+def test_solid_descriptions_are_not_mistaken_for_liquids(description: str) -> None:
+    mapped = USDAFdcImporter(api_key="test-key").validate_and_map_food({
+        "fdcId": 13, "description": description, "labelNutrients": {"calories": {"value": 100}},
+    })
+    assert mapped.unit_type == "solid"
+    assert mapped.nutrition_alternatives[0].serving_unit_kind == "solid"

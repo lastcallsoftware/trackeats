@@ -430,3 +430,21 @@ def test_preferences_save_creates_new_record_when_missing(monkeypatch: pytest.Mo
     assert created_pref.user_id == 3
     assert created_pref.context == "recipes.columns"
     assert created_pref.preferences == {"visible": True}
+
+def test_usda_liquid_import_persists_explicit_primary_units(monkeypatch: pytest.MonkeyPatch) -> None:
+    from usda_fdc_importer import USDAFdcImporter
+
+    session = _SessionStub()
+    monkeypatch.setattr(models.db, "session", session, raising=False)
+    request = USDAFdcImporter(api_key="test-key").validate_and_map_food({
+        "fdcId": 20, "dataType": "Branded", "description": "Milk",
+        "servingSize": 8, "servingSizeUnit": "fl oz",
+        "labelNutrients": {"calories": {"value": 120}},
+    })
+    food = models.Food.add(user_id=1, food=request)
+    assert food.unit_type == "liquid"
+    primary = next(a for a in session.added if isinstance(a, models.NutritionAlternative) and a.is_primary)
+    assert primary.serving_unit_kind == "liquid"
+    assert primary.serving_unit == "fl oz" and primary.serving_value == 8
+    nutrition = next(n for n in session.added if isinstance(n, models.Nutrition))
+    assert float(nutrition.serving_size_metric) == pytest.approx(236.588, abs=0.01)

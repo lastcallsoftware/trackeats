@@ -473,3 +473,62 @@ def test_delete_user_admin_happy_path(bare_flask_app: Flask, monkeypatch: pytest
     assert status == 200
     assert calls == {"recipe": 42, "food": 42}
     assert deleted == [user_dao]
+
+
+def test_fdc_preview_discards_invalid_food_without_losing_valid_food(
+    client: FlaskClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from usda_fdc_importer import USDAFdcImporter
+
+    _set_admin_claims(monkeypatch, True)
+    importer = USDAFdcImporter(api_key="test-key")
+    foods = [
+        {"fdcId": 1, "description": "Invalid", "dataType": "Foundation"},
+        {"fdcId": 2, "description": "Milk", "dataType": "Foundation", "labelNutrients": {"calories": {"value": 50}}},
+    ]
+    monkeypatch.setattr(importer, "get_foods_by_ids", lambda ids: foods)
+    monkeypatch.setattr(routes, "_get_importer", lambda: importer)
+
+    response = client.post("/api/import/fdc/preview", json={"fdc_ids": [1, 2]})
+
+    assert response.status_code == 200
+    payload = response.get_json()
+    assert [item["fdcId"] for item in payload["items"]] == [2]
+    assert payload["failures"] == [{"fdc_id": 1, "error": "USDA record is missing core nutrition data", "retryable": False}]
+
+
+def test_fdc_import_rejects_the_same_invalid_food(
+    client: FlaskClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from usda_fdc_importer import USDAFdcImporter
+
+    _set_admin_claims(monkeypatch, True)
+    importer = USDAFdcImporter(api_key="test-key")
+    monkeypatch.setattr(importer, "get_foods_by_ids", lambda ids: [{"fdcId": 1, "description": "Invalid", "dataType": "Foundation"}])
+    monkeypatch.setattr(routes, "_get_importer", lambda: importer)
+    monkeypatch.setattr(routes, "_get_catalog_user_id", lambda: 1)
+    monkeypatch.setattr(routes.db, "session", SimpleNamespace(begin=lambda: _DummyTxn(), begin_nested=lambda: _DummyTxn()))
+
+    response = client.post("/api/import/fdc/import", json={"fdc_ids": [1]})
+
+    assert response.status_code == 200
+    payload = response.get_json()
+    assert payload["imported_count"] == 0
+    assert payload["failures"] == [{"fdc_id": 1, "error": "USDA record is missing core nutrition data"}]
+
+
+@pytest.mark.parametrize("retryable", [False, True])
+def test_fdc_preview_preserves_request_retryability(
+    client: FlaskClient, monkeypatch: pytest.MonkeyPatch, retryable: bool
+) -> None:
+    from usda_fdc_importer import USDAFdcImporterError
+
+    _set_admin_claims(monkeypatch, True)
+
+    def fail() -> None:
+        raise USDAFdcImporterError("Request failed", retryable=retryable)
+
+    monkeypatch.setattr(routes, "_get_importer", fail)
+    response = client.post("/api/import/fdc/preview", json={"fdc_ids": [1]})
+    assert response.status_code == 400
+    assert response.get_json()["retryable"] is retryable

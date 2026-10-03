@@ -2217,28 +2217,37 @@ def fdc_preview_foods():
         importer = _get_importer()
         foods = importer.get_foods_by_ids(fdc_ids)
         previews: list[dict[str, Any]] = []
-        for food in foods:
-            mapped = importer.map_to_food_request(food)
-            previews.append(
-                {
-                    "fdcId": food.get("fdcId"),
-                    "dataType": food.get("dataType"),
-                    "description": food.get("description"),
-                    "calorieSource": importer.calorie_source(food),
-                    "nutritionStatus": importer.nutrition_status(food),
-                    "mapped": mapped.model_dump(),
-                }
-            )
+        failures: list[dict[str, Any]] = []
+        by_fdc_id = {int(food["fdcId"]): food for food in foods}
+        for fdc_id in fdc_ids:
+            food = by_fdc_id.get(fdc_id)
+            if food is None:
+                failures.append({"fdc_id": fdc_id, "error": "Food not found in USDA response", "retryable": False})
+                continue
+            try:
+                mapped = importer.validate_and_map_food(food)
+                previews.append(
+                    {
+                        "fdcId": fdc_id,
+                        "dataType": food.get("dataType"),
+                        "description": food.get("description"),
+                        "calorieSource": importer.calorie_source(food),
+                        "nutritionStatus": importer.nutrition_status(food),
+                        "mapped": mapped.model_dump(),
+                    }
+                )
+            except Exception as e:
+                failures.append({"fdc_id": fdc_id, "error": str(e), "retryable": False})
     except USDAFdcImporterError as e:
         msg = f"USDA preview failed: {str(e)}"
         logging.error(msg)
-        return jsonify({"msg": msg}), 400
+        return jsonify({"msg": msg, "retryable": e.retryable}), 400
     except Exception as e:
         msg = f"USDA preview failed: {str(e)}"
         logging.error(msg)
         return jsonify({"msg": msg}), 500
 
-    return jsonify({"count": len(previews), "items": previews}), 200
+    return jsonify({"count": len(previews), "items": previews, "failures": failures}), 200
 
 
 @bp.route("/api/import/fdc/import", methods=["POST"])
@@ -2274,7 +2283,7 @@ def fdc_import_foods():
 
                 try:
                     with db.session.begin_nested():
-                        mapped = importer.map_to_food_request(usda_food)
+                        mapped = importer.validate_and_map_food(usda_food)
                         existing = Food.get_by_user_source_fdc_id(catalog_user_id, USDA_SOURCE, fdc_id)
                         if existing:
                             updated_request = mapped.model_copy(

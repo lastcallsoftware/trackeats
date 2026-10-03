@@ -1,4 +1,5 @@
 import logging
+import math
 import os
 import re
 from decimal import Decimal, ROUND_HALF_UP
@@ -14,7 +15,9 @@ _ALLOWED_DATA_TYPES = ["Branded", "Foundation"]
 
 
 class USDAFdcImporterError(Exception):
-    pass
+    def __init__(self, message: str, *, retryable: bool = False):
+        super().__init__(message)
+        self.retryable = retryable
 
 
 class USDAFdcImporter:
@@ -195,6 +198,12 @@ class USDAFdcImporter:
             filtered.append(item)
         return filtered
 
+    def validate_and_map_food(self, food: dict[str, Any]) -> FoodRequest:
+        mapped = self.map_to_food_request(food)
+        if self.nutrition_status(food) == "missing_core":
+            raise USDAFdcImporterError("USDA record is missing core nutrition data")
+        return mapped
+
     def map_to_food_request(self, usda_food: dict[str, Any]) -> FoodRequest:
         fdc_id = int(usda_food.get("fdcId") or 0)
         if fdc_id <= 0:
@@ -229,7 +238,29 @@ class USDAFdcImporter:
 
         serving_size, serving_unit = _serving_size_fields(usda_food)
         serving_size_description = _serving_size_description(usda_food, serving_size, serving_unit)
+        unit_type = _food_unit_type(usda_food, serving_unit)
+        density = _food_density(usda_food)
+        serving_kind = _determine_unit_kind(serving_unit or "g")
+        volume_ml = _volume_ml(serving_size, serving_unit or "")
         serving_size_metric, serving_size_imperial = _serving_mass(serving_size, serving_unit)
+        primary_g = float(serving_size_metric or 100)
+        if volume_ml is not None:
+            primary_g = volume_ml * density
+            serving_size_metric = volume_ml
+            serving_size_imperial = volume_ml / 29.5735
+        elif unit_type == "liquid":
+            serving_kind = "liquid"
+            serving_size_metric = primary_g / density
+            serving_size_imperial = serving_size_metric / 29.5735
+            serving_size_description = f"{serving_size_metric:.2f} ml"
+
+        primary_unit = serving_unit if serving_unit and _is_standard_unit_name(serving_unit) else "g"
+        primary_value = serving_size if serving_size is not None and serving_unit and _is_standard_unit_name(serving_unit) else primary_g
+        if serving_kind == "liquid" and volume_ml is None:
+            primary_unit = "ml"
+            primary_value = float(serving_size_metric)
+        total_metric = primary_g / density if unit_type == "liquid" else primary_g
+        total_imperial = total_metric / (29.5735 if unit_type == "liquid" else 28.3495)
 
         calorie_value, _ = _calorie_value_with_source(usda_food)
 
@@ -254,8 +285,17 @@ class USDAFdcImporter:
             potassium_mg=_dec(_to_int(_nutrient_value_any(usda_food, ["1092", "306"], "postassium"))),
         )
 
-        # Build nutrition alternatives from foodPortions
-        alternatives = _build_alternatives_from_portions(usda_food, nutrition)
+        # Include explicit primary metadata so persistence does not infer a solid
+        # serving or promote the first USDA portion to primary.
+        alternatives = [NutritionAlternativeRequest(
+            serving_value=primary_value,
+            serving_unit=_canonical_unit_name(primary_unit),
+            serving_unit_kind=serving_kind,
+            is_primary=True,
+            nutrition=nutrition,
+        )]
+        # Build nutrition alternatives from foodPortions using their gram weights.
+        alternatives.extend(_build_alternatives_from_portions(usda_food, nutrition, primary_g))
 
         return FoodRequest(
             group=_map_group(category_blob),
@@ -266,10 +306,10 @@ class USDAFdcImporter:
             description=long_description,
             size_description=_truncate(serving_size_description, 50),
             size_description_2=None,
-            size_imperial=serving_size_imperial,
-            size_metric=serving_size_metric,
-            unit_type="solid",
-            density=1.0,
+            size_imperial=round(total_imperial, 3),
+            size_metric=round(total_metric),
+            unit_type=unit_type,
+            density=density,
             source=USDA_SOURCE,
             fdc_id=fdc_id,
             fdc_data_type=_truncate(data_type, 30) if data_type else None,
@@ -294,7 +334,10 @@ class USDAFdcImporter:
             response.raise_for_status()
             return response.json()
         except Exception as e:
-            raise USDAFdcImporterError(f"USDA request failed ({path}): {str(e)}")
+            raise USDAFdcImporterError(
+                f"USDA request failed ({path}): {str(e)}",
+                retryable=isinstance(e, (req.ConnectionError, req.Timeout)),
+            ) from e
 
     def _post(self, path: str, json_payload: dict[str, Any], params: dict[str, Any]) -> Any:
         url = f"{self._base_url}{path}"
@@ -303,7 +346,10 @@ class USDAFdcImporter:
             response.raise_for_status()
             return response.json()
         except Exception as e:
-            raise USDAFdcImporterError(f"USDA request failed ({path}): {str(e)}")
+            raise USDAFdcImporterError(
+                f"USDA request failed ({path}): {str(e)}",
+                retryable=isinstance(e, (req.ConnectionError, req.Timeout)),
+            ) from e
 
 
 def _truncate(value: str, max_len: int) -> str:
@@ -436,19 +482,21 @@ def _serving_size_description(usda_food: dict[str, Any], size: float | None, uni
     return "100 g"
 
 
-def _serving_mass(size: float | None, unit: str | None) -> tuple[int | None, float | None]:
+def _serving_mass(size: float | None, unit: str | None) -> tuple[float | None, float | None]:
     if size is None or not unit:
-        return (100, round(100.0 / 28.3495, 3))
-
-    if unit in {"g", "gram", "grams"}:
-        grams = int(round(size))
-        return grams, round(grams / 28.3495, 3)
-
-    if unit in {"oz", "ounce", "ounces"}:
-        ounces = round(size, 3)
-        return int(round(ounces * 28.3495)), ounces
-
-    return (None, None)
+        return (100.0, round(100.0 / 28.3495, 3))
+    factors = {
+        "g": 1.0, "gram": 1.0, "grams": 1.0,
+        "oz": 28.3495, "ounce": 28.3495, "ounces": 28.3495,
+        "kg": 1000.0, "kilogram": 1000.0, "kilograms": 1000.0,
+        "lb": 453.592, "lbs": 453.592, "pound": 453.592, "pounds": 453.592,
+        "mg": 0.001, "milligram": 0.001, "milligrams": 0.001,
+    }
+    factor = factors.get(unit)
+    if factor is None:
+        return (None, None)
+    grams = size * factor
+    return grams, round(grams / 28.3495, 3)
 
 
 def _label_nutrient(usda_food: dict[str, Any], field: str | None) -> float | None:
@@ -589,6 +637,7 @@ def _map_group(group_text: str) -> str:
 def _build_alternatives_from_portions(
     usda_food: dict[str, Any],
     primary_nutrition: NutritionRequest,
+    primary_g: float,
 ) -> list[NutritionAlternativeRequest]:
     """
     Build NutritionAlternativeRequest entries from USDA foodPortions array.
@@ -606,10 +655,8 @@ def _build_alternatives_from_portions(
 
     alternatives: list[NutritionAlternativeRequest] = []
 
-    # Get the gram weight of the primary serving for scaling. primary_nutrition's
-    # numeric fields are Decimal (validated NutritionRequest), so convert to float
-    # up front for the scaling arithmetic below.
-    primary_g = float(primary_nutrition.serving_size_metric) if primary_nutrition.serving_size_metric else 100.0
+    # Scale by the primary serving's actual gram weight, even when its stored
+    # metric size is a volume. Nutrition values remain Decimal until scaling.
 
     for portion_any in food_portions:
         if not isinstance(portion_any, dict):
@@ -641,6 +688,10 @@ def _build_alternatives_from_portions(
         elif measure_unit is not None:
             unit_name = str(measure_unit).strip().lower()
 
+        if not _is_standard_unit_name(unit_name) and _is_standard_unit_name(modifier):
+            unit_name = modifier.lower()
+            modifier = ""
+
         # Build a serving description
         portion_description = str(portion.get("portionDescription") or "").strip()
         if not portion_description:
@@ -650,7 +701,9 @@ def _build_alternatives_from_portions(
             else:
                 portion_description = f"{amount_display} {unit_name}".strip()
 
-        # Determine unit kind
+        if amount <= 0 or not math.isfinite(amount):
+            continue
+        # Determine unit kind and store ml/fl oz for volume portions, g/oz otherwise.
         serving_unit_kind = _determine_unit_kind(unit_name)
         is_primary = False  # USDA portions are all alternatives; primary is the main serving
         # Scale nutrition to this portion's gram weight
@@ -659,10 +712,12 @@ def _build_alternatives_from_portions(
         def _scaled(value: Decimal | None) -> float:
             return float(value or 0) * scale_factor
 
+        metric_size = _volume_ml(amount, unit_name) if serving_unit_kind == "liquid" else gram_weight
+        imperial_size = metric_size / (29.5735 if serving_unit_kind == "liquid" else 28.3495)
         scaled_nutrition = NutritionRequest(
             serving_size_description=_truncate(portion_description, 50),
-            serving_size_metric=_dec(round(gram_weight)),
-            serving_size_imperial=_dec(round(gram_weight / 28.3495, 3)),
+            serving_size_metric=_dec(metric_size),
+            serving_size_imperial=_dec(imperial_size),
             calories=_dec(round(_scaled(primary_nutrition.calories))),
             total_fat_g=_dec(round(_scaled(primary_nutrition.total_fat_g), 1)),
             saturated_fat_g=_dec(round(_scaled(primary_nutrition.saturated_fat_g), 1)),
@@ -681,14 +736,15 @@ def _build_alternatives_from_portions(
         )
 
         # Custom/unrecognized unit names (e.g. "slice") have no fixed conversion
-        # factor, so use the descriptive text and rely on the gramWeight above
-        # (already baked into scaled_nutrition) rather than a recomputed one.
+        # factor, so use the descriptive text and retain the gram weight in
+        # scaled_nutrition rather than a recomputed one.
         is_standard_unit = _is_standard_unit_name(unit_name)
 
         alternatives.append(
             NutritionAlternativeRequest(
                 serving_value=amount,
-                serving_unit=unit_name if is_standard_unit else _truncate(portion_description, 50),
+                serving_unit=_canonical_unit_name(unit_name) if is_standard_unit else _truncate(portion_description, 50),
+                ordinal=len(alternatives) + 1,
                 serving_unit_kind=serving_unit_kind,
                 is_primary=is_primary,
                 nutrition=scaled_nutrition,
@@ -700,6 +756,70 @@ def _build_alternatives_from_portions(
 
 _SOLID_UNIT_NAMES = {"g", "gram", "grams", "oz", "ounce", "ounces", "kg", "kilogram", "kilograms", "lb", "lbs", "pound", "pounds", "mg", "milligram", "milligrams"}
 _LIQUID_UNIT_NAMES = {"ml", "milliliter", "milliliters", "millilitre", "millilitres", "l", "liter", "liters", "litre", "litres", "fl oz", "fluid ounce", "fluid ounces", "cup", "cups", "tbsp", "tablespoon", "tablespoons", "tsp", "teaspoon", "teaspoons", "pint", "pints", "quart", "quarts", "gallon", "gallons"}
+
+
+_VOLUME_FACTORS = {
+    "ml": 1.0, "milliliter": 1.0, "milliliters": 1.0, "millilitre": 1.0, "millilitres": 1.0,
+    "l": 1000.0, "liter": 1000.0, "liters": 1000.0, "litre": 1000.0, "litres": 1000.0,
+    "fl oz": 29.5735, "fluid ounce": 29.5735, "fluid ounces": 29.5735,
+    "cup": 236.588, "cups": 236.588,
+    "tbsp": 14.7868, "tablespoon": 14.7868, "tablespoons": 14.7868,
+    "tsp": 4.92892, "teaspoon": 4.92892, "teaspoons": 4.92892,
+    "pint": 473.176, "pints": 473.176, "quart": 946.353, "quarts": 946.353,
+    "gallon": 3785.41, "gallons": 3785.41,
+}
+
+
+def _canonical_unit_name(unit: str) -> str:
+    # Normalize aliases that the serving-weight conversion tables do not accept.
+    return {"millilitre": "ml", "millilitres": "ml", "litre": "l", "litres": "l", "lbs": "lb"}.get(unit, unit)
+
+
+def _volume_ml(amount: float | None, unit: str) -> float | None:
+    factor = _VOLUME_FACTORS.get(unit.strip().lower())
+    return amount * factor if amount is not None and factor is not None else None
+
+
+def _portion_volume(portion: dict[str, Any]) -> float | None:
+    measure = portion.get("measureUnit")
+    unit = str(measure.get("name") or "") if isinstance(measure, dict) else str(measure or "")
+    # Foundation records sometimes put the household unit in modifier while
+    # measureUnit is "undetermined".
+    if not _is_standard_unit_name(unit):
+        unit = str(portion.get("modifier") or "")
+    try:
+        return _volume_ml(float(portion.get("amount") or 1), unit)
+    except (ValueError, TypeError):
+        return None
+
+
+def _food_density(food: dict[str, Any]) -> float:
+    for portion in food.get("foodPortions") or []:
+        if not isinstance(portion, dict):
+            continue
+        volume = _portion_volume(portion)
+        try:
+            grams = float(portion.get("gramWeight") or 0)
+        except (ValueError, TypeError):
+            continue
+        if volume and volume > 0 and grams > 0 and math.isfinite(grams / volume):
+            return grams / volume
+    # USDA does not always supply a weight/volume pair. Use the application's
+    # default density (1 g/ml) when no measured density can be derived.
+    return 1.0
+
+
+def _food_unit_type(food: dict[str, Any], serving_unit: str | None) -> Literal["solid", "liquid"]:
+    if serving_unit and _determine_unit_kind(serving_unit) == "liquid":
+        return "liquid"
+    description = str(food.get("description") or "").lower()
+    # Household volume portions alone do not imply a liquid food (e.g. flour).
+    if re.search(r"\b(powder|powdered|dry|dried|cheese|yogurt|yoghurt|ice cream|chocolate|chestnuts)\b", description):
+        return "solid"
+    food_name = description.split(",", 1)[0]
+    if re.search(r"\b(milk|juice|beverage|drink|water|broth|oil|cream)\b", food_name):
+        return "liquid"
+    return "solid"
 
 
 def _is_standard_unit_name(unit_name: str) -> bool:
