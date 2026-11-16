@@ -28,7 +28,9 @@ def _mock_session(monkeypatch: pytest.MonkeyPatch, deleted: list[object] | None 
         if deleted is not None:
             deleted.append(obj)
 
-    session = SimpleNamespace(begin=lambda: _DummyTxn(), delete=_delete)
+    session = SimpleNamespace(
+        begin=lambda: _DummyTxn(), delete=_delete, flush=lambda: None, execute=lambda statement: None
+    )
     monkeypatch.setattr(routes.db, "session", session, raising=False)
 
 
@@ -466,6 +468,7 @@ def test_delete_user_admin_happy_path(bare_flask_app: Flask, monkeypatch: pytest
 
     monkeypatch.setattr(routes.Recipe, "delete_all_for_user", staticmethod(_delete_recipes))
     monkeypatch.setattr(routes.Food, "delete_all_for_user", staticmethod(_delete_foods))
+    monkeypatch.setattr(routes.DailyLogItem, "delete_all_for_user", staticmethod(lambda user_id: None))
 
     with bare_flask_app.test_request_context("/api/user", method="DELETE"):
         _, status = _as_response_status(_unwrap(routes.delete_user)())

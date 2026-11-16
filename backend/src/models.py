@@ -1633,6 +1633,10 @@ class Recipe(db.Model):
         """
         logging.info(f"Deleting Recipe records for User {user_id}")
         try:
+            # Clear variation links before deleting recipes in arbitrary ID order.
+            db.session.execute(
+                db.update(Recipe).where(Recipe.user_id == user_id).values(parent_recipe_id=None)
+            )
             # Get all the Recipe records
             recipe_daos = db.session.scalars(db.select(Recipe).where(Recipe.user_id == user_id)).all()
             for recipe_dao in recipe_daos:

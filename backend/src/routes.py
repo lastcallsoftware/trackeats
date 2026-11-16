@@ -13,7 +13,7 @@ from flask_jwt_extended import (
 )
 from pydantic import ValidationError
 from sendmail import Sendmail
-from models import db, User, Preferences, UserStatus, Food, Recipe, Ingredient, DailyLogItem
+from models import db, User, Preferences, UserStatus, Food, Recipe, Ingredient, DailyLogItem, Nutrition
 from schemas import (
     RegistrationRequest, ResendConfirmationRequest, LoginRequest, SocialLoginRequest, SocialIdentityClaims,
     ContactRequest,
@@ -1202,6 +1202,22 @@ def get_user(username: str):
         return jsonify(user_dao.json()), 200
 
 
+def _delete_user_account(user_dao: User) -> None:
+    """Remove account data in dependency order within the caller's transaction."""
+    user_id = user_dao.id
+    DailyLogItem.delete_all_for_user(user_id)
+    db.session.flush()
+    Recipe.delete_all_for_user(user_id)
+    db.session.flush()
+    Food.delete_all_for_user(user_id)
+    # There are no ORM relationships to User to order these pending deletes.
+    # Flush them before deleting the remaining nutrition, preferences and user.
+    db.session.flush()
+    db.session.execute(db.delete(Nutrition).where(Nutrition.user_id == user_id))
+    db.session.execute(db.delete(Preferences).where(Preferences.user_id == user_id))
+    db.session.delete(user_dao)
+
+
 @bp.route("/api/user", methods = ["DELETE"])
 @write_required
 @log_route
@@ -1221,9 +1237,7 @@ def delete_user():
             if user_dao.id in (Data.GUEST_USER_ID, Data.ADMIN_USER_ID, Data.TEST_USER_ID):
                 raise ValueError(f"The account '{user_dao.username}' may not be deleted.")
             
-            Recipe.delete_all_for_user(user_id)
-            Food.delete_all_for_user(user_id)
-            db.session.delete(user_dao)
+            _delete_user_account(user_dao)
 
     except Exception as e:
         msg = f"User deletion failed: {str(e)}"
@@ -1253,9 +1267,7 @@ def admin_delete_user(username: str):
             if user_id in (Data.GUEST_USER_ID, Data.ADMIN_USER_ID, Data.TEST_USER_ID):
                 raise ValueError(f"The account '{username}' may not be deleted.")
 
-            Recipe.delete_all_for_user(user_id)
-            Food.delete_all_for_user(user_id)
-            db.session.delete(user_dao)
+            _delete_user_account(user_dao)
 
     except Exception as e:
         msg = f"User deletion failed: {str(e)}"
