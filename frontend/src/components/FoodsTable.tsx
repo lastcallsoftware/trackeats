@@ -45,6 +45,10 @@ import MenuItem from '@mui/material/MenuItem';
 // Define the table's columns
 const columnHelper = createColumnHelper<IFood>()
 const formatPrice = (value: number): string => Number.isFinite(value) ? value.toFixed(2) : "0.00"
+// Round milliliters for display without changing stored descriptions or volumes.
+const formatSizeDescription = (value: string | null | undefined): string =>
+    (value ?? "").replace(/\b(\d+\.\d+)(\s*ml)\b/gi, (_match, amount: string, unit: string) =>
+        `${Math.round(Number(amount))}${unit}`);
 const foodColumns = [
     columnHelper.group({
         id: "general_info",
@@ -82,12 +86,12 @@ const foodColumns = [
             }),
             columnHelper.accessor("size_description", {
                 header: () => <span>Size Desc</span>,
-                cell: info => info.getValue(),
+                cell: info => formatSizeDescription(info.getValue()),
                 size: 120
             }),
             columnHelper.accessor("size_description_2", {
                 header: () => <span>Size Desc 2</span>,
-                cell: info => info.getValue(),
+                cell: info => formatSizeDescription(info.getValue()),
                 size: 120
             }),
             columnHelper.accessor("size_imperial", {
@@ -113,7 +117,7 @@ const foodColumns = [
         columns: [
             columnHelper.accessor("nutrition.serving_size_description", {
                 header: () => <span>Serving Size Desc</span>,
-                cell: info => info.getValue(),
+                cell: info => formatSizeDescription(info.getValue()),
                 size: 120
             }),
             columnHelper.accessor("nutrition.serving_size_imperial", {
