@@ -81,7 +81,7 @@ class Data:
         """
         # Delete all Food and Recipe and Daily Log records for this User.
         # The Recipe deletion code also deletes the associated Ingrdient records.
-        # Nutrition and NutritionAlternative records are deleted as part of their
+        # Nutrition and FoodServing records are deleted as part of their
         # "parent" record deletion.
         DailyLogItem.delete_all_for_user(user_id)
         Recipe.delete_all_for_user(user_id)

@@ -48,7 +48,7 @@ def _seed_account(user_id: int, username: str, profile: str) -> None:
         session.execute(models.db.insert(models.Nutrition).values(
             id=nutrition_id, user_id=user_id, serving_size_description="serving", calories=100,
         ))
-    session.execute(models.db.insert(models.NutritionAlternative).values(
+    session.execute(models.db.insert(models.FoodServing).values(
         id=user_id, food_id=user_id, nutrition_id=user_id,
         serving_value=1, serving_unit="serving", serving_unit_kind="solid", is_primary=True,
     ))

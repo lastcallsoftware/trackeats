@@ -934,7 +934,7 @@ class Food(db.Model):
     unit_type: Mapped[str] = mapped_column(db.Enum("solid", "liquid", name="unit_type_enum"), nullable=False, default="solid")
     density: Mapped[float | None] = mapped_column(db.Float, nullable=True, default=1.0)
     servings: Mapped[float] = mapped_column(db.Float, nullable=False)
-    nutrition_alternatives: Mapped[list["NutritionAlternative"]] = relationship("NutritionAlternative", back_populates="food", cascade="all, delete-orphan")
+    nutrition_alternatives: Mapped[list["FoodServing"]] = relationship("FoodServing", back_populates="food", cascade="all, delete-orphan")
     price: Mapped[float | None] = mapped_column(db.Float, nullable=True)
     price_date: Mapped[datetime.date | None] = mapped_column(db.Date, nullable=True)
     shelf_life: Mapped[str | None] = mapped_column(db.String(150), nullable=True)
@@ -945,7 +945,7 @@ class Food(db.Model):
     last_synced_at: Mapped[datetime.datetime | None] = mapped_column(db.DateTime, nullable=True)
 
     # Transient placeholder for the primary Nutrition while a Food is being built
-    # in-memory.  It is flushed and linked via the primary NutritionAlternative
+    # in-memory.  It is flushed and linked via the primary FoodServing
     # (which owns the foreign key) in add()/update().  Not a mapped column.
     _primary_nutrition: Nutrition | None = None
 
@@ -961,7 +961,7 @@ class Food(db.Model):
         """
         Return the primary Nutrition record for this Food.
 
-        The nutrition_alternative table is the single source of truth.  The
+        The food_serving table is the single source of truth.  The
         primary serving size is the alternative with is_primary=1.  While a
         Food is being built/edited in-memory, the transient _primary_nutrition
         may hold the not-yet-persisted primary record; otherwise we resolve it
@@ -1000,7 +1000,7 @@ class Food(db.Model):
         self.starter_food = food_request.starter_food
         # Create the primary Nutrition record from the nested schema.  It is
         # held transiently (on _primary_nutrition) until add()/update() flush
-        # and link it via the primary NutritionAlternative.
+        # and link it via the primary FoodServing.
         if self._primary_nutrition is None:
             self._primary_nutrition = Nutrition(user_id)
         self._primary_nutrition.from_schema(user_id, food_request.nutrition)
@@ -1174,7 +1174,7 @@ class Food(db.Model):
                     ordinal = alt_request.ordinal
                     is_primary = False
 
-                alt_dao = NutritionAlternative()
+                alt_dao = FoodServing()
                 alt_dao.food_id = new_food_dao.id
                 alt_dao.nutrition_id = alt_nutrition.id
                 alt_dao.serving_value = serving_value
@@ -1220,7 +1220,7 @@ class Food(db.Model):
             # Update the data fields from schema
             food_dao.from_schema(user_id, food)
 
-            # Replace nutrition alternatives (serving sizes).  The nutrition_alternative
+            # Replace nutrition alternatives (serving sizes).  The food_serving
             # table is the single source of truth.  Delete the old alternatives and all
             # of their Nutrition records.  The primary is NOT reused: from_schema()
             # above rebuilds a brand-new primary Nutrition from the submitted schema,
@@ -1265,7 +1265,7 @@ class Food(db.Model):
                         db.session.add(alt_nutrition)
                         db.session.flush()
 
-                    alt_dao = NutritionAlternative()
+                    alt_dao = FoodServing()
                     alt_dao.food_id = food_id
                     alt_dao.nutrition_id = alt_nutrition.id
                     alt_dao.serving_value = alt_request.serving_value
@@ -1277,7 +1277,7 @@ class Food(db.Model):
             else:
                 # Back-compat: no alternatives provided, create a single primary
                 # alternative from the Food's primary Nutrition record.
-                alt_dao = NutritionAlternative()
+                alt_dao = FoodServing()
                 alt_dao.food_id = food_id
                 alt_dao.nutrition_id = primary_nutrition.id
                 alt_dao.serving_value = 1.0
@@ -1309,9 +1309,9 @@ class Food(db.Model):
         """
         Delete a particular Food record
 
-        The Food's nutrition_alternative rows (and, via the DB-level ON DELETE
+        The Food's food_serving rows (and, via the DB-level ON DELETE
         CASCADE, their Nutrition records) are removed automatically when the
-        Food is deleted.  The nutrition_alternative table is the single source
+        Food is deleted.  The food_serving table is the single source
         of truth for a Food's nutrition, so no manual Nutrition cleanup is
         required here.
         """
@@ -1703,7 +1703,7 @@ class Recipe(db.Model):
                     food_ingredient_dao = Food.get(user_id, ingredient_dao.food_ingredient_id)
                     if not food_ingredient_dao:
                         raise ValueError(f"Food Ingedient record {ingredient_dao.food_ingredient_id} not found")
-                    # Food nutrition now resolves via the primary nutrition_alternative.
+                    # Food nutrition now resolves via the primary food_serving.
                     ingredient_nutrition_dao = food_ingredient_dao.primary_nutrition
                     if not ingredient_nutrition_dao:
                         raise ValueError(
@@ -2146,13 +2146,13 @@ class DailyLogItem(db.Model):
 
 
 ##############################
-# NUTRITION ALTERNATIVE
+# FOOD SERVING
 ##############################
-class NutritionAlternative(db.Model):
+class FoodServing(db.Model):
     """
     A Food can have multiple serving size "views", each backed by its own
     complete Nutrition record.  This table is the sole source of truth for a
-    Food's Nutrition: the alternative with is_primary=1 is the default serving
+    Food's Nutrition: the serving with is_primary=1 is the default serving
     view, and any additional rows are alternate serving sizes.
 
     Two unit kinds:
@@ -2168,7 +2168,7 @@ class NutritionAlternative(db.Model):
     Other tables remain direct: Recipe and DailyLogItem each reference a
     Nutrition record directly via their own nutrition_id.
     """
-    __tablename__ = "nutrition_alternative"
+    __tablename__ = "food_serving"
 
     id: Mapped[int] = mapped_column(primary_key=True)
     food_id: Mapped[int] = mapped_column(db.Integer, db.ForeignKey("food.id"), nullable=False)

@@ -108,7 +108,7 @@ def test_import_starter_flag_for_new_and_existing_foods(
     models.db.session.execute(models.db.insert(models.Nutrition).values(
         id=10, user_id=5, serving_size_description="serving", calories=50,
     ))
-    models.db.session.execute(models.db.insert(models.NutritionAlternative).values(
+    models.db.session.execute(models.db.insert(models.FoodServing).values(
         food_id=10, nutrition_id=10, serving_value=1, serving_unit="serving",
         serving_unit_kind="solid", ordinal=0, is_primary=True,
     ))

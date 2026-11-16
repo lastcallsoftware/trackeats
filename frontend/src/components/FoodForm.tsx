@@ -101,7 +101,7 @@ type FoodFormInput = z.input<typeof foodSchema>;
 type FoodFormValues = z.output<typeof foodSchema>;
 
 // Conversion factors to grams (for solid units) or milliliters (for liquid units).
-// Mirrors the backend NutritionAlternative.compute_serving_weight_g() logic.
+// Mirrors the backend FoodServing.compute_serving_weight_g() logic.
 const SOLID_TO_G: Record<string, number> = {
     g: 1.0, gram: 1.0, grams: 1.0,
     oz: 28.3495, ounce: 28.3495, ounces: 28.3495,

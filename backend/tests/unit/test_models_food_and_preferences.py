@@ -113,7 +113,7 @@ def test_food_add_creates_record_and_populates_keylist(monkeypatch: pytest.Monke
     assert added.id == 77
     assert isinstance(session.added[0], models.Food)
     assert any(isinstance(o, models.Nutrition) for o in session.added)
-    assert any(isinstance(o, models.NutritionAlternative) for o in session.added)
+    assert any(isinstance(o, models.FoodServing) for o in session.added)
     assert keylists == {"foods": {123: 77}}
 
 
@@ -249,7 +249,7 @@ def test_food_request_accepts_single_primary() -> None:
 
 
 def test_food_add_persists_alternatives_with_primary(monkeypatch: pytest.MonkeyPatch) -> None:
-    """Food.add should create NutritionAlternative rows, reusing the primary Nutrition."""
+    """Food.add should create FoodServing rows, reusing the primary Nutrition."""
     session = _SessionStub()
     monkeypatch.setattr(models.db, "session", session, raising=False)
 
@@ -265,11 +265,11 @@ def test_food_add_persists_alternatives_with_primary(monkeypatch: pytest.MonkeyP
     assert added_nutrition is not None
 
     # The primary alternative should link to the Food's primary Nutrition record
-    primary_alt = [a for a in session.added if isinstance(a, models.NutritionAlternative) and a.is_primary]
+    primary_alt = [a for a in session.added if isinstance(a, models.FoodServing) and a.is_primary]
     assert len(primary_alt) == 1
 
     # The non-primary alternative should have its own (separate) Nutrition record
-    non_primary_alt = [a for a in session.added if isinstance(a, models.NutritionAlternative) and not a.is_primary]
+    non_primary_alt = [a for a in session.added if isinstance(a, models.FoodServing) and not a.is_primary]
     assert len(non_primary_alt) == 1
     assert non_primary_alt[0].nutrition_id != primary_alt[0].nutrition_id
 
@@ -277,13 +277,13 @@ def test_food_add_persists_alternatives_with_primary(monkeypatch: pytest.MonkeyP
 def test_food_update_rebuilds_primary_alternative_with_flushed_nutrition(monkeypatch: pytest.MonkeyPatch) -> None:
     """Updating a Food must persist the new primary Nutrition and link it via the
     primary alternative.  Regression: the fresh primary Nutrition was never flushed,
-    so its id was None and the nutrition_alternative insert failed."""
+    so its id was None and the food_serving insert failed."""
     session = _SessionStub()
 
     # An existing Food with one old primary alternative backed by an old Nutrition row.
     old_nutrition = models.Nutrition(1)
     old_nutrition.id = 50
-    old_alt = models.NutritionAlternative()
+    old_alt = models.FoodServing()
     old_alt.nutrition_id = 50
     old_alt.is_primary = True
     food_dao = models.Food(1)
@@ -303,7 +303,7 @@ def test_food_update_rebuilds_primary_alternative_with_flushed_nutrition(monkeyp
     models.Food.update(user_id=1, food=request)
 
     # The rebuilt primary alternative must reference a persisted (flushed) Nutrition.
-    alt_added = [a for a in session.added if isinstance(a, models.NutritionAlternative)]
+    alt_added = [a for a in session.added if isinstance(a, models.FoodServing)]
     assert len(alt_added) == 1
     assert alt_added[0].is_primary is True
     assert alt_added[0].nutrition_id is not None
@@ -320,7 +320,7 @@ def test_food_update_rebuilds_primary_alternative_with_flushed_nutrition(monkeyp
 
 def test_nutrition_alternative_compute_serving_weight_solid() -> None:
     """Solid serving sizes compute weight directly from the unit."""
-    alt = models.NutritionAlternative()
+    alt = models.FoodServing()
     alt.serving_value = 2
     alt.serving_unit = "oz"
     alt.serving_unit_kind = "solid"
@@ -335,7 +335,7 @@ def test_nutrition_alternative_compute_serving_weight_solid() -> None:
 
 def test_nutrition_alternative_compute_serving_weight_liquid() -> None:
     """Liquid serving sizes compute weight from volume × density."""
-    alt = models.NutritionAlternative()
+    alt = models.FoodServing()
     alt.serving_value = 100
     alt.serving_unit = "ml"
     alt.serving_unit_kind = "liquid"
@@ -349,7 +349,7 @@ def test_nutrition_alternative_compute_serving_weight_liquid() -> None:
 
 def test_nutrition_alternative_compute_serving_weight_unknown_unit() -> None:
     """Unknown units with no linked Nutrition weight should return None."""
-    alt = models.NutritionAlternative()
+    alt = models.FoodServing()
     alt.serving_value = 1
     alt.serving_unit = "furlong"
     alt.serving_unit_kind = "solid"
@@ -361,11 +361,11 @@ def test_nutrition_alternative_compute_serving_weight_unknown_unit() -> None:
 def test_nutrition_alternative_compute_serving_weight_custom_unit_falls_back_to_nutrition(monkeypatch: pytest.MonkeyPatch) -> None:
     """Custom-named units (e.g. household servings) fall back to the linked
     Nutrition record's directly-entered serving_size_metric."""
-    alt = models.NutritionAlternative()
+    alt = models.FoodServing()
     alt.serving_value = 1
     alt.serving_unit = "slice"
     alt.serving_unit_kind = "solid"
-    monkeypatch.setattr(models.NutritionAlternative, "nutrition", SimpleNamespace(serving_size_metric=Decimal("45.00")), raising=False)
+    monkeypatch.setattr(models.FoodServing, "nutrition", SimpleNamespace(serving_size_metric=Decimal("45.00")), raising=False)
 
     assert alt.compute_serving_weight_g() == 45.0
     assert alt.compute_serving_weight_oz() == round(45.0 / 28.3495, 2)
@@ -374,11 +374,11 @@ def test_nutrition_alternative_compute_serving_weight_custom_unit_falls_back_to_
 def test_nutrition_alternative_compute_serving_weight_custom_liquid_unit_falls_back_to_nutrition(monkeypatch: pytest.MonkeyPatch) -> None:
     """Custom-named liquid units convert the linked Nutrition's serving_size_metric
     (ml) to grams using density."""
-    alt = models.NutritionAlternative()
+    alt = models.FoodServing()
     alt.serving_value = 1
     alt.serving_unit = "scoop"
     alt.serving_unit_kind = "liquid"
-    monkeypatch.setattr(models.NutritionAlternative, "nutrition", SimpleNamespace(serving_size_metric=Decimal("100.00")), raising=False)
+    monkeypatch.setattr(models.FoodServing, "nutrition", SimpleNamespace(serving_size_metric=Decimal("100.00")), raising=False)
 
     assert alt.compute_serving_weight_g(density=1.2) == 120.0
     assert alt.compute_serving_weight_g(density=None) is None
@@ -443,7 +443,7 @@ def test_usda_liquid_import_persists_explicit_primary_units(monkeypatch: pytest.
     })
     food = models.Food.add(user_id=1, food=request)
     assert food.unit_type == "liquid"
-    primary = next(a for a in session.added if isinstance(a, models.NutritionAlternative) and a.is_primary)
+    primary = next(a for a in session.added if isinstance(a, models.FoodServing) and a.is_primary)
     assert primary.serving_unit_kind == "liquid"
     assert primary.serving_unit == "fl oz" and primary.serving_value == 8
     nutrition = next(n for n in session.added if isinstance(n, models.Nutrition))
