@@ -29,25 +29,43 @@ import {
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutline';
 
+// Empty number inputs become NaN through react-hook-form's valueAsNumber.
+// Treat them as omitted so optional fields use the backend's defaults.
+const emptyNumberToUndefined = (value: unknown) =>
+    value === "" || (typeof value === "number" && Number.isNaN(value)) ? undefined : value;
+const optionalNumber = z.preprocess(
+    emptyNumberToUndefined,
+    z.coerce.number().min(0, "Must be 0 or greater").nullish().transform((value) => value ?? null),
+);
+const nutritionNumber = z.preprocess(
+    emptyNumberToUndefined,
+    z.coerce.number().min(0, "Must be 0 or greater").nullable().default(0),
+);
+const optionalText = (maxLength: number) =>
+    z.string().max(maxLength, `Must be ${maxLength} characters or fewer`).nullish().transform((value) => value ?? "");
+
 const nutritionSchema = z.object({
     serving_size_description: z.string().max(50, "Must be 50 characters or fewer"),
-    serving_size_imperial: z.coerce.number().min(0, "Must be 0 or greater"),
-    serving_size_metric: z.coerce.number().min(0, "Must be 0 or greater"),
-    calories: z.coerce.number().min(0, "Must be 0 or greater"),
-    total_fat_g: z.coerce.number().min(0, "Must be 0 or greater"),
-    saturated_fat_g: z.coerce.number().min(0, "Must be 0 or greater"),
-    trans_fat_g: z.coerce.number().min(0, "Must be 0 or greater"),
-    cholesterol_mg: z.coerce.number().min(0, "Must be 0 or greater"),
-    sodium_mg: z.coerce.number().min(0, "Must be 0 or greater"),
-    total_carbs_g: z.coerce.number().min(0, "Must be 0 or greater"),
-    fiber_g: z.coerce.number().min(0, "Must be 0 or greater"),
-    total_sugar_g: z.coerce.number().min(0, "Must be 0 or greater"),
-    added_sugar_g: z.coerce.number().min(0, "Must be 0 or greater"),
-    protein_g: z.coerce.number().min(0, "Must be 0 or greater"),
-    vitamin_d_mcg: z.coerce.number().min(0, "Must be 0 or greater"),
-    calcium_mg: z.coerce.number().min(0, "Must be 0 or greater"),
-    iron_mg: z.coerce.number().min(0, "Must be 0 or greater"),
-    potassium_mg: z.coerce.number().min(0, "Must be 0 or greater"),
+    serving_size_imperial: nutritionNumber,
+    serving_size_metric: nutritionNumber,
+    calories: z.preprocess(
+        emptyNumberToUndefined,
+        z.coerce.number().min(0, "Must be 0 or greater").default(0),
+    ),
+    total_fat_g: nutritionNumber,
+    saturated_fat_g: nutritionNumber,
+    trans_fat_g: nutritionNumber,
+    cholesterol_mg: nutritionNumber,
+    sodium_mg: nutritionNumber,
+    total_carbs_g: nutritionNumber,
+    fiber_g: nutritionNumber,
+    total_sugar_g: nutritionNumber,
+    added_sugar_g: nutritionNumber,
+    protein_g: nutritionNumber,
+    vitamin_d_mcg: nutritionNumber,
+    calcium_mg: nutritionNumber,
+    iron_mg: nutritionNumber,
+    potassium_mg: nutritionNumber,
 });
 
 const foodSchema = z.object({
@@ -55,26 +73,28 @@ const foodSchema = z.object({
     group: z.string().min(1, "Food group is required"),
     vendor: z.string().trim().min(1, "Vendor is required").max(50, "Must be 50 characters or fewer"),
     name: z.string().trim().min(1, "Name is required").max(50, "Must be 50 characters or fewer"),
-    subtype: z.string().max(50, "Must be 50 characters or fewer"),
-    description: z.string().max(100, "Must be 100 characters or fewer"),
-    size_description: z.string().max(50, "Must be 50 characters or fewer"),
-    size_description_2: z.string().max(50, "Must be 50 characters or fewer").nullable().optional(),
-    size_imperial: z.coerce.number().min(0, "Must be 0 or greater"),
-    size_metric: z.coerce.number().min(0, "Must be 0 or greater"),
+    subtype: optionalText(50),
+    description: optionalText(100),
+    size_description: optionalText(50),
+    size_description_2: optionalText(50),
+    size_imperial: optionalNumber,
+    size_metric: optionalNumber,
     unit_type: z.enum(["solid", "liquid"]).default("solid"),
-    density: z.coerce.number().min(0, "Must be 0 or greater").default(1.0),
+    density: optionalNumber.default(1.0),
     servings: z.coerce.number().gt(0, "Servings must be greater than 0"),
     nutrition_id: z.number().optional(),
     nutrition: nutritionSchema,
-    price: z.coerce.number().min(0, "Must be 0 or greater"),
+    price: optionalNumber,
     price_per_serving: z.coerce.number().optional().default(0),
     price_per_oz: z.coerce.number().optional().default(0),
     price_per_calorie: z.coerce.number().optional().default(0),
     starter_food: z.boolean().optional().default(false),
     price_date: z
         .string()
+        .nullish()
+        .transform((value) => value ?? "")
         .refine((value) => value === "" || /^\d{4}-\d{2}-\d{2}$/.test(value), "Invalid date format"),
-    shelf_life: z.string().max(150, "Must be 150 characters or fewer").nullish().transform((value) => value ?? ""),
+    shelf_life: optionalText(150),
 });
 
 type FoodFormInput = z.input<typeof foodSchema>;
@@ -763,7 +783,6 @@ function FoodForm() {
                             inputProps={{ min: 0, step: 0.01 }}
                             InputLabelProps={{ shrink: hasValue(sizeImperial) }}
                             fullWidth
-                            required
                         />
                     </Grid>
                     <Grid size={{ xs: 6, sm: 3 }}>
@@ -792,7 +811,6 @@ function FoodForm() {
                                 inputProps={{ min: 0, step: 1 }}
                                 InputLabelProps={{ shrink: hasValue(sizeMetric) }}
                                 fullWidth
-                                required
                             />
                     </Grid>
                     <Grid size={{ xs: 12 }}>
