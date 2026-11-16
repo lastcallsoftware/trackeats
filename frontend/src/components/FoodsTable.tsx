@@ -1,5 +1,6 @@
 import {
     VisibilityState,
+    ColumnFiltersState,
     createColumnHelper, 
     flexRender,
     getCoreRowModel, 
@@ -10,7 +11,7 @@ import {
     SortingState, 
     useReactTable 
 } from '@tanstack/react-table';
-import React, { useCallback, useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { IFood } from "../contexts/DataProvider";
 import { useData } from "@/utils/useData";
@@ -37,6 +38,8 @@ import TextField from '@mui/material/TextField';
 import InputAdornment from '@mui/material/InputAdornment';
 import IconButton from '@mui/material/IconButton';
 import ClearIcon from '@mui/icons-material/Clear';
+import Checkbox from '@mui/material/Checkbox';
+import MenuItem from '@mui/material/MenuItem';
 
 
 // Define the table's columns
@@ -268,13 +271,17 @@ interface FoodsTableProps {
     pagination: { pageIndex: number, pageSize: number },
     setPagination: React.Dispatch<React.SetStateAction<{ pageIndex: number, pageSize: number }>>,
     setFilteredCount: React.Dispatch<React.SetStateAction<number>>,
-    isRecipesForm?: boolean
+    isRecipesForm?: boolean,
+    selectedFoodIds?: Set<number>,
+    setSelectedFoodIds?: React.Dispatch<React.SetStateAction<Set<number>>>,
+    bulkUpdating?: boolean,
 }
 
 // Now declare the foods table itself
-const FoodsTable: React.FC<FoodsTableProps> = ({setSelectedRowId, pagination, setPagination, setFilteredCount, isRecipesForm = false}) => {
+const FoodsTable: React.FC<FoodsTableProps> = ({setSelectedRowId, pagination, setPagination, setFilteredCount, isRecipesForm = false, selectedFoodIds, setSelectedFoodIds, bulkUpdating = false}) => {
     const navigate = useNavigate()
     const [sorting, setSorting] = React.useState<SortingState>([])
+    const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
     const SESSION_STORAGE = 'FoodsTable.globalFilter';
     const [globalFilter, setGlobalFilter] = React.useState(() => {
         return sessionStorage.getItem(SESSION_STORAGE) || "";
@@ -285,6 +292,53 @@ const FoodsTable: React.FC<FoodsTableProps> = ({setSelectedRowId, pagination, se
     const visibilitySaveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
     const { foods, preferences, updatePreferences } = useData();
     const columnsPreferencesKey = FOODS_COLUMNS_PREFERENCES_KEY
+    const bulkEnabled = Boolean(selectedFoodIds && setSelectedFoodIds)
+    const columns = useMemo(() => !selectedFoodIds || !setSelectedFoodIds ? foodColumns : [
+        columnHelper.display({
+            id: '_select',
+            size: 55,
+            enableHiding: false,
+            header: ({ table }) => {
+                const ids = table.getFilteredRowModel().rows.flatMap(row => row.original.id === undefined ? [] : [row.original.id])
+                const selectedCount = ids.filter(id => selectedFoodIds.has(id)).length
+                return <Checkbox
+                    size="small"
+                    disabled={bulkUpdating || ids.length === 0}
+                    checked={ids.length > 0 && selectedCount === ids.length}
+                    indeterminate={selectedCount > 0 && selectedCount < ids.length}
+                    inputProps={{ 'aria-label': 'Select all filtered foods across all pages' }}
+                    onChange={(_, checked) => setSelectedFoodIds(checked ? new Set(ids) : new Set())}
+                />
+            },
+            cell: ({ row }) => <Checkbox
+                size="small"
+                disabled={bulkUpdating}
+                checked={row.original.id !== undefined && selectedFoodIds.has(row.original.id)}
+                inputProps={{ 'aria-label': `Select ${row.original.name}` }}
+                onClick={event => event.stopPropagation()}
+                onDoubleClick={event => event.stopPropagation()}
+                onChange={(_, checked) => {
+                    const id = row.original.id
+                    if (id === undefined) return
+                    setSelectedFoodIds(previous => {
+                        const next = new Set(previous)
+                        if (checked) next.add(id)
+                        else next.delete(id)
+                        return next
+                    })
+                }}
+            />,
+        }),
+        columnHelper.accessor(food => Boolean(food.starter_food), {
+            id: 'starter_food',
+            header: 'Starter',
+            cell: info => info.getValue() ? 'Yes' : 'No',
+            filterFn: 'equals',
+            enableHiding: false,
+            size: 85,
+        }),
+        ...foodColumns,
+    ], [selectedFoodIds, setSelectedFoodIds, bulkUpdating])
 
     const saveColumnVisibility = useCallback((next: VisibilityState) => {
         const withMandatory = enforceMandatoryColumns(columnsPreferencesKey, next as Record<string, boolean>)
@@ -347,7 +401,7 @@ const FoodsTable: React.FC<FoodsTableProps> = ({setSelectedRowId, pagination, se
     // eslint-disable-next-line react-hooks/incompatible-library
     const table = useReactTable({
         data: foods,
-        columns: foodColumns,
+        columns,
         getCoreRowModel: getCoreRowModel(),
         getSortedRowModel: getSortedRowModel(),
         getFilteredRowModel: getFilteredRowModel(),
@@ -357,6 +411,7 @@ const FoodsTable: React.FC<FoodsTableProps> = ({setSelectedRowId, pagination, se
         enableMultiRowSelection: false,
         onSortingChange: setSorting,
         onGlobalFilterChange: setGlobalFilter,
+        onColumnFiltersChange: setColumnFilters,
         onPaginationChange: setPagination,
         onColumnVisibilityChange: (updater) => {
             setColumnVisibility(prev => {
@@ -371,7 +426,11 @@ const FoodsTable: React.FC<FoodsTableProps> = ({setSelectedRowId, pagination, se
                 return next;
             });
         },
-        state: { sorting, columnVisibility, globalFilter, pagination },
+        state: {
+            sorting,
+            columnVisibility: bulkEnabled ? { ...columnVisibility, _select: true, starter_food: true } : columnVisibility,
+            globalFilter, columnFilters, pagination,
+        },
         initialState: {
             pagination: {
                 pageSize: 10
@@ -388,9 +447,10 @@ const FoodsTable: React.FC<FoodsTableProps> = ({setSelectedRowId, pagination, se
         }
     }, [totalPages, pagination.pageIndex, setPagination])
 
+    const filteredCount = table.getFilteredRowModel().rows.length
     useEffect(() => {
-        setFilteredCount(table.getFilteredRowModel().rows.length)
-    }, [table, globalFilter, setFilteredCount])
+        setFilteredCount(filteredCount)
+    }, [filteredCount, setFilteredCount])
 
     const handleClick = (row: Row<IFood>) => {
         row.toggleSelected()
@@ -420,7 +480,7 @@ const FoodsTable: React.FC<FoodsTableProps> = ({setSelectedRowId, pagination, se
                 height: 695,
             }}
         >
-            {/* Toolbar: search box + column visibility picker */}
+            {/* Toolbar: search, admin starter filter and column visibility picker */}
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, px: 1, py: 0.75 }}>
                 <TextField
                     variant="outlined"
@@ -428,13 +488,14 @@ const FoodsTable: React.FC<FoodsTableProps> = ({setSelectedRowId, pagination, se
                     fullWidth
                     placeholder="Filter by name, vendor, subtype…"
                     value={globalFilter}
-                    onChange={e => { setGlobalFilter(e.target.value); table.setPageIndex(0); }}
+                    disabled={bulkUpdating}
+                    onChange={e => { setGlobalFilter(e.target.value); table.setPageIndex(0); setSelectedFoodIds?.(new Set()); }}
                     InputProps={{
                         endAdornment: globalFilter ? (
                             <InputAdornment position="end">
                                 <IconButton
                                     aria-label="Clear filter"
-                                    onClick={() => { setGlobalFilter(""); table.setPageIndex(0); }}
+                                    onClick={() => { setGlobalFilter(""); table.setPageIndex(0); setSelectedFoodIds?.(new Set()); }}
                                     edge="end"
                                     size="small"
                                 >
@@ -444,6 +505,24 @@ const FoodsTable: React.FC<FoodsTableProps> = ({setSelectedRowId, pagination, se
                         ) : null,
                     }}
                 />
+                {bulkEnabled && <TextField
+                    select
+                    label="Starter status"
+                    size="small"
+                    value={columnFilters.length ? (columnFilters[0].value ? 'starter' : 'nonstarter') : 'all'}
+                    disabled={bulkUpdating}
+                    sx={{ minWidth: 170 }}
+                    onChange={event => {
+                        const value = event.target.value
+                        setColumnFilters(value === 'all' ? [] : [{ id: 'starter_food', value: value === 'starter' }])
+                        table.setPageIndex(0)
+                        setSelectedFoodIds?.(new Set())
+                    }}
+                >
+                    <MenuItem value="all">All foods</MenuItem>
+                    <MenuItem value="starter">Starter foods</MenuItem>
+                    <MenuItem value="nonstarter">Non-starter foods</MenuItem>
+                </TextField>}
                 <ColumnVisibilityPicker table={table} storageKey={columnsPreferencesKey} />
             </Box>
 

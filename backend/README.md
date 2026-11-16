@@ -9,6 +9,27 @@ The back end contains no graphical user interface whatsoever.  Its only external
 interface is a set of REST microservices which act as a proxy bewtween the front
 end and the database.<br>
 
+# Starter food administration API
+
+Both operations require an authenticated admin JWT and use the existing
+`{"msg": "..."}` error response format. These are additive API changes.
+
+- `POST /api/import/fdc/import`: accepts `fdc_ids` and optional boolean
+  `starter_food` (default `false`). When true, successfully imported foods become
+  starter foods. When false or omitted, new foods are unmarked and existing foods
+  retain their starter status. The response retains the existing import counts,
+  items, and per-food failures. Invalid input returns 400; insufficient role 403.
+- `PATCH /api/catalog/food/starter`: accepts a non-empty `food_ids` array of positive
+  integers and boolean `starter_food`. Sets only the starter flag for those catalog
+  foods, atomically. Repeated requests are safe. Returns 200 with deduplicated
+  `food_ids`, `starter_food`, and `updated_count` (number of selected foods).
+  Invalid input returns 400, insufficient role 403, missing or non-catalog IDs 404
+  with no changes, and unexpected failures 500. This endpoint updates an explicit
+  selection and has no pagination.
+
+Starter flags determine the catalog foods copied when a new account requests
+starter data. Updating these flags does not change existing users' food copies.
+
 # Setting up and building the app
 
 The following command should be executed in an Ubuntu 24.04 WSL virtual machine

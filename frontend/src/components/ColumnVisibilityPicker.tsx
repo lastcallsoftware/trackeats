@@ -40,7 +40,7 @@ function ColumnVisibilityPicker<T = any>(props: ColumnVisibilityPickerProps<T>) 
     const handleToggleAll = (checked: boolean) => {
         const nextVisibility: Record<string, boolean> = {};
         for (const col of leafColumns) {
-            nextVisibility[col.id] = mandatoryColumnIds.has(col.id) ? true : checked;
+            nextVisibility[col.id] = mandatoryColumnIds.has(col.id) || !col.getCanHide() ? true : checked;
         }
         table.setColumnVisibility(enforceMandatoryColumns(props.storageKey, nextVisibility));
     };
@@ -224,7 +224,7 @@ function ColumnVisibilityPicker<T = any>(props: ColumnVisibilityPickerProps<T>) 
                                     const label =
                                         labelOverrides[col.id] ??
                                         extractHeaderLabel(rawHeader, col.id);
-                                    const isMandatory = mandatoryColumnIds.has(col.id);
+                                    const isMandatory = mandatoryColumnIds.has(col.id) || !col.getCanHide();
                                     return (
                                         <FormControlLabel
                                             key={col.id}

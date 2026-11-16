@@ -37,7 +37,25 @@ const FoodsPage = () => {
     const [catalogFoods, setCatalogFoods] = useState<Array<ReturnType<typeof createCatalogItem>>>([])
     const [catalogSelection, setCatalogSelection] = useState<Set<number>>(new Set())
     const [catalogStatus, setCatalogStatus] = useState<string | null>(null)
-    const { foods, deleteFood, isLoading, canWrite, isAdmin, getCatalogFoods, copyCatalogFoods } = useData();
+    const [selectedStarterIds, setSelectedStarterIds] = useState<Set<number>>(new Set())
+    const [starterUpdating, setStarterUpdating] = useState(false)
+    const [starterStatus, setStarterStatus] = useState<string | null>(null)
+    const { foods, deleteFood, isLoading, canWrite, isAdmin, getCatalogFoods, copyCatalogFoods, setStarterFoods } = useData();
+
+    const updateStarterStatus = async (starterFood: boolean) => {
+        setStarterUpdating(true)
+        setStarterStatus(null)
+        try {
+            const currentIds = new Set(foods.map(food => food.id))
+            const ids = Array.from(selectedStarterIds).filter(id => currentIds.has(id))
+            if (await setStarterFoods(ids, starterFood)) {
+                setStarterStatus(`${ids.length} foods ${starterFood ? 'marked as starter foods' : 'removed from the starter set'}.`)
+                setSelectedStarterIds(new Set())
+            }
+        } finally {
+            setStarterUpdating(false)
+        }
+    }
 
     function createCatalogItem(food: { id?: number; name: string; subtype: string; vendor: string; nutrition: { calories: number } }) {
         return {
@@ -233,6 +251,25 @@ const FoodsPage = () => {
             }
             main={
                 <>
+                    {isAdmin && foods.length > 0 && (
+                        <Stack spacing={1} sx={{ mb: 2 }}>
+                            <Stack direction="row" spacing={1} alignItems="center" useFlexGap flexWrap="wrap">
+                                <Typography variant="body2">{selectedStarterIds.size} selected</Typography>
+                                <Button variant="outlined" disabled={!canWrite || starterUpdating || selectedStarterIds.size === 0} onClick={() => updateStarterStatus(true)}>
+                                    Mark as starter
+                                </Button>
+                                <Button variant="outlined" disabled={!canWrite || starterUpdating || selectedStarterIds.size === 0} onClick={() => updateStarterStatus(false)}>
+                                    Remove starter status
+                                </Button>
+                                <Button disabled={starterUpdating || selectedStarterIds.size === 0} onClick={() => setSelectedStarterIds(new Set())}>Clear selection</Button>
+                            </Stack>
+                            <Typography variant="caption" color="text.secondary">
+                                Select foods individually or use the header checkbox to select all filtered foods across all pages. Starter foods are included when new users request starter data.
+                            </Typography>
+                            {starterUpdating && <Typography role="status" variant="body2">Updating starter foods…</Typography>}
+                            {starterStatus && <Alert severity="success" onClose={() => setStarterStatus(null)}>{starterStatus}</Alert>}
+                        </Stack>
+                    )}
                     {/* ── Empty state check ── */}
                     {foods.length === 0 ? (
                         <Box sx={{ textAlign: 'center', py: 8, color: 'text.secondary', fontSize: 20 }}>
@@ -254,6 +291,9 @@ const FoodsPage = () => {
                                 pagination={pagination}
                                 setPagination={setPagination}
                                 setFilteredCount={setFilteredCount}
+                                selectedFoodIds={isAdmin ? selectedStarterIds : undefined}
+                                setSelectedFoodIds={isAdmin ? setSelectedStarterIds : undefined}
+                                bulkUpdating={starterUpdating || (isAdmin && !canWrite)}
                             />
                         </Box>
                     )}

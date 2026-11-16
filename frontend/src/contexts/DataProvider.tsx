@@ -255,6 +255,7 @@ export type DataContextType = {
     addFood: (food: IFood) => Promise<void>;
     updateFood: (food: IFood) => Promise<void>;
     deleteFood: (food_id: number) => Promise<void>;
+    setStarterFoods: (foodIds: number[], starterFood: boolean) => Promise<boolean>;
     getCatalogFoods: (query: string, pageNumber: number, pageSize: number) => Promise<CatalogFoodsResponse | null>;
     copyCatalogFoods: (foodIds: number[]) => Promise<CatalogCopyResponse | null>;
     addRecipe: (recipe: IRecipe, ingredients: IIngredient[]) => Promise<number|undefined>;
@@ -540,6 +541,23 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
         }
     }
 
+    const setStarterFoods = async (foodIds: number[], starterFood: boolean): Promise<boolean> => {
+        if (!isAdmin || !ensureCanWrite()) return false
+        try {
+            const response = await axios.patch<{ food_ids: number[]; starter_food: boolean }>(
+                "/api/catalog/food/starter", { food_ids: foodIds, starter_food: starterFood }
+            )
+            const updatedIds = new Set(response.data.food_ids)
+            setFoods(previous => previous.map(food => food.id !== undefined && updatedIds.has(food.id)
+                ? { ...food, starter_food: response.data.starter_food }
+                : food))
+            return true
+        } catch (error) {
+            handleError(error)
+            return false
+        }
+    }
+
     // Delete Food
     const deleteFood = async (id: number): Promise<void> => {
         if (!ensureCanWrite()) {
@@ -806,6 +824,7 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({children}) 
             addFood, 
             updateFood, 
             deleteFood,
+            setStarterFoods,
             getCatalogFoods,
             copyCatalogFoods,
             addRecipe, 

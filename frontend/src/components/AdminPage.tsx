@@ -24,6 +24,8 @@ import Alert from '@mui/material/Alert';
 import Divider from '@mui/material/Divider';
 import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
+import Checkbox from '@mui/material/Checkbox';
+import FormControlLabel from '@mui/material/FormControlLabel';
 import MenuItem from '@mui/material/MenuItem';
 import MuiPagination from '@mui/material/Pagination';
 import { MdDeleteForever, MdRefresh } from 'react-icons/md';
@@ -169,6 +171,7 @@ function AdminPage() {
     const [fdcPreviewError, setFdcPreviewError] = useState<{ message: string; retryable: boolean } | null>(null);
     const [fdcLoading, setFdcLoading] = useState(false);
     const [fdcImporting, setFdcImporting] = useState(false);
+    const [fdcStarterFood, setFdcStarterFood] = useState(true);
     const [fdcError, setFdcError] = useState<string | null>(null);
     const [fdcImportResult, setFdcImportResult] = useState<FdcImportResponse | null>(null);
     const fdcPreviewRequestSeq = useRef(0);
@@ -297,6 +300,7 @@ function AdminPage() {
         try {
             const res = await axios.post<FdcImportResponse>('/api/import/fdc/import', {
                 fdc_ids: selected,
+                starter_food: fdcStarterFood,
             }, {
                 timeout: USDA_REQUEST_TIMEOUT_MS,
             });
@@ -703,6 +707,10 @@ function AdminPage() {
                 </Box>
 
                 <Stack direction={{ xs: 'column', md: 'row' }} spacing={1.5} alignItems={{ xs: 'flex-start', md: 'center' }}>
+                    <FormControlLabel
+                        control={<Checkbox checked={fdcStarterFood} onChange={(_, checked) => setFdcStarterFood(checked)} disabled={fdcImporting} />}
+                        label="Mark imported foods as starter foods"
+                    />
                     <Typography variant="body2" color="text.secondary">
                         {fdcSelectedIds.size} selected
                     </Typography>

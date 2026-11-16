@@ -1681,6 +1681,40 @@ def copy_catalog_foods():
     ), 200
 
 
+@bp.route("/api/catalog/food/starter", methods=["PATCH"])
+@admin_required
+@log_route
+def set_catalog_foods_starter_flag():
+    """Set starter status for selected catalog foods as one atomic operation."""
+    payload = _get_json_payload()
+    raw_food_ids = payload.get("food_ids")
+    starter_food = payload.get("starter_food")
+    if not isinstance(starter_food, bool):
+        return jsonify({"msg": "'starter_food' must be a boolean"}), 400
+    if not isinstance(raw_food_ids, list) or not raw_food_ids or any(
+        type(food_id) is not int or food_id <= 0 for food_id in cast(list[Any], raw_food_ids)
+    ):
+        return jsonify({"msg": "'food_ids' must be a non-empty list of positive integers"}), 400
+    food_ids = list(dict.fromkeys(cast(list[int], raw_food_ids)))
+    try:
+        with db.session.begin():
+            catalog_user_id = _get_catalog_user_id()
+            owned_ids = db.session.scalars(
+                db.select(Food.id).where(Food.user_id == catalog_user_id, Food.id.in_(food_ids))
+            ).all()
+            if len(owned_ids) != len(food_ids):
+                return jsonify({"msg": "One or more selected catalog foods were not found"}), 404
+            db.session.execute(
+                db.update(Food)
+                .where(Food.user_id == catalog_user_id, Food.id.in_(food_ids))
+                .values(starter_food=starter_food)
+            )
+    except Exception:
+        logging.exception("Catalog starter flags could not be updated")
+        return jsonify({"msg": "Starter flags could not be updated"}), 500
+    return jsonify({"food_ids": food_ids, "starter_food": starter_food, "updated_count": len(food_ids)}), 200
+
+
 @bp.route("/api/catalog/food/<int:food_id>/starter", methods=["PATCH"])
 @admin_required
 @log_route
@@ -2269,6 +2303,9 @@ def fdc_import_foods():
     try:
         payload = _get_json_payload()
         fdc_ids = _parse_fdc_ids(payload.get("fdc_ids"))
+        starter_food = payload.get("starter_food", False)
+        if not isinstance(starter_food, bool):
+            raise ValueError("'starter_food' must be a boolean")
     except ValueError as e:
         return jsonify({"msg": str(e)}), 400
 
@@ -2296,12 +2333,13 @@ def fdc_import_foods():
                 try:
                     with db.session.begin_nested():
                         mapped = importer.validate_and_map_food(usda_food)
+                        mapped = mapped.model_copy(update={"starter_food": starter_food})
                         existing = Food.get_by_user_source_fdc_id(catalog_user_id, USDA_SOURCE, fdc_id)
                         if existing:
                             updated_request = mapped.model_copy(
                                 update={
                                     "id": existing.id,
-                                    "starter_food": existing.starter_food,
+                                    "starter_food": starter_food or existing.starter_food,
                                 }
                             )
                             food_dao = Food.update(catalog_user_id, updated_request)
