@@ -249,7 +249,7 @@ class USDAFdcImporter:
         primary_value = serving_size if serving_size is not None and serving_unit and _is_standard_unit_name(serving_unit) else primary_g
         if serving_kind == "liquid" and volume_ml is None:
             primary_unit = "ml"
-            primary_value = float(serving_size_metric)
+            primary_value = primary_g / density
         total_metric = primary_g / density if unit_type == "liquid" else primary_g
         total_imperial = total_metric / (29.5735 if unit_type == "liquid" else 28.3495)
 
@@ -768,6 +768,8 @@ def _build_alternatives_from_portions(
             return float(value or 0) * scale_factor
 
         metric_size = _volume_ml(amount, unit_name) if serving_unit_kind == "liquid" else gram_weight
+        if metric_size is None:
+            continue
         imperial_size = metric_size / (29.5735 if serving_unit_kind == "liquid" else 28.3495)
         scaled_nutrition = NutritionRequest(
             serving_size_description=_truncate(portion_description, 50),
@@ -837,7 +839,11 @@ def _volume_ml(amount: float | None, unit: str) -> float | None:
 
 def _portion_volume(portion: dict[str, Any]) -> float | None:
     measure = portion.get("measureUnit")
-    unit = str(measure.get("name") or "") if isinstance(measure, dict) else str(measure or "")
+    if isinstance(measure, dict):
+        measure_dict = cast(dict[str, Any], measure)
+        unit = str(measure_dict.get("name") or "")
+    else:
+        unit = str(measure or "")
     # Foundation records sometimes put the household unit in modifier while
     # measureUnit is "undetermined".
     if not _is_standard_unit_name(unit):
@@ -849,9 +855,12 @@ def _portion_volume(portion: dict[str, Any]) -> float | None:
 
 
 def _food_density(food: dict[str, Any]) -> float:
-    for portion in food.get("foodPortions") or []:
-        if not isinstance(portion, dict):
+    portions_raw = food.get("foodPortions")
+    portions = cast(list[Any], portions_raw) if isinstance(portions_raw, list) else []
+    for portion_raw in portions:
+        if not isinstance(portion_raw, dict):
             continue
+        portion = cast(dict[str, Any], portion_raw)
         volume = _portion_volume(portion)
         try:
             grams = float(portion.get("gramWeight") or 0)
