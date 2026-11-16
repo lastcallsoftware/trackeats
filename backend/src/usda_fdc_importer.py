@@ -470,14 +470,18 @@ def _serving_size_fields(usda_food: dict[str, Any]) -> tuple[float | None, str |
     return size, unit
 
 
+def _normalize_serving_label(label: str) -> str:
+    return re.sub(r"\bracc\b", "serving", label, flags=re.IGNORECASE)
+
+
 def _serving_size_description(usda_food: dict[str, Any], size: float | None, unit: str | None) -> str:
     household = str(usda_food.get("householdServingFullText") or "").strip()
     if household:
-        return household
+        return _normalize_serving_label(household)
 
     if size is not None and unit:
         size_display = int(size) if size.is_integer() else round(size, 2)
-        return f"{size_display} {unit}"
+        return _normalize_serving_label(f"{size_display} {unit}")
 
     return "100 g"
 
@@ -692,7 +696,7 @@ def _build_alternatives_from_portions(
             unit_name = modifier.lower()
             modifier = ""
 
-        # Build a serving description
+        # Build a serving description and replace USDA's RACC label with serving.
         portion_description = str(portion.get("portionDescription") or "").strip()
         if not portion_description:
             amount_display = int(amount) if amount == int(amount) else round(amount, 2)
@@ -700,6 +704,8 @@ def _build_alternatives_from_portions(
                 portion_description = f"{modifier} {amount_display} {unit_name}".strip()
             else:
                 portion_description = f"{amount_display} {unit_name}".strip()
+
+        portion_description = _normalize_serving_label(portion_description)
 
         if amount <= 0 or not math.isfinite(amount):
             continue
