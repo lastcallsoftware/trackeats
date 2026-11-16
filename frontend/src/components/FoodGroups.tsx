@@ -2,7 +2,7 @@ export const foodGroups = [
     { value: "", label: "-- select one --" },
     { value: "beverages", label: "Beverages" },
     { value: "condiments", label: "Condiments" },
-    { value: "dairy", label: "Dairy" },
+    { value: "dairy", label: "Dairy and Alternatives" },
     { value: "fatsAndSugars", label: "Fats and Sugars" },
     { value: "fruits", label: "Fruits" },
     { value: "grains", label: "Grains" },

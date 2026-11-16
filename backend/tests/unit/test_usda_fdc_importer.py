@@ -49,6 +49,89 @@ def test_map_group_detects_common_categories() -> None:
     assert _map_group("spice mix") == "herbsAndSpices"
 
 
+@pytest.mark.parametrize("description, expected", [
+    ("Apples, raw, with skin", "fruits"),
+    ("Peaches, canned in juice", "fruits"),
+    ("Peaches canned in fruit juice", "fruits"),
+    ("Pears in their own juice", "fruits"),
+    ("Apple juice, canned or bottled", "beverages"),
+    ("Orange juice, frozen concentrate", "beverages"),
+    ("Pineapple and grapefruit juice drink", "beverages"),
+    ("Apricot nectar, canned", "beverages"),
+])
+@pytest.mark.parametrize("category_field", ["foodCategory", "brandedFoodCategory"])
+def test_import_splits_fruit_and_juice_category(description: str, expected: str, category_field: str) -> None:
+    category = "Fruits and Fruit Juices"
+    payload = {
+        "fdcId": 12345,
+        "description": description,
+        category_field: {"description": category} if category_field == "foodCategory" else category,
+    }
+    mapped = USDAFdcImporter(api_key="test-key").map_to_food_request(payload)
+    assert mapped.group == expected
+
+
+@pytest.mark.parametrize("description, expected", [
+    ("Egg, whole, raw, fresh", "proteins"),
+    ("Egg, white, raw, fresh", "proteins"),
+    ("Egg, yolk, raw, fresh", "proteins"),
+    ("Eggs, scrambled, with milk and cheese", "proteins"),
+    ("Liquid egg whites", "proteins"),
+    ("Egg substitute, liquid", "proteins"),
+    ("Milk, whole", "dairy"),
+    ("Cheese, cheddar", "dairy"),
+    ("Yogurt, plain", "dairy"),
+    ("Eggnog", "dairy"),
+])
+@pytest.mark.parametrize("category_field", ["foodCategory", "brandedFoodCategory"])
+def test_import_splits_dairy_and_egg_category(description: str, expected: str, category_field: str) -> None:
+    category = "Dairy and Egg Products"
+    payload = {
+        "fdcId": 12345,
+        "description": description,
+        category_field: {"description": category} if category_field == "foodCategory" else category,
+    }
+    mapped = USDAFdcImporter(api_key="test-key").map_to_food_request(payload)
+    assert mapped.group == expected
+
+
+@pytest.mark.parametrize("category, description", [
+    ("Beverages", "Soy milk, unsweetened"),
+    ("Beverages", "Almond milk, vanilla"),
+    ("Cereal Grains and Pasta", "Oat milk"),
+    ("Nut and Seed Products", "Cashew milk"),
+    ("Beverages", "Rice drink"),
+    ("Beverages", "Almond beverage"),
+    ("Other", "Dairy-free yogurt"),
+    ("Other", "Plant-based cheese"),
+    ("Other", "Coconut yogurt"),
+    ("Milk Substitutes", "Unsweetened original"),
+])
+def test_map_group_keeps_dairy_alternatives_together(category: str, description: str) -> None:
+    assert _map_group(category, description) == "dairy"
+
+
+@pytest.mark.parametrize("category, description, expected", [
+    ("Beverages", "Almond-flavored coffee", "beverages"),
+    ("Nut and Seed Products", "Almonds", "nutsAndSeeds"),
+    ("Cereal Grains and Pasta", "Oats", "grains"),
+    ("Baked Products", "Bread, made with almond milk", "grains"),
+    ("Vegetables", "Water chestnuts", "vegetables"),
+    ("Nut and Seed Products", "Almond butter", "nutsAndSeeds"),
+    ("Cereal Grains and Pasta", "Rice noodles", "grains"),
+    ("", "Steak", "proteins"),
+    ("", "Berries", "fruits"),
+    ("", "Apples", "fruits"),
+    ("", "Tea", "beverages"),
+    ("", "Juices", "beverages"),
+    ("", "Oatmeal", "grains"),
+    ("Unknown category", "Chicken", "proteins"),
+    ("Cheese and dairy foods", "Fruit-flavored yogurt", "dairy"),
+])
+def test_map_group_prefers_categories_and_matches_complete_words(category: str, description: str, expected: str) -> None:
+    assert _map_group(category, description) == expected
+
+
 def test_map_to_food_request_branded_payload() -> None:
     importer = USDAFdcImporter(api_key="test-key")
     usda_food: dict[str, Any] = {
@@ -83,6 +166,7 @@ def test_map_to_food_request_branded_payload() -> None:
     assert request.fdc_id == 12345
     assert request.source == "usda_fdc"
     assert request.group == "dairy"
+    assert request.subtype is None
     assert request.name == "CHEDDAR CHEESE"
     assert request.vendor == "Acme Foods"
     assert request.servings == 1.0
@@ -112,6 +196,7 @@ def test_map_to_food_request_foundation_defaults_vendor_and_serving() -> None:
     assert request.fdc_id == 67890
     assert request.vendor == "USDA Foundation"
     assert request.group == "vegetables"
+    assert request.subtype is None
     assert request.nutrition.serving_size_description == "100 g"
     assert request.nutrition.calories == 23
     assert request.nutrition.protein_g == 3

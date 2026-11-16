@@ -217,16 +217,7 @@ class USDAFdcImporter:
             vendor = "USDA Foundation" if data_type == "Foundation" else "USDA"
         vendor = _truncate(vendor, 50)
 
-        category_blob = " ".join(
-            [
-                str(usda_food.get("brandedFoodCategory") or ""),
-                str(_food_category_description(usda_food) or ""),
-                description,
-            ]
-        ).strip()
-
-        subtype = str(usda_food.get("brandedFoodCategory") or _food_category_description(usda_food) or "").strip()
-        subtype = _truncate(subtype, 50) if subtype else None
+        category = str(usda_food.get("brandedFoodCategory") or _food_category_description(usda_food) or "")
 
         long_description = str(
             usda_food.get("ingredients")
@@ -298,11 +289,11 @@ class USDAFdcImporter:
         alternatives.extend(_build_alternatives_from_portions(usda_food, nutrition, primary_g))
 
         return FoodRequest(
-            group=_map_group(category_blob),
+            group=_map_group(category, str(usda_food.get("description") or "")),
             name=description,
             vendor=vendor,
             servings=1.0,
-            subtype=subtype,
+            subtype=None,
             description=long_description,
             size_description=_truncate(serving_size_description, 50),
             size_description_2=None,
@@ -614,26 +605,84 @@ def _nutrient_value(usda_food: dict[str, Any], nutrient_number: str, label_field
     return None
 
 
-def _map_group(group_text: str) -> str:
-    normalized = group_text.strip().lower()
+def _map_group(group_text: str, description: str = "") -> str:
+    normalized = _normalize_search_text(group_text)
+    # Dairy substitutes belong together even when USDA places them in beverages,
+    # nuts, or grains. Inspect the food name rather than ingredients/qualifiers.
+    food_name = description.lower().split(",", 1)[0]
+    if re.search(
+        r"\b(?:soy|soya|almond|oat|coconut|rice|cashew|hemp|pea|flax|macadamia|hazelnut)"
+        r"(?:[- ]based)?\s+(?:milks?|beverages?|drinks?|yogurts?|yoghurts?|cheese)\b"
+        r"|\b(?:non[- ]?dairy|dairy[- ]free|plant[- ]based)\s+(?:milks?|yogurts?|yoghurts?|cheese)\b",
+        food_name,
+    ):
+        return "dairy"
+
+    direct_categories = {
+        "milk substitutes": "dairy",
+        "milk alternatives": "dairy",
+        "dairy alternatives": "dairy",
+        "beverages": "beverages",
+        "fruits": "fruits",
+        "vegetables": "vegetables",
+        "cereal grains and pasta": "grains",
+        "breakfast cereals": "grains",
+        "baked products": "grains",
+        "nut and seed products": "nutsAndSeeds",
+        "poultry products": "proteins",
+        "beef products": "proteins",
+        "pork products": "proteins",
+        "finfish and shellfish products": "proteins",
+        "lamb, veal, and game products": "proteins",
+        "legumes and legume products": "proteins",
+        "fats and oils": "fatsAndSugars",
+        "sweets": "fatsAndSugars",
+        "spices and herbs": "herbsAndSpices",
+        "meals, entrees, and side dishes": "preparedFoods",
+        "soups, sauces, and gravies": "preparedFoods",
+    }
+    if normalized in direct_categories:
+        return direct_categories[normalized]
+
+    if normalized == "dairy and egg products":
+        # Use the food name to split eggs from dairy in this combined category.
+        # Later qualifiers (e.g. eggs scrambled with milk) do not change its group.
+        food_name = description.lower().split(",", 1)[0]
+        return "proteins" if re.search(r"\beggs?\b", food_name) else "dairy"
+
+    if normalized == "fruits and fruit juices":
+        # The combined USDA category cannot distinguish fruit from juice.
+        # Inspect the food name, excluding qualifiers such as "canned in juice".
+        food_name = description.lower().split(",", 1)[0]
+        packed_in_juice = re.search(r"\b(?:in|with)\s+(?:(?:its|their|own|natural|fruit|apple|grape)\s+)*juices?\b", food_name)
+        if not packed_in_juice and re.search(r"\b(?:juices?|drinks?|beverages?|smoothies?|nectars?)\b", food_name):
+            return "beverages"
+        return "fruits"
 
     group_rules = [
         ("beverages", ["beverage", "juice", "soda", "drink", "coffee", "tea", "water"]),
         ("dairy", ["dairy", "milk", "cheese", "yogurt", "butter"]),
         ("fruits", ["fruit", "apple", "banana", "berry", "citrus"]),
         ("vegetables", ["vegetable", "broccoli", "lettuce", "carrot", "spinach", "potato"]),
-        ("grains", ["grain", "bread", "rice", "pasta", "oat", "cereal", "flour"]),
+        ("grains", ["grain", "bread", "rice", "pasta", "oat", "oatmeal", "cereal", "flour"]),
         ("nutsAndSeeds", ["nut", "seed", "almond", "peanut", "walnut", "sunflower"]),
-        ("proteins", ["protein", "meat", "beef", "pork", "chicken", "fish", "egg", "tofu"]),
+        ("proteins", ["protein", "meat", "beef", "pork", "chicken", "fish", "egg", "tofu", "steak"]),
         ("condiments", ["condiment", "sauce", "ketchup", "mustard", "dressing", "seasoning"]),
         ("fatsAndSugars", ["oil", "fat", "sugar", "syrup", "honey", "shortening"]),
         ("preparedFoods", ["prepared", "frozen", "meal", "entree", "pizza", "sandwich", "soup"]),
         ("herbsAndSpices", ["spice", "herb", "basil", "oregano", "pepper", "curry"]),
     ]
 
-    for group_name, keywords in group_rules:
-        if any(keyword in normalized for keyword in keywords):
-            return group_name
+    # Prefer category evidence; use the food description only as a fallback.
+    # Match complete words and common plurals (e.g. berries), never substrings.
+    for text in (normalized, description.lower()):
+        for group_name, keywords in group_rules:
+            for keyword in keywords:
+                forms = [keyword, keyword + "s", keyword + "es"]
+                if keyword.endswith("y"):
+                    forms.append(keyword[:-1] + "ies")
+                if re.search(r"\b(?:" + "|".join(re.escape(form) for form in forms) + r")\b", text):
+                    return group_name
 
     return "other"
 

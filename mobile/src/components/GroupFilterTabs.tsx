@@ -6,7 +6,7 @@ import { FoodGroup } from '@/types/food'
 const FOOD_GROUP_LABELS: Record<FoodGroup, string> = {
   beverages: 'Beverages',
   condiments: 'Condiments',
-  dairy: 'Dairy',
+  dairy: 'Dairy and Alternatives',
   fatsAndSugars: 'Fats & Sugars',
   fruits: 'Fruits',
   grains: 'Grains',
