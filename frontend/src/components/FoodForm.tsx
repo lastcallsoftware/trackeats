@@ -74,7 +74,7 @@ const foodSchema = z.object({
     price_date: z
         .string()
         .refine((value) => value === "" || /^\d{4}-\d{2}-\d{2}$/.test(value), "Invalid date format"),
-    shelf_life: z.string().max(150, "Must be 150 characters or fewer"),
+    shelf_life: z.string().max(150, "Must be 150 characters or fewer").nullish().transform((value) => value ?? ""),
 });
 
 type FoodFormInput = z.input<typeof foodSchema>;
