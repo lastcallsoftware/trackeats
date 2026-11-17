@@ -5,6 +5,8 @@ This project is a small web application.  Conceptually it is a portfolio app int
 [Front end documentation](frontend/README.md).
 [Back end documentation](backend/README.md)
 
+[Database entity relationship diagram](docs/entity-relationship-diagram.md)
+
 
 # Deployment
 
