@@ -491,6 +491,81 @@ def test_foundation_milk_uses_liquid_total_and_primary_serving_with_measured_den
     assert cup.nutrition.calories == 122
 
 
+@pytest.mark.parametrize("portion_fields", [
+    {"portionDescription": "1 serving"},
+    {"portionDescription": "1 RACC"},
+    {"portionDescription": "1.0 racc"},
+    {"modifier": "racc", "measureUnit": {"name": "undetermined"}},
+    {"modifier": "serving", "measureUnit": {"name": "undetermined"}},
+    {"measureUnit": {"name": "racc"}},
+])
+def test_import_prefers_single_serving_and_preserves_other_portions(portion_fields: dict[str, Any]) -> None:
+    mapped = USDAFdcImporter(api_key="test-key").map_to_food_request({
+        "fdcId": 14, "description": "Example food", "dataType": "Foundation",
+        "foodNutrients": [{"nutrient": {"number": "208"}, "amount": 200}],
+        "foodPortions": [
+            {"amount": 1, "measureUnit": {"name": "cup"}, "gramWeight": 120},
+            {"amount": 1, "gramWeight": 30, **portion_fields},
+        ],
+    })
+    primary, original, cup = mapped.nutrition_alternatives
+    assert primary.is_primary
+    assert sum(alt.is_primary for alt in mapped.nutrition_alternatives) == 1
+    assert [alt.ordinal for alt in mapped.nutrition_alternatives] == [0, 1, 2]
+    assert primary.nutrition.serving_size_description.lower() in {"1 serving", "1.0 serving"}
+    assert primary.nutrition.calories == 60
+    assert primary.nutrition.serving_size_metric == 30
+    assert mapped.nutrition is primary.nutrition
+    assert mapped.size_description == primary.nutrition.serving_size_description
+    assert mapped.size_metric == 30
+    assert original.nutrition.calories == 200
+    assert not original.is_primary and original.serving_unit == "g"
+    assert cup.nutrition.calories == 240
+    assert not cup.is_primary and cup.serving_unit == "cup"
+
+
+def test_import_does_not_promote_multiple_servings() -> None:
+    mapped = USDAFdcImporter(api_key="test-key").map_to_food_request({
+        "fdcId": 15, "description": "Example food",
+        "foodPortions": [{"amount": 2, "portionDescription": "2 servings", "gramWeight": 60}],
+    })
+    assert mapped.nutrition_alternatives[0].is_primary
+    assert mapped.nutrition_alternatives[0].serving_unit == "g"
+    assert not mapped.nutrition_alternatives[1].is_primary
+
+
+def test_preferred_serving_scales_branded_label_nutrition() -> None:
+    mapped = USDAFdcImporter(api_key="test-key").map_to_food_request({
+        "fdcId": 16, "description": "Example food", "dataType": "Branded",
+        "servingSize": 30, "servingSizeUnit": "g",
+        "labelNutrients": {"calories": {"value": 100}},
+        "foodPortions": [{"amount": 1, "modifier": "racc", "gramWeight": 60}],
+    })
+    primary, original = mapped.nutrition_alternatives
+    assert primary.is_primary and primary.nutrition.calories == 200
+    assert mapped.nutrition.calories == 200 and mapped.size_metric == 60
+    assert not original.is_primary and original.nutrition.calories == 100
+
+
+def test_preferred_liquid_serving_retains_density_and_volume() -> None:
+    mapped = USDAFdcImporter(api_key="test-key").map_to_food_request({
+        "fdcId": 17, "description": "Milk", "dataType": "Foundation",
+        "foodNutrients": [{"nutrient": {"number": "208"}, "amount": 50}],
+        "foodPortions": [
+            {"amount": 1, "measureUnit": {"name": "cup"}, "gramWeight": 244},
+            {"amount": 1, "modifier": "racc", "gramWeight": 244},
+        ],
+    })
+    primary = mapped.nutrition_alternatives[0]
+    assert primary.is_primary and primary.nutrition.serving_size_description == "1 serving"
+    assert mapped.density == pytest.approx(244 / 236.588)
+    assert mapped.unit_type == "liquid"
+    assert mapped.size_metric == 237
+    assert mapped.size_imperial == pytest.approx(8, abs=0.001)
+    assert mapped.nutrition.calories == 122
+    assert primary.nutrition.serving_size_metric == 244
+
+
 @pytest.mark.parametrize("unit,amount,ml", [("ml", 240, 240), ("fl oz", 8, 236.588), ("l", 0.25, 250)])
 def test_branded_liquid_serving_units_preserve_label_nutrition(unit: str, amount: float, ml: float) -> None:
     mapped = USDAFdcImporter(api_key="test-key").validate_and_map_food({

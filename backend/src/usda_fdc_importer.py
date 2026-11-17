@@ -277,7 +277,7 @@ class USDAFdcImporter:
         )
 
         # Include explicit primary metadata so persistence does not infer a solid
-        # serving or promote the first USDA portion to primary.
+        # serving or choose a default based only on USDA portion order.
         alternatives = [NutritionAlternativeRequest(
             serving_value=primary_value,
             serving_unit=_canonical_unit_name(primary_unit),
@@ -287,6 +287,25 @@ class USDAFdcImporter:
         )]
         # Build nutrition alternatives from foodPortions using their gram weights.
         alternatives.extend(_build_alternatives_from_portions(usda_food, nutrition, primary_g))
+
+        # Prefer an explicit single serving (including a normalized RACC label).
+        # Nutrition has already been scaled to each portion's own gram weight.
+        preferred = next((
+            alt for alt in alternatives
+            if alt.serving_value == 1
+            and re.fullmatch(r"1(?:\.0+)?\s+serving", alt.nutrition.serving_size_description.strip(), re.IGNORECASE)
+        ), None)
+        if preferred is not None and not preferred.is_primary:
+            alternatives = [preferred, *(alt for alt in alternatives if alt is not preferred)]
+            for ordinal, alt in enumerate(alternatives):
+                alt.is_primary = ordinal == 0
+                alt.ordinal = ordinal
+            nutrition = preferred.nutrition
+            serving_size_description = nutrition.serving_size_description
+            preferred_metric = float(nutrition.serving_size_metric or 0)
+            preferred_g = preferred_metric * density if preferred.serving_unit_kind == "liquid" else preferred_metric
+            total_metric = preferred_g / density if unit_type == "liquid" else preferred_g
+            total_imperial = total_metric / (29.5735 if unit_type == "liquid" else 28.3495)
 
         return FoodRequest(
             group=_map_group(category, str(usda_food.get("description") or "")),
@@ -749,7 +768,9 @@ def _build_alternatives_from_portions(
         portion_description = str(portion.get("portionDescription") or "").strip()
         if not portion_description:
             amount_display = int(amount) if amount == int(amount) else round(amount, 2)
-            if modifier:
+            if modifier.lower() in {"racc", "serving"} or unit_name in {"racc", "serving"}:
+                portion_description = f"{amount_display} serving"
+            elif modifier:
                 portion_description = f"{modifier} {amount_display} {unit_name}".strip()
             else:
                 portion_description = f"{amount_display} {unit_name}".strip()
@@ -760,7 +781,7 @@ def _build_alternatives_from_portions(
             continue
         # Determine unit kind and store ml/fl oz for volume portions, g/oz otherwise.
         serving_unit_kind = _determine_unit_kind(unit_name)
-        is_primary = False  # USDA portions are all alternatives; primary is the main serving
+        is_primary = False  # The importer may promote an explicit single serving later.
         # Scale nutrition to this portion's gram weight
         scale_factor = gram_weight / primary_g if primary_g > 0 else 1.0
 
