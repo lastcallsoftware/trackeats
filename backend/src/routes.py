@@ -2237,6 +2237,10 @@ def fdc_search_foods():
     try:
         importer = _get_importer()
         data = importer.search_foods(query=query, page_number=page_number, page_size=page_size, data_types=data_types)
+        foods = cast(list[dict[str, Any]], data.get("foods") or [])
+        imported_ids = Food.get_imported_fdc_ids(_get_catalog_user_id(), [int(food["fdcId"]) for food in foods])
+        for food in foods:
+            food["alreadyImported"] = int(food["fdcId"]) in imported_ids
     except USDAFdcImporterError as e:
         msg = f"USDA search failed: {str(e)}"
         logging.error(msg)
@@ -2311,6 +2315,7 @@ def fdc_import_foods():
 
     created_count = 0
     updated_count = 0
+    skipped: list[dict[str, Any]] = []
     failures: list[dict[str, Any]] = []
     imported: list[dict[str, Any]] = []
 
@@ -2325,6 +2330,9 @@ def fdc_import_foods():
             catalog_user_id = _get_catalog_user_id()
 
             for fdc_id in fdc_ids:
+                if Food.get_by_user_source_fdc_id(catalog_user_id, USDA_SOURCE, fdc_id):
+                    skipped.append({"fdc_id": fdc_id, "reason": "already_imported"})
+                    continue
                 usda_food = by_fdc_id.get(fdc_id)
                 if usda_food is None:
                     failures.append({"fdc_id": fdc_id, "error": "Food not found in USDA response"})
@@ -2334,31 +2342,27 @@ def fdc_import_foods():
                     with db.session.begin_nested():
                         mapped = importer.validate_and_map_food(usda_food)
                         mapped = mapped.model_copy(update={"starter_food": starter_food})
-                        existing = Food.get_by_user_source_fdc_id(catalog_user_id, USDA_SOURCE, fdc_id)
-                        if existing:
-                            updated_request = mapped.model_copy(
-                                update={
-                                    "id": existing.id,
-                                    "starter_food": starter_food or existing.starter_food,
-                                }
-                            )
-                            food_dao = Food.update(catalog_user_id, updated_request)
-                            updated_count += 1
-                            action = "updated"
-                        else:
-                            food_dao = Food.add(catalog_user_id, mapped)
-                            created_count += 1
-                            action = "created"
+                        food_dao = Food.add(catalog_user_id, mapped)
 
                         food_dao.last_synced_at = datetime.now(timezone.utc)
-                        imported.append(
-                            {
-                                "fdc_id": fdc_id,
-                                "food_id": food_dao.id,
-                                "name": food_dao.name,
-                                "action": action,
-                            }
-                        )
+                    imported.append(
+                        {
+                            "fdc_id": fdc_id,
+                            "food_id": food_dao.id,
+                            "name": food_dao.name,
+                            "action": "created",
+                        }
+                    )
+                    created_count += 1
+                except IntegrityError as e:
+                    # A concurrent request may have inserted the same USDA food
+                    # after our check. The savepoint rolls back only this item.
+                    detail = str(e.orig)
+                    if "uq_food_user_source_fdc" in detail or "UNIQUE constraint failed: food.user_id, food.source, food.fdc_id" in detail:
+                        skipped.append({"fdc_id": fdc_id, "reason": "already_imported"})
+                    else:
+                        logging.exception("USDA import integrity error for FDC ID %s", fdc_id)
+                        failures.append({"fdc_id": fdc_id, "error": "Food could not be imported"})
                 except Exception as e:
                     failures.append({"fdc_id": fdc_id, "error": str(e)})
     except USDAFdcImporterError as e:
@@ -2374,6 +2378,8 @@ def fdc_import_foods():
         "imported_count": len(imported),
         "created_count": created_count,
         "updated_count": updated_count,
+        "skipped_count": len(skipped),
+        "skipped": skipped,
         "failures": failures,
         "items": imported,
     }

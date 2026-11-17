@@ -23,6 +23,7 @@ export type USDAFoodRow = {
     brandName?: string;
     packageWeight?: string;
     modifiedDate?: string;
+    alreadyImported?: boolean;
 };
 
 type USDAFoodsTableProps = {
@@ -107,7 +108,7 @@ function USDAFoodsTable({ foods, selectedIds, onToggleSelected, selectedRowId, o
                 <Table size="small" stickyHeader sx={{ minWidth: 950, tableLayout: 'fixed' }}>
                     <TableHead>
                         <TableRow sx={{ '& th': { backgroundColor: 'grey.50' } }}>
-                            <TableCell sx={{ fontWeight: 700, width: 90 }}>Select</TableCell>
+                            <TableCell sx={{ fontWeight: 700, width: 140 }}>Select</TableCell>
                             <TableCell sx={{ fontWeight: 700, width: 120 }}>FDC ID</TableCell>
                             <TableCell sx={{ fontWeight: 700, width: 300 }}>Description</TableCell>
                             <TableCell sx={{ fontWeight: 700, width: 120 }}>Type</TableCell>
@@ -133,12 +134,13 @@ function USDAFoodsTable({ foods, selectedIds, onToggleSelected, selectedRowId, o
                                         control={
                                             <Checkbox
                                                 size="small"
-                                                checked={selectedIds.has(food.fdcId)}
+                                                checked={!food.alreadyImported && selectedIds.has(food.fdcId)}
+                                                disabled={food.alreadyImported || loading}
                                                 onChange={() => onToggleSelected(food.fdcId)}
                                                 onClick={(e) => e.stopPropagation()}
                                             />
                                         }
-                                        label=""
+                                        label={food.alreadyImported ? 'Already imported' : ''}
                                     />
                                 </TableCell>
                                 <TableCell>{food.fdcId}</TableCell>

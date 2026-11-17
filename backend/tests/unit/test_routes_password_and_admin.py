@@ -510,6 +510,7 @@ def test_fdc_import_rejects_the_same_invalid_food(
     monkeypatch.setattr(importer, "get_foods_by_ids", lambda ids: [{"fdcId": 1, "description": "Invalid", "dataType": "Foundation"}])
     monkeypatch.setattr(routes, "_get_importer", lambda: importer)
     monkeypatch.setattr(routes, "_get_catalog_user_id", lambda: 1)
+    monkeypatch.setattr(routes.Food, "get_by_user_source_fdc_id", staticmethod(lambda *args: None))
     monkeypatch.setattr(routes.db, "session", SimpleNamespace(begin=lambda: _DummyTxn(), begin_nested=lambda: _DummyTxn()))
 
     response = client.post("/api/import/fdc/import", json={"fdc_ids": [1]})

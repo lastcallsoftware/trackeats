@@ -58,6 +58,7 @@ type FdcSearchFood = {
     brandName?: string;
     packageWeight?: string;
     modifiedDate?: string;
+    alreadyImported?: boolean;
 };
 
 type FdcSearchResponse = {
@@ -80,6 +81,8 @@ type FdcImportResponse = {
     imported_count: number;
     created_count: number;
     updated_count: number;
+    skipped_count: number;
+    skipped: Array<{ fdc_id: number; reason: 'already_imported' }>;
     failures: Array<{ fdc_id: number; error: string }>;
     items: FdcImportItem[];
 };
@@ -257,6 +260,8 @@ function AdminPage() {
             });
             const foods = res.data.foods ?? [];
             setFdcResults(foods);
+            const importedIds = new Set(foods.filter(food => food.alreadyImported).map(food => food.fdcId));
+            setFdcSelectedIds(prev => new Set([...prev].filter(id => !importedIds.has(id))));
             setFdcTotalHits(res.data.totalHits ?? 0);
             setFdcTotalPages(res.data.totalPages ?? 0);
             setFdcPageNumber(res.data.currentPage ?? pageNumber);
@@ -277,6 +282,7 @@ function AdminPage() {
     }, [fdcDataType, fdcPageSize, fdcQuery]);
 
     const toggleFdcSelected = (fdcId: number) => {
+        if (fdcResults.some(food => food.fdcId === fdcId && food.alreadyImported)) return;
         setFdcSelectedIds((prev) => {
             const next = new Set(prev);
             if (next.has(fdcId)) {
@@ -305,9 +311,12 @@ function AdminPage() {
                 timeout: USDA_REQUEST_TIMEOUT_MS,
             });
             setFdcImportResult(res.data);
-            if ((res.data.failures?.length ?? 0) === 0) {
-                setFdcSelectedIds(new Set());
-            }
+            const importedIds = new Set([
+                ...res.data.items.map(item => item.fdc_id),
+                ...res.data.skipped.map(item => item.fdc_id),
+            ]);
+            setFdcResults(prev => prev.map(food => importedIds.has(food.fdcId) ? { ...food, alreadyImported: true } : food));
+            setFdcSelectedIds(prev => new Set([...prev].filter(id => !importedIds.has(id))));
         } catch (err: unknown) {
             const msg = axios.isAxiosError(err)
                 ? (err.response?.data?.msg ?? err.message)
@@ -726,7 +735,7 @@ function AdminPage() {
 
                 {fdcImportResult && (
                     <Alert severity={fdcImportResult.failures.length > 0 ? 'warning' : 'success'} sx={{ mt: 2 }}>
-                        Imported {fdcImportResult.imported_count}. Created: {fdcImportResult.created_count}. Updated: {fdcImportResult.updated_count}.
+                        Imported {fdcImportResult.imported_count}. Already imported: {fdcImportResult.skipped_count}.
                         {fdcImportResult.failures.length > 0 && ` Failures: ${fdcImportResult.failures.length}.`}
                     </Alert>
                 )}

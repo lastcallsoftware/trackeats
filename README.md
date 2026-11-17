@@ -7,6 +7,8 @@ This project is a small web application.  Conceptually it is a portfolio app int
 
 [Database entity relationship diagram](docs/entity-relationship-diagram.md)
 
+[USDA import duplicate protection](docs/usda-imports.md)
+
 
 # Deployment
 

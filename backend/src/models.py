@@ -3,6 +3,7 @@ from decimal import Decimal, ROUND_HALF_UP
 from typing import Any
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import func, select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from email_validator import validate_email
 from crypto import Crypto
@@ -918,6 +919,7 @@ class Food(db.Model):
     This is the app's basic building-block record.
     """
     __tablename__ = "food"
+    __table_args__ = (db.UniqueConstraint("user_id", "source", "fdc_id", name="uq_food_user_source_fdc"),)
     __allow_unmapped__ = True
 
     id: Mapped[int] = mapped_column(primary_key=True)
@@ -1104,6 +1106,17 @@ class Food(db.Model):
 
 
     @staticmethod
+    def get_imported_fdc_ids(user_id: int, fdc_ids: list[int]) -> set[int]:
+        if not fdc_ids:
+            return set()
+        values = db.session.scalars(
+            db.select(Food.fdc_id)
+            .where(Food.user_id == user_id, Food.source == "usda_fdc", Food.fdc_id.in_(fdc_ids))
+        ).all()
+        return {value for value in values if value is not None}
+
+
+    @staticmethod
     def add(user_id: int, food: FoodRequest, keylists: dict[str,dict[int,int]] | None = None) -> Food:
         """
         Add a new Food record to the database.
@@ -1192,6 +1205,9 @@ class Food(db.Model):
 
             return new_food_dao
 
+        except IntegrityError:
+            # Let callers distinguish a duplicate identity from validation errors.
+            raise
         except Exception as e:
             raise ValueError("Food record could not be added: " + str(e))
 

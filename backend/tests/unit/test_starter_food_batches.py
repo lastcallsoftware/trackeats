@@ -120,12 +120,13 @@ def test_import_starter_flag_for_new_and_existing_foods(
     assert response.status_code == 200
     assert response.get_json()["failures"] == []
     assert response.get_json()["created_count"] == 1
-    assert response.get_json()["updated_count"] == 1
+    assert response.get_json()["updated_count"] == 0
+    assert response.get_json()["skipped_count"] == 1
     existing = models.db.session.get(models.Food, 10)
     created = models.db.session.scalar(models.db.select(models.Food).where(models.Food.fdc_id == 2))
     assert existing is not None
     assert created is not None
-    assert existing.starter_food is (bool(starter_food) or existing_starter)
+    assert existing.starter_food is existing_starter
     assert created.starter_food is bool(starter_food)
 
 
