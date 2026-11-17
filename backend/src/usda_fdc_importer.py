@@ -12,6 +12,12 @@ from schemas import FoodRequest, NutritionRequest, NutritionAlternativeRequest
 
 USDA_SOURCE = "usda_fdc"
 _ALLOWED_DATA_TYPES = ["Branded", "Foundation"]
+# Foundation foods may report total fat as NLEA (298) instead of lipid (204).
+_TOTAL_FAT_NUMBERS = ["1004", "204", "298"]
+# Prefer carbohydrate by difference; use summation only when it is absent.
+_TOTAL_CARBS_NUMBERS = ["1005", "205", "205.2"]
+# Foundation foods may report total sugars under the NLEA definition (269.3).
+_TOTAL_SUGAR_NUMBERS = ["2000", "269", "269.3"]
 
 
 class USDAFdcImporterError(Exception):
@@ -201,7 +207,11 @@ class USDAFdcImporter:
     def validate_and_map_food(self, food: dict[str, Any]) -> FoodRequest:
         mapped = self.map_to_food_request(food)
         if self.nutrition_status(food) == "missing_core":
-            raise USDAFdcImporterError("USDA record is missing core nutrition data")
+            raise USDAFdcImporterError(
+                "USDA record is missing core nutrition data: no usable values for calories, "
+                "protein, carbohydrate, total fat, or sodium were found. "
+                "Choose another USDA record or add the food manually with nutrition from its label."
+            )
         return mapped
 
     def map_to_food_request(self, usda_food: dict[str, Any]) -> FoodRequest:
@@ -260,14 +270,14 @@ class USDAFdcImporter:
             serving_size_metric=_dec(serving_size_metric),
             serving_size_imperial=_dec(serving_size_imperial),
             calories=_dec(_to_int(calorie_value)),
-            total_fat_g=_dec(_to_float(_nutrient_value_any(usda_food, ["1004", "204"], "fat"))),
+            total_fat_g=_dec(_to_float(_nutrient_value_any(usda_food, _TOTAL_FAT_NUMBERS, "fat"))),
             saturated_fat_g=_dec(_to_float(_nutrient_value_any(usda_food, ["1258", "606"], "saturatedFat"))),
             trans_fat_g=_dec(_to_float(_nutrient_value_any(usda_food, ["1257", "605"], "transFat"))),
             cholesterol_mg=_dec(_to_int(_nutrient_value_any(usda_food, ["1253", "601"], "cholesterol"))),
             sodium_mg=_dec(_to_int(_nutrient_value_any(usda_food, ["1093", "307"], "sodium"))),
-            total_carbs_g=_dec(_to_int(_nutrient_value_any(usda_food, ["1005", "205"], "carbohydrates"))),
+            total_carbs_g=_dec(_to_int(_nutrient_value_any(usda_food, _TOTAL_CARBS_NUMBERS, "carbohydrates"))),
             fiber_g=_dec(_to_int(_nutrient_value_any(usda_food, ["1079", "291"], "fiber"))),
-            total_sugar_g=_dec(_to_int(_nutrient_value_any(usda_food, ["2000", "269"], "sugars"))),
+            total_sugar_g=_dec(_to_int(_nutrient_value_any(usda_food, _TOTAL_SUGAR_NUMBERS, "sugars"))),
             added_sugar_g=_dec(_to_int(_nutrient_value_any(usda_food, ["1235", "539"], None))),
             protein_g=_dec(_to_int(_nutrient_value_any(usda_food, ["1003", "203"], "protein"))),
             vitamin_d_mcg=_dec(_to_int(_nutrient_value_any(usda_food, ["1114", "328"], None))),
@@ -549,8 +559,8 @@ def _calorie_value_with_source(usda_food: dict[str, Any]) -> tuple[float | None,
 
     # Last fallback: estimate calories from macros when explicit energy is missing.
     protein_g = _nutrient_value_any(usda_food, ["1003", "203"], "protein") or 0.0
-    carbs_g = _nutrient_value_any(usda_food, ["1005", "205"], "carbohydrates") or 0.0
-    fat_g = _nutrient_value_any(usda_food, ["1004", "204"], "fat") or 0.0
+    carbs_g = _nutrient_value_any(usda_food, _TOTAL_CARBS_NUMBERS, "carbohydrates") or 0.0
+    fat_g = _nutrient_value_any(usda_food, _TOTAL_FAT_NUMBERS, "fat") or 0.0
     estimated = (protein_g * 4.0) + (carbs_g * 4.0) + (fat_g * 9.0)
     if estimated > 0:
         return estimated, "estimated_from_macros"
@@ -564,8 +574,8 @@ def _has_core_nutrition_data(usda_food: dict[str, Any]) -> bool:
         return True
 
     protein = _nutrient_value_any(usda_food, ["1003", "203"], "protein")
-    carbs = _nutrient_value_any(usda_food, ["1005", "205"], "carbohydrates")
-    total_fat = _nutrient_value_any(usda_food, ["1004", "204"], "fat")
+    carbs = _nutrient_value_any(usda_food, _TOTAL_CARBS_NUMBERS, "carbohydrates")
+    total_fat = _nutrient_value_any(usda_food, _TOTAL_FAT_NUMBERS, "fat")
     sodium = _nutrient_value_any(usda_food, ["1093", "307"], "sodium")
 
     return any(value is not None for value in [protein, carbs, total_fat, sodium])

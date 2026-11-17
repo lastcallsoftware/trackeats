@@ -40,6 +40,65 @@ def fdc_app(monkeypatch: pytest.MonkeyPatch) -> Iterator[Flask]:
         models.db.drop_all()
 
 
+def test_missing_nutrition_reason_is_returned_for_preview_and_import(
+    fdc_app: Flask, monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    importer = routes._get_importer()
+    monkeypatch.setattr(importer, "get_foods_by_ids", lambda ids: [
+        {"fdcId": 10, "description": "Sparse food", "dataType": "Foundation",
+         "foodNutrients": [{"nutrient": {"number": "255"}, "amount": 75}]},
+        {"fdcId": 11, "description": "Complete food", "dataType": "Foundation",
+         "labelNutrients": {"calories": {"value": 100}}},
+    ])
+    client = fdc_app.test_client()
+    preview_response = client.post("/api/import/fdc/preview", json={"fdc_ids": [10, 11]})
+    assert preview_response.status_code == 200
+    preview = preview_response.get_json()
+    assert [item["fdcId"] for item in preview["items"]] == [11]
+    failure = preview["failures"][0]
+    assert failure["fdc_id"] == 10
+    assert failure["retryable"] is False
+    assert "calories, protein, carbohydrate, total fat, or sodium" in failure["error"]
+    assert "Choose another USDA record or add the food manually" in failure["error"]
+
+    import_response = client.post("/api/import/fdc/import", json={"fdc_ids": [10, 11]})
+    assert import_response.status_code == 200
+    result = import_response.get_json()
+    assert result["failures"] == [{"fdc_id": 10, "error": failure["error"]}]
+    assert result["created_count"] == 1
+    assert [item["fdc_id"] for item in result["items"]] == [11]
+    assert models.Food.get_by_user_source_fdc_id(1, "usda_fdc", 10) is None
+
+
+def test_foundation_nlea_fat_can_be_previewed_and_imported(
+    fdc_app: Flask, monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(routes._get_importer(), "get_foods_by_ids", lambda ids: [
+        {"fdcId": 748608, "description": "Oil, olive, extra virgin", "dataType": "Foundation",
+         "foodNutrients": [
+             {"nutrient": {"id": 1085, "number": "298"}, "amount": 93.7},
+             {"nutrient": {"id": 1258, "number": "606"}, "amount": 15.4},
+         ]},
+    ])
+    client = fdc_app.test_client()
+    preview_response = client.post("/api/import/fdc/preview", json={"fdc_ids": [748608]})
+    assert preview_response.status_code == 200
+    preview = preview_response.get_json()
+    assert preview["failures"] == []
+    assert preview["items"][0]["calorieSource"] == "estimated_from_macros"
+    assert float(preview["items"][0]["mapped"]["nutrition"]["total_fat_g"]) == 93.7
+
+    response = client.post("/api/import/fdc/import", json={"fdc_ids": [748608]})
+    assert response.status_code == 200
+    result = response.get_json()
+    assert result["failures"] == []
+    assert result["created_count"] == 1
+    food = models.Food.get_by_user_source_fdc_id(1, "usda_fdc", 748608)
+    assert food is not None and food.primary_nutrition is not None
+    assert float(food.primary_nutrition.total_fat_g) == 93.7
+    assert food.primary_nutrition.calories == 843
+
+
 def test_repeated_import_skips_existing_and_preserves_manual_edits(fdc_app: Flask) -> None:
     client = fdc_app.test_client()
     assert client.post("/api/import/fdc/import", json={"fdc_ids": [10]}).get_json()["created_count"] == 1

@@ -1,5 +1,6 @@
 import sys
 from pathlib import Path
+from decimal import Decimal
 from typing import Any
 
 import pytest
@@ -366,6 +367,98 @@ def test_calorie_source_estimated_from_macros() -> None:
     }
 
     assert importer.calorie_source(usda_food) == "estimated_from_macros"
+
+
+@pytest.mark.parametrize("fat", [0, 93.7])
+def test_foundation_nlea_fat_supports_validation_mapping_and_calorie_estimate(fat: float) -> None:
+    importer = USDAFdcImporter(api_key="test-key")
+    # FDC 748608 reports NLEA total fat, with no energy or other core macros.
+    food: dict[str, Any] = {
+        "fdcId": 748608,
+        "description": "Oil, olive, extra virgin",
+        "dataType": "Foundation",
+        "foodNutrients": [
+            {"nutrient": {"id": 1085, "number": "298", "name": "Total fat (NLEA)"}, "amount": fat},
+        ],
+    }
+    mapped = importer.validate_and_map_food(food)
+    assert importer.nutrition_status(food) == "available"
+    assert mapped.nutrition.total_fat_g == Decimal(str(fat))
+    assert mapped.nutrition.calories == round(fat * 9)
+    assert importer.calorie_source(food) == ("estimated_from_macros" if fat else "missing")
+
+
+@pytest.mark.parametrize("fat", [0, 100])
+def test_nlea_fat_fallback_preserves_standard_total_fat(fat: float) -> None:
+    importer = USDAFdcImporter(api_key="test-key")
+    food: dict[str, Any] = {
+        "fdcId": 748608,
+        "dataType": "Foundation",
+        "foodNutrients": [
+            {"nutrient": {"number": "298"}, "amount": 93.7},
+            {"nutrient": {"number": "204"}, "amount": fat},
+        ],
+    }
+    assert importer.validate_and_map_food(food).nutrition.total_fat_g == fat
+
+
+@pytest.mark.parametrize("carbs", [0, 12.5])
+def test_carbohydrate_by_summation_supports_validation_and_calorie_estimation(carbs: float) -> None:
+    importer = USDAFdcImporter(api_key="test-key")
+    food: dict[str, Any] = {
+        "fdcId": 746764,
+        "dataType": "Foundation",
+        "foodNutrients": [
+            {"nutrient": {"id": 1050, "number": "205.2"}, "amount": carbs},
+        ],
+    }
+    mapped = importer.validate_and_map_food(food)
+    assert importer.nutrition_status(food) == "available"
+    assert mapped.nutrition.total_carbs_g == round(carbs)
+    assert mapped.nutrition.calories == round(carbs * 4)
+    assert mapped.nutrition.protein_g == mapped.nutrition.total_fat_g == 0
+
+
+def test_nlea_total_sugars_are_mapped_without_becoming_added_sugars() -> None:
+    importer = USDAFdcImporter(api_key="test-key")
+    mapped = importer.validate_and_map_food({
+        "fdcId": 746764,
+        "dataType": "Foundation",
+        "foodNutrients": [
+            {"nutrient": {"number": "208"}, "amount": 40},
+            {"nutrient": {"id": 1063, "number": "269.3"}, "amount": 7.5},
+        ],
+    })
+    assert mapped.nutrition.total_sugar_g == 8
+    assert mapped.nutrition.added_sugar_g == 0
+
+
+@pytest.mark.parametrize("value", [0, 6])
+@pytest.mark.parametrize("use_label", [False, True])
+def test_alternate_carbs_and_sugars_preserve_existing_value_precedence(value: int, use_label: bool) -> None:
+    importer = USDAFdcImporter(api_key="test-key")
+    food: dict[str, Any] = {
+        "fdcId": 746764,
+        "dataType": "Foundation",
+        "foodNutrients": [
+            {"nutrient": {"number": "205.2"}, "amount": 20},
+            {"nutrient": {"number": "269.3"}, "amount": 12},
+            {"nutrient": {"number": "208"}, "amount": 100},
+        ],
+    }
+    if use_label:
+        food["labelNutrients"] = {
+            "carbohydrates": {"value": value}, "sugars": {"value": value},
+        }
+    else:
+        food["foodNutrients"].extend([
+            {"nutrient": {"number": "205"}, "amount": value},
+            {"nutrient": {"number": "269"}, "amount": value},
+        ])
+    mapped = importer.validate_and_map_food(food)
+    assert mapped.nutrition.total_carbs_g == value
+    assert mapped.nutrition.total_sugar_g == value
+    assert mapped.nutrition.calories == 100
 
 
 def test_map_to_food_request_uses_median_when_amount_missing() -> None:

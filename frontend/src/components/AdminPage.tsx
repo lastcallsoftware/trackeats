@@ -303,6 +303,7 @@ function AdminPage() {
 
         setFdcImporting(true);
         setFdcError(null);
+        setFdcImportResult(null);
         try {
             const res = await axios.post<FdcImportResponse>('/api/import/fdc/import', {
                 fdc_ids: selected,
@@ -737,6 +738,15 @@ function AdminPage() {
                     <Alert severity={fdcImportResult.failures.length > 0 ? 'warning' : 'success'} sx={{ mt: 2 }}>
                         Imported {fdcImportResult.imported_count}. Already imported: {fdcImportResult.skipped_count}.
                         {fdcImportResult.failures.length > 0 && ` Failures: ${fdcImportResult.failures.length}.`}
+                        {fdcImportResult.failures.length > 0 && (
+                            <Box component="ul" sx={{ my: 1, pl: 2.5 }}>
+                                {fdcImportResult.failures.map((failure) => (
+                                    <li key={failure.fdc_id}>
+                                        USDA FDC ID {failure.fdc_id}: {failure.error}
+                                    </li>
+                                ))}
+                            </Box>
+                        )}
                     </Alert>
                 )}
             </Box>
