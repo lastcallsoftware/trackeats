@@ -473,12 +473,20 @@ function FoodForm() {
             : `${newValue} ${newUnit}`;
 
         let nutrition: INutritionAlternative["nutrition"];
-        if (newWeightG != null && primaryWeightG > 0) {
-            const scale = newWeightG / primaryWeightG;
+        if (newWeightG != null) {
             const { metric, imperial } = directMetric != null && directImperial != null
                 ? { metric: directMetric, imperial: directImperial }
                 : weightGToServingSize(newWeightG, effectiveUnitType);
-            nutrition = scaleNutrition(primary, scale, metric, imperial, description);
+            // A known serving weight determines its size even when the primary
+            // has no weight yet. Only scale nutrients when a base weight exists.
+            nutrition = primaryWeightG > 0
+                ? scaleNutrition(primary, newWeightG / primaryWeightG, metric, imperial, description)
+                : {
+                    ...primary,
+                    serving_size_description: description,
+                    serving_size_metric: metric,
+                    serving_size_imperial: imperial,
+                };
         } else {
             // Fallback: copy the primary nutrition with the new description.
             nutrition = { ...primary, serving_size_description: description };
