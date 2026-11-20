@@ -99,10 +99,6 @@ def minimal_app_config() -> Flask:
     def init_db_command():
         Data.init_db()
 
-    # Temporary USDA identity repair: remove this block and temporary_usda_backfill.py after use.
-    from temporary_usda_backfill import backfill_usda_foundation_ids
-    app.cli.add_command(backfill_usda_foundation_ids)
-
     return app
 
 

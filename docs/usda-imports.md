@@ -1,35 +1,5 @@
 # USDA import duplicate protection
 
-## Temporary repair of older Foundation imports
-
-From `backend/`, with the normal database configuration and `USDA_FDC_API_KEY`
-available, preview missing identity repairs:
-
-```sh
-flask --app src/app.py:minimal_app_config backfill-usda-foundation-ids
-```
-
-To save the matches:
-
-```sh
-flask --app src/app.py:minimal_app_config backfill-usda-foundation-ids --apply
-```
-
-The temporary command starts with database foods whose Vendor is exactly
-`USDA Foundation` and whose FDC ID is missing. It searches USDA Foundation by each
-food's name, following only that search's result pages, and reuses results for
-repeated names. A match requires Name to exactly match the importer's derived
-USDA name (including its 50-character truncation).
-It covers all food owners. Ambiguous matches, unmatched foods, and USDA identities
-already assigned to another food for the same owner are reported and skipped.
-Only `source`, `fdc_id`, and `fdc_data_type` are updated; existing food IDs,
-nutrition, servings, and references are preserved. Repeating the command skips
-foods already repaired. Preview mode does not save changes.
-
-After the repair, remove `backend/src/temporary_usda_backfill.py`, its marked
-registration block in `backend/src/app.py`,
-`backend/tests/unit/test_temporary_usda_backfill.py`, and this temporary section.
-
 USDA imports are administrator-only operations that create foods in the shared catalog. Import identity is the combination of owner, source (`usda_fdc`), and USDA `fdc_id`. A catalog food is imported once; repeating an import skips it and preserves its name, serving sizes, nutrition, and starter-food flag.
 
 ## Search and selection
