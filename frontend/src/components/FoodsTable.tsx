@@ -59,6 +59,11 @@ const foodColumns = [
                 cell: info => info.getValue(),
                 size: 55
             }),
+            columnHelper.accessor("fdc_id", {
+                header: () => <span>USDA FDC ID</span>,
+                cell: info => info.getValue() ?? "",
+                size: 115,
+            }),
             columnHelper.accessor("group", {
                 header: () => <span>Group</span>,
                 cell: info => getFoodGroupLabel(info.getValue()),
