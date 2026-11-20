@@ -13,7 +13,7 @@ export const FOODS_COLUMNS_PREFERENCES_KEY = "foods.columns"
 export const DEFAULT_FOODS_COLUMNS_PREFERENCES: TableColumnsPreferences = {
 	columnVisibility: {
 		"id": false,
-		"fdc_id": true,
+		"fdc_id": false,
 		"group": false,
 		"vendor": true,
 		"name": MANDATORY_COLUMN_VISIBILITY,
